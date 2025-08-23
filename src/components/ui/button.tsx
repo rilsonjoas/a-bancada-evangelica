@@ -5,24 +5,31 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-[var(--transition-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        default: "bg-primary text-primary-foreground hover:bg-primary-hover shadow-card hover:shadow-elevated",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-card hover:shadow-elevated",
         outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+          "border border-border bg-background text-foreground hover:bg-secondary hover:text-secondary-foreground shadow-card hover:shadow-elevated",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+          "bg-secondary text-secondary-foreground hover:bg-secondary-hover shadow-card hover:shadow-elevated",
+        ghost: "text-foreground hover:bg-secondary/50 hover:text-foreground",
+        link: "text-primary underline-offset-4 hover:underline hover:text-primary-hover",
+        // Professional variants using our design system
+        hero: "bg-white/10 text-white border border-white/20 hover:bg-white/20 backdrop-blur-sm shadow-elevated hover:shadow-[var(--shadow-elevated)]",
+        accent: "bg-gradient-accent text-accent-foreground hover:bg-accent-hover shadow-card hover:shadow-elevated font-semibold",
+        premium: "bg-gradient-primary text-primary-foreground hover:opacity-90 shadow-elevated hover:shadow-[var(--shadow-elevated)] font-semibold",
+        success: "bg-success text-success-foreground hover:bg-success/90 shadow-card hover:shadow-elevated",
+        warning: "bg-warning text-warning-foreground hover:bg-warning/90 shadow-card hover:shadow-elevated",
       },
       size: {
         default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-md px-8",
+        sm: "h-9 rounded-md px-3 text-xs",
+        lg: "h-12 rounded-md px-8 text-base font-medium",
+        xl: "h-14 rounded-lg px-10 text-lg font-semibold",
         icon: "h-10 w-10",
       },
     },

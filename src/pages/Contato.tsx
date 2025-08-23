@@ -1,0 +1,346 @@
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Mail, MessageCircle, Github, Send, Phone, MapPin, Clock, HelpCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+
+const ContatoPage = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: ''
+  });
+  const { toast } = useToast();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Simulate form submission
+    toast({
+      title: "Mensagem enviada!",
+      description: "Obrigado pelo contato. Responderemos em breve.",
+    });
+    setFormData({ name: '', email: '', subject: '', message: '' });
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
+  };
+
+  const faqItems = [
+    {
+      question: "Como são coletados os dados dos parlamentares?",
+      answer: "Utilizamos exclusivamente APIs oficiais da Câmara dos Deputados, Senado Federal, TSE e Portal da Transparência. Todos os dados são públicos e verificáveis."
+    },
+    {
+      question: "Com que frequência os dados são atualizados?",
+      answer: "Os dados são atualizados trimestralmente, ou sempre que houver votações importantes relacionadas aos nossos critérios de avaliação."
+    },
+    {
+      question: "Como posso contestar uma avaliação?",
+      answer: "Entre em contato conosco apresentando documentação que comprove inconsistências. Temos um processo rigoroso de revisão para correções."
+    },
+    {
+      question: "O projeto tem ligação com partidos políticos?",
+      answer: "Não. Somos completamente independentes e apartidários. Não recebemos financiamento de partidos ou grupos políticos."
+    },
+    {
+      question: "Posso colaborar com o projeto?",
+      answer: "Sim! Somos um projeto de código aberto. Programadores, teólogos, cientistas políticos e voluntários são bem-vindos."
+    },
+    {
+      question: "Como garantem a imparcialidade das avaliações?",
+      answer: "Nossa metodologia é transparente, baseada em critérios objetivos e revisada por uma equipe multidisciplinar de cristãos comprometidos com a verdade."
+    }
+  ];
+
+  return (
+    <div className="min-h-screen bg-gradient-subtle">
+      {/* Hero Section */}
+      <section className="bg-gradient-primary text-primary-foreground py-16">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="flex justify-center mb-6">
+              <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-sm">
+                <Mail className="h-12 w-12" />
+              </div>
+            </div>
+            <h1 className="font-serif text-4xl md:text-5xl font-bold mb-6">
+              Entre em Contato
+            </h1>
+            <p className="text-xl text-primary-foreground/90 leading-relaxed">
+              Tire suas dúvidas, faça sugestões ou colabore conosco para fortalecer 
+              a transparência parlamentar no Brasil.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Contact Form & Info */}
+      <section className="py-16">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            {/* Contact Form */}
+            <Card className="card-elevated">
+              <CardHeader>
+                <CardTitle className="font-serif text-2xl flex items-center space-x-2">
+                  <Send className="h-6 w-6" />
+                  <span>Envie sua Mensagem</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="name" className="block text-sm font-medium text-foreground mb-2">
+                        Nome Completo *
+                      </label>
+                      <Input
+                        id="name"
+                        name="name"
+                        type="text"
+                        required
+                        value={formData.name}
+                        onChange={handleChange}
+                        placeholder="Seu nome completo"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
+                        Email *
+                      </label>
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        required
+                        value={formData.email}
+                        onChange={handleChange}
+                        placeholder="seu@email.com"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="subject" className="block text-sm font-medium text-foreground mb-2">
+                      Assunto *
+                    </label>
+                    <Input
+                      id="subject"
+                      name="subject"
+                      type="text"
+                      required
+                      value={formData.subject}
+                      onChange={handleChange}
+                      placeholder="Sobre o que você gostaria de falar?"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="message" className="block text-sm font-medium text-foreground mb-2">
+                      Mensagem *
+                    </label>
+                    <Textarea
+                      id="message"
+                      name="message"
+                      required
+                      rows={6}
+                      value={formData.message}
+                      onChange={handleChange}
+                      placeholder="Escreva sua mensagem detalhada aqui..."
+                    />
+                  </div>
+                  
+                  <Button type="submit" size="lg" className="w-full font-medium">
+                    <Send className="h-4 w-4 mr-2" />
+                    Enviar Mensagem
+                  </Button>
+                  
+                  <p className="text-xs text-muted-foreground text-center">
+                    Responderemos em até 48 horas úteis. Todos os campos são obrigatórios.
+                  </p>
+                </form>
+              </CardContent>
+            </Card>
+
+            {/* Contact Information */}
+            <div className="space-y-8">
+              <Card className="card-elevated">
+                <CardHeader>
+                  <CardTitle className="font-serif text-xl flex items-center space-x-2">
+                    <MessageCircle className="h-5 w-5" />
+                    <span>Informações de Contato</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="flex items-start space-x-3">
+                    <div className="bg-primary/10 p-2 rounded-lg">
+                      <Mail className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-foreground">Email Principal</h4>
+                      <p className="text-sm text-muted-foreground">contato@abancadaevangelica.org.br</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Para dúvidas gerais, sugestões e parcerias
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start space-x-3">
+                    <div className="bg-primary/10 p-2 rounded-lg">
+                      <Github className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-foreground">GitHub</h4>
+                      <p className="text-sm text-muted-foreground">github.com/bancada-evangelica</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Para colaborações técnicas e issues
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start space-x-3">
+                    <div className="bg-primary/10 p-2 rounded-lg">
+                      <Clock className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-foreground">Horário de Atendimento</h4>
+                      <p className="text-sm text-muted-foreground">Segunda a Sexta: 9h às 18h</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Respondemos em até 48 horas úteis
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="card-elevated">
+                <CardHeader>
+                  <CardTitle className="font-serif text-xl">Tipos de Contato</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-3 bg-secondary/30 rounded-lg">
+                      <div>
+                        <h4 className="font-medium text-foreground">Dúvidas sobre Metodologia</h4>
+                        <p className="text-xs text-muted-foreground">Critérios e processo de avaliação</p>
+                      </div>
+                      <Badge variant="secondary">FAQ</Badge>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-3 bg-secondary/30 rounded-lg">
+                      <div>
+                        <h4 className="font-medium text-foreground">Correções de Dados</h4>
+                        <p className="text-xs text-muted-foreground">Informações incorretas ou desatualizadas</p>
+                      </div>
+                      <Badge variant="outline">Prioritário</Badge>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-3 bg-secondary/30 rounded-lg">
+                      <div>
+                        <h4 className="font-medium text-foreground">Colaborações</h4>
+                        <p className="text-xs text-muted-foreground">Parcerias e contribuições</p>
+                      </div>
+                      <Badge>Bem-vindo</Badge>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-3 bg-secondary/30 rounded-lg">
+                      <div>
+                        <h4 className="font-medium text-foreground">Imprensa</h4>
+                        <p className="text-xs text-muted-foreground">Solicitações de entrevistas e dados</p>
+                      </div>
+                      <Badge variant="secondary">Media</Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="py-16 bg-secondary/30">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-12">
+              <HelpCircle className="h-12 w-12 text-primary mx-auto mb-4" />
+              <h2 className="font-serif text-3xl font-bold text-foreground mb-4">
+                Perguntas Frequentes
+              </h2>
+              <p className="text-lg text-muted-foreground">
+                Respostas para as dúvidas mais comuns sobre nosso projeto.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              {faqItems.map((item, index) => (
+                <Card key={index} className="card-elevated">
+                  <CardHeader>
+                    <CardTitle className="font-serif text-lg text-foreground">
+                      {item.question}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground leading-relaxed">
+                      {item.answer}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <div className="text-center mt-12">
+              <p className="text-muted-foreground mb-4">
+                Não encontrou a resposta que procurava?
+              </p>
+              <Button variant="outline" size="lg">
+                <Mail className="h-4 w-4 mr-2" />
+                Fazer uma Pergunta
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-16">
+        <div className="container mx-auto px-4 text-center">
+          <div className="max-w-3xl mx-auto">
+            <Mail className="h-12 w-12 text-primary mx-auto mb-6" />
+            <h2 className="font-serif text-3xl font-bold text-foreground mb-4">
+              Fortaleça este Ministério
+            </h2>
+            <p className="text-lg text-muted-foreground leading-relaxed mb-8">
+              Compartilhe nosso trabalho, ore por nossa missão e ajude a construir 
+              um Brasil com líderes íntegros e compromissados com os valores do Reino.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+              <Button size="lg" className="font-medium">
+                Compartilhar Projeto
+              </Button>
+              <Button variant="outline" size="lg">
+                <Github className="h-4 w-4 mr-2" />
+                Contribuir no GitHub
+              </Button>
+            </div>
+            
+            <div className="mt-8 pt-8 border-t border-border">
+              <p className="text-sm text-muted-foreground font-mono italic">
+                "Portanto, ide e fazei discípulos de todas as nações" - Mateus 28:19
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+};
+
+export default ContatoPage;

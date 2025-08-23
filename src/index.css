@@ -2,87 +2,134 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* A Bancada Evangélica Design System - Professional NGO inspired */
 
 @layer base {
   :root {
+    /* Core Brand Colors - Professional institutional palette */
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
+    --foreground: 220 90% 15%;
+    
+    /* Institutional Blue - Primary brand color */
+    --primary: 220 90% 25%;           /* #1e3a8a institutional blue */
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 220 90% 20%;
+    --primary-light: 220 90% 35%;
+    
+    /* Professional Grays */
+    --secondary: 220 15% 96%;         /* Light blue-gray */
+    --secondary-foreground: 220 90% 15%;
+    --secondary-hover: 220 15% 92%;
+    
+    /* Accent Orange - For highlights */
+    --accent: 24 95% 53%;             /* #ea580c sober orange */
+    --accent-foreground: 0 0% 100%;
+    --accent-hover: 24 95% 48%;
+    
+    /* Surface Colors */
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
+    --card-foreground: 220 90% 15%;
+    --card-border: 220 15% 88%;
+    
+    /* Interactive Elements */
+    --muted: 220 15% 96%;
+    --muted-foreground: 220 15% 45%;
+    --border: 220 15% 88%;
+    --input: 220 15% 88%;
+    --ring: 220 90% 25%;
+    
+    /* Status Colors */
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    
+    /* Specialized Elements */
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-
+    --popover-foreground: 220 90% 15%;
+    
+    /* Navigation */
+    --nav-background: 0 0% 100%;
+    --nav-foreground: 220 90% 15%;
+    --nav-accent: 220 90% 25%;
+    
+    /* Scoring System Colors */
+    --score-excellent: 142 71% 45%;   /* Green for high scores */
+    --score-good: 62 85% 55%;         /* Yellow-green for good scores */
+    --score-average: 38 92% 50%;      /* Orange for average scores */
+    --score-poor: 0 72% 51%;          /* Red for poor scores */
+    
+    /* Design System Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(220 90% 25%), hsl(220 90% 35%));
+    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%), hsl(220 15% 98%));
+    --gradient-accent: linear-gradient(135deg, hsl(24 95% 53%), hsl(24 95% 58%));
+    
+    /* Professional Shadows */
+    --shadow-card: 0 4px 6px -1px hsl(220 90% 15% / 0.1), 0 2px 4px -2px hsl(220 90% 15% / 0.1);
+    --shadow-elevated: 0 10px 15px -3px hsl(220 90% 15% / 0.1), 0 4px 6px -4px hsl(220 90% 15% / 0.1);
+    --shadow-focus: 0 0 0 3px hsl(220 90% 25% / 0.1);
+    
+    /* Smooth Transitions */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* Layout */
     --radius: 0.5rem;
-
+    --radius-sm: 0.25rem;
+    --radius-lg: 0.75rem;
+    
+    /* Sidebar (keeping existing tokens for compatibility) */
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --background: 220 90% 8%;
+    --foreground: 0 0% 95%;
+    
+    --primary: 220 90% 70%;
+    --primary-foreground: 220 90% 8%;
+    --primary-hover: 220 90% 75%;
+    
+    --secondary: 220 25% 12%;
+    --secondary-foreground: 0 0% 95%;
+    --secondary-hover: 220 25% 15%;
+    
+    --accent: 24 95% 65%;
+    --accent-foreground: 220 90% 8%;
+    --accent-hover: 24 95% 70%;
+    
+    --card: 220 25% 10%;
+    --card-foreground: 0 0% 95%;
+    --card-border: 220 25% 18%;
+    
+    --muted: 220 25% 12%;
+    --muted-foreground: 220 15% 60%;
+    --border: 220 25% 18%;
+    --input: 220 25% 18%;
+    --ring: 220 90% 70%;
+    
+    --popover: 220 25% 10%;
+    --popover-foreground: 0 0% 95%;
+    
+    --nav-background: 220 90% 8%;
+    --nav-foreground: 0 0% 95%;
+    --nav-accent: 220 90% 70%;
+    
+    /* Dark mode shadows */
+    --shadow-card: 0 4px 6px -1px hsl(0 0% 0% / 0.3), 0 2px 4px -2px hsl(0 0% 0% / 0.3);
+    --shadow-elevated: 0 10px 15px -3px hsl(0 0% 0% / 0.3), 0 4px 6px -4px hsl(0 0% 0% / 0.3);
+    --shadow-focus: 0 0 0 3px hsl(220 90% 70% / 0.3);
+    
+    /* Update sidebar for dark mode */
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -96,10 +143,79 @@ All colors MUST be HSL.
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-border transition-[var(--transition-fast)];
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+  
+  /* Typography Scale */
+  .font-serif {
+    font-family: 'EB Garamond', Georgia, serif;
+  }
+  
+  .font-sans {
+    font-family: 'Geist', system-ui, -apple-system, sans-serif;
+  }
+  
+  .font-mono {
+    font-family: 'Courier Prime', Menlo, Monaco, 'Courier New', monospace;
+  }
+  
+  /* Heading Styles - Professional serif for authority */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-weight: 600;
+    line-height: 1.2;
+    color: hsl(var(--foreground));
+  }
+  
+  /* Body text - Clean sans for readability */
+  p, span, div {
+    font-family: 'Geist', system-ui, sans-serif;
+    line-height: 1.6;
+  }
+  
+  /* Technical labels - Monospace for precision */
+  .label-tech, .score-label, .data-label {
+    font-family: 'Courier Prime', monospace;
+    font-size: 0.875rem;
+    font-weight: 400;
+    letter-spacing: 0.025em;
+  }
+}
+
+@layer components {
+  /* Professional Card Styles */
+  .card-elevated {
+    @apply bg-card border border-card-border rounded-lg shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elevated)] transition-[var(--transition-smooth)];
+  }
+  
+  /* Score Badge Styles */
+  .score-excellent {
+    @apply bg-green-100 text-green-800 border-green-200;
+  }
+  
+  .score-good {
+    @apply bg-yellow-100 text-yellow-800 border-yellow-200;
+  }
+  
+  .score-average {
+    @apply bg-orange-100 text-orange-800 border-orange-200;
+  }
+  
+  .score-poor {
+    @apply bg-red-100 text-red-800 border-red-200;
+  }
+  
+  /* Navigation Styles */
+  .nav-link {
+    @apply text-nav-foreground hover:text-nav-accent hover:bg-secondary/50 rounded-md px-3 py-2 transition-[var(--transition-fast)];
+  }
+  
+  .nav-link-active {
+    @apply bg-primary text-primary-foreground font-medium;
   }
 }
