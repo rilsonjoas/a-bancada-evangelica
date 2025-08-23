@@ -151,17 +151,13 @@
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
   
-  /* Typography Scale */
+  /* Typography Scale - Simplified to 2 fonts */
   .font-serif {
     font-family: 'EB Garamond', Georgia, serif;
   }
   
   .font-sans {
     font-family: 'Geist', system-ui, -apple-system, sans-serif;
-  }
-  
-  .font-mono {
-    font-family: 'Courier Prime', Menlo, Monaco, 'Courier New', monospace;
   }
   
   /* Heading Styles - Professional serif for authority */
@@ -172,17 +168,16 @@
     color: hsl(var(--foreground));
   }
   
-  /* Body text - Clean sans for readability */
-  p, span, div {
+  /* Body text - Clean sans for readability, labels use sans too */
+  p, span, div, .label-tech, .score-label, .data-label {
     font-family: 'Geist', system-ui, sans-serif;
     line-height: 1.6;
   }
   
-  /* Technical labels - Monospace for precision */
+  /* Technical labels - Still using sans but with distinctive styling */
   .label-tech, .score-label, .data-label {
-    font-family: 'Courier Prime', monospace;
     font-size: 0.875rem;
-    font-weight: 400;
+    font-weight: 500;
     letter-spacing: 0.025em;
   }
 }

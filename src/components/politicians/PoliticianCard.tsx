@@ -37,7 +37,7 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
           {rank && (
             <div className="flex-shrink-0">
               <div className={cn(
-                "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold font-mono",
+                "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold",
                 rank <= 3 ? "bg-gradient-accent text-accent-foreground" : "bg-secondary text-secondary-foreground"
               )}>
                 {rank}
@@ -83,12 +83,12 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
 
               {/* Overall Score */}
               <div className="flex-shrink-0 text-right">
-                <Badge 
-                  variant={getScoreBadgeVariant(politician.overallScore)}
-                  className="font-mono font-bold text-sm"
-                >
-                  {formatScore(politician.overallScore)}
-                </Badge>
+              <Badge 
+                variant={getScoreBadgeVariant(politician.overallScore)}
+                className="font-semibold text-sm"
+              >
+                {formatScore(politician.overallScore)}
+              </Badge>
                 <p className="text-xs text-muted-foreground mt-1">
                   Testemunho Fiel
                 </p>
@@ -98,31 +98,31 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
             {/* Score Breakdown */}
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-4">
               <div className="text-center">
-                <div className="text-sm font-bold font-mono text-foreground">
+                <div className="text-sm font-bold text-foreground">
                   {formatScore(politician.scores.lifeProtection)}
                 </div>
                 <div className="text-xs text-muted-foreground">Vida</div>
               </div>
               <div className="text-center">
-                <div className="text-sm font-bold font-mono text-foreground">
+                <div className="text-sm font-bold text-foreground">
                   {formatScore(politician.scores.familyValues)}
                 </div>
                 <div className="text-xs text-muted-foreground">Família</div>
               </div>
               <div className="text-center">
-                <div className="text-sm font-bold font-mono text-foreground">
+                <div className="text-sm font-bold text-foreground">
                   {formatScore(politician.scores.moralIntegrity)}
                 </div>
                 <div className="text-xs text-muted-foreground">Moral</div>
               </div>
               <div className="text-center">
-                <div className="text-sm font-bold font-mono text-foreground">
+                <div className="text-sm font-bold text-foreground">
                   {formatScore(politician.scores.socialResponsibility)}
                 </div>
                 <div className="text-xs text-muted-foreground">Social</div>
               </div>
               <div className="text-center">
-                <div className="text-sm font-bold font-mono text-foreground">
+                <div className="text-sm font-bold text-foreground">
                   {formatScore(politician.scores.religiousFreedom)}
                 </div>
                 <div className="text-xs text-muted-foreground">Religião</div>

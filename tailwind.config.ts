@@ -21,7 +21,6 @@ export default {
 			fontFamily: {
 				sans: ['Geist', 'system-ui', '-apple-system', 'sans-serif'],
 				serif: ['EB Garamond', 'Georgia', 'serif'],
-				mono: ['Courier Prime', 'Menlo', 'Monaco', 'Courier New', 'monospace'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',

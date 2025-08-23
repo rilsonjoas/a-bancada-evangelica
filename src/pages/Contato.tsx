@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Mail, MessageCircle, Github, Send, Phone, MapPin, Clock, HelpCircle } from 'lucide-react';
+import { Mail, MessageCircle, Github, Send, Clock, HelpCircle, BookOpen } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const ContatoPage = () => {
@@ -68,7 +68,7 @@ const ContatoPage = () => {
           <div className="max-w-4xl mx-auto text-center">
             <div className="flex justify-center mb-6">
               <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-sm">
-                <Mail className="h-12 w-12" />
+                <BookOpen className="h-12 w-12 text-white" />
               </div>
             </div>
             <h1 className="font-serif text-4xl md:text-5xl font-bold mb-6">
@@ -313,7 +313,7 @@ const ContatoPage = () => {
       <section className="py-16">
         <div className="container mx-auto px-4 text-center">
           <div className="max-w-3xl mx-auto">
-            <Mail className="h-12 w-12 text-primary mx-auto mb-6" />
+            <BookOpen className="h-12 w-12 text-primary mx-auto mb-6" />
             <h2 className="font-serif text-3xl font-bold text-foreground mb-4">
               Fortaleça este Ministério
             </h2>
@@ -332,9 +332,9 @@ const ContatoPage = () => {
             </div>
             
             <div className="mt-8 pt-8 border-t border-border">
-              <p className="text-sm text-muted-foreground font-mono italic">
-                "Portanto, ide e fazei discípulos de todas as nações" - Mateus 28:19
-              </p>
+                <p className="text-sm text-muted-foreground italic">
+                  "Portanto, ide e fazei discípulos de todas as nações" - Mateus 28:19
+                </p>
             </div>
           </div>
         </div>

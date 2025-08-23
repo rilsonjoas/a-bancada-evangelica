@@ -83,7 +83,7 @@ const MetodologiaPage = () => {
           <div className="max-w-4xl mx-auto text-center">
             <div className="flex justify-center mb-6">
               <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-sm">
-                <BookOpen className="h-12 w-12" />
+                <BookOpen className="h-12 w-12 text-white" />
               </div>
             </div>
             <h1 className="font-serif text-4xl md:text-5xl font-bold mb-6">
@@ -184,13 +184,13 @@ const MetodologiaPage = () => {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="font-serif text-xl flex items-center space-x-3">
-                      <Badge variant="secondary" className="font-mono text-lg px-3 py-1">
+                      <Badge variant="secondary" className="text-lg px-3 py-1">
                         {(criteria.weight * 100).toFixed(0)}%
                       </Badge>
                       <span>{criteria.name}</span>
                     </CardTitle>
                     <div className="text-right">
-                      <div className="text-2xl font-bold font-mono text-primary">
+                      <div className="text-2xl font-bold text-primary">
                         {index + 1}
                       </div>
                     </div>
@@ -348,9 +348,9 @@ const MetodologiaPage = () => {
             </Button>
             
             <div className="mt-8 pt-8 border-t border-border">
-              <p className="text-sm text-muted-foreground font-mono italic">
-                "Comprai a verdade e não a vendais" - Provérbios 23:23
-              </p>
+                <p className="text-sm text-muted-foreground italic">
+                  "Comprai a verdade e não a vendais" - Provérbios 23:23
+                </p>
             </div>
           </div>
         </div>

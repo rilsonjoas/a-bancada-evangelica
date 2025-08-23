@@ -1,14 +1,14 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Heart, BookOpen, Users, Mail, Search } from 'lucide-react';
+import { BookOpen, Users, Mail, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const Header = () => {
   const location = useLocation();
 
   const navigation = [
-    { name: 'Ranking', href: '/', icon: Heart },
+    { name: 'Ranking', href: '/', icon: BookOpen },
     { name: 'Metodologia', href: '/metodologia', icon: BookOpen },
     { name: 'Sobre', href: '/sobre', icon: Users },
     { name: 'Contato', href: '/contato', icon: Mail }
@@ -28,13 +28,13 @@ const Header = () => {
           {/* Logo and Brand */}
           <Link to="/" className="flex items-center space-x-3 group">
             <div className="bg-gradient-primary p-2 rounded-lg shadow-card group-hover:shadow-elevated transition-all duration-300">
-              <Heart className="h-6 w-6 text-primary-foreground" />
+              <BookOpen className="h-6 w-6 text-primary-foreground" />
             </div>
             <div className="hidden sm:block">
               <h1 className="font-serif text-xl font-bold text-foreground">
                 A Bancada Evangélica
               </h1>
-              <p className="text-xs text-muted-foreground font-mono">
+              <p className="text-xs text-muted-foreground">
                 TRANSPARÊNCIA PARLAMENTAR
               </p>
             </div>

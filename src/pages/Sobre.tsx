@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Heart, Target, Eye, Shield, Users, BookOpen, Mail, Github } from 'lucide-react';
+import { BookOpen, Target, Eye, Shield, Users, Mail, Github } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const SobrePage = () => {
@@ -14,7 +14,7 @@ const SobrePage = () => {
           <div className="max-w-4xl mx-auto text-center">
             <div className="flex justify-center mb-6">
               <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-sm">
-                <Heart className="h-12 w-12" />
+                <BookOpen className="h-12 w-12 text-white" />
               </div>
             </div>
             <h1 className="font-serif text-4xl md:text-5xl font-bold mb-6">
@@ -124,7 +124,7 @@ const SobrePage = () => {
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex items-start space-x-3">
-                    <Badge variant="secondary" className="font-mono text-xs">30%</Badge>
+                    <Badge variant="secondary" className="text-xs">30%</Badge>
                     <div>
                       <h4 className="font-semibold text-foreground">Proteção à Vida</h4>
                       <p className="text-sm text-muted-foreground">
@@ -133,7 +133,7 @@ const SobrePage = () => {
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
-                    <Badge variant="secondary" className="font-mono text-xs">25%</Badge>
+                    <Badge variant="secondary" className="text-xs">25%</Badge>
                     <div>
                       <h4 className="font-semibold text-foreground">Valores Familiares</h4>
                       <p className="text-sm text-muted-foreground">
@@ -142,7 +142,7 @@ const SobrePage = () => {
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
-                    <Badge variant="secondary" className="font-mono text-xs">20%</Badge>
+                    <Badge variant="secondary" className="text-xs">20%</Badge>
                     <div>
                       <h4 className="font-semibold text-foreground">Integridade Moral</h4>
                       <p className="text-sm text-muted-foreground">
@@ -151,7 +151,7 @@ const SobrePage = () => {
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
-                    <Badge variant="secondary" className="font-mono text-xs">15%</Badge>
+                    <Badge variant="secondary" className="text-xs">15%</Badge>
                     <div>
                       <h4 className="font-semibold text-foreground">Responsabilidade Social</h4>
                       <p className="text-sm text-muted-foreground">
@@ -160,7 +160,7 @@ const SobrePage = () => {
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
-                    <Badge variant="secondary" className="font-mono text-xs">10%</Badge>
+                    <Badge variant="secondary" className="text-xs">10%</Badge>
                     <div>
                       <h4 className="font-semibold text-foreground">Liberdade Religiosa</h4>
                       <p className="text-sm text-muted-foreground">
@@ -236,7 +236,7 @@ const SobrePage = () => {
         <div className="container mx-auto px-4">
           <Card className="card-elevated">
             <CardContent className="py-12 text-center">
-              <Heart className="h-12 w-12 text-primary mx-auto mb-6" />
+              <BookOpen className="h-12 w-12 text-primary mx-auto mb-6" />
               <h2 className="font-serif text-3xl font-bold text-foreground mb-4">
                 Junte-se ao Movimento
               </h2>
@@ -260,7 +260,7 @@ const SobrePage = () => {
               </div>
               
               <div className="mt-8 pt-8 border-t border-border">
-                <p className="text-sm text-muted-foreground font-mono italic">
+                <p className="text-sm text-muted-foreground italic">
                   "Bem-aventurada é a nação cujo Deus é o Senhor" - Salmos 33:12
                 </p>
               </div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Mail, Github, ExternalLink } from 'lucide-react';
+import { BookOpen, Mail, Github, ExternalLink } from 'lucide-react';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -13,13 +13,13 @@ const Footer = () => {
           <div className="md:col-span-2">
             <div className="flex items-center space-x-3 mb-4">
               <div className="bg-gradient-primary p-2 rounded-lg shadow-card">
-                <Heart className="h-5 w-5 text-primary-foreground" />
+                <BookOpen className="h-5 w-5 text-primary-foreground" />
               </div>
               <div>
                 <h3 className="font-serif text-lg font-bold text-foreground">
                   A Bancada Evangélica
                 </h3>
-                <p className="text-xs text-muted-foreground font-mono">
+                <p className="text-xs text-muted-foreground">
                   TRANSPARÊNCIA PARLAMENTAR
                 </p>
               </div>
@@ -152,7 +152,7 @@ const Footer = () => {
               </p>
             </div>
             <div className="text-center md:text-right">
-              <p className="text-xs text-muted-foreground font-mono italic">
+              <p className="text-xs text-muted-foreground">
                 "A verdade vos libertará" - João 8:32
               </p>
             </div>

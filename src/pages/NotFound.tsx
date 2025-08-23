@@ -47,9 +47,9 @@ const NotFound = () => {
         </div>
         
         <div className="mt-12 pt-8 border-t border-border">
-          <p className="text-xs text-muted-foreground font-mono italic">
-            "Porque eu sei os pensamentos que tenho a vosso respeito" - Jeremias 29:11
-          </p>
+                <p className="text-sm text-muted-foreground italic">
+                  "Bem-aventurada é a nação cujo Deus é o Senhor" - Salmos 33:12
+                </p>
         </div>
       </div>
     </div>
