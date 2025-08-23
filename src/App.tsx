@@ -24,6 +24,8 @@ const App = () => (
           <main className="flex-1">
             <Routes>
               <Route path="/" element={<RankingPage />} />
+              <Route path="/ranking" element={<RankingPage />} />
+              <Route path="/politicos/:id" element={<NotFound />} /> {/* Placeholder - página de perfil será implementada */}
               <Route path="/sobre" element={<SobrePage />} />
               <Route path="/metodologia" element={<MetodologiaPage />} />
               <Route path="/contato" element={<ContatoPage />} />

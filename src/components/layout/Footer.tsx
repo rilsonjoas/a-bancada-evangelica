@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { BookOpen, Mail, Github, ExternalLink } from 'lucide-react';
 
@@ -148,14 +147,10 @@ const Footer = () => {
                 © {currentYear} A Bancada Evangélica. Projeto independente de transparência democrática.
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                Licenciado sob MIT. Código aberto disponível no GitHub.
+                Licenciado sob MIT. 
               </p>
             </div>
-            <div className="text-center md:text-right">
-              <p className="text-xs text-muted-foreground">
-                "A verdade vos libertará" - João 8:32
-              </p>
-            </div>
+            
           </div>
         </div>
       </div>

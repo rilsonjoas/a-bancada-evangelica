@@ -1,73 +1,209 @@
-# Welcome to your Lovable project
+# A Bancada Evangélica
 
-## Project info
+## 📋 Sobre o Projeto
 
-**URL**: https://lovable.dev/projects/c3711845-1fa2-426b-b44d-c6d4a765b64b
+**A Bancada Evangélica** é uma plataforma de transparência parlamentar que avalia e classifica políticos brasileiros com base no alinhamento com valores cristãos e evangélicos, promovendo maior accountability e discernimento político.
 
-## How can I edit this code?
+### 🎯 Missão e Visão
+- **Propósito**: Informar e fornecer ferramentas para avaliação da atuação parlamentar à luz de princípios de fé
+- **Público**: Eleitores conscientes, líderes religiosos, comunidades de fé, mídia, pesquisadores  
+- **Impacto**: Promover maior accountability e discernimento político baseado em critérios objetivos
 
-There are several ways of editing your application.
+## 🚀 Estado Atual do Projeto
 
-**Use Lovable**
+### ✅ Implementado (Protótipo Frontend - Vite/React)
+- **Interface Base**: Sistema de navegação completo com Header/Footer responsivos
+- **Página de Ranking**: Listagem de políticos com filtros por estado, partido e casa legislativa
+- **Cards de Políticos**: Exibição de informações básicas e pontuação geral
+- **Sistema de Pontuação Visual**: Badges coloridos por faixa de desempenho (Excelente ≥80, Bom ≥60, Médio ≥40, Insuficiente <40)
+- **Filtros e Busca**: Sistema funcional de filtros com estatísticas em tempo real
+- **Dados Mock**: Estrutura completa de dados simulados para demonstração
+- **Design System**: Componentes Shadcn/ui com tema customizado e paleta profissional
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/c3711845-1fa2-426b-b44d-c6d4a765b64b) and start prompting.
+### 🏗️ Arquitetura Técnica Atual
+- **Frontend**: Vite + React 18 + TypeScript
+- **UI Framework**: Tailwind CSS + Shadcn/ui
+- **Ícones**: Lucide React
+- **Roteamento**: React Router DOM
+- **Gerenciamento de Estado**: TanStack Query (preparado para APIs)
+- **Tipagem**: TypeScript com interfaces completas
 
-Changes made via Lovable will be committed automatically to this repo.
+### 📊 Sistema de Avaliação Definido
+Os políticos são avaliados em **5 categorias** com pesos específicos:
+1. **Proteção à Vida** (30%) - Aborto, eutanásia, pena de morte
+2. **Defesa da Família** (25%) - Casamento, adoção, educação dos filhos
+3. **Integridade Moral** (20%) - Corrupção, transparência, ética
+4. **Responsabilidade Social** (15%) - Justiça social, cuidado com vulneráveis
+5. **Liberdade Religiosa** (10%) - Expressão religiosa, ensino religioso
 
-**Use your preferred IDE**
+## 🗺️ Roadmap de Desenvolvimento
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### 📍 **Fase 0: Fundamentação e Design** (Em Andamento)
+- [x] Definição de missão e visão claras
+- [x] Sistema de pontuação e critérios iniciais
+- [x] Design visual profissional implementado
+- [ ] **Pesquisa aprofundada dos critérios de "Testemunho Fiel"**
+- [ ] **Documentação completa da metodologia**
+- [ ] **Definição da stack tecnológica final**
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### 📍 **Fase 1: Dados e Backend** (Planejado)
+- [ ] Modelagem completa do banco de dados PostgreSQL
+- [ ] Scripts de coleta via APIs (Câmara, Senado, TSE)
+- [ ] Sistema de limpeza e tratamento de dados
+- [ ] Processo de sincronização automática
+- [ ] Lógica de cálculo de pontuação implementada
 
-Follow these steps:
+### 📍 **Fase 2: API Backend** (Planejado)
+- [ ] **Stack**: Node.js + NestJS + PostgreSQL
+- [ ] Endpoints RESTful completos:
+  - `GET /politicians` - Listagem com filtros e paginação
+  - `GET /politicians/{id}` - Perfil detalhado
+  - `GET /politicians/{id}/votes` - Histórico de votações
+  - `GET /politicians/{id}/bills` - Projetos de autoria
+  - `GET /politicians/{id}/criteria-scores` - Pontuação detalhada
+  - `GET /rankings` - Rankings ordenados
+  - `GET /methodology-details` - Metodologia completa
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### 📍 **Fase 3: Frontend Avançado** (Migração para Next.js)
+- [ ] **Migração**: Vite/React → Next.js 14 (App Router)
+- [ ] **Páginas Completas**:
+  - `app/page.tsx` - HomePage com ranking
+  - `app/politicians/[id]/page.tsx` - Perfil do político
+  - `app/metodologia/page.tsx` - Metodologia detalhada
+  - `app/sobre/page.tsx` - Sobre o projeto
+  - `app/contato/page.tsx` - Contato
+- [ ] **Componentes Avançados**:
+  - Sistema de abas para perfil do político
+  - Gráficos interativos (Chart.js/Recharts)
+  - Comparação entre políticos
+  - Filtros avançados
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### 📍 **Fase 4: Funcionalidades Especiais**
+- [ ] **Geração de "Ficha Compartilhável"**:
+  - Endpoint para geração de imagem da ficha
+  - Sistema de compartilhamento social
+  - Meta tags OpenGraph otimizadas
+- [ ] **Recursos Interativos**:
+  - Botões de compartilhamento social
+  - Gráficos de desempenho por critério
+  - Comparação entre políticos
+  - Sistema de alertas para novas votações
 
-# Step 3: Install the necessary dependencies.
-npm i
+### 📍 **Fase 5: Monetização e Otimização**
+- [ ] Integração Google AdSense
+- [ ] Otimização de performance
+- [ ] Testes automatizados
+- [ ] SEO avançado
+- [ ] Analytics e monitoramento
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+### 📍 **Fase 6: Lançamento e Manutenção**
+- [ ] Deploy em produção
+- [ ] Estratégia de divulgação
+- [ ] Sistema de atualização contínua
+- [ ] Coleta de feedback e melhorias
+
+## 💻 Como Executar o Projeto
+
+### Pré-requisitos
+- Node.js (versão 18+)
+- npm ou yarn
+
+### Instalação e Execução
+```bash
+# 1. Clone o repositório
+git clone <URL_DO_REPOSITORIO>
+cd a-bancada-evangelica
+
+# 2. Instale as dependências
+npm install
+
+# 3. Execute em desenvolvimento
 npm run dev
+# Acesse: http://localhost:8080
+
+# 4. Build para produção
+npm run build
+
+# 5. Execute o linter
+npm run lint
 ```
 
-**Edit a file directly in GitHub**
+## 🏗️ Estrutura do Projeto
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```
+src/
+├── components/
+│   ├── layout/          # Header, Footer
+│   ├── politicians/     # PoliticianCard, componentes específicos
+│   └── ui/             # Componentes Shadcn/ui
+├── data/               # Mock data (temporário)
+├── hooks/              # Custom hooks React
+├── lib/                # Utilitários (cn, etc.)
+├── pages/              # Páginas da aplicação
+├── types/              # Definições TypeScript
+└── assets/             # Imagens e recursos
+```
 
-**Use GitHub Codespaces**
+## 🎨 Design System
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Paleta de Cores
+- **Cores Principais**: Azul institucional com gradientes
+- **Scores**: Verde (Excelente), Amarelo (Bom), Laranja (Médio), Vermelho (Insuficiente)
+- **Neutros**: Tons de cinza para backgrounds e bordas
 
-## What technologies are used for this project?
+### Componentes Base
+- **Cards**: Shadcn/ui Card para fichas de políticos
+- **Badges**: Sistema de badges para status e pontuações
+- **Tipografia**: Font Serif para títulos, Sans para corpo do texto
+- **Layout**: Grid responsivo com breakpoints otimizados
 
-This project is built with:
+## 🔧 Tecnologias
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Frontend Atual
+- **Vite** - Build tool
+- **React 18** - Framework principal
+- **TypeScript** - Tipagem estática
+- **Tailwind CSS** - Estilização
+- **Shadcn/ui** - Componentes
+- **Lucide React** - Ícones
+- **React Router** - Roteamento
+- **TanStack Query** - Gerenciamento de estado
 
-## How can I deploy this project?
+### Stack Planejada
+- **Frontend**: Next.js 14 + TypeScript + Tailwind + Shadcn/ui
+- **Backend**: Node.js + NestJS + TypeScript
+- **Banco de Dados**: PostgreSQL
+- **APIs Externas**: Câmara dos Deputados, Senado Federal, TSE
+- **Gráficos**: Chart.js ou Recharts
+- **Deploy**: Vercel/Netlify (Frontend) + Railway/Heroku (Backend)
 
-Simply open [Lovable](https://lovable.dev/projects/c3711845-1fa2-426b-b44d-c6d4a765b64b) and click on Share -> Publish.
+## 🤝 Contribuindo
 
-## Can I connect a custom domain to my Lovable project?
+Este projeto tem potencial para impacto cívico significativo. Contribuições são bem-vindas:
 
-Yes, you can!
+1. Fork o projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/nova-funcionalidade`)
+3. Commit suas mudanças (`git commit -m 'Adiciona nova funcionalidade'`)
+4. Push para a branch (`git push origin feature/nova-funcionalidade`)
+5. Abra um Pull Request
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### Áreas que Precisam de Contribuição
+- **Pesquisa**: Definição rigorosa de critérios de avaliação
+- **Backend**: Desenvolvimento da API e sistema de dados
+- **Frontend**: Migração para Next.js e componentes avançados
+- **Design**: Refinamento da identidade visual
+- **Conteúdo**: Textos para metodologia e páginas institucionais
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## 📄 Licença
+
+Este projeto está licenciado sob a [Licença MIT](LICENSE) - veja o arquivo LICENSE para detalhes.
+
+## 📞 Contato
+
+Para dúvidas, sugestões ou parcerias:
+- Abra uma [Issue](../../issues)
+- Entre em contato através da página de contato do projeto
+
+---
+
+> **Nota**: Este projeto está em desenvolvimento ativo. A metodologia de avaliação será baseada em pesquisa rigorosa e critérios objetivos, com transparência total sobre os processos de pontuação.

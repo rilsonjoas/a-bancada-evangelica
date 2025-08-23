@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Users, Mail, Search } from 'lucide-react';
@@ -8,15 +7,15 @@ const Header = () => {
   const location = useLocation();
 
   const navigation = [
-    { name: 'Ranking', href: '/', icon: BookOpen },
+    { name: 'Ranking', href: '/ranking', icon: BookOpen },
     { name: 'Metodologia', href: '/metodologia', icon: BookOpen },
     { name: 'Sobre', href: '/sobre', icon: Users },
     { name: 'Contato', href: '/contato', icon: Mail }
   ];
 
   const isActive = (href: string) => {
-    if (href === '/') {
-      return location.pathname === href;
+    if (href === '/ranking') {
+      return location.pathname === '/' || location.pathname === '/ranking';
     }
     return location.pathname.startsWith(href);
   };

@@ -149,7 +149,7 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
                 {politician.house === 'deputado' ? 'Deputado(a)' : 'Senador(a)'}
               </Badge>
               
-              <Link to={`/politicians/${politician.id}`}>
+              <Link to={`/politicos/${politician.id}`}>
                 <Button variant="ghost" size="sm" className="text-primary hover:text-primary-hover">
                   Ver detalhes
                   <ExternalLink className="h-3 w-3 ml-1" />
