@@ -17,7 +17,7 @@ const SobrePage = () => {
                 <BookOpen className="h-12 w-12 text-white" />
               </div>
             </div>
-            <h1 className="font-serif text-4xl md:text-5xl font-bold mb-6">
+            <h1 className="font-serif text-4xl md:text-5xl font-bold mb-6 text-white">
               Sobre o Projeto
             </h1>
             <p className="text-xl text-primary-foreground/90 leading-relaxed">
