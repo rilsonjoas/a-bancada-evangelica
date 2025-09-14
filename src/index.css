@@ -1,11 +1,44 @@
+/* Importações de fontes unificadas para o Reino */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* A Bancada Evangélica Design System - Professional NGO inspired */
+/* A Bancada Evangélica - Sistema Unificado Reino com cores institucionais */
 
 @layer base {
   :root {
+    /* === REINO UNIFIED TOKENS === */
+    /* Tipografia unificada */
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-serif: 'EB Garamond', Georgia, serif;
+    --font-display: 'Playfair Display', Georgia, serif;
+    
+    /* Espaçamentos unificados */
+    --space-1: 0.25rem;   --space-2: 0.5rem;    --space-3: 0.75rem;   
+    --space-4: 1rem;      --space-5: 1.25rem;   --space-6: 1.5rem;    
+    --space-8: 2rem;      --space-10: 2.5rem;   --space-12: 3rem;     
+    --space-16: 4rem;     --space-20: 5rem;     --space-24: 6rem;
+    
+    /* Bordas e raios unificados */
+    --radius-sm: 0.375rem; --radius-base: 0.5rem; --radius-md: 0.75rem;  
+    --radius-lg: 1rem;     --radius-xl: 1.5rem;   --radius-full: 9999px;
+    
+    /* Sombras unificadas */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-base: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    
+    /* Transições unificadas */
+    --duration-fast: 150ms; --duration-normal: 250ms; --duration-slow: 350ms;
+    --timing-ease: cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* === CORES ESPECÍFICAS DO PROJETO === */
     /* Core Brand Colors - Professional institutional palette */
     --background: 0 0% 100%;
     --foreground: 220 90% 15%;
@@ -147,38 +180,52 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-  }
-  
-  /* Typography Scale - Simplified to 2 fonts */
-  .font-serif {
-    font-family: 'EB Garamond', Georgia, serif;
-  }
-  
-  .font-sans {
-    font-family: 'Geist', system-ui, -apple-system, sans-serif;
-  }
-  
-  /* Heading Styles - Professional serif for authority */
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'EB Garamond', Georgia, serif;
-    font-weight: 600;
-    line-height: 1.2;
-    color: hsl(var(--foreground));
-  }
-  
-  /* Body text - Clean sans for readability, labels use sans too */
-  p, span, div, .label-tech, .score-label, .data-label {
-    font-family: 'Geist', system-ui, sans-serif;
     line-height: 1.6;
   }
   
-  /* Technical labels - Still using sans but with distinctive styling */
+  /* === TIPOGRAFIA UNIFICADA REINO === */
+  .font-display { font-family: var(--font-display); }
+  .font-serif { font-family: var(--font-serif); }
+  .font-sans { font-family: var(--font-sans); }
+  
+  /* Headings - Display font para autoridade */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.025em;
+    color: hsl(var(--foreground));
+  }
+  
+  h1 { font-size: 3.75rem; font-weight: 700; } /* 60px */
+  h2 { font-size: 3rem; }     /* 48px */
+  h3 { font-size: 2.25rem; }  /* 36px */
+  h4 { font-size: 1.875rem; } /* 30px */
+  h5 { font-size: 1.5rem; }   /* 24px */
+  h6 { font-size: 1.25rem; }  /* 20px */
+  
+  /* Body text - Sans para legibilidade */
+  p, span, div, .label-tech, .score-label, .data-label {
+    font-family: var(--font-sans);
+    line-height: 1.6;
+  }
+  
+  /* Reading text - Serif para textos longos */
+  .reading-text {
+    font-family: var(--font-serif);
+    font-size: 1.125rem;
+    line-height: 1.75;
+  }
+  
+  /* Technical labels - Estilo distintivo */
   .label-tech, .score-label, .data-label {
     font-size: 0.875rem;
     font-weight: 500;
     letter-spacing: 0.025em;
+    text-transform: uppercase;
   }
 }
 
