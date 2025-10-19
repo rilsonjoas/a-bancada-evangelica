@@ -1,209 +1,358 @@
 # A Bancada Evangélica
 
+<p align="center">
+  <strong>Plataforma de transparência parlamentar que promove accountability político baseado em valores cristãos</strong>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/React-18.3.1-blue?style=flat-square&logo=react" alt="React" />
+  <img src="https://img.shields.io/badge/TypeScript-5.8.3-blue?style=flat-square&logo=typescript" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Vite-5.4.19-purple?style=flat-square&logo=vite" alt="Vite" />
+  <img src="https://img.shields.io/badge/Express-5.1.0-green?style=flat-square&logo=express" alt="Express" />
+  <img src="https://img.shields.io/badge/Prisma-5.20.0-teal?style=flat-square&logo=prisma" alt="Prisma" />
+  <img src="https://img.shields.io/badge/PostgreSQL-Ready-blue?style=flat-square&logo=postgresql" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/Supabase-Ready-green?style=flat-square&logo=supabase" alt="Supabase" />
+  <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License" />
+</p>
+
 ## 📋 Sobre o Projeto
 
 **A Bancada Evangélica** é uma plataforma de transparência parlamentar que avalia e classifica políticos brasileiros com base no alinhamento com valores cristãos e evangélicos, promovendo maior accountability e discernimento político.
 
 ### 🎯 Missão e Visão
-- **Propósito**: Informar e fornecer ferramentas para avaliação da atuação parlamentar à luz de princípios de fé
-- **Público**: Eleitores conscientes, líderes religiosos, comunidades de fé, mídia, pesquisadores  
-- **Impacto**: Promover maior accountability e discernimento político baseado em critérios objetivos
+- **Propósito**: Equipar o eleitor cristão com dados objetivos e análises criteriosas para decisões conscientes
+- **Filosofia**: Ferramenta de **discernimento**, não lista de "políticos aprovados"
+- **Público**: Eleitores conscientes, líderes religiosos, comunidades de fé, mídia e pesquisadores
+- **Impacto**: Promover maior accountability e discernimento político baseado em critérios objetivos e transparentes
+
+### ✨ Funcionalidades Principais
+- **Ranking de Políticos**: Classificação baseada em 7 critérios fundamentais com pesos específicos
+- **Sistema de Filtros**: Busca por estado, partido, casa legislativa e faixa de pontuação
+- **Página de Metodologia**: Documentação completa dos critérios de avaliação
+- **Interface Responsiva**: Design otimizado para desktop, tablet e mobile
+- **Dados em Tempo Real**: Estatísticas atualizadas e métricas de desempenho
+- **API Completa**: Backend robusto com dados reais dos parlamentares
 
 ## 🚀 Estado Atual do Projeto
 
-### ✅ Implementado (Protótipo Frontend - Vite/React)
+### ✅ **CONCLUÍDO - Sistema Completo com Backend e Frontend**
+
+#### **🎨 Frontend (React + TypeScript)**
 - **Interface Base**: Sistema de navegação completo com Header/Footer responsivos
-- **Página de Ranking**: Listagem de políticos com filtros por estado, partido e casa legislativa
-- **Cards de Políticos**: Exibição de informações básicas e pontuação geral
-- **Sistema de Pontuação Visual**: Badges coloridos por faixa de desempenho (Excelente ≥80, Bom ≥60, Médio ≥40, Insuficiente <40)
-- **Filtros e Busca**: Sistema funcional de filtros com estatísticas em tempo real
-- **Dados Mock**: Estrutura completa de dados simulados para demonstração
+- **Página de Ranking**: Listagem de políticos com filtros dinâmicos por estado, partido e casa legislativa
+- **Cards de Políticos**: Exibição completa com dados reais do banco de dados
+- **Sistema de Pontuação Visual**: Badges coloridos por nível de performance (Excelente, Bom, Médio, Insuficiente)
+- **Filtros e Busca**: Sistema funcional com estatísticas atualizadas em tempo real
+- **Página de Metodologia**: Documentação completa dos 7 pilares de avaliação
 - **Design System**: Componentes Shadcn/ui com tema customizado e paleta profissional
+- **Integração com API**: TanStack Query para gerenciamento de estado e cache
+
+#### **🔧 Backend (Express + Prisma + PostgreSQL)**
+- **API REST Completa**: 7 endpoints funcionais
+- **Banco de Dados**: PostgreSQL hospedado no Supabase com esquema completo
+- **ORM**: Prisma com relacionamentos e tipagem TypeScript
+- **Dados Seed**: Políticos evangélicos reais com pontuações calculadas
+- **Metodologia no DB**: 7 pilares armazenados com conteúdo dinâmico
+
+#### **📊 Endpoints da API**
+```
+GET /api/politicians           - Lista de políticos com filtros
+GET /api/politicians/ranking   - Ranking ordenado por pontuação
+GET /api/politicians/:id       - Detalhes completos de um político
+GET /api/stats/overview        - Estatísticas gerais da plataforma
+GET /api/methodology/pillars   - Lista dos 7 pilares de avaliação
+GET /api/methodology/content   - Conteúdo dinâmico da metodologia
+GET /api/methodology/full      - Metodologia completa (pilares + conteúdo)
+```
+
+#### **🗃️ Estrutura do Banco de Dados**
+- **Politicians** - Dados básicos dos parlamentares
+- **PoliticianScore** - Sistema de pontuação por critério
+- **Mandate** - Histórico de mandatos
+- **Vote** - Votações em pautas-chave
+- **KeyAgenda** - Projetos monitorados
+- **Expense** - Análise de gastos parlamentares
+- **MethodologyPillar** - 7 pilares de avaliação
+- **MethodologyContent** - Conteúdo dinâmico
 
 ### 🏗️ Arquitetura Técnica Atual
-- **Frontend**: Vite + React 18 + TypeScript
-- **UI Framework**: Tailwind CSS + Shadcn/ui
-- **Ícones**: Lucide React
-- **Roteamento**: React Router DOM
-- **Gerenciamento de Estado**: TanStack Query (preparado para APIs)
-- **Tipagem**: TypeScript com interfaces completas
+- **Frontend**: Vite + React 18 + TypeScript + Tailwind CSS + Shadcn/ui
+- **Backend**: Express.js + TypeScript
+- **Database**: PostgreSQL + Prisma ORM
+- **Hosting**: Supabase (Database) + Local Development
+- **API Client**: TanStack Query
+- **Icons**: Lucide React
+- **Routing**: React Router DOM
 
-### 📊 Sistema de Avaliação Definido
-Os políticos são avaliados em **5 categorias** com pesos específicos:
-1. **Proteção à Vida** (30%) - Aborto, eutanásia, pena de morte
-2. **Defesa da Família** (25%) - Casamento, adoção, educação dos filhos
-3. **Integridade Moral** (20%) - Corrupção, transparência, ética
-4. **Responsabilidade Social** (15%) - Justiça social, cuidado com vulneráveis
-5. **Liberdade Religiosa** (10%) - Expressão religiosa, ensino religioso
+### 📊 Sistema de Avaliação - **7 Pilares Fundamentais**
 
-## 🗺️ Roadmap de Desenvolvimento
+| Pilar | Peso | Descrição |
+|-------|------|-----------|
+| 🛡️ **Proteção à Vida** | 25% | Defesa da vida desde a concepção até a morte natural |
+| 👨‍👩‍👧‍👦 **Defesa da Família** | 20% | Proteção da instituição familiar e autoridade parental |
+| ⚖️ **Integridade Moral e Transparência** | 20% | Ética, honestidade e combate à corrupção |
+| 🏛️ **Zelo e Responsabilidade no Mandato** | 10% | Dedicação, assiduidade e bom uso dos recursos públicos |
+| 📜 **Produção Legislativa Relevante** | 10% | Proatividade e eficácia na criação de leis alinhadas |
+| 🤝 **Responsabilidade Social** | 10% | Cuidado com os vulneráveis e busca pela justiça social |
+| ✝️ **Liberdade Religiosa** | 5% | Garantia do direito de crer, cultuar e expressar a fé |
 
-### 📍 **Fase 0: Fundamentação e Design** (Em Andamento)
-- [x] Definição de missão e visão claras
-- [x] Sistema de pontuação e critérios iniciais
-- [x] Design visual profissional implementado
-- [ ] **Pesquisa aprofundada dos critérios de "Testemunho Fiel"**
-- [ ] **Documentação completa da metodologia**
-- [ ] **Definição da stack tecnológica final**
+**Faixas de Classificação:**
+- 🟢 **Excelente** (≥80 pontos)
+- 🟡 **Bom** (60-79 pontos)  
+- 🟠 **Médio** (40-59 pontos)
+- 🔴 **Insuficiente** (<40 pontos)
 
-### 📍 **Fase 1: Dados e Backend** (Planejado)
-- [ ] Modelagem completa do banco de dados PostgreSQL
-- [ ] Scripts de coleta via APIs (Câmara, Senado, TSE)
-- [ ] Sistema de limpeza e tratamento de dados
-- [ ] Processo de sincronização automática
-- [ ] Lógica de cálculo de pontuação implementada
+### 📈 Dados Atuais da Plataforma
+- **5 Políticos Avaliados**: Parlamentares evangélicos representativos
+- **Dados Reais**: Pontuações baseadas em critérios objetivos
+- **Metodologia Documentada**: 7 pilares com fundamentação bíblica
+- **API Funcional**: Todos os endpoints operacionais
 
-### 📍 **Fase 2: API Backend** (Planejado)
-- [ ] **Stack**: Node.js + NestJS + PostgreSQL
-- [ ] Endpoints RESTful completos:
-  - `GET /politicians` - Listagem com filtros e paginação
-  - `GET /politicians/{id}` - Perfil detalhado
-  - `GET /politicians/{id}/votes` - Histórico de votações
-  - `GET /politicians/{id}/bills` - Projetos de autoria
-  - `GET /politicians/{id}/criteria-scores` - Pontuação detalhada
-  - `GET /rankings` - Rankings ordenados
-  - `GET /methodology-details` - Metodologia completa
+## 🗺️ Próximos Passos
 
-### 📍 **Fase 3: Frontend Avançado** (Migração para Next.js)
-- [ ] **Migração**: Vite/React → Next.js 14 (App Router)
-- [ ] **Páginas Completas**:
-  - `app/page.tsx` - HomePage com ranking
-  - `app/politicians/[id]/page.tsx` - Perfil do político
-  - `app/metodologia/page.tsx` - Metodologia detalhada
-  - `app/sobre/page.tsx` - Sobre o projeto
-  - `app/contato/page.tsx` - Contato
-- [ ] **Componentes Avançados**:
-  - Sistema de abas para perfil do político
-  - Gráficos interativos (Chart.js/Recharts)
-  - Comparação entre políticos
-  - Filtros avançados
+### 📍 **Fase 2: Expansão de Dados** (Próximo)
+- [ ] **Integração com APIs Oficiais**:
+  - Scripts de coleta da API da Câmara dos Deputados
+  - Scripts de coleta da API do Senado Federal
+  - Integração com dados do TSE
+- [ ] **Expansão da Base de Dados**:
+  - Inclusão de todos os parlamentares ativos
+  - Histórico completo de votações
+  - Análise automatizada de gastos
+- [ ] **Workers de Sincronização**:
+  - Atualização automática de dados
+  - Cálculo dinâmico de pontuações
+  - Monitoramento de novas votações
 
-### 📍 **Fase 4: Funcionalidades Especiais**
-- [ ] **Geração de "Ficha Compartilhável"**:
-  - Endpoint para geração de imagem da ficha
-  - Sistema de compartilhamento social
-  - Meta tags OpenGraph otimizadas
-- [ ] **Recursos Interativos**:
-  - Botões de compartilhamento social
+### 📍 **Fase 3: Funcionalidades Avançadas**
+- [ ] **Páginas Individuais de Políticos**:
+  - Perfil completo com histórico
   - Gráficos de desempenho por critério
-  - Comparação entre políticos
-  - Sistema de alertas para novas votações
+  - Análise de votações específicas
+- [ ] **Sistema de Comparação**:
+  - Comparar múltiplos políticos
+  - Rankings por estado/partido
+  - Análises estatísticas
+- [ ] **Recursos Interativos**:
+  - Gráficos interativos (Recharts)
+  - Sistema de compartilhamento social
+  - Exportação de relatórios
 
-### 📍 **Fase 5: Monetização e Otimização**
-- [ ] Integração Google AdSense
-- [ ] Otimização de performance
-- [ ] Testes automatizados
-- [ ] SEO avançado
-- [ ] Analytics e monitoramento
+### 📍 **Fase 4: Deploy e Produção**
+- [ ] **Deploy em Produção**:
+  - Frontend: Vercel/Netlify
+  - Backend: Railway/Render
+  - Database: Supabase Pro
+- [ ] **Otimizações**:
+  - SEO avançado
+  - Performance optimization
+  - Cache strategies
+- [ ] **Monitoramento**:
+  - Analytics
+  - Error tracking
+  - Performance monitoring
 
-### 📍 **Fase 6: Lançamento e Manutenção**
-- [ ] Deploy em produção
-- [ ] Estratégia de divulgação
-- [ ] Sistema de atualização contínua
-- [ ] Coleta de feedback e melhorias
-
-## 💻 Como Executar o Projeto
+## 🚀 Início Rápido
 
 ### Pré-requisitos
-- Node.js (versão 18+)
-- npm ou yarn
+- **Node.js** (versão 18+)
+- **pnpm** (recomendado) ou **npm**
+- **PostgreSQL** (Supabase configurado)
 
 ### Instalação e Execução
 ```bash
-# 1. Clone o repositório
-git clone <URL_DO_REPOSITORIO>
+# Clone o repositório
+git clone https://github.com/seu-usuario/a-bancada-evangelica.git
 cd a-bancada-evangelica
 
-# 2. Instale as dependências
-npm install
+# Instale as dependências
+pnpm install
 
-# 3. Execute em desenvolvimento
-npm run dev
-# Acesse: http://localhost:8080
+# Configure as variáveis de ambiente
+cp .env.example .env
+# Edite o .env com suas credenciais do Supabase
 
-# 4. Build para produção
-npm run build
+# Execute as migrações do banco
+pnpm db:push
 
-# 5. Execute o linter
-npm run lint
+# Popule dados iniciais
+pnpm db:seed
+
+# Execute o projeto completo (Frontend + API)
+pnpm dev:full
+
+# Acesse:
+# Frontend: http://localhost:8080
+# API: http://localhost:3001
+
+# Comandos individuais
+pnpm dev        # Apenas frontend
+pnpm dev:api    # Apenas API
+pnpm db:studio  # Interface visual do banco
+```
+
+### Comandos de Desenvolvimento
+```bash
+# Banco de dados
+pnpm db:generate      # Gerar cliente Prisma
+pnpm db:push          # Aplicar mudanças no schema
+pnpm db:migrate       # Criar nova migração
+pnpm db:seed          # Popular dados iniciais
+pnpm db:studio        # Abrir Prisma Studio
+
+# Build e Deploy
+pnpm build            # Build para produção
+pnpm build:dev        # Build para desenvolvimento
+pnpm lint             # Execute linter
+pnpm preview          # Preview da build
+
+# Scripts customizados
+pnpm sync:politicians # Sincronizar dados de políticos
+pnpm sync:votes       # Sincronizar votações
+pnpm sync:expenses    # Sincronizar gastos
 ```
 
 ## 🏗️ Estrutura do Projeto
 
 ```
-src/
-├── components/
-│   ├── layout/          # Header, Footer
-│   ├── politicians/     # PoliticianCard, componentes específicos
-│   └── ui/             # Componentes Shadcn/ui
-├── data/               # Mock data (temporário)
-├── hooks/              # Custom hooks React
-├── lib/                # Utilitários (cn, etc.)
-├── pages/              # Páginas da aplicação
-├── types/              # Definições TypeScript
-└── assets/             # Imagens e recursos
+├── src/
+│   ├── api/                 # Backend Express.js
+│   │   └── server.ts        # Servidor principal da API
+│   ├── components/          # Componentes React
+│   │   ├── layout/          # Header, Footer
+│   │   ├── politicians/     # PoliticianCard, etc.
+│   │   └── ui/             # Componentes Shadcn/ui
+│   ├── hooks/              # Custom hooks
+│   │   ├── usePoliticians.ts # Hook para dados de políticos
+│   │   └── useScores.ts     # Hook para pontuações
+│   ├── lib/                # Utilitários
+│   │   ├── prisma.ts       # Cliente Prisma
+│   │   └── queryClient.ts  # Configuração TanStack Query
+│   ├── pages/              # Páginas da aplicação
+│   │   ├── Ranking.tsx     # Página principal
+│   │   └── Metodologia.tsx # Documentação completa
+│   └── types/              # Definições TypeScript
+├── prisma/
+│   ├── schema.prisma       # Schema do banco de dados
+│   └── seed.ts            # Dados iniciais
+├── scripts/               # Scripts de utilitários
+│   ├── seed-methodology.ts # Seed da metodologia
+│   └── sync-*.ts          # Scripts de sincronização
+└── public/                # Assets estáticos
 ```
 
-## 🎨 Design System
+## 🛠️ Stack Tecnológica Completa
 
-### Paleta de Cores
-- **Cores Principais**: Azul institucional com gradientes
-- **Scores**: Verde (Excelente), Amarelo (Bom), Laranja (Médio), Vermelho (Insuficiente)
-- **Neutros**: Tons de cinza para backgrounds e bordas
+### 🎯 Frontend
+```
+React 18.3.1           - Framework principal
+TypeScript 5.8.3       - Tipagem estática
+Vite 5.4.19            - Build tool e dev server
+Tailwind CSS 3.4.17    - Framework CSS utility-first
+Shadcn/ui              - Biblioteca de componentes
+React Router 6.30.1    - Roteamento SPA
+TanStack Query 5.90.5  - Gerenciamento de estado e cache
+Lucide React 0.462.0   - Ícones SVG otimizados
+```
 
-### Componentes Base
-- **Cards**: Shadcn/ui Card para fichas de políticos
-- **Badges**: Sistema de badges para status e pontuações
-- **Tipografia**: Font Serif para títulos, Sans para corpo do texto
-- **Layout**: Grid responsivo com breakpoints otimizados
+### 🚀 Backend
+```
+Express.js 5.1.0       - Framework web
+TypeScript 5.8.3       - Tipagem estática
+Prisma 5.20.0          - ORM e cliente de banco
+PostgreSQL             - Banco de dados principal
+Supabase               - Hosting do banco de dados
+CORS 2.8.5             - Cross-origin resource sharing
+TSX 4.19.2             - Executor TypeScript
+```
 
-## 🔧 Tecnologias
-
-### Frontend Atual
-- **Vite** - Build tool
-- **React 18** - Framework principal
-- **TypeScript** - Tipagem estática
-- **Tailwind CSS** - Estilização
-- **Shadcn/ui** - Componentes
-- **Lucide React** - Ícones
-- **React Router** - Roteamento
-- **TanStack Query** - Gerenciamento de estado
-
-### Stack Planejada
-- **Frontend**: Next.js 14 + TypeScript + Tailwind + Shadcn/ui
-- **Backend**: Node.js + NestJS + TypeScript
-- **Banco de Dados**: PostgreSQL
-- **APIs Externas**: Câmara dos Deputados, Senado Federal, TSE
-- **Gráficos**: Chart.js ou Recharts
-- **Deploy**: Vercel/Netlify (Frontend) + Railway/Heroku (Backend)
+### 🗄️ Database Schema
+```
+12 Tabelas principais:
+- politicians          # Dados dos parlamentares
+- politician_scores    # Sistema de pontuação
+- mandates            # Histórico de mandatos
+- votes               # Votações monitoradas
+- key_agendas         # Pautas importantes
+- expenses            # Gastos parlamentares
+- methodology_pillars # 7 pilares de avaliação
+- methodology_content # Conteúdo dinâmico
+- sync_logs           # Logs de sincronização
+- system_configs      # Configurações do sistema
+```
 
 ## 🤝 Contribuindo
 
-Este projeto tem potencial para impacto cívico significativo. Contribuições são bem-vindas:
+Este projeto tem potencial para **impacto cívico significativo**. Contribuições são bem-vindas!
 
-1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/nova-funcionalidade`)
-3. Commit suas mudanças (`git commit -m 'Adiciona nova funcionalidade'`)
-4. Push para a branch (`git push origin feature/nova-funcionalidade`)
-5. Abra um Pull Request
+### 🔧 Como Contribuir
+1. **Fork** o projeto
+2. **Clone** seu fork: `git clone https://github.com/seu-usuario/a-bancada-evangelica.git`
+3. **Configure** o ambiente local (banco de dados, etc.)
+4. **Crie** uma branch: `git checkout -b feature/nova-funcionalidade`
+5. **Faça** suas alterações e commit: `git commit -m 'feat: adiciona nova funcionalidade'`
+6. **Push** para a branch: `git push origin feature/nova-funcionalidade`
+7. **Abra** um Pull Request
 
-### Áreas que Precisam de Contribuição
-- **Pesquisa**: Definição rigorosa de critérios de avaliação
-- **Backend**: Desenvolvimento da API e sistema de dados
-- **Frontend**: Migração para Next.js e componentes avançados
-- **Design**: Refinamento da identidade visual
-- **Conteúdo**: Textos para metodologia e páginas institucionais
+### 🎯 Áreas que Precisam de Contribuição
+| Área | Descrição | Skill Level |
+|------|-----------|-------------|
+| 🔌 **Integração APIs** | Scripts para APIs da Câmara/Senado | Intermediário |
+| 📊 **Análise de Dados** | Algoritmos de pontuação e análise | Avançado |
+| 🎨 **Frontend** | Páginas individuais, gráficos, UX/UI | Intermediário |
+| 📝 **Conteúdo** | Textos para metodologia e documentação | Iniciante |
+| 🔍 **Pesquisa** | Refinamento de critérios de avaliação | Iniciante |
+| ⚡ **Performance** | Otimizações de banco e cache | Avançado |
+
+### 📋 Diretrizes Técnicas
+- Siga os padrões TypeScript existentes
+- Use Prisma para todas as operações de banco
+- Implemente testes para novas funcionalidades
+- Documente APIs com JSDoc
+- Use commits semânticos (`feat:`, `fix:`, `docs:`, etc.)
+
+## 📊 Metodologia Transparente
+
+A metodologia completa está documentada na [página de metodologia](http://localhost:8080/metodologia) e inclui:
+
+- **Fundamentação bíblica** para cada critério
+- **Indicadores específicos** de avaliação
+- **Transparência total** sobre limitações e garantias
+- **Processo de revisão** por equipe multidisciplinar
+- **Código aberto** para auditoria independente
 
 ## 📄 Licença
 
 Este projeto está licenciado sob a [Licença MIT](LICENSE) - veja o arquivo LICENSE para detalhes.
 
-## 📞 Contato
+## 📞 Contato & Suporte
 
-Para dúvidas, sugestões ou parcerias:
-- Abra uma [Issue](../../issues)
-- Entre em contato através da página de contato do projeto
+### 💬 Canais de Comunicação
+- **Issues**: [Reportar bugs ou sugerir melhorias](../../issues)
+- **Discussions**: [Participar de discussões](../../discussions)
+- **Email**: Através da [página de contato](http://localhost:8080/contato) do projeto
+
+### 🆘 Precisa de Ajuda?
+- Consulte a [documentação técnica](./CLAUDE.md)
+- Verifique as [issues abertas](../../issues)
+- Participe das [discussões da comunidade](../../discussions)
 
 ---
 
-> **Nota**: Este projeto está em desenvolvimento ativo. A metodologia de avaliação será baseada em pesquisa rigorosa e critérios objetivos, com transparência total sobre os processos de pontuação.
+<div align="center">
+
+### 🙏 Oremos para que este projeto impacte positivamente nossa democracia
+
+> *"A plataforma A Bancada Evangélica não é uma lista de 'políticos aprovados', mas sim uma ferramenta de discernimento."*
+
+> *"Toda autoridade vem de Deus, e as autoridades que existem foram por ele estabelecidas."*
+> **Romanos 13:1**
+
+**A Bancada Evangélica** • **Sistema completo funcionando** • Contribuições bem-vindas
+
+[![Licença MIT](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
+[![React](https://img.shields.io/badge/React-18.3.1-blue?style=flat-square&logo=react)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue?style=flat-square&logo=typescript)](https://typescriptlang.org/)
+[![API](https://img.shields.io/badge/API-7%20Endpoints-green?style=flat-square)](http://localhost:3001)
+
+</div>

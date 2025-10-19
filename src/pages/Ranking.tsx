@@ -5,9 +5,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import PoliticianCard from '@/components/politicians/PoliticianCard';
-import { mockPoliticians, getFilterOptions } from '@/data/mockPoliticians';
-import { Search, Filter, TrendingUp, Users, Award, BookOpen } from 'lucide-react';
-import { Politician } from '@/types/politician';
+import { usePoliticians, usePoliticiansStats } from '@/hooks/usePoliticians';
+import { Search, Filter, TrendingUp, Users, Award, BookOpen, Loader2 } from 'lucide-react';
+import { APIPolitician } from '@/types/politician';
 
 const RankingPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -15,34 +15,46 @@ const RankingPage = () => {
   const [selectedParty, setSelectedParty] = useState('all');
   const [selectedHouse, setSelectedHouse] = useState('all');
 
-  const { states, parties } = getFilterOptions();
+  // Hooks da API
+  const { data: politiciansData, isLoading: isLoadingPoliticians, error: politiciansError } = usePoliticians({
+    search: searchTerm || undefined,
+    state: selectedState !== 'all' ? selectedState : undefined,
+    party: selectedParty !== 'all' ? selectedParty : undefined,
+    house: selectedHouse !== 'all' ? (selectedHouse === 'deputado' ? 'CAMARA' : 'SENADO') : undefined,
+    sortBy: 'score',
+    sortOrder: 'desc',
+    limit: 100
+  });
+  
+  const { data: statsData, isLoading: isLoadingStats } = usePoliticiansStats();
 
-  // Filter and sort politicians
-  const filteredPoliticians = useMemo(() => {
-    return mockPoliticians
-      .filter(politician => {
-        const matchesSearch = politician.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            politician.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            politician.party.toLowerCase().includes(searchTerm.toLowerCase());
-        
-        const matchesState = selectedState === 'all' || politician.state === selectedState;
-        const matchesParty = selectedParty === 'all' || politician.party === selectedParty;
-        const matchesHouse = selectedHouse === 'all' || politician.house === selectedHouse;
+  // Extrair dados únicos para filtros
+  const filterOptions = useMemo(() => {
+    if (!politiciansData?.politicians) return { states: [], parties: [] };
+    
+    const states = [...new Set(politiciansData.politicians.map(p => p.currentState))].sort();
+    const parties = [...new Set(politiciansData.politicians.map(p => p.currentParty))].sort();
+    
+    return { states, parties };
+  }, [politiciansData]);
 
-        return matchesSearch && matchesState && matchesParty && matchesHouse;
-      })
-      .sort((a, b) => b.overallScore - a.overallScore);
-  }, [searchTerm, selectedState, selectedParty, selectedHouse]);
-
+  // Usar dados da API diretamente (já filtrados)
+  const politicians = politiciansData?.politicians || [];
+  
   // Calculate statistics
   const stats = useMemo(() => {
-    const total = filteredPoliticians.length;
-    const avgScore = total > 0 ? filteredPoliticians.reduce((sum, p) => sum + p.overallScore, 0) / total : 0;
-    const excellentCount = filteredPoliticians.filter(p => p.overallScore >= 80).length;
-    const deputadosCount = filteredPoliticians.filter(p => p.house === 'deputado').length;
+    if (!politiciansData || !statsData) {
+      return { total: 0, avgScore: 0, excellentCount: 0, deputadosCount: 0 };
+    }
+    
+    const total = politiciansData.total;
+    const avgScore = politicians.length > 0 ? 
+      politicians.reduce((sum, p) => sum + p.scores.overall, 0) / politicians.length : 0;
+    const excellentCount = statsData.performanceDistribution.excellent;
+    const deputadosCount = statsData.houseDistribution.camara;
 
     return { total, avgScore, excellentCount, deputadosCount };
-  }, [filteredPoliticians]);
+  }, [politiciansData, statsData, politicians]);
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -123,7 +135,7 @@ const RankingPage = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos os Estados</SelectItem>
-                    {states.map(state => (
+                    {filterOptions.states.map(state => (
                       <SelectItem key={state} value={state}>{state}</SelectItem>
                     ))}
                   </SelectContent>
@@ -136,7 +148,7 @@ const RankingPage = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos os Partidos</SelectItem>
-                    {parties.map(party => (
+                    {filterOptions.parties.map(party => (
                       <SelectItem key={party} value={party}>{party}</SelectItem>
                     ))}
                   </SelectContent>
@@ -185,11 +197,34 @@ const RankingPage = () => {
               Parlamentares Avaliados
             </h2>
             <div className="text-sm text-muted-foreground">
-              Mostrando {filteredPoliticians.length} de {mockPoliticians.length} parlamentares
+              Mostrando {politicians.length} de {politiciansData?.total || 0} parlamentares
             </div>
           </div>
 
-          {filteredPoliticians.length === 0 ? (
+          {isLoadingPoliticians ? (
+            <Card>
+              <CardContent className="py-16 text-center">
+                <Loader2 className="h-12 w-12 text-muted-foreground mx-auto mb-4 animate-spin" />
+                <h3 className="font-serif text-lg font-semibold mb-2">Carregando parlamentares...</h3>
+                <p className="text-muted-foreground">
+                  Aguarde enquanto buscamos os dados mais recentes.
+                </p>
+              </CardContent>
+            </Card>
+          ) : politiciansError ? (
+            <Card>
+              <CardContent className="py-16 text-center">
+                <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="font-serif text-lg font-semibold mb-2">Erro ao carregar dados</h3>
+                <p className="text-muted-foreground mb-4">
+                  Houve um problema ao buscar os parlamentares. Tente novamente.
+                </p>
+                <Button variant="outline" onClick={() => window.location.reload()}>
+                  Tentar novamente
+                </Button>
+              </CardContent>
+            </Card>
+          ) : politicians.length === 0 ? (
             <Card>
               <CardContent className="py-16 text-center">
                 <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -204,7 +239,7 @@ const RankingPage = () => {
             </Card>
           ) : (
             <div className="space-y-4">
-              {filteredPoliticians.map((politician, index) => (
+              {politicians.map((politician, index) => (
                 <PoliticianCard
                   key={politician.id}
                   politician={politician}

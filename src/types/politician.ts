@@ -1,5 +1,62 @@
 // TypeScript definitions for A Bancada Evangélica
 
+// Interface para dados reais da API
+export interface APIPolitician {
+  id: number;
+  name: string;
+  currentParty: string;
+  currentState: string;
+  currentHouse: 'CAMARA' | 'SENADO';
+  photoUrl?: string;
+  scores: {
+    lifeProtection: number;
+    familyValues: number;
+    moralIntegrity: number;
+    socialResponsibility: number;
+    religiousFreedom: number;
+    overall: number;
+    performanceLevel: 'EXCELLENT' | 'GOOD' | 'AVERAGE' | 'POOR';
+    performanceLabel: string;
+    performanceDescription?: string;
+    totalVotes: number;
+    consistencyScore: number;
+    lastCalculation: string;
+  };
+}
+
+// Interface para dados detalhados de um político da API
+export interface APIPoliticianDetails extends APIPolitician {
+  fullName?: string;
+  email?: string;
+  birthDate?: string;
+  mandates: Array<{
+    id: number;
+    house: 'CAMARA' | 'SENADO';
+    party: string;
+    state: string;
+    legislature: string;
+    startDate: string;
+    endDate?: string;
+    isCurrent: boolean;
+  }>;
+  currentScore: APIPolitician['scores'] | null;
+  recentVotes: Array<{
+    id: string;
+    agendaTitle: string;
+    vote: string;
+    appliedScore: number;
+    voteDate: string;
+  }>;
+  expenseAnalysis: {
+    totalValue: number;
+    suspiciousValue: number;
+    suspiciousPercentage: number;
+    integrityScore: number;
+    riskLevel: string;
+  };
+}
+
+// Interface legada (mantida para compatibilidade)
 export interface Politician {
   id: string;
   name: string;
@@ -46,6 +103,63 @@ export interface Politician {
     expensesScore: number;
     attendanceScore: number;
     declarationScore: number;
+  };
+}
+
+// Interfaces para respostas da API
+export interface APIResponse<T> {
+  data: T;
+  total?: number;
+  hasMore?: boolean;
+}
+
+export interface PoliticiansResponse {
+  politicians: APIPolitician[];
+  total: number;
+  hasMore: boolean;
+  filters: {
+    search?: string;
+    state?: string;
+    party?: string;
+    house?: string;
+    performanceLevel?: string;
+    minScore?: string;
+    maxScore?: string;
+  };
+  stats: {
+    excellent: number;
+    good: number;
+    average: number;
+    poor: number;
+    byState: Record<string, number>;
+    byParty: Record<string, number>;
+  };
+}
+
+export interface RankingResponse {
+  politician: {
+    id: number;
+    name: string;
+    currentParty: string;
+    currentState: string;
+    currentHouse: 'CAMARA' | 'SENADO';
+    photoUrl?: string;
+  };
+  score: APIPolitician['scores'];
+  position: number;
+}
+
+export interface StatsResponse {
+  totalPoliticians: number;
+  performanceDistribution: {
+    excellent: number;
+    good: number;
+    average: number;
+    poor: number;
+  };
+  houseDistribution: {
+    camara: number;
+    senado: number;
   };
 }
 

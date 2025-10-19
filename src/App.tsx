@@ -1,8 +1,10 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { queryClient } from "@/lib/queryClient";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import RankingPage from "./pages/Ranking";
@@ -10,8 +12,6 @@ import SobrePage from "./pages/Sobre";
 import MetodologiaPage from "./pages/Metodologia";
 import ContatoPage from "./pages/Contato";
 import NotFound from "./pages/NotFound";
-
-const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -36,6 +36,8 @@ const App = () => (
           <Footer />
         </div>
       </BrowserRouter>
+      {/* React Query Devtools - only in development */}
+      {process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} />}
     </TooltipProvider>
   </QueryClientProvider>
 );

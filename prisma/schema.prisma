@@ -1,0 +1,482 @@
+// Schema do banco de dados para A Bancada Evangélica
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ========================================
+// TABELAS PRINCIPAIS - POLÍTICOS
+// ========================================
+
+model Politician {
+  id                    Int      @id @default(autoincrement())
+  
+  // Dados básicos
+  name                  String
+  full_name             String?
+  cpf                   String?  @unique
+  email                 String?
+  photo_url             String?
+  birth_date            DateTime?
+  
+  // Dados políticos atuais
+  current_party         String
+  current_state         String
+  current_house         HouseType
+  legislature_id        String?  // ID na legislatura atual
+  
+  // Dados eleitorais (TSE)
+  voter_title           String?  @unique
+  education_level       String?
+  marital_status        String?
+  occupation            String?
+  
+  // URLs e contatos
+  official_page_url     String?
+  social_media_urls     Json?    // { facebook, instagram, twitter, youtube }
+  
+  // Metadados
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
+  is_active             Boolean  @default(true)
+  
+  // Relacionamentos
+  mandates              Mandate[]
+  votes                 Vote[]
+  expenses              Expense[]
+  expense_analyses      ExpenseAnalysis[]
+  scores                PoliticianScore[]
+  historical_scores     HistoricalScore[]
+  
+  @@map("politicians")
+}
+
+model Mandate {
+  id                    Int      @id @default(autoincrement())
+  politician_id         Int
+  
+  // Dados do mandato
+  house                 HouseType
+  party                 String
+  state                 String
+  legislature           String
+  start_date            DateTime
+  end_date              DateTime?
+  
+  // Status
+  is_current            Boolean  @default(false)
+  status                MandateStatus @default(ACTIVE)
+  
+  // Metadados
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
+  
+  // Relacionamentos
+  politician            Politician @relation(fields: [politician_id], references: [id], onDelete: Cascade)
+  
+  @@map("mandates")
+}
+
+// ========================================
+// TABELAS DE PROPOSIÇÕES E VOTAÇÕES
+// ========================================
+
+model KeyAgenda {
+  id                    String   @id @default(cuid())
+  
+  // Identificação
+  title                 String
+  description           String?
+  criteria              CriteriaType
+  
+  // Pesos para pontuação
+  positive_weight       Float    @default(10)
+  negative_weight       Float    @default(-10)
+  
+  // Origem da proposição
+  source                SourceType
+  source_id             String   // ID na API de origem
+  source_url            String?
+  
+  // Busca automática
+  keywords              String[] // Para busca automática
+  
+  // Status e metadados
+  status                AgendaStatus @default(ACTIVE)
+  priority              Int      @default(1) // 1-5, sendo 5 mais importante
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
+  created_by            String?  // ID do usuário que criou
+  
+  // Relacionamentos
+  votes                 Vote[]
+  
+  @@map("key_agendas")
+}
+
+model Vote {
+  id                    String   @id @default(cuid())
+  
+  // Identificação da votação
+  politician_id         Int
+  key_agenda_id         String
+  
+  // Dados do voto
+  vote_type             VoteType
+  applied_score         Float    // Pontuação aplicada baseada no voto
+  
+  // Dados da votação original
+  vote_date             DateTime
+  source                SourceType
+  source_vote_id        String   // ID da votação na API origem
+  source_proposition_id String?  // ID da proposição na API origem
+  
+  // Contexto adicional
+  session_description   String?
+  voting_description    String?
+  result_description    String?
+  
+  // Metadados
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
+  
+  // Relacionamentos
+  politician            Politician @relation(fields: [politician_id], references: [id], onDelete: Cascade)
+  key_agenda            KeyAgenda @relation(fields: [key_agenda_id], references: [id], onDelete: Cascade)
+  
+  @@unique([politician_id, key_agenda_id, source_vote_id])
+  @@map("votes")
+}
+
+// ========================================
+// TABELAS DE DESPESAS E INTEGRIDADE
+// ========================================
+
+model Expense {
+  id                    String   @id @default(cuid())
+  
+  // Identificação
+  politician_id         Int
+  
+  // Dados da despesa
+  year                  Int
+  month                 Int
+  expense_type          String
+  document_type         String?
+  document_number       String?
+  document_date         DateTime?
+  
+  // Valores
+  gross_value           Float
+  net_value             Float
+  refund_value          Float    @default(0)
+  
+  // Fornecedor
+  supplier_name         String?
+  supplier_document     String?
+  supplier_type         SupplierType?
+  
+  // Análise de suspeição
+  is_suspicious         Boolean  @default(false)
+  suspicion_reasons     String[] // Motivos da suspeição
+  suspicion_score       Float    @default(0) // 0-100
+  
+  // Origem e metadados
+  source                SourceType
+  source_document_id    String?
+  document_url          String?
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
+  
+  // Relacionamentos
+  politician            Politician @relation(fields: [politician_id], references: [id], onDelete: Cascade)
+  
+  @@unique([politician_id, year, month, document_number, source])
+  @@map("expenses")
+}
+
+model ExpenseAnalysis {
+  id                    String   @id @default(cuid())
+  
+  // Identificação
+  politician_id         Int
+  year                  Int
+  month                 Int
+  
+  // Análise agregada
+  total_value           Float
+  suspicious_value      Float
+  suspicious_count      Int
+  suspicious_percentage Float
+  
+  // Indicadores
+  integrity_score       Float    // 0-100
+  risk_level           RiskLevel
+  flags                String[] // Lista de alertas
+  
+  // Metadados
+  source               SourceType
+  analysis_date        DateTime @default(now())
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
+  
+  // Relacionamentos
+  politician           Politician @relation(fields: [politician_id], references: [id], onDelete: Cascade)
+  
+  @@unique([politician_id, year, month, source])
+  @@map("expense_analyses")
+}
+
+// ========================================
+// TABELAS DE PONTUAÇÃO E RANKING
+// ========================================
+
+model PoliticianScore {
+  id                      String   @id @default(cuid())
+  politician_id           Int      @unique
+  
+  // Pontuações por critério (0-100)
+  life_protection         Float    @default(50)
+  family_values           Float    @default(50)
+  moral_integrity         Float    @default(80) // Inicia alto (presunção inocência)
+  social_responsibility   Float    @default(50)
+  religious_freedom       Float    @default(60) // Inicia levemente positivo
+  
+  // Pontuação geral ponderada
+  overall_score           Float    @default(50)
+  
+  // Classificação
+  performance_level       PerformanceLevel
+  performance_label       String
+  performance_description String?
+  
+  // Estatísticas
+  total_votes             Int      @default(0)
+  consistency_score       Float    @default(0) // 0-1
+  
+  // Ranking
+  national_rank           Int?
+  state_rank              Int?
+  party_rank              Int?
+  
+  // Metadados
+  last_calculation        DateTime @default(now())
+  created_at              DateTime @default(now())
+  updated_at              DateTime @updatedAt
+  
+  // Relacionamentos
+  politician              Politician @relation(fields: [politician_id], references: [id], onDelete: Cascade)
+  
+  @@map("politician_scores")
+}
+
+model HistoricalScore {
+  id                    String   @id @default(cuid())
+  politician_id         Int
+  
+  // Snapshot da pontuação
+  life_protection       Float
+  family_values         Float
+  moral_integrity       Float
+  social_responsibility Float
+  religious_freedom     Float
+  overall_score         Float
+  
+  // Contexto do snapshot
+  snapshot_date         DateTime
+  snapshot_reason       String   // 'monthly', 'new_vote', 'manual'
+  
+  // Metadados
+  created_at            DateTime @default(now())
+  
+  // Relacionamentos
+  politician            Politician @relation(fields: [politician_id], references: [id], onDelete: Cascade)
+  
+  @@map("historical_scores")
+}
+
+// ========================================
+// TABELAS DE METODOLOGIA
+// ========================================
+
+model MethodologyPillar {
+  id                    String   @id @default(cuid())
+  
+  // Identificação
+  key                   String   @unique // lifeProtection, familyValues, etc.
+  name                  String
+  emoji                 String?
+  weight                Float    // Peso percentual (0.25 = 25%)
+  order                 Int      // Ordem de exibição
+  
+  // Conteúdo
+  description           String
+  why_important         String
+  how_it_helps          String
+  biblical_basis        String
+  indicators            String[] // Lista de indicadores avaliados
+  
+  // Status
+  is_active             Boolean  @default(true)
+  
+  // Metadados
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
+  
+  @@map("methodology_pillars")
+}
+
+model MethodologyContent {
+  id                    String   @id @default(cuid())
+  
+  // Identificação da seção
+  section_key           String   @unique // mission, transparency, etc.
+  title                 String
+  content               String   // Markdown content
+  
+  // Ordenação
+  order                 Int      @default(1)
+  
+  // Status
+  is_active             Boolean  @default(true)
+  
+  // Metadados
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
+  
+  @@map("methodology_content")
+}
+
+// ========================================
+// TABELAS DE SISTEMA E LOGS
+// ========================================
+
+model SyncLog {
+  id                    String   @id @default(cuid())
+  
+  // Identificação da sincronização
+  sync_type             SyncType
+  source                SourceType
+  
+  // Status e resultados
+  status                SyncStatus
+  start_time            DateTime
+  end_time              DateTime?
+  
+  // Estatísticas
+  records_processed     Int      @default(0)
+  records_inserted      Int      @default(0)
+  records_updated       Int      @default(0)
+  records_failed        Int      @default(0)
+  
+  // Erros e detalhes
+  error_message         String?
+  details               Json?    // Detalhes específicos da sincronização
+  
+  // Metadados
+  created_at            DateTime @default(now())
+  
+  @@map("sync_logs")
+}
+
+model SystemConfig {
+  id                    String   @id @default(cuid())
+  
+  // Configuração
+  key                   String   @unique
+  value                 Json
+  description           String?
+  
+  // Metadados
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
+  created_by            String?
+  
+  @@map("system_configs")
+}
+
+// ========================================
+// ENUMS
+// ========================================
+
+enum HouseType {
+  CAMARA      // Câmara dos Deputados
+  SENADO      // Senado Federal
+}
+
+enum MandateStatus {
+  ACTIVE      // Mandato ativo
+  FINISHED    // Mandato finalizado
+  RESIGNED    // Renunciou
+  SUSPENDED   // Suspenso
+  DECEASED    // Falecido
+}
+
+enum CriteriaType {
+  LIFE_PROTECTION       // lifeProtection
+  FAMILY_VALUES         // familyValues  
+  MORAL_INTEGRITY       // moralIntegrity
+  SOCIAL_RESPONSIBILITY // socialResponsibility
+  RELIGIOUS_FREEDOM     // religiousFreedom
+}
+
+enum SourceType {
+  CAMARA      // API Câmara dos Deputados
+  SENADO      // API Senado Federal
+  TSE         // Dados TSE
+  MANUAL      // Inserção manual
+}
+
+enum AgendaStatus {
+  ACTIVE      // Pauta ativa para monitoramento
+  ARCHIVED    // Arquivada (não monitora mais)
+  APPROVED    // Pauta aprovada
+  REJECTED    // Pauta rejeitada
+}
+
+enum VoteType {
+  YES         // SIM
+  NO          // NAO  
+  ABSTENTION  // ABSTENCAO
+  OBSTRUCTION // OBSTRUCAO
+  ABSENT      // AUSENTE
+}
+
+enum SupplierType {
+  INDIVIDUAL  // Pessoa física
+  COMPANY     // Pessoa jurídica
+  GOVERNMENT  // Órgão público
+}
+
+enum RiskLevel {
+  LOW         // Baixo risco
+  MEDIUM      // Médio risco  
+  HIGH        // Alto risco
+  CRITICAL    // Risco crítico
+}
+
+enum PerformanceLevel {
+  EXCELLENT   // Excelente (≥80)
+  GOOD        // Bom (60-79)
+  AVERAGE     // Médio (40-59)
+  POOR        // Insuficiente (<40)
+}
+
+enum SyncType {
+  POLITICIANS // Sincronização de políticos
+  VOTES       // Sincronização de votações
+  EXPENSES    // Sincronização de despesas
+  TSE_DATA    // Sincronização dados TSE
+}
+
+enum SyncStatus {
+  STARTED     // Iniciado
+  SUCCESS     // Sucesso
+  ERROR       // Erro
+  PARTIAL     // Sucesso parcial
+}

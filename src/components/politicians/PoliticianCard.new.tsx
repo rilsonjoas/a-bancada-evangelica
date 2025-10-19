@@ -4,20 +4,43 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { User, MapPin, Building, ExternalLink, Award } from 'lucide-react';
-import { APIPolitician } from '@/types/politician';
 import { cn } from '@/lib/utils';
 
+// Tipos atualizados para dados reais do banco
+interface PoliticianScore {
+  lifeProtection: number;
+  familyValues: number;
+  moralIntegrity: number;
+  socialResponsibility: number;
+  religiousFreedom: number;
+  overall: number;
+  performanceLevel: 'EXCELLENT' | 'GOOD' | 'AVERAGE' | 'POOR';
+  performanceLabel: string;
+  totalVotes: number;
+  consistencyScore: number;
+}
+
+interface PoliticianData {
+  id: number;
+  name: string;
+  currentParty: string;
+  currentState: string;
+  currentHouse: 'CAMARA' | 'SENADO';
+  photoUrl?: string;
+  scores: PoliticianScore;
+}
+
 interface PoliticianCardProps {
-  politician: APIPolitician;
+  politician: PoliticianData;
   rank?: number;
 }
 
 const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => {
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'score-excellent';
-    if (score >= 60) return 'score-good';
-    if (score >= 40) return 'score-average';
-    return 'score-poor';
+    if (score >= 80) return 'text-green-600';
+    if (score >= 60) return 'text-yellow-600';
+    if (score >= 40) return 'text-orange-600';
+    return 'text-red-600';
   };
 
   const getScoreBadgeVariant = (score: number) => {
@@ -43,7 +66,7 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
   const performanceBadge = getPerformanceBadge(politician.scores.performanceLevel);
 
   return (
-    <Card className="card-elevated hover:shadow-elevated transition-all duration-300 group">
+    <Card className="hover:shadow-lg transition-all duration-300 group border border-gray-200">
       <CardContent className="p-6">
         <div className="flex items-start space-x-4">
           {/* Rank Badge */}
@@ -51,7 +74,9 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
             <div className="flex-shrink-0">
               <div className={cn(
                 "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold",
-                rank <= 3 ? "bg-gradient-accent text-accent-foreground" : "bg-secondary text-secondary-foreground"
+                rank <= 3 
+                  ? "bg-gradient-to-br from-blue-500 to-purple-600 text-white" 
+                  : "bg-gray-100 text-gray-700"
               )}>
                 {rank}
               </div>
@@ -60,7 +85,7 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
 
           {/* Photo */}
           <div className="flex-shrink-0">
-            <div className="w-16 h-16 rounded-lg bg-secondary flex items-center justify-center overflow-hidden border border-card-border">
+            <div className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden border">
               {politician.photoUrl ? (
                 <img 
                   src={politician.photoUrl} 
@@ -73,7 +98,7 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
                   }}
                 />
               ) : (
-                <User className="h-8 w-8 text-muted-foreground" />
+                <User className="h-8 w-8 text-gray-400" />
               )}
             </div>
           </div>
@@ -83,11 +108,11 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
             {/* Header */}
             <div className="flex items-start justify-between mb-3">
               <div className="min-w-0 flex-1">
-                <h3 className="font-serif text-lg font-bold text-foreground truncate group-hover:text-primary transition-colors">
+                <h3 className="font-serif text-lg font-bold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
                   {politician.name}
                 </h3>
                 
-                <div className="flex items-center space-x-3 mt-1 text-sm text-muted-foreground">
+                <div className="flex items-center space-x-3 mt-1 text-sm text-gray-600">
                   <div className="flex items-center space-x-1">
                     <Building className="h-3 w-3" />
                     <span className="font-medium">{politician.currentParty}</span>
@@ -101,13 +126,13 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
 
               {/* Overall Score */}
               <div className="flex-shrink-0 text-right">
-              <Badge 
-                variant={getScoreBadgeVariant(politician.scores.overall)}
-                className="font-semibold text-sm"
-              >
-                {formatScore(politician.scores.overall)}
-              </Badge>
-                <p className="text-xs text-muted-foreground mt-1">
+                <Badge 
+                  variant={getScoreBadgeVariant(politician.scores.overall)}
+                  className="font-semibold text-sm"
+                >
+                  {formatScore(politician.scores.overall)}
+                </Badge>
+                <p className="text-xs text-gray-500 mt-1">
                   Testemunho Fiel
                 </p>
               </div>
@@ -126,39 +151,39 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
             {/* Score Breakdown */}
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-4">
               <div className="text-center">
-                <div className="text-sm font-bold text-foreground">
+                <div className={cn("text-sm font-bold", getScoreColor(politician.scores.lifeProtection))}>
                   {formatScore(politician.scores.lifeProtection)}
                 </div>
-                <div className="text-xs text-muted-foreground">Vida</div>
+                <div className="text-xs text-gray-500">Vida</div>
               </div>
               <div className="text-center">
-                <div className="text-sm font-bold text-foreground">
+                <div className={cn("text-sm font-bold", getScoreColor(politician.scores.familyValues))}>
                   {formatScore(politician.scores.familyValues)}
                 </div>
-                <div className="text-xs text-muted-foreground">Família</div>
+                <div className="text-xs text-gray-500">Família</div>
               </div>
               <div className="text-center">
-                <div className="text-sm font-bold text-foreground">
+                <div className={cn("text-sm font-bold", getScoreColor(politician.scores.moralIntegrity))}>
                   {formatScore(politician.scores.moralIntegrity)}
                 </div>
-                <div className="text-xs text-muted-foreground">Moral</div>
+                <div className="text-xs text-gray-500">Moral</div>
               </div>
               <div className="text-center">
-                <div className="text-sm font-bold text-foreground">
+                <div className={cn("text-sm font-bold", getScoreColor(politician.scores.socialResponsibility))}>
                   {formatScore(politician.scores.socialResponsibility)}
                 </div>
-                <div className="text-xs text-muted-foreground">Social</div>
+                <div className="text-xs text-gray-500">Social</div>
               </div>
               <div className="text-center">
-                <div className="text-sm font-bold text-foreground">
+                <div className={cn("text-sm font-bold", getScoreColor(politician.scores.religiousFreedom))}>
                   {formatScore(politician.scores.religiousFreedom)}
                 </div>
-                <div className="text-xs text-muted-foreground">Religião</div>
+                <div className="text-xs text-gray-500">Religião</div>
               </div>
             </div>
 
             {/* Statistics */}
-            <div className="flex items-center justify-between text-xs text-muted-foreground mb-4">
+            <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
               <div className="flex items-center space-x-1">
                 <Award className="h-3 w-3" />
                 <span>{formatConsistency(politician.scores.consistencyScore)} consistência</span>
@@ -175,7 +200,7 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
               </Badge>
               
               <Link to={`/politicos/${politician.id}`}>
-                <Button variant="ghost" size="sm" className="text-primary hover:text-primary-hover">
+                <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
                   Ver detalhes
                   <ExternalLink className="h-3 w-3 ml-1" />
                 </Button>
