@@ -1,0 +1,534 @@
+import { PrismaClient } from '@prisma/client';
+import cron from 'node-cron';
+import { syncCamara, CamaraSyncService } from './sync-camara';
+import { syncSenado, SenadoSyncService } from './sync-senado';
+
+const prisma = new PrismaClient();
+
+interface SyncSchedule {
+  name: string;
+  cronExpression: string;
+  description: string;
+  task: () => Promise<void>;
+  enabled: boolean;
+}
+
+class SyncWorkerService {
+  private schedules: SyncSchedule[] = [];
+  private isRunning = false;
+
+  constructor() {
+    this.setupSchedules();
+  }
+
+  private setupSchedules(): void {
+    // Sincronização diária dos políticos (03:00)
+    this.schedules.push({
+      name: 'daily-politicians-sync',
+      cronExpression: '0 3 * * *',
+      description: 'Sincronização diária de dados dos políticos',
+      task: async () => {
+        console.log('🔄 Iniciando sincronização diária de políticos...');
+        await this.syncPoliticiansData();
+      },
+      enabled: true
+    });
+
+    // Sincronização semanal de gastos (domingo às 04:00)
+    this.schedules.push({
+      name: 'weekly-expenses-sync',
+      cronExpression: '0 4 * * 0',
+      description: 'Sincronização semanal de gastos parlamentares',
+      task: async () => {
+        console.log('💰 Iniciando sincronização semanal de gastos...');
+        await this.syncExpensesData();
+      },
+      enabled: true
+    });
+
+    // Recálculo de pontuações (todo dia às 05:00)
+    this.schedules.push({
+      name: 'daily-score-calculation',
+      cronExpression: '0 5 * * *',
+      description: 'Recálculo diário das pontuações',
+      task: async () => {
+        console.log('📊 Iniciando recálculo de pontuações...');
+        await this.recalculateAllScores();
+      },
+      enabled: true
+    });
+
+    // Análise de despesas suspeitas (segunda-feira às 06:00)
+    this.schedules.push({
+      name: 'weekly-expense-analysis',
+      cronExpression: '0 6 * * 1',
+      description: 'Análise semanal de despesas suspeitas',
+      task: async () => {
+        console.log('🔍 Iniciando análise de despesas suspeitas...');
+        await this.analyzeExpenses();
+      },
+      enabled: true
+    });
+
+    // Limpeza de logs antigos (primeiro dia do mês às 02:00)
+    this.schedules.push({
+      name: 'monthly-log-cleanup',
+      cronExpression: '0 2 1 * *',
+      description: 'Limpeza mensal de logs antigos',
+      task: async () => {
+        console.log('🧹 Iniciando limpeza de logs antigos...');
+        await this.cleanupOldLogs();
+      },
+      enabled: true
+    });
+  }
+
+  async start(): Promise<void> {
+    if (this.isRunning) {
+      console.log('⚠️ Worker já está em execução');
+      return;
+    }
+
+    console.log('🚀 Iniciando Sync Worker Service...');
+    this.isRunning = true;
+
+    // Registrar todas as tarefas agendadas
+    for (const schedule of this.schedules) {
+      if (schedule.enabled) {
+        cron.schedule(schedule.cronExpression, async () => {
+          try {
+            console.log(`⏰ Executando tarefa agendada: ${schedule.name}`);
+            await schedule.task();
+            console.log(`✅ Tarefa concluída: ${schedule.name}`);
+          } catch (error) {
+            console.error(`❌ Erro na tarefa ${schedule.name}:`, error);
+            await this.logError(schedule.name, error);
+          }
+        });
+
+        console.log(`📅 Agendamento configurado: ${schedule.name} (${schedule.cronExpression})`);
+      }
+    }
+
+    console.log('✅ Sync Worker Service iniciado com sucesso!');
+    console.log('📋 Tarefas agendadas:');
+    
+    this.schedules
+      .filter(s => s.enabled)
+      .forEach(s => {
+        console.log(`   - ${s.name}: ${s.description} (${s.cronExpression})`);
+      });
+  }
+
+  async stop(): Promise<void> {
+    if (!this.isRunning) {
+      console.log('⚠️ Worker não está em execução');
+      return;
+    }
+
+    console.log('🛑 Parando Sync Worker Service...');
+    
+    // Parar todas as tarefas agendadas
+    cron.getTasks().forEach((task, name) => {
+      console.log(`⏹️ Parando tarefa: ${name}`);
+      task.stop();
+    });
+
+    this.isRunning = false;
+    console.log('✅ Sync Worker Service parado');
+  }
+
+  // Métodos de sincronização
+  private async syncPoliticiansData(): Promise<void> {
+    try {
+      console.log('📥 Sincronizando dados da Câmara...');
+      await syncCamara();
+      
+      console.log('📥 Sincronizando dados do Senado...');
+      await syncSenado();
+      
+      console.log('✅ Sincronização de políticos concluída');
+    } catch (error) {
+      console.error('❌ Erro na sincronização de políticos:', error);
+      throw error;
+    }
+  }
+
+  private async syncExpensesData(): Promise<void> {
+    try {
+      const currentYear = new Date().getFullYear();
+      
+      // Buscar todos os políticos ativos
+      const politicians = await prisma.politician.findMany({
+        where: { is_active: true }
+      });
+
+      console.log(`💰 Sincronizando gastos de ${politicians.length} políticos para ${currentYear}...`);
+
+      const camaraService = new CamaraSyncService();
+      const senadoService = new SenadoSyncService();
+
+      for (const politician of politicians) {
+        try {
+          if (politician.current_house === 'CAMARA' && politician.legislature_id) {
+            await camaraService.syncGastos(parseInt(politician.legislature_id), currentYear);
+          } else if (politician.current_house === 'SENADO' && politician.legislature_id) {
+            await senadoService.syncGastos(politician.legislature_id, currentYear);
+          }
+          
+          // Delay para não sobrecarregar as APIs
+          await new Promise(resolve => setTimeout(resolve, 200));
+          
+        } catch (error) {
+          console.error(`❌ Erro ao sincronizar gastos de ${politician.name}:`, error);
+        }
+      }
+
+      console.log('✅ Sincronização de gastos concluída');
+    } catch (error) {
+      console.error('❌ Erro na sincronização de gastos:', error);
+      throw error;
+    }
+  }
+
+  private async recalculateAllScores(): Promise<void> {
+    try {
+      const politicians = await prisma.politician.findMany({
+        where: { is_active: true },
+        include: {
+          scores: true,
+          votes: true,
+          expenses: {
+            where: {
+              year: new Date().getFullYear()
+            }
+          }
+        }
+      });
+
+      console.log(`📊 Recalculando pontuações de ${politicians.length} políticos...`);
+
+      for (const politician of politicians) {
+        try {
+          await this.calculatePoliticianScore(politician);
+        } catch (error) {
+          console.error(`❌ Erro ao recalcular score de ${politician.name}:`, error);
+        }
+      }
+
+      console.log('✅ Recálculo de pontuações concluído');
+    } catch (error) {
+      console.error('❌ Erro no recálculo de pontuações:', error);
+      throw error;
+    }
+  }
+
+  private async calculatePoliticianScore(politician: any): Promise<void> {
+    // Cálculo básico de pontuação (pode ser expandido)
+    const scores = {
+      life_protection: 50, // Baseado em votações específicas
+      family_values: 50,   // Baseado em votações específicas
+      moral_integrity: 80, // Reduzido se houver gastos suspeitos
+      social_responsibility: 50, // Baseado em projetos sociais
+      religious_freedom: 60 // Baseado em votações específicas
+    };
+
+    // Penalizar integridade moral baseada em gastos suspeitos
+    const suspiciousExpenses = politician.expenses.filter((e: any) => e.is_suspicious);
+    if (suspiciousExpenses.length > 0) {
+      const suspiciousPercentage = suspiciousExpenses.length / politician.expenses.length;
+      scores.moral_integrity = Math.max(20, 80 - (suspiciousPercentage * 60));
+    }
+
+    // Calcular pontuação geral ponderada
+    const overall_score = 
+      scores.life_protection * 0.25 +
+      scores.family_values * 0.20 +
+      scores.moral_integrity * 0.20 +
+      scores.social_responsibility * 0.10 +
+      scores.religious_freedom * 0.05 +
+      50 * 0.20; // 20% para outros critérios
+
+    // Determinar nível de performance
+    let performance_level, performance_label;
+    if (overall_score >= 80) {
+      performance_level = 'EXCELLENT';
+      performance_label = 'Excelente';
+    } else if (overall_score >= 60) {
+      performance_level = 'GOOD';
+      performance_label = 'Bom';
+    } else if (overall_score >= 40) {
+      performance_level = 'AVERAGE';
+      performance_label = 'Médio';
+    } else {
+      performance_level = 'POOR';
+      performance_label = 'Insuficiente';
+    }
+
+    // Atualizar ou criar pontuação
+    await prisma.politicianScore.upsert({
+      where: { politician_id: politician.id },
+      update: {
+        ...scores,
+        overall_score,
+        performance_level,
+        performance_label,
+        performance_description: `Pontuação calculada automaticamente em ${new Date().toLocaleDateString()}`,
+        total_votes: politician.votes.length,
+        last_calculation: new Date()
+      },
+      create: {
+        politician_id: politician.id,
+        ...scores,
+        overall_score,
+        performance_level,
+        performance_label,
+        performance_description: `Pontuação calculada automaticamente em ${new Date().toLocaleDateString()}`,
+        total_votes: politician.votes.length
+      }
+    });
+  }
+
+  private async analyzeExpenses(): Promise<void> {
+    try {
+      const currentYear = new Date().getFullYear();
+      
+      // Buscar todos os políticos com gastos no ano atual
+      const politicians = await prisma.politician.findMany({
+        where: { 
+          is_active: true,
+          expenses: {
+            some: { year: currentYear }
+          }
+        },
+        include: {
+          expenses: {
+            where: { year: currentYear }
+          }
+        }
+      });
+
+      console.log(`🔍 Analisando gastos de ${politicians.length} políticos para ${currentYear}...`);
+
+      for (const politician of politicians) {
+        try {
+          await this.generateExpenseAnalysis(politician);
+        } catch (error) {
+          console.error(`❌ Erro ao analisar gastos de ${politician.name}:`, error);
+        }
+      }
+
+      console.log('✅ Análise de gastos concluída');
+    } catch (error) {
+      console.error('❌ Erro na análise de gastos:', error);
+      throw error;
+    }
+  }
+
+  private async generateExpenseAnalysis(politician: any): Promise<void> {
+    const expenses = politician.expenses;
+    const currentYear = new Date().getFullYear();
+
+    // Agrupar gastos por mês
+    const monthlyExpenses = expenses.reduce((acc: any, expense: any) => {
+      const key = `${expense.year}-${expense.month}`;
+      if (!acc[key]) {
+        acc[key] = [];
+      }
+      acc[key].push(expense);
+      return acc;
+    }, {});
+
+    // Criar análise para cada mês
+    for (const [monthKey, monthExpenses] of Object.entries(monthlyExpenses)) {
+      const [year, month] = monthKey.split('-').map(Number);
+      const expenses = monthExpenses as any[];
+
+      const totalValue = expenses.reduce((sum, e) => sum + e.net_value, 0);
+      const suspiciousExpenses = expenses.filter(e => e.is_suspicious);
+      const suspiciousValue = suspiciousExpenses.reduce((sum, e) => sum + e.net_value, 0);
+      const suspiciousCount = suspiciousExpenses.length;
+      const suspiciousPercentage = expenses.length > 0 ? (suspiciousCount / expenses.length) * 100 : 0;
+
+      // Calcular score de integridade (0-100)
+      let integrityScore = 100;
+      if (suspiciousPercentage > 50) integrityScore -= 40;
+      else if (suspiciousPercentage > 25) integrityScore -= 25;
+      else if (suspiciousPercentage > 10) integrityScore -= 15;
+
+      if (totalValue > 50000) integrityScore -= 10; // Gastos muito altos
+      if (suspiciousValue > totalValue * 0.5) integrityScore -= 20; // Mais de 50% do valor suspeito
+
+      // Determinar nível de risco
+      let riskLevel;
+      if (integrityScore >= 80) riskLevel = 'LOW';
+      else if (integrityScore >= 60) riskLevel = 'MEDIUM';
+      else if (integrityScore >= 40) riskLevel = 'HIGH';
+      else riskLevel = 'CRITICAL';
+
+      // Gerar flags de alerta
+      const flags = [];
+      if (suspiciousPercentage > 25) flags.push('ALTO_PERCENTUAL_SUSPEITO');
+      if (totalValue > 100000) flags.push('GASTOS_ELEVADOS');
+      if (suspiciousValue > 25000) flags.push('VALOR_SUSPEITO_ALTO');
+      if (expenses.some(e => !e.supplier_name)) flags.push('FORNECEDOR_NAO_IDENTIFICADO');
+
+      // Criar ou atualizar análise
+      await prisma.expenseAnalysis.upsert({
+        where: {
+          politician_id_year_month_source: {
+            politician_id: politician.id,
+            year,
+            month,
+            source: politician.current_house === 'CAMARA' ? 'CAMARA' : 'SENADO'
+          }
+        },
+        update: {
+          total_value: totalValue,
+          suspicious_value: suspiciousValue,
+          suspicious_count: suspiciousCount,
+          suspicious_percentage: suspiciousPercentage,
+          integrity_score: Math.max(0, integrityScore),
+          risk_level: riskLevel,
+          flags,
+          analysis_date: new Date()
+        },
+        create: {
+          politician_id: politician.id,
+          year,
+          month,
+          total_value: totalValue,
+          suspicious_value: suspiciousValue,
+          suspicious_count: suspiciousCount,
+          suspicious_percentage: suspiciousPercentage,
+          integrity_score: Math.max(0, integrityScore),
+          risk_level: riskLevel,
+          flags,
+          source: politician.current_house === 'CAMARA' ? 'CAMARA' : 'SENADO'
+        }
+      });
+    }
+  }
+
+  private async cleanupOldLogs(): Promise<void> {
+    try {
+      const threeMonthsAgo = new Date();
+      threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+
+      const deleted = await prisma.syncLog.deleteMany({
+        where: {
+          created_at: {
+            lt: threeMonthsAgo
+          }
+        }
+      });
+
+      console.log(`🧹 Removidos ${deleted.count} logs antigos`);
+    } catch (error) {
+      console.error('❌ Erro na limpeza de logs:', error);
+      throw error;
+    }
+  }
+
+  private async logError(taskName: string, error: any): Promise<void> {
+    try {
+      await prisma.syncLog.create({
+        data: {
+          sync_type: 'POLITICIANS', // Tipo genérico para erros de worker
+          source: 'MANUAL',
+          status: 'ERROR',
+          start_time: new Date(),
+          end_time: new Date(),
+          records_processed: 0,
+          records_inserted: 0,
+          records_updated: 0,
+          records_failed: 1,
+          error_message: `Worker Error in ${taskName}: ${error.message}`,
+          details: {
+            task: taskName,
+            stack: error.stack,
+            timestamp: new Date().toISOString()
+          }
+        }
+      });
+    } catch (logError) {
+      console.error('❌ Erro ao registrar log de erro:', logError);
+    }
+  }
+
+  // Método para executar tarefas manualmente
+  async runTask(taskName: string): Promise<void> {
+    const schedule = this.schedules.find(s => s.name === taskName);
+    if (!schedule) {
+      throw new Error(`Tarefa não encontrada: ${taskName}`);
+    }
+
+    console.log(`🔄 Executando tarefa manual: ${taskName}`);
+    await schedule.task();
+    console.log(`✅ Tarefa manual concluída: ${taskName}`);
+  }
+
+  // Método para listar tarefas disponíveis
+  listTasks(): SyncSchedule[] {
+    return this.schedules.map(s => ({
+      ...s,
+      task: undefined as any // Não retornar a função
+    }));
+  }
+}
+
+// Instância singleton do worker
+const syncWorker = new SyncWorkerService();
+
+// Função para iniciar o worker
+async function startSyncWorker() {
+  try {
+    await syncWorker.start();
+    
+    // Manter o processo rodando
+    process.on('SIGTERM', async () => {
+      console.log('📨 Recebido SIGTERM, parando worker...');
+      await syncWorker.stop();
+      await prisma.$disconnect();
+      process.exit(0);
+    });
+
+    process.on('SIGINT', async () => {
+      console.log('📨 Recebido SIGINT, parando worker...');
+      await syncWorker.stop();
+      await prisma.$disconnect();
+      process.exit(0);
+    });
+
+  } catch (error) {
+    console.error('❌ Erro ao iniciar worker:', error);
+    process.exit(1);
+  }
+}
+
+// Execute if this file is run directly
+async function main() {
+  const args = process.argv.slice(2);
+  
+  if (args[0] === 'run' && args[1]) {
+    // Executar tarefa específica
+    await syncWorker.runTask(args[1]);
+  } else if (args[0] === 'list') {
+    // Listar tarefas disponíveis
+    console.log('📋 Tarefas disponíveis:');
+    syncWorker.listTasks().forEach(task => {
+      console.log(`   - ${task.name}: ${task.description} (${task.cronExpression})`);
+    });
+  } else {
+    // Iniciar worker completo
+    await startSyncWorker();
+  }
+}
+
+// Run main if this file is executed directly
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});
+
+export { SyncWorkerService, syncWorker };

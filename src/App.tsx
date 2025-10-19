@@ -25,7 +25,8 @@ const App = () => (
             <Routes>
               <Route path="/" element={<RankingPage />} />
               <Route path="/ranking" element={<RankingPage />} />
-              <Route path="/politicos/:id" element={<NotFound />} /> {/* Placeholder - página de perfil será implementada */}
+              <Route path="/politicos/:id" element={<NotFound />} />{" "}
+              {/* Placeholder - página de perfil será implementada */}
               <Route path="/sobre" element={<SobrePage />} />
               <Route path="/metodologia" element={<MetodologiaPage />} />
               <Route path="/contato" element={<ContatoPage />} />
@@ -37,7 +38,9 @@ const App = () => (
         </div>
       </BrowserRouter>
       {/* React Query Devtools - only in development */}
-      {process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} />}
+      {process.env.NODE_ENV === "development" && (
+        <ReactQueryDevtools initialIsOpen={false} />
+      )}
     </TooltipProvider>
   </QueryClientProvider>
 );
