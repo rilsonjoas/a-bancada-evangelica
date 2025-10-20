@@ -11,6 +11,8 @@ import RankingPage from "./pages/Ranking";
 import SobrePage from "./pages/Sobre";
 import MetodologiaPage from "./pages/Metodologia";
 import ContatoPage from "./pages/Contato";
+import { PoliticianProfile } from "./pages/PoliticianProfile";
+import { PoliticianComparison } from "./pages/PoliticianComparison";
 import NotFound from "./pages/NotFound";
 
 const App = () => (
@@ -25,8 +27,8 @@ const App = () => (
             <Routes>
               <Route path="/" element={<RankingPage />} />
               <Route path="/ranking" element={<RankingPage />} />
-              <Route path="/politicos/:id" element={<NotFound />} />{" "}
-              {/* Placeholder - página de perfil será implementada */}
+              <Route path="/politicos/:id" element={<PoliticianProfile />} />
+              <Route path="/comparacao" element={<PoliticianComparison />} />
               <Route path="/sobre" element={<SobrePage />} />
               <Route path="/metodologia" element={<MetodologiaPage />} />
               <Route path="/contato" element={<ContatoPage />} />

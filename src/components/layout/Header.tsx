@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { BookOpen, Users, Mail, Search } from 'lucide-react';
+import { BookOpen, Users, Mail, Search, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const Header = () => {
@@ -8,6 +8,7 @@ const Header = () => {
 
   const navigation = [
     { name: 'Ranking', href: '/ranking', icon: BookOpen },
+    { name: 'Comparação', href: '/comparacao', icon: BarChart3 },
     { name: 'Metodologia', href: '/metodologia', icon: BookOpen },
     { name: 'Sobre', href: '/sobre', icon: Users },
     { name: 'Contato', href: '/contato', icon: Mail }
