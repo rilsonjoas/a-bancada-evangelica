@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +13,7 @@ interface PoliticianCardProps {
 }
 
 const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => {
+  const [imageError, setImageError] = useState(false);
   const getScoreColor = (score: number) => {
     if (score >= 80) return 'score-excellent';
     if (score >= 60) return 'score-good';
@@ -61,16 +62,12 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
           {/* Photo */}
           <div className="flex-shrink-0">
             <div className="w-16 h-16 rounded-lg bg-secondary flex items-center justify-center overflow-hidden border border-card-border">
-              {politician.photoUrl ? (
-                <img 
-                  src={politician.photoUrl} 
+              {politician.photoUrl && !imageError ? (
+                <img
+                  src={politician.photoUrl}
                   alt={politician.name}
                   className="w-full h-full object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                    target.nextElementSibling?.classList.remove('hidden');
-                  }}
+                  onError={() => setImageError(true)}
                 />
               ) : (
                 <User className="h-8 w-8 text-muted-foreground" />

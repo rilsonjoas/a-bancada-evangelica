@@ -6,8 +6,13 @@ import { prisma } from '@/lib/prisma';
 const app = express();
 const PORT = 3001;
 
-// Middleware
-app.use(cors());
+// Middleware - Configuração CORS explícita
+app.use(cors({
+  origin: ['http://localhost:8080', 'http://127.0.0.1:8080'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true,
+  optionsSuccessStatus: 200
+}));
 app.use(express.json());
 
 // ========================================

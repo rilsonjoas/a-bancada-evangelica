@@ -191,7 +191,7 @@ async function main() {
         current_state: 'SP',
         current_house: HouseType.CAMARA,
         legislature_id: 'DEP001',
-        photo_url: 'https://example.com/photos/marco-feliciano.jpg',
+        photo_url: null, // Será preenchido pela sincronização com a API da Câmara
         email: 'marco.feliciano@camara.leg.br',
         is_active: true,
       },
@@ -202,7 +202,7 @@ async function main() {
         current_state: 'RJ',
         current_house: HouseType.CAMARA,
         legislature_id: 'DEP002',
-        photo_url: 'https://example.com/photos/sostenes-cavalcante.jpg',
+        photo_url: null, // Será preenchido pela sincronização com a API da Câmara
         email: 'sostenes.cavalcante@camara.leg.br',
         is_active: true,
       },
@@ -213,7 +213,7 @@ async function main() {
         current_state: 'DF',
         current_house: HouseType.CAMARA,
         legislature_id: 'DEP003',
-        photo_url: 'https://example.com/photos/bia-kicis.jpg',
+        photo_url: null, // Será preenchido pela sincronização com a API da Câmara
         email: 'bia.kicis@camara.leg.br',
         is_active: true,
       },
@@ -230,7 +230,7 @@ async function main() {
         current_state: 'ES',
         current_house: HouseType.SENADO,
         legislature_id: 'SEN001',
-        photo_url: 'https://example.com/photos/magno-malta.jpg',
+        photo_url: null, // Será preenchido pela sincronização com a API do Senado
         email: 'magno.malta@senado.leg.br',
         is_active: true,
       },
@@ -241,7 +241,7 @@ async function main() {
         current_state: 'CE',
         current_house: HouseType.SENADO,
         legislature_id: 'SEN002',
-        photo_url: 'https://example.com/photos/eduardo-girao.jpg',
+        photo_url: null, // Será preenchido pela sincronização com a API do Senado
         email: 'eduardo.girao@senado.leg.br',
         is_active: true,
       },
