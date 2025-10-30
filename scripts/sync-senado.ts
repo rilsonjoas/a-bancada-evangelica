@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import fetch from 'node-fetch';
+import { parseStringPromise } from 'xml2js';
 
 const prisma = new PrismaClient();
 
@@ -64,24 +65,39 @@ class SenadoSyncService {
 
   async syncAllSenadores(): Promise<void> {
     console.log('🏛️ Iniciando sincronização com API do Senado Federal...');
-    
+
     try {
       // Buscar lista de senadores ativos
       const response = await fetch(`${this.baseUrl}/lista/atual`);
-      
+
       if (!response.ok) {
         throw new Error(`Erro na API do Senado: ${response.status} ${response.statusText}`);
       }
 
-      const data = await response.json() as {
-        ListaParlamentarLegislatura: {
-          Parlamentares: {
-            Parlamentar: SenadoSenador[]
-          }
-        }
-      };
+      // Parse XML para JSON
+      const xmlText = await response.text();
+      const data = await parseStringPromise(xmlText);
 
-      const senadores = data.ListaParlamentarLegislatura.Parlamentares.Parlamentar;
+      // Navegar pela estrutura XML parseada
+      const parlamentares = data.ListaParlamentarEmExercicio?.Parlamentares?.[0]?.Parlamentar || [];
+
+      const senadores = parlamentares.map((p: any) => {
+        const id = p.IdentificacaoParlamentar?.[0] || {};
+        return {
+          CodigoParlamentar: id.CodigoParlamentar?.[0] || '',
+          CodigoPublicoNaLegislatura: id.CodigoPublicoNaLegAtual?.[0] || '',
+          NomeParlamentar: id.NomeParlamentar?.[0] || '',
+          NomeCompletoParlamentar: id.NomeCompletoParlamentar?.[0] || '',
+          SexoParlamentar: id.SexoParlamentar?.[0] || '',
+          FormaTratamento: id.FormaTratamento?.[0] || '',
+          UrlFotoParlamentar: id.UrlFotoParlamentar?.[0] || '',
+          UrlPaginaParlamentar: id.UrlPaginaParlamentar?.[0] || '',
+          UrlPaginaParticular: id.UrlPaginaParticular?.[0] || '',
+          EmailParlamentar: id.EmailParlamentar?.[0] || '',
+          SiglaPartidoParlamentar: id.SiglaPartidoParlamentar?.[0] || '',
+          UfParlamentar: id.UfParlamentar?.[0] || '',
+        };
+      });
       console.log(`📊 Encontrados ${senadores.length} senadores na legislatura atual`);
 
       let processed = 0;
@@ -102,12 +118,32 @@ class SenadoSyncService {
             continue;
           }
 
-          const details = await detailsResponse.json() as {
-            DetalheParlamentar: {
-              Parlamentar: SenadoSenadorDetalhado
-            }
+          // Parse XML dos detalhes
+          const detailsXml = await detailsResponse.text();
+          const detailsData = await parseStringPromise(detailsXml);
+
+          const detalheParlamentar = detailsData.DetalheParlamentar?.Parlamentar?.[0] || {};
+          const idDetalhes = detalheParlamentar.IdentificacaoParlamentar?.[0] || {};
+          const dadosBasicos = detalheParlamentar.DadosBasicosParlamentar?.[0] || {};
+
+          const senadorCompleto = {
+            CodigoParlamentar: idDetalhes.CodigoParlamentar?.[0] || senador.CodigoParlamentar,
+            CodigoPublicoNaLegislatura: idDetalhes.CodigoPublicoNaLegAtual?.[0] || '',
+            NomeParlamentar: idDetalhes.NomeParlamentar?.[0] || senador.NomeParlamentar,
+            NomeCompletoParlamentar: idDetalhes.NomeCompletoParlamentar?.[0] || senador.NomeCompletoParlamentar,
+            CpfParlamentar: dadosBasicos.CpfParlamentar?.[0] || '',
+            DataNascimento: dadosBasicos.DataNascimento?.[0] || '',
+            UfNascimento: dadosBasicos.UfNascimento?.[0] || '',
+            NaturalMunicipio: dadosBasicos.NaturalMunicipio?.[0] || '',
+            Escolaridade: dadosBasicos.Escolaridade?.[0] || '',
+            FormaTratamento: idDetalhes.FormaTratamento?.[0] || senador.FormaTratamento,
+            UrlFotoParlamentar: idDetalhes.UrlFotoParlamentar?.[0] || senador.UrlFotoParlamentar,
+            UrlPaginaParlamentar: idDetalhes.UrlPaginaParlamentar?.[0] || senador.UrlPaginaParlamentar,
+            EmailParlamentar: idDetalhes.EmailParlamentar?.[0] || senador.EmailParlamentar,
+            SiglaPartidoParlamentar: idDetalhes.SiglaPartidoParlamentar?.[0] || senador.SiglaPartidoParlamentar,
+            UfParlamentar: idDetalhes.UfParlamentar?.[0] || senador.UfParlamentar,
+            Mandatos: { Mandato: [] as any[] }, // Processar depois se necessário
           };
-          const senadorCompleto = details.DetalheParlamentar.Parlamentar;
 
           // Verificar se já existe no banco
           const existing = await prisma.politician.findFirst({
