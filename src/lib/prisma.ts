@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 
 if (!process.env.DATABASE_URL) {
-  throw new Error('[prisma] DATABASE_URL não está definida. Verifique as variáveis de ambiente.');
+  console.error('[prisma] ERRO: DATABASE_URL não está definida. Conexão com banco vai falhar.');
 }
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefined };
