@@ -6,21 +6,10 @@ import { prisma } from '@/lib/prisma';
 const app = express();
 const PORT = process.env.PORT ?? 3001;
 
-const allowedOrigins = process.env.FRONTEND_URL
-  ? process.env.FRONTEND_URL.split(',').map(o => o.trim().replace(/\/$/, ''))
-  : ['http://localhost:8080', 'http://127.0.0.1:8080'];
-
+// API pública de leitura — sem cookies/sessão, origin aberta é seguro
 app.use(cors({
-  origin: (origin, callback) => {
-    // Permite requisições sem Origin (ex: curl, Postman, Railway healthcheck)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin.replace(/\/$/, ''))) {
-      return callback(null, true);
-    }
-    callback(new Error(`Origem não permitida pelo CORS: ${origin}`));
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  credentials: true,
+  origin: '*',
+  methods: ['GET', 'OPTIONS'],
   optionsSuccessStatus: 200,
 }));
 app.use(express.json());
