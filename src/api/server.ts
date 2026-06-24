@@ -7,11 +7,18 @@ const app = express();
 const PORT = process.env.PORT ?? 3001;
 
 const allowedOrigins = process.env.FRONTEND_URL
-  ? [process.env.FRONTEND_URL]
+  ? process.env.FRONTEND_URL.split(',').map(o => o.trim().replace(/\/$/, ''))
   : ['http://localhost:8080', 'http://127.0.0.1:8080'];
 
 app.use(cors({
-  origin: allowedOrigins,
+  origin: (origin, callback) => {
+    // Permite requisições sem Origin (ex: curl, Postman, Railway healthcheck)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin.replace(/\/$/, ''))) {
+      return callback(null, true);
+    }
+    callback(new Error(`Origem não permitida pelo CORS: ${origin}`));
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,
   optionsSuccessStatus: 200,
@@ -456,6 +463,12 @@ app.get('/api/stats/overview', async (req, res) => {
     console.error('Erro ao buscar estatísticas:', error);
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
+});
+
+// Error handler global — garante que erros inesperados retornem JSON com CORS
+app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error('[Unhandled error]', err.message);
+  res.status(500).json({ error: err.message ?? 'Erro interno do servidor' });
 });
 
 // Iniciar servidor
