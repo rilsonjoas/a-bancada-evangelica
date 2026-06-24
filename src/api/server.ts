@@ -6,6 +6,10 @@ import { prisma } from '@/lib/prisma';
 const app = express();
 const PORT = process.env.PORT ?? 3001;
 
+console.log('[startup] NODE_ENV:', process.env.NODE_ENV);
+console.log('[startup] DATABASE_URL set:', !!process.env.DATABASE_URL);
+console.log('[startup] DATABASE_URL prefix:', process.env.DATABASE_URL?.slice(0, 40) ?? 'UNDEFINED');
+
 // API pública de leitura — sem cookies/sessão, origin aberta é seguro
 app.use(cors({
   origin: '*',
