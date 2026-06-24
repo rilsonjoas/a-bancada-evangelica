@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { apiFetch } from '@/lib/apiClient';
 
 interface ComparisonPolitician {
   id: number;
@@ -28,16 +29,9 @@ async function fetchComparisonData(politicianIds: number[]): Promise<ComparisonP
     return [];
   }
   
-  // Buscar dados de cada político
-  const promises = politicianIds.map(async (id) => {
-    const response = await fetch(`http://localhost:3001/api/politicians/${id}`);
-    
-    if (!response.ok) {
-      throw new Error(`Erro ao buscar político ${id}: ${response.status}`);
-    }
-    
-    return response.json();
-  });
+  const promises = politicianIds.map((id) =>
+    apiFetch<ComparisonPolitician>(`/api/politicians/${id}`)
+  );
   
   const results = await Promise.allSettled(promises);
   

@@ -1,12 +1,13 @@
 // Hook personalizado para buscar dados de políticos
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryKeys, cacheConfigs } from '@/lib/queryClient';
-import type { 
-  APIPolitician, 
-  APIPoliticianDetails, 
+import { apiFetch } from '@/lib/apiClient';
+import type {
+  APIPolitician,
+  APIPoliticianDetails,
   PoliticiansResponse,
   RankingResponse,
-  StatsResponse 
+  StatsResponse
 } from '@/types/politician';
 
 // ========================================
@@ -34,55 +35,35 @@ export interface PoliticiansFilters {
 
 const fetchPoliticians = async (filters: PoliticiansFilters = {}): Promise<PoliticiansResponse> => {
   const searchParams = new URLSearchParams();
-  
+
   Object.entries(filters).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== '') {
       searchParams.append(key, String(value));
     }
   });
 
-  const response = await fetch(`http://localhost:3001/api/politicians?${searchParams.toString()}`);
-  
-  if (!response.ok) {
-    throw new Error(`Erro ao buscar políticos: ${response.status}`);
-  }
-  
-  return response.json();
+  return apiFetch(`/api/politicians?${searchParams.toString()}`);
 };
 
-const fetchPoliticianDetail = async (id: number): Promise<APIPoliticianDetails> => {
-  const response = await fetch(`http://localhost:3001/api/politicians/${id}`);
-  
-  if (!response.ok) {
-    throw new Error(`Erro ao buscar detalhes do político: ${response.status}`);
-  }
-  
-  return response.json();
-};
+const fetchPoliticianDetail = async (id: number): Promise<APIPoliticianDetails> =>
+  apiFetch(`/api/politicians/${id}`);
 
 const fetchRanking = async (filters: Omit<PoliticiansFilters, 'search'> = {}): Promise<RankingResponse[]> => {
   const searchParams = new URLSearchParams();
-  
-  // Para ranking, sempre ordenar por score desc
+
   const rankingFilters = {
     ...filters,
     criteria: 'overall',
     limit: filters.limit || 50,
   };
-  
+
   Object.entries(rankingFilters).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== '') {
       searchParams.append(key, String(value));
     }
   });
 
-  const response = await fetch(`http://localhost:3001/api/politicians/ranking?${searchParams.toString()}`);
-  
-  if (!response.ok) {
-    throw new Error(`Erro ao buscar ranking: ${response.status}`);
-  }
-  
-  return response.json();
+  return apiFetch(`/api/politicians/ranking?${searchParams.toString()}`);
 };
 
 // ========================================
@@ -148,13 +129,7 @@ export const usePoliticiansComparison = (ids: number[]) => {
 export const usePoliticiansStats = () => {
   return useQuery({
     queryKey: queryKeys.stats.overview(),
-    queryFn: async (): Promise<StatsResponse> => {
-      const response = await fetch('http://localhost:3001/api/stats/overview');
-      if (!response.ok) {
-        throw new Error('Erro ao buscar estatísticas');
-      }
-      return response.json();
-    },
+    queryFn: (): Promise<StatsResponse> => apiFetch('/api/stats/overview'),
     ...cacheConfigs.static,
   });
 };
@@ -168,21 +143,14 @@ export const usePoliticiansStats = () => {
  */
 export const useUpdatePolitician = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: Partial<Politician> }) => {
-      const response = await fetch(`/api/politicians/${id}`, {
+    mutationFn: async ({ id, data }: { id: number; data: Partial<APIPoliticianDetails> }) =>
+      apiFetch(`/api/politicians/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
-      });
-      
-      if (!response.ok) {
-        throw new Error('Erro ao atualizar político');
-      }
-      
-      return response.json();
-    },
+      }),
     onSuccess: (data, variables) => {
       // Invalidar queries relacionadas
       queryClient.invalidateQueries({ queryKey: queryKeys.politicians.detail(variables.id) });
@@ -197,19 +165,10 @@ export const useUpdatePolitician = () => {
  */
 export const useRecalculateScore = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async (politicianId: number) => {
-      const response = await fetch(`/api/politicians/${politicianId}/recalculate-score`, {
-        method: 'POST',
-      });
-      
-      if (!response.ok) {
-        throw new Error('Erro ao recalcular pontuação');
-      }
-      
-      return response.json();
-    },
+    mutationFn: (politicianId: number) =>
+      apiFetch(`/api/politicians/${politicianId}/recalculate-score`, { method: 'POST' }),
     onSuccess: (data, politicianId) => {
       // Invalidar queries relacionadas
       queryClient.invalidateQueries({ queryKey: queryKeys.politicians.detail(politicianId) });
@@ -229,11 +188,7 @@ export const useRecalculateScore = () => {
 export const useStatesFilter = () => {
   return useQuery({
     queryKey: ['politicians', 'states'],
-    queryFn: async () => {
-      const response = await fetch('/api/politicians/filters/states');
-      if (!response.ok) throw new Error('Erro ao buscar estados');
-      return response.json();
-    },
+    queryFn: () => apiFetch('/api/politicians/filters/states'),
     ...cacheConfigs.static,
   });
 };
@@ -244,35 +199,26 @@ export const useStatesFilter = () => {
 export const usePartiesFilter = () => {
   return useQuery({
     queryKey: ['politicians', 'parties'],
-    queryFn: async () => {
-      const response = await fetch('/api/politicians/filters/parties');
-      if (!response.ok) throw new Error('Erro ao buscar partidos');
-      return response.json();
-    },
+    queryFn: () => apiFetch('/api/politicians/filters/parties'),
     ...cacheConfigs.static,
   });
 };
 
 /**
- * Hook para buscar políticos com infinite query (paginação infinita)
+ * Hook para buscar políticos com paginação infinita
  */
 export const usePoliticiansInfinite = (filters: PoliticiansFilters = {}) => {
-  const queryClient = useQueryClient();
-  
-  return useQuery({
+  const pageSize = filters.limit || 20;
+
+  return useInfiniteQuery({
     queryKey: ['politicians', 'infinite', filters],
-    queryFn: async ({ pageParam = 0 }: { pageParam?: number }) => {
-      return fetchPoliticians({
-        ...filters,
-        offset: pageParam,
-        limit: filters.limit || 20,
-      });
-    },
+    queryFn: ({ pageParam }: { pageParam: number }) =>
+      fetchPoliticians({ ...filters, offset: pageParam, limit: pageSize }),
     ...cacheConfigs.moderate,
     initialPageParam: 0,
-    getNextPageParam: (lastPage, allPages) => {
+    getNextPageParam: (lastPage: PoliticiansResponse, allPages) => {
       if (!lastPage.hasMore) return undefined;
-      return allPages.length * (filters.limit || 20);
+      return allPages.length * pageSize;
     },
   });
 };

@@ -276,36 +276,25 @@ export class CriteriaEngine {
     return { penalidade, indicadores };
   }
 
-  private calculateTransparencyBonus(context: ScoringContext): number {
-    // Simulação de bônus por transparência
-    // Em produção, isso viria de dados reais sobre:
-    // - Publicação voluntária de agenda
-    // - Declarações de patrimônio detalhadas
-    // - Participação em audiências públicas
-    // - Respostas a questionamentos da mídia
-    
-    return Math.floor(Math.random() * 5); // 0-5 pontos de bônus
+  private calculateTransparencyBonus(_context: ScoringContext): number {
+    // TODO: calcular com base em declarações de patrimônio, agenda publicada
+    // e participação em audiências públicas (dados da API do Senado/Câmara)
+    return 0;
   }
 
-  private calculateFamilyProposalsBonus(context: ScoringContext): number {
-    // Simulação de bônus por propostas pró-família
-    // Em produção, analisaria projetos de autoria relacionados à família
-    
-    return Math.floor(Math.random() * 8); // 0-8 pontos de bônus
+  private calculateFamilyProposalsBonus(_context: ScoringContext): number {
+    // TODO: calcular com base em projetos de autoria via API da Câmara
+    return 0;
   }
 
-  private calculateSocialProjectsBonus(context: ScoringContext): number {
-    // Simulação de bônus por projetos sociais
-    // Em produção, analisaria projetos de autoria com viés social
-    
-    return Math.floor(Math.random() * 6); // 0-6 pontos de bônus
+  private calculateSocialProjectsBonus(_context: ScoringContext): number {
+    // TODO: calcular com base em projetos sociais de autoria via API da Câmara
+    return 0;
   }
 
-  private calculateReligiousDefenseBonus(context: ScoringContext): number {
-    // Simulação de bônus por defesa da liberdade religiosa
-    // Em produção, analisaria ações específicas em defesa da liberdade religiosa
-    
-    return Math.floor(Math.random() * 7); // 0-7 pontos de bônus
+  private calculateReligiousDefenseBonus(_context: ScoringContext): number {
+    // TODO: calcular com base em ações específicas de defesa da liberdade religiosa
+    return 0;
   }
 
   // ========================================

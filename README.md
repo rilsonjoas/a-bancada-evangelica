@@ -111,23 +111,23 @@ GET /api/methodology/full      - Metodologia completa (pilares + conteúdo)
 - **Icons**: Lucide React
 - **Routing**: React Router DOM
 
-### 📊 Sistema de Avaliação - **7 Pilares Fundamentais**
+### 📊 Sistema de Avaliação — 5 Critérios Ponderados
 
-| Pilar | Peso | Descrição |
-|-------|------|-----------|
-| 🛡️ **Proteção à Vida** | 25% | Defesa da vida desde a concepção até a morte natural |
-| 👨‍👩‍👧‍👦 **Defesa da Família** | 20% | Proteção da instituição familiar e autoridade parental |
-| ⚖️ **Integridade Moral e Transparência** | 20% | Ética, honestidade e combate à corrupção |
-| 🏛️ **Zelo e Responsabilidade no Mandato** | 10% | Dedicação, assiduidade e bom uso dos recursos públicos |
-| 📜 **Produção Legislativa Relevante** | 10% | Proatividade e eficácia na criação de leis alinhadas |
-| 🤝 **Responsabilidade Social** | 10% | Cuidado com os vulneráveis e busca pela justiça social |
-| ✝️ **Liberdade Religiosa** | 5% | Garantia do direito de crer, cultuar e expressar a fé |
+Definidos em `src/services/scoring/criteriaEngine.ts`:
+
+| Critério | Peso | O que avalia |
+|----------|------|--------------|
+| 🛡️ **Proteção à Vida** | 30% | Votações sobre aborto, eutanásia e dignidade da vida |
+| 👨‍👩‍👧‍👦 **Valores Familiares** | 25% | Casamento, adoção, educação e autoridade parental |
+| ⚖️ **Integridade Moral** | 20% | Análise de despesas + votações de ética e anticorrupção |
+| 🤝 **Responsabilidade Social** | 15% | Votações e projetos em favor de populações vulneráveis |
+| ✝️ **Liberdade Religiosa** | 10% | Proteção ao culto e à expressão de fé |
 
 **Faixas de Classificação:**
-- 🟢 **Excelente** (≥80 pontos)
-- 🟡 **Bom** (60-79 pontos)  
-- 🟠 **Médio** (40-59 pontos)
-- 🔴 **Insuficiente** (<40 pontos)
+- 🟢 **Excelente** (≥ 80 pontos)
+- 🟡 **Bom** (60–79 pontos)
+- 🟠 **Médio** (40–59 pontos)
+- 🔴 **Insuficiente** (< 40 pontos)
 
 ### 📈 Capacidade Atual da Plataforma
 - **📊 Banco de Dados Populado**: 81 senadores + 600+ deputados sincronizados

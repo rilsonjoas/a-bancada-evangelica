@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { apiFetch } from '@/lib/apiClient';
 
 interface PoliticianDetail {
   id: number;
@@ -51,13 +52,7 @@ interface PoliticianDetail {
 }
 
 async function fetchPoliticianDetail(id: number): Promise<PoliticianDetail> {
-  const response = await fetch(`http://localhost:3001/api/politicians/${id}`);
-  
-  if (!response.ok) {
-    throw new Error(`Erro ao buscar político: ${response.status}`);
-  }
-  
-  return response.json();
+  return apiFetch(`/api/politicians/${id}`);
 }
 
 export function usePoliticianDetail(id: number) {

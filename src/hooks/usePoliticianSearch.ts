@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { apiFetch } from '@/lib/apiClient';
 
 interface PoliticianSearchResult {
   id: number;
@@ -32,13 +33,7 @@ async function searchPoliticians(query: string = '', limit: number = 20): Promis
     params.set('search', query);
   }
   
-  const response = await fetch(`http://localhost:3001/api/politicians?${params}`);
-  
-  if (!response.ok) {
-    throw new Error(`Erro na busca: ${response.status}`);
-  }
-  
-  return response.json();
+  return apiFetch<SearchResponse>(`/api/politicians?${params}`);
 }
 
 export function usePoliticianSearch(query: string = '', limit: number = 20) {

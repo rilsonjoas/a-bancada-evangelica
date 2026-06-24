@@ -4,16 +4,27 @@ import cors from 'cors';
 import { prisma } from '@/lib/prisma';
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT ?? 3001;
 
-// Middleware - Configuração CORS explícita
+const allowedOrigins = process.env.FRONTEND_URL
+  ? [process.env.FRONTEND_URL]
+  : ['http://localhost:8080', 'http://127.0.0.1:8080'];
+
 app.use(cors({
-  origin: ['http://localhost:8080', 'http://127.0.0.1:8080'],
+  origin: allowedOrigins,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
 }));
 app.use(express.json());
+
+// ========================================
+// HEALTHCHECK
+// ========================================
+
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 
 // ========================================
 // POLITICIANS ENDPOINTS
