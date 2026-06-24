@@ -5,11 +5,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-_DATABASE_URL = os.environ["DATABASE_URL"]
-
 
 def get_connection():
-    return psycopg2.connect(_DATABASE_URL)
+    url = os.environ.get("DATABASE_URL")
+    if not url:
+        raise RuntimeError("DATABASE_URL não está definida")
+    return psycopg2.connect(url)
 
 
 def load_voting_matrix() -> pd.DataFrame:

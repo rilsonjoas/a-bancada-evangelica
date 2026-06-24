@@ -13,6 +13,7 @@ import MetodologiaPage from "./pages/Metodologia";
 import ContatoPage from "./pages/Contato";
 import { PoliticianProfile } from "./pages/PoliticianProfile";
 import { PoliticianComparison } from "./pages/PoliticianComparison";
+import VotingClusters from "./pages/VotingClusters";
 import NotFound from "./pages/NotFound";
 
 const App = () => (
@@ -29,6 +30,7 @@ const App = () => (
               <Route path="/ranking" element={<RankingPage />} />
               <Route path="/politicos/:id" element={<PoliticianProfile />} />
               <Route path="/comparacao" element={<PoliticianComparison />} />
+              <Route path="/grupos" element={<VotingClusters />} />
               <Route path="/sobre" element={<SobrePage />} />
               <Route path="/metodologia" element={<MetodologiaPage />} />
               <Route path="/contato" element={<ContatoPage />} />
