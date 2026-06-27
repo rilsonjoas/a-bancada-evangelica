@@ -12,7 +12,7 @@ export const queryClient = new QueryClient({
       retry: (failureCount, error) => {
         // Não fazer retry para erros 4xx (client errors)
         if (error instanceof Error && 'status' in error) {
-          const status = (error as any).status;
+          const status = (error as Error & { status?: number }).status;
           if (status >= 400 && status < 500) {
             return false;
           }
@@ -42,10 +42,10 @@ export const queryKeys = {
   politicians: {
     all: ['politicians'] as const,
     lists: () => [...queryKeys.politicians.all, 'list'] as const,
-    list: (filters: Record<string, any>) => [...queryKeys.politicians.lists(), { filters }] as const,
+    list: (filters: Record<string, unknown>) => [...queryKeys.politicians.lists(), { filters }] as const,
     details: () => [...queryKeys.politicians.all, 'detail'] as const,
     detail: (id: number) => [...queryKeys.politicians.details(), id] as const,
-    ranking: (filters: Record<string, any>) => [...queryKeys.politicians.all, 'ranking', { filters }] as const,
+    ranking: (filters: Record<string, unknown>) => [...queryKeys.politicians.all, 'ranking', { filters }] as const,
   },
   
   // Pontuações
@@ -75,7 +75,7 @@ export const queryKeys = {
   keyAgendas: {
     all: ['keyAgendas'] as const,
     lists: () => [...queryKeys.keyAgendas.all, 'list'] as const,
-    list: (filters: Record<string, any>) => [...queryKeys.keyAgendas.lists(), { filters }] as const,
+    list: (filters: Record<string, unknown>) => [...queryKeys.keyAgendas.lists(), { filters }] as const,
     detail: (id: string) => [...queryKeys.keyAgendas.all, 'detail', id] as const,
   },
   

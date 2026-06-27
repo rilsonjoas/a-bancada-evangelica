@@ -104,7 +104,7 @@ export class BaseAPIService {
       const paginatedEndpoint = `${endpoint}${endpoint.includes('?') ? '&' : '?'}itens=${itemsPerPage}&pagina=${page}`;
       
       try {
-        const response = await this.request<{ dados: T[], links: any[] }>(paginatedEndpoint, options);
+        const response = await this.request<{ dados: T[], links: unknown[] }>(paginatedEndpoint, options);
         
         if (response.dados && response.dados.length > 0) {
           allItems.push(...response.dados);
@@ -181,7 +181,7 @@ export class BaseAPIService {
   /**
    * Função para fazer cache simples de dados
    */
-  protected cache = new Map<string, { data: any; timestamp: number; ttl: number }>();
+  protected cache = new Map<string, { data: unknown; timestamp: number; ttl: number }>();
 
   protected getCached<T>(key: string): T | null {
     const cached = this.cache.get(key);

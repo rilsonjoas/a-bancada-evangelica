@@ -72,19 +72,29 @@ def run_clustering(k: int | None = None) -> dict:
                 "y": float(pca_2d[idx, 1]),
             })
 
+        party_counts: dict[str, int] = {}
+        for m in members:
+            p = m["party"] or "?"
+            party_counts[p] = party_counts.get(p, 0) + 1
+        dominant_party = max(party_counts, key=lambda k: party_counts[k]) if party_counts else "?"
+        dominant_pct = round(100 * party_counts.get(dominant_party, 0) / max(len(members), 1))
+
         centroid_scores = model.cluster_centers_[cluster_id].tolist()
         clusters.append({
             "id": cluster_id,
             "label": f"Grupo {cluster_id + 1}",
+            "dominant_party": dominant_party,
+            "dominant_party_pct": dominant_pct,
             "size": int(mask.sum()),
             "members": members,
-            "centroid": centroid_scores[:5],  # Primeiras 5 dimensões PCA
+            "centroid": centroid_scores[:5],
+            "party_breakdown": dict(sorted(party_counts.items(), key=lambda x: x[1], reverse=True)[:8]),
         })
 
     # Ordenar por tamanho decrescente
     clusters.sort(key=lambda c: c["size"], reverse=True)
     for rank, c in enumerate(clusters):
-        c["label"] = f"Grupo {rank + 1} ({c['size']} parlamentares)"
+        c["label"] = f"Grupo {rank + 1} — {c['dominant_party']} ({c['size']} membros)"
 
     return {
         "clusters": clusters,

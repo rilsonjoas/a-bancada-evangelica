@@ -309,7 +309,7 @@ export interface SincronizacaoLog {
   registros_atualizados: number;
   registros_erro: number;
   mensagem_erro?: string;
-  detalhes?: any;
+  detalhes?: unknown;
 }
 
 // ========================================

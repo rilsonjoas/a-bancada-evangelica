@@ -1,6 +1,7 @@
 // Servidor de API simples para servir dados do banco
 import express from 'express';
 import cors from 'cors';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 
 const app = express();
@@ -47,7 +48,7 @@ app.get('/api/politicians', async (req, res) => {
       sortOrder = 'asc'
     } = req.query;
 
-    const whereClause: any = {
+    const whereClause: Prisma.PoliticianWhereInput = {
       is_active: true,
     };
 
@@ -72,12 +73,12 @@ app.get('/api/politicians', async (req, res) => {
     }
 
     // Filtro por pontuação (precisa ser feito via relacionamento)
-    const scoreFilter: any = {};
+    const scoreFilter: Prisma.PoliticianScoreListRelationFilter = {};
     if (performanceLevel) {
-      scoreFilter.some = { performance_level: performanceLevel };
+      scoreFilter.some = { performance_level: performanceLevel as Prisma.EnumPerformanceLevelFilter };
     }
     if (minScore || maxScore) {
-      const scoreRange: any = {};
+      const scoreRange: Prisma.FloatFilter = {};
       if (minScore) scoreRange.gte = parseFloat(minScore as string);
       if (maxScore) scoreRange.lte = parseFloat(maxScore as string);
       scoreFilter.some = { ...scoreFilter.some, overall_score: scoreRange };
@@ -201,11 +202,11 @@ app.get('/api/politicians/ranking', async (req, res) => {
       criteria = 'overall'
     } = req.query;
 
-    const whereClause: any = {
+    const whereClause: Prisma.PoliticianWhereInput = {
       is_active: true,
     };
 
-    if (house) whereClause.current_house = house;
+    if (house) whereClause.current_house = house as Prisma.EnumHouseTypeFilter;
     if (state) whereClause.current_state = state;
     if (party) whereClause.current_party = party;
 

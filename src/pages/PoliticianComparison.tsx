@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
-import { useComparisonData } from '@/hooks/useComparisonData';
+import { useComparisonData, type ComparisonPolitician } from '@/hooks/useComparisonData';
 import { usePoliticianSearch } from '@/hooks/usePoliticianSearch';
 import { PoliticianSelector } from '@/components/comparison/PoliticianSelector';
 import { ComparisonChart } from '@/components/comparison/ComparisonChart';
@@ -55,7 +55,7 @@ export function PoliticianComparison() {
     return variants[level as keyof typeof variants] || variants.AVERAGE;
   };
 
-  const compareScores = (politician1: any, politician2: any, criterion: string) => {
+  const compareScores = (politician1: ComparisonPolitician, politician2: ComparisonPolitician, criterion: string) => {
     const score1 = politician1.currentScore?.[criterion] || 0;
     const score2 = politician2.currentScore?.[criterion] || 0;
     

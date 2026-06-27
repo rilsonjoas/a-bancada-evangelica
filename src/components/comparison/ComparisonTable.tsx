@@ -57,7 +57,7 @@ export function ComparisonTable({ politicians }: ComparisonTableProps) {
     });
   };
 
-  const getRankIcon = (politician: any, criteriaKey: string) => {
+  const getRankIcon = (politician: ComparisonTableProps['politicians'][number], criteriaKey: string) => {
     const best = getBestInCriteria(criteriaKey);
     const worst = getWorstInCriteria(criteriaKey);
     

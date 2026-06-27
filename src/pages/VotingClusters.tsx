@@ -6,10 +6,13 @@ import {
   Tooltip,
   ResponsiveContainer,
   Cell,
+  BarChart,
+  Bar,
+  LabelList,
 } from 'recharts';
-import { Brain, Users, TrendingUp, BarChart2, ChevronDown, ChevronUp, AlertCircle } from 'lucide-react';
+import { Brain, Users, TrendingUp, BarChart2, ChevronDown, ChevronUp, AlertCircle, Award } from 'lucide-react';
 import { useState } from 'react';
-import { useClusterData, type ClusterMember } from '@/hooks/useClusterData';
+import { useClusterData, usePartyAlignment, type ClusterMember } from '@/hooks/useClusterData';
 
 const CLUSTER_COLORS = [
   '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
@@ -84,6 +87,62 @@ function ClusterCard({ cluster, color, index }: {
         </div>
       )}
     </div>
+  );
+}
+
+const ALIGNMENT_COLOR: Record<string, string> = {
+  alta: '#10b981',
+  moderada: '#f59e0b',
+  baixa: '#ef4444',
+  sem_dados: '#6b7280',
+};
+
+function PartyAlignmentChart() {
+  const { data, isLoading, isError } = usePartyAlignment();
+
+  if (isLoading) return (
+    <div className="flex items-center justify-center h-48">
+      <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+
+  if (isError || !data || data.parties.length === 0) return (
+    <div className="flex items-center justify-center h-32 text-center">
+      <p className="text-sm text-muted-foreground">
+        {isError
+          ? 'Serviço indisponível'
+          : 'Dados de pontuação ainda não calculados. Rode os scripts de sync primeiro.'}
+      </p>
+    </div>
+  );
+
+  const top20 = data.parties.slice(0, 20).map(p => ({
+    party: p.party,
+    score: p.avg_score ?? 0,
+    level: p.alignment_level,
+    count: p.politician_count,
+  }));
+
+  return (
+    <ResponsiveContainer width="100%" height={Math.max(280, top20.length * 28)}>
+      <BarChart data={top20} layout="vertical" margin={{ left: 8, right: 40, top: 4, bottom: 4 }}>
+        <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11 }} />
+        <YAxis type="category" dataKey="party" width={60} tick={{ fontSize: 11 }} />
+        <Tooltip
+          formatter={(v: number) => [`${v.toFixed(1)} pts`, 'Score médio']}
+          labelFormatter={(label) => {
+            const item = top20.find(p => p.party === label);
+            return item ? `${label} (${item.count} parlamentares)` : label;
+          }}
+        />
+        <Bar dataKey="score" radius={[0, 4, 4, 0]}>
+          {top20.map((entry, i) => (
+            <Cell key={i} fill={ALIGNMENT_COLOR[entry.level]} fillOpacity={0.85} />
+          ))}
+          <LabelList dataKey="score" position="right" formatter={(v: number) => v.toFixed(0)} style={{ fontSize: 11 }} />
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
   );
 }
 
@@ -162,6 +221,27 @@ export default function VotingClusters() {
                 value={`${(data.pca_variance_2d * 100).toFixed(1)}%`}
                 sub="explicada pelos 2 eixos"
               />
+            </div>
+
+            {/* Party alignment */}
+            <div className="bg-card border border-border rounded-lg p-6 mb-8">
+              <div className="flex items-center gap-2 mb-1">
+                <Award className="w-4 h-4 text-muted-foreground" />
+                <h2 className="font-semibold text-foreground">Alinhamento por partido</h2>
+              </div>
+              <p className="text-xs text-muted-foreground mb-4">
+                Score médio nos 5 critérios evangélicos.{' '}
+                <span className="inline-flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> alta (≥70)
+                </span>{' · '}
+                <span className="inline-flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-amber-500 inline-block" /> moderada (50–70)
+                </span>{' · '}
+                <span className="inline-flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-red-500 inline-block" /> baixa (&lt;50)
+                </span>
+              </p>
+              <PartyAlignmentChart />
             </div>
 
             {/* Scatter */}

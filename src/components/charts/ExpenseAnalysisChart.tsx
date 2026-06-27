@@ -132,7 +132,7 @@ export function ExpenseAnalysisChart({ analysis }: ExpenseAnalysisChartProps) {
                   tick={{ fontSize: 11, fill: '#666' }}
                 />
                 <Tooltip
-                  formatter={(value: any) => [formatCurrency(value), 'Valor']}
+                  formatter={(value: unknown) => [formatCurrency(value), 'Valor']}
                   contentStyle={{
                     backgroundColor: '#f8fafc',
                     border: '1px solid #e2e8f0',
@@ -141,7 +141,7 @@ export function ExpenseAnalysisChart({ analysis }: ExpenseAnalysisChartProps) {
                 />
                 <Bar 
                   dataKey="value" 
-                  fill={(entry: any) => {
+                  fill={(entry: unknown) => {
                     switch (entry.type) {
                       case 'total': return '#3b82f6';
                       case 'suspicious': return '#ef4444';
@@ -180,7 +180,7 @@ export function ExpenseAnalysisChart({ analysis }: ExpenseAnalysisChartProps) {
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(value: any) => [formatCurrency(value), 'Valor']}
+                  formatter={(value: unknown) => [formatCurrency(value), 'Valor']}
                   contentStyle={{
                     backgroundColor: '#f8fafc',
                     border: '1px solid #e2e8f0',

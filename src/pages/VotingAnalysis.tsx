@@ -261,7 +261,7 @@ export function VotingAnalysis() {
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Baixo Alinhamento (<60%)</span>
+                    <span className="text-sm">Baixo Alinhamento (&lt;60%)</span>
                     <span className="text-red-600 font-bold">
                       {analysisData?.alignmentStats?.low || 0} políticos
                     </span>
@@ -287,7 +287,7 @@ export function VotingAnalysis() {
         {/* Key Agendas Tab */}
         <TabsContent value="agendas" className="space-y-6">
           <div className="grid gap-6">
-            {analysisData?.keyAgendas?.map((agenda: any) => (
+            {analysisData?.keyAgendas?.map((agenda: { id: string; [key: string]: unknown }) => (
               <KeyAgendaCard key={agenda.id} agenda={agenda} />
             )) || (
               <div className="text-center py-8 text-gray-500">
@@ -306,7 +306,7 @@ export function VotingAnalysis() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {analysisData?.politicianRanking?.map((politician: any, index: number) => (
+                {analysisData?.politicianRanking?.map((politician: { id: number; name: string; currentScore?: { overall: number }; [key: string]: unknown }, index: number) => (
                   <div key={politician.id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex items-center gap-4">
                       <div className="text-lg font-bold text-gray-500">

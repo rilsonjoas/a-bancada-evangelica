@@ -39,16 +39,19 @@ const RankingPage = () => {
   }, [politiciansData]);
 
   // Usar dados da API diretamente (já filtrados)
-  const politicians = politiciansData?.politicians || [];
-  
+  const politicians = useMemo(
+    () => politiciansData?.politicians ?? [],
+    [politiciansData]
+  );
+
   // Calculate statistics
   const stats = useMemo(() => {
     if (!politiciansData || !statsData) {
       return { total: 0, avgScore: 0, excellentCount: 0, deputadosCount: 0 };
     }
-    
+
     const total = politiciansData.total;
-    const avgScore = politicians.length > 0 ? 
+    const avgScore = politicians.length > 0 ?
       politicians.reduce((sum, p) => sum + p.scores.overall, 0) / politicians.length : 0;
     const excellentCount = statsData.performanceDistribution.excellent;
     const deputadosCount = statsData.houseDistribution.camara;

@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 
 from app.services.clustering import run_clustering, similar_deputies
+from app.database import load_party_scores
 
 app = FastAPI(
     title="Bancada Evangélica — Analysis API",
@@ -48,6 +49,48 @@ def clusters(
     if "error" in result:
         raise HTTPException(status_code=422, detail=result["error"])
     return result
+
+
+@app.get("/api/parties/alignment")
+def party_alignment():
+    """
+    Alinhamento médio por partido com os 5 critérios evangélicos.
+    Requer tabela politician_scores populada.
+    """
+    try:
+        df = load_party_scores()
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Erro ao carregar dados: {e}")
+
+    if df.empty:
+        return {"parties": [], "total_parties": 0, "note": "Pontuações ainda não calculadas"}
+
+    def level(score: float) -> str:
+        if score >= 70:
+            return "alta"
+        if score >= 50:
+            return "moderada"
+        return "baixa"
+
+    parties = []
+    for _, row in df.iterrows():
+        avg = float(row["avg_score"]) if row["avg_score"] is not None else None
+        parties.append({
+            "party": row["party"],
+            "house": row["house"],
+            "politician_count": int(row["politician_count"]),
+            "avg_score": avg,
+            "alignment_level": level(avg) if avg is not None else "sem_dados",
+            "criteria": {
+                "life_protection":       float(row["avg_life"])      if row["avg_life"]      is not None else None,
+                "family_values":         float(row["avg_family"])    if row["avg_family"]    is not None else None,
+                "moral_integrity":       float(row["avg_integrity"]) if row["avg_integrity"] is not None else None,
+                "social_responsibility": float(row["avg_social"])    if row["avg_social"]    is not None else None,
+                "religious_freedom":     float(row["avg_religious"]) if row["avg_religious"] is not None else None,
+            },
+        })
+
+    return {"parties": parties, "total_parties": len(parties)}
 
 
 @app.get("/api/deputies/{politician_id}/similar")

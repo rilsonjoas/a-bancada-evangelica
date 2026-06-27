@@ -100,7 +100,7 @@ export function ComparisonChart({ politicians }: ComparisonChartProps) {
                 />
               ))}
               <Tooltip
-                formatter={(value: any, name: string) => {
+                formatter={(value: unknown, name: string) => {
                   const politicianIndex = parseInt(name.split('_')[1]);
                   const politicianName = politicians[politicianIndex]?.name || 'Desconhecido';
                   return [`${value.toFixed(1)}`, politicianName];
@@ -136,8 +136,8 @@ export function ComparisonChart({ politicians }: ComparisonChartProps) {
                 tick={{ fontSize: 11, fill: '#666' }}
               />
               <Tooltip
-                formatter={(value: any, name: string, props: any) => [
-                  `${value.toFixed(1)}`,
+                formatter={(value: unknown) => [
+                  `${(value as number).toFixed(1)}`,
                   'Pontuação Geral'
                 ]}
                 labelFormatter={(label, payload) => {

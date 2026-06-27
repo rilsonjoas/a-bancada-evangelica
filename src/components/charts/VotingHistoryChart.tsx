@@ -84,7 +84,7 @@ export function VotingHistoryChart({ votes }: VotingHistoryChartProps) {
                 tick={{ fontSize: 11, fill: '#666' }}
               />
               <Tooltip
-                formatter={(value: any, name: string) => [
+                formatter={(value: unknown, name: string) => [
                   `${value > 0 ? '+' : ''}${value}`,
                   name === 'score' ? 'Impacto' : 'Acumulado'
                 ]}
@@ -147,7 +147,7 @@ export function VotingHistoryChart({ votes }: VotingHistoryChartProps) {
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(value: any) => [`${value}`, 'Quantidade']}
+                  formatter={(value: unknown) => [`${value}`, 'Quantidade']}
                   contentStyle={{
                     backgroundColor: '#f8fafc',
                     border: '1px solid #e2e8f0',
@@ -184,7 +184,7 @@ export function VotingHistoryChart({ votes }: VotingHistoryChartProps) {
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(value: any) => [`${value}`, 'Votações']}
+                  formatter={(value: unknown) => [`${value}`, 'Votações']}
                   contentStyle={{
                     backgroundColor: '#f8fafc',
                     border: '1px solid #e2e8f0',

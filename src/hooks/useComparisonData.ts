@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/apiClient';
 
-interface ComparisonPolitician {
+export interface ComparisonPolitician {
   id: number;
   name: string;
   fullName: string;

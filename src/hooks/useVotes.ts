@@ -131,7 +131,7 @@ const fetchVotes = async (filters: VotesFilters = {}) => {
   return response.json();
 };
 
-const fetchPoliticianVotes = async (politicianId: number, filters: Omit<VotesFilters, 'politicianId') = {}) => {
+const fetchPoliticianVotes = async (politicianId: number, filters: Omit<VotesFilters, 'politicianId'> = {}) => {
   const searchParams = new URLSearchParams();
   
   Object.entries(filters).forEach(([key, value]) => {

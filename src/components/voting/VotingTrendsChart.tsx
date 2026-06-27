@@ -47,7 +47,7 @@ export function VotingTrendsChart({ data }: VotingTrendsChartProps) {
                 tick={{ fontSize: 11, fill: '#666' }}
               />
               <Tooltip
-                formatter={(value: any, name: string) => [
+                formatter={(value: unknown, name: string) => [
                   value,
                   name === 'favorableVotes' ? 'Votos Favoráveis' : 
                   name === 'contraryVotes' ? 'Votos Contrários' : 'Abstenções'
@@ -107,7 +107,7 @@ export function VotingTrendsChart({ data }: VotingTrendsChartProps) {
                 tick={{ fontSize: 11, fill: '#666' }}
               />
               <Tooltip
-                formatter={(value: any, name: string) => [
+                formatter={(value: unknown, name: string) => [
                   value,
                   name === 'favorableVotes' ? 'Votos Favoráveis' : 
                   name === 'contraryVotes' ? 'Votos Contrários' : 'Abstenções'

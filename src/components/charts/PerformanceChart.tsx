@@ -111,7 +111,7 @@ export function PerformanceChart({ politician }: PerformanceChartProps) {
                 dot={{ r: 4, fill: '#3b82f6' }}
               />
               <Tooltip
-                formatter={(value: any) => [`${value.toFixed(1)}`, 'Pontuação']}
+                formatter={(value: unknown) => [`${(value as number).toFixed(1)}`, 'Pontuação']}
                 labelFormatter={(label) => `Critério: ${label}`}
                 contentStyle={{
                   backgroundColor: '#f8fafc',
@@ -145,7 +145,7 @@ export function PerformanceChart({ politician }: PerformanceChartProps) {
                 tick={{ fontSize: 11, fill: '#666' }}
               />
               <Tooltip
-                formatter={(value: any, name: string) => [
+                formatter={(value: unknown, name: string) => [
                   `${value.toFixed(1)}`,
                   name === 'score' ? 'Pontuação' : 'Peso'
                 ]}
