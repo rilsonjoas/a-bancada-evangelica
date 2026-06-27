@@ -1,7 +1,13 @@
 /**
  * recalculate-scores.ts
- * Lê todos os votos registrados no banco e recalcula o PoliticianScore
- * de cada político usando os pesos dos 5 critérios evangélicos.
+ * Recalcula scores usando abordagem híbrida:
+ *   - Para critérios COM votos reais: party_seed + delta dos votos
+ *   - Para critérios SEM votos reais: mantém score de partido (seed)
+ *   - Penalidade de despesas suspeitas em moral_integrity
+ *
+ * Isso preserva a diferenciação PL/PT em critérios sem votações
+ * PLEN acessíveis (vida, família, religião) enquanto usa dados reais
+ * para ajustar critérios com votações disponíveis (social, família).
  */
 import { PrismaClient } from '@prisma/client';
 
@@ -13,15 +19,6 @@ const WEIGHTS = {
   MORAL_INTEGRITY: 0.20,
   SOCIAL_RESPONSIBILITY: 0.15,
   RELIGIOUS_FREEDOM: 0.10,
-};
-
-// MORAL_INTEGRITY começa em 80 (presunção de inocência)
-const BASE_SCORES: Record<string, number> = {
-  LIFE_PROTECTION: 50,
-  FAMILY_VALUES: 50,
-  MORAL_INTEGRITY: 80,
-  SOCIAL_RESPONSIBILITY: 50,
-  RELIGIOUS_FREEDOM: 50,
 };
 
 function clamp(val: number) {
@@ -56,15 +53,17 @@ function performanceLabel(score: number): {
 }
 
 async function recalculate() {
-  console.log('🔢 Iniciando recálculo de scores...\n');
+  console.log('🔢 Recálculo híbrido de scores (partido + votos reais)...\n');
 
-  // Buscar todos os políticos que têm votos registrados
   const politicians = await prisma.politician.findMany({
     where: { is_active: true },
     include: {
-      scores: true,
+      scores: { take: 1, orderBy: { created_at: 'desc' } },
       votes: {
         include: { key_agenda: { select: { criteria: true } } },
+      },
+      expenses: {
+        select: { suspicion_score: true, is_suspicious: true },
       },
     },
   });
@@ -72,46 +71,47 @@ async function recalculate() {
   console.log(`👤 ${politicians.length} políticos para processar`);
 
   let updated = 0;
-  let skipped = 0;
+  let hybridUpdated = 0;
 
   for (const politician of politicians) {
-    if (politician.votes.length === 0) {
-      skipped++;
-      continue;
-    }
+    const existing = politician.scores[0];
 
-    // Agrupar applied_scores por critério
-    const grouped: Record<string, number[]> = {
-      LIFE_PROTECTION: [],
-      FAMILY_VALUES: [],
-      MORAL_INTEGRITY: [],
-      SOCIAL_RESPONSIBILITY: [],
-      RELIGIOUS_FREEDOM: [],
+    // Agrupar votos reais por critério
+    const deltas: Record<string, number[]> = {
+      LIFE_PROTECTION: [], FAMILY_VALUES: [], MORAL_INTEGRITY: [],
+      SOCIAL_RESPONSIBILITY: [], RELIGIOUS_FREEDOM: [],
     };
 
     for (const vote of politician.votes) {
-      const criteria = vote.key_agenda.criteria;
-      if (grouped[criteria] !== undefined) {
-        grouped[criteria].push(vote.applied_score);
-      }
+      const c = vote.key_agenda.criteria;
+      if (deltas[c]) deltas[c].push(vote.applied_score);
     }
 
-    // Calcular score por critério
-    const life = clamp(
-      BASE_SCORES.LIFE_PROTECTION + grouped.LIFE_PROTECTION.reduce((a, b) => a + b, 0)
-    );
-    const family = clamp(
-      BASE_SCORES.FAMILY_VALUES + grouped.FAMILY_VALUES.reduce((a, b) => a + b, 0)
-    );
-    const moral = clamp(
-      BASE_SCORES.MORAL_INTEGRITY + grouped.MORAL_INTEGRITY.reduce((a, b) => a + b, 0)
-    );
-    const social = clamp(
-      BASE_SCORES.SOCIAL_RESPONSIBILITY + grouped.SOCIAL_RESPONSIBILITY.reduce((a, b) => a + b, 0)
-    );
-    const religious = clamp(
-      BASE_SCORES.RELIGIOUS_FREEDOM + grouped.RELIGIOUS_FREEDOM.reduce((a, b) => a + b, 0)
-    );
+    const hasCriteriaVotes = (c: string) => deltas[c].length > 0;
+    const sumDelta = (c: string) => deltas[c].reduce((a, b) => a + b, 0);
+
+    // Para critérios sem votos: usar score existente (de partido)
+    // Para critérios com votos: ajustar o score existente com os deltas reais
+    // Se não há score existente: usar base neutra
+    const baseLife   = existing?.life_protection ?? 50;
+    const baseFamily = existing?.family_values ?? 50;
+    const baseMoral  = existing?.moral_integrity ?? 80;
+    const baseSocial = existing?.social_responsibility ?? 50;
+    const baseRel    = existing?.religious_freedom ?? 50;
+
+    // Penalidade de despesas suspeitas em moral_integrity
+    const suspiciousCount = politician.expenses.filter(e => e.is_suspicious).length;
+    const avgSuspicion = politician.expenses.length > 0
+      ? politician.expenses.reduce((s, e) => s + (e.suspicion_score ?? 0), 0) / politician.expenses.length
+      : 0;
+    const expensePenalty = Math.min(25, suspiciousCount * 3 + avgSuspicion * 0.1);
+
+    // Híbrido: mantém base de partido, ajusta somente onde há votos reais
+    const life   = clamp(hasCriteriaVotes('LIFE_PROTECTION') ? baseLife + sumDelta('LIFE_PROTECTION') : baseLife);
+    const family = clamp(hasCriteriaVotes('FAMILY_VALUES') ? baseFamily + sumDelta('FAMILY_VALUES') : baseFamily);
+    const moral  = clamp(baseMoral + sumDelta('MORAL_INTEGRITY') - expensePenalty);
+    const social = clamp(hasCriteriaVotes('SOCIAL_RESPONSIBILITY') ? baseSocial + sumDelta('SOCIAL_RESPONSIBILITY') : baseSocial);
+    const religious = clamp(hasCriteriaVotes('RELIGIOUS_FREEDOM') ? baseRel + sumDelta('RELIGIOUS_FREEDOM') : baseRel);
 
     const overall = clamp(
       life * WEIGHTS.LIFE_PROTECTION +
@@ -123,37 +123,29 @@ async function recalculate() {
 
     const perf = performanceLabel(overall);
 
-    // Calcular consistência: % de votos com score != 0 (não ausentes)
+    // Consistência: mantém a do partido se sem votos; recalcula se tem votos
     const totalVotes = politician.votes.length;
-    const activeVotes = politician.votes.filter(v => v.applied_score !== 0).length;
-    // consistency_score armazenado como 0-1; frontend faz * 100 para exibir %
-    const consistency = totalVotes > 0 ? activeVotes / totalVotes : 0;
+    const consistency = totalVotes > 0
+      ? politician.votes.filter(v => v.applied_score !== 0).length / totalVotes
+      : (existing?.consistency_score ?? 0.50);
+
+    if (politician.votes.length > 0) hybridUpdated++;
 
     await prisma.politicianScore.upsert({
       where: { politician_id: politician.id },
       create: {
         politician_id: politician.id,
-        life_protection: life,
-        family_values: family,
-        moral_integrity: moral,
-        social_responsibility: social,
-        religious_freedom: religious,
-        overall_score: overall,
-        performance_level: perf.level,
-        performance_label: perf.label,
-        performance_description: perf.description,
+        life_protection: life, family_values: family,
+        moral_integrity: moral, social_responsibility: social, religious_freedom: religious,
+        overall_score: overall, performance_level: perf.level,
+        performance_label: perf.label, performance_description: perf.description,
         consistency_score: consistency,
       },
       update: {
-        life_protection: life,
-        family_values: family,
-        moral_integrity: moral,
-        social_responsibility: social,
-        religious_freedom: religious,
-        overall_score: overall,
-        performance_level: perf.level,
-        performance_label: perf.label,
-        performance_description: perf.description,
+        life_protection: life, family_values: family,
+        moral_integrity: moral, social_responsibility: social, religious_freedom: religious,
+        overall_score: overall, performance_level: perf.level,
+        performance_label: perf.label, performance_description: perf.description,
         consistency_score: consistency,
       },
     });
@@ -162,8 +154,9 @@ async function recalculate() {
   }
 
   console.log(`\n✅ Recálculo concluído:`);
-  console.log(`   🔄 ${updated} políticos com scores atualizados`);
-  console.log(`   ⏭️  ${skipped} sem votos (mantiveram score padrão)`);
+  console.log(`   🔄 ${updated} políticos atualizados`);
+  console.log(`   🗳️  ${hybridUpdated} ajustados com votos reais (híbrido)`);
+  console.log(`   📊 ${updated - hybridUpdated} mantiveram score de partido`);
 }
 
 recalculate()

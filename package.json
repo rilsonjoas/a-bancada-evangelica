@@ -21,7 +21,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "sync:camara": "tsx scripts/sync-camara.ts",
     "sync:senado": "tsx scripts/sync-senado.ts",
-    "sync:camara:gastos": "tsx scripts/sync-camara.ts gastos",
+    "sync:camara:gastos": "tsx scripts/sync-all-gastos.ts",
     "sync:senado:gastos": "tsx scripts/sync-senado.ts gastos",
     "sync:worker": "tsx scripts/sync-worker.ts",
     "sync:worker:list": "tsx scripts/sync-worker.ts list",
