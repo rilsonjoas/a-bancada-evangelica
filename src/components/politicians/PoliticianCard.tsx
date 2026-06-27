@@ -160,9 +160,11 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
                 <Award className="h-3 w-3" />
                 <span>{formatConsistency(politician.scores.consistencyScore)} consistência</span>
               </div>
-              <div>
-                <span className="font-medium">{politician.scores.totalVotes}</span> votações
-              </div>
+              {politician.scores.totalVotes > 0 && (
+                <div>
+                  <span className="font-medium">{politician.scores.totalVotes}</span> votações
+                </div>
+              )}
             </div>
 
             {/* Actions */}

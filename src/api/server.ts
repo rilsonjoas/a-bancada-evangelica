@@ -84,39 +84,45 @@ app.get('/api/politicians', async (req, res) => {
       scoreFilter.some = { ...scoreFilter.some, overall_score: scoreRange };
     }
 
-    const politicians = await prisma.politician.findMany({
-      where: {
-        ...whereClause,
-        ...(Object.keys(scoreFilter).length > 0 && {
-          scores: scoreFilter
-        })
-      },
-      include: {
-        scores: {
-          take: 1, // Só o primeiro/único score
-          orderBy: { created_at: 'desc' }
+    const queryWhere = {
+      ...whereClause,
+      ...(Object.keys(scoreFilter).length > 0 && { scores: scoreFilter })
+    };
+
+    const takeN = parseInt(limit as string);
+    const skipN = parseInt(offset as string);
+
+    // Quando sortBy === 'score', buscar todos e ordenar em JS
+    // (Prisma não suporta orderBy em 1-to-many sem raw query)
+    let politicians;
+    if (sortBy === 'score') {
+      const all = await prisma.politician.findMany({
+        where: queryWhere,
+        include: {
+          scores: { take: 1, orderBy: { created_at: 'desc' } },
+          mandates: { where: { is_current: true }, take: 1 }
         },
-        mandates: {
-          where: { is_current: true },
-          take: 1
-        }
-      },
-      orderBy: sortBy === 'name' 
-        ? { name: sortOrder as 'asc' | 'desc' }
-        : { id: 'asc' }, // Ordenação simples por enquanto
-      take: parseInt(limit as string),
-      skip: parseInt(offset as string),
-    });
+      });
+      const dir = sortOrder === 'desc' ? -1 : 1;
+      all.sort((a, b) =>
+        dir * ((a.scores[0]?.overall_score ?? 0) - (b.scores[0]?.overall_score ?? 0))
+      );
+      politicians = all.slice(skipN, skipN + takeN);
+    } else {
+      politicians = await prisma.politician.findMany({
+        where: queryWhere,
+        include: {
+          scores: { take: 1, orderBy: { created_at: 'desc' } },
+          mandates: { where: { is_current: true }, take: 1 }
+        },
+        orderBy: { name: sortOrder as 'asc' | 'desc' },
+        take: takeN,
+        skip: skipN,
+      });
+    }
 
     // Contar total para paginação
-    const total = await prisma.politician.count({
-      where: {
-        ...whereClause,
-        ...(Object.keys(scoreFilter).length > 0 && {
-          scores: scoreFilter
-        })
-      }
-    });
+    const total = await prisma.politician.count({ where: queryWhere });
 
     // Estatísticas
     const stats = await prisma.politicianScore.groupBy({

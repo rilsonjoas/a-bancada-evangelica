@@ -26,7 +26,11 @@
     "sync:worker": "tsx scripts/sync-worker.ts",
     "sync:worker:list": "tsx scripts/sync-worker.ts list",
     "analyze:expenses": "tsx scripts/expense-analyzer.ts",
-    "check:progress": "tsx scripts/check-progress.ts"
+    "check:progress": "tsx scripts/check-progress.ts",
+    "sync:votes": "tsx scripts/sync-votes.ts",
+    "scores:recalculate": "tsx scripts/recalculate-scores.ts",
+    "scores:seed": "tsx scripts/seed-party-scores.ts",
+    "sync:all": "pnpm sync:camara && pnpm sync:senado && pnpm sync:votes && pnpm scores:recalculate"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

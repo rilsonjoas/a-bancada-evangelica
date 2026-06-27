@@ -15,25 +15,46 @@ def get_connection():
 
 def load_voting_matrix() -> pd.DataFrame:
     """
-    Retorna uma matriz (deputado × pauta) com os valores de applied_score.
-    Linhas = politician_id, Colunas = key_agenda_id, Valores = applied_score (NaN se ausente).
+    Retorna a matriz de features para clustering.
+    Primário: scores dos 5 critérios de politician_scores (sempre disponível).
+    Secundário: pivot de votes × key_agendas (quando houver votos sincronizados).
     """
-    sql = """
+    # Tentar votes primeiro (dados mais granulares)
+    votes_sql = """
         SELECT v.politician_id, v.key_agenda_id, v.applied_score
         FROM votes v
         INNER JOIN politicians p ON p.id = v.politician_id AND p.is_active = true
     """
     with get_connection() as conn:
-        df = pd.read_sql(sql, conn)
+        df_votes = pd.read_sql(votes_sql, conn)
 
-    matrix = df.pivot_table(
-        index="politician_id",
-        columns="key_agenda_id",
-        values="applied_score",
-        aggfunc="mean",
-    )
-    # Preencher ausências com 0 (parlamentar não votou = neutro)
-    return matrix.fillna(0)
+    if not df_votes.empty:
+        matrix = df_votes.pivot_table(
+            index="politician_id",
+            columns="key_agenda_id",
+            values="applied_score",
+            aggfunc="mean",
+        )
+        return matrix.fillna(0)
+
+    # Fallback: usar os 5 critérios de politician_scores como feature matrix
+    scores_sql = """
+        SELECT ps.politician_id AS id,
+               ps.life_protection,
+               ps.family_values,
+               ps.moral_integrity,
+               ps.social_responsibility,
+               ps.religious_freedom
+        FROM politician_scores ps
+        INNER JOIN politicians p ON p.id = ps.politician_id AND p.is_active = true
+    """
+    with get_connection() as conn:
+        df_scores = pd.read_sql(scores_sql, conn)
+
+    if df_scores.empty:
+        return pd.DataFrame()
+
+    return df_scores.set_index("id")
 
 
 def load_politicians_info() -> pd.DataFrame:
