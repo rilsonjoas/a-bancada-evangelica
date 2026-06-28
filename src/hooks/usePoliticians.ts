@@ -22,6 +22,7 @@ export interface PoliticiansFilters {
   performanceLevel?: 'EXCELLENT' | 'GOOD' | 'AVERAGE' | 'POOR';
   minScore?: number;
   maxScore?: number;
+  fpeFilter?: boolean;
   limit?: number;
   offset?: number;
   sortBy?: 'name' | 'score' | 'state' | 'party';
