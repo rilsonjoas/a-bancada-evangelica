@@ -26,36 +26,45 @@ interface MembroResponse {
 }
 
 async function findFpeId(): Promise<number | null> {
-  console.log('🔍 Buscando ID da FPE...');
-  const res = await fetch(`${CAMARA_API}/frentes?ordem=ASC&ordenarPor=id`);
-  if (!res.ok) throw new Error(`Erro ao listar frentes: ${res.status}`);
-  const data = (await res.json()) as FrenteResponse;
+  console.log('🔍 Buscando ID da FPE (paginando resultados)...');
 
-  const keywords = ['evangélica', 'evangelica', 'bancada evangélica'];
-  for (const frente of data.dados) {
-    const lower = frente.titulo.toLowerCase();
-    if (keywords.some(k => lower.includes(k))) {
-      console.log(`  → Encontrada: "${frente.titulo}" (ID: ${frente.id})`);
-      return frente.id;
+  const keywords = ['evangélica', 'evangelica'];
+  let page = 1;
+  let bestId: number | null = null;
+  let bestLegislatura = 0;
+
+  while (true) {
+    const res = await fetch(`${CAMARA_API}/frentes?pagina=${page}&itens=100`);
+    if (!res.ok) throw new Error(`Erro ao listar frentes (pág ${page}): ${res.status}`);
+    const data = (await res.json()) as FrenteResponse;
+    if (!data.dados?.length) break;
+
+    for (const frente of data.dados) {
+      const lower = frente.titulo.toLowerCase();
+      if (keywords.some(k => lower.includes(k))) {
+        // Preferir a frente da legislatura mais recente — ID mais alto indica mais recente
+        if (frente.id > bestLegislatura) {
+          bestLegislatura = frente.id;
+          bestId = frente.id;
+          console.log(`  → Candidata: "${frente.titulo}" (ID: ${frente.id})`);
+        }
+      }
     }
+    page++;
   }
 
-  console.warn('  ⚠️  Nenhuma frente com "evangélica" encontrada.');
-
-  // Fallback: procurar por "FPE" ou "Frente Parlamentar"
-  for (const frente of data.dados) {
-    const lower = frente.titulo.toLowerCase();
-    if (lower.includes('fpe') || lower.includes('frente parlamentar')) {
-      console.log(`  → Possível candidata: "${frente.titulo}" (ID: ${frente.id})`);
-    }
+  if (bestId) {
+    console.log(`  → Usando ID ${bestId} (mais recente encontrado)`);
+  } else {
+    console.warn('  ⚠️  Nenhuma frente com "evangélica" encontrada após varrer todas as páginas.');
   }
 
-  return null;
+  return bestId;
 }
 
-async function fetchMembros(frenteId: number, legislatura = 57): Promise<MembroResponse['dados']> {
-  console.log(`  Buscando membros da FPE (frente ${frenteId}, legislatura ${legislatura})...`);
-  const res = await fetch(`${CAMARA_API}/frentes/${frenteId}/membros?legislatura=${legislatura}`);
+async function fetchMembros(frenteId: number): Promise<MembroResponse['dados']> {
+  console.log(`  Buscando membros da FPE (frente ${frenteId})...`);
+  const res = await fetch(`${CAMARA_API}/frentes/${frenteId}/membros`);
   if (!res.ok) throw new Error(`Erro ao buscar membros: ${res.status}`);
   const data = (await res.json()) as MembroResponse;
   console.log(`  → ${data.dados.length} membros encontrados.`);
