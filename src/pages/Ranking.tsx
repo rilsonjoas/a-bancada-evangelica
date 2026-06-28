@@ -173,10 +173,25 @@ const RankingPage = () => {
                     <SelectItem value="senador">Senado Federal</SelectItem>
                   </SelectContent>
                 </Select>
+
+                {/* FPE Filter */}
+                <div className="flex items-center space-x-3">
+                  <Church className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="fpe-filter"
+                      checked={fpeFilter}
+                      onCheckedChange={setFpeFilter}
+                    />
+                    <label htmlFor="fpe-filter" className="text-sm font-medium cursor-pointer select-none">
+                      Apenas FPE
+                    </label>
+                  </div>
+                </div>
               </div>
 
               {/* Active Filters */}
-              {(searchTerm || selectedState !== 'all' || selectedParty !== 'all' || selectedHouse !== 'all') && (
+              {(searchTerm || selectedState !== 'all' || selectedParty !== 'all' || selectedHouse !== 'all' || fpeFilter) && (
                 <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
                   <div className="flex items-center space-x-2">
                     <span className="text-sm text-muted-foreground">Filtros ativos:</span>
@@ -186,6 +201,7 @@ const RankingPage = () => {
                     {selectedHouse !== 'all' && <Badge variant="secondary">
                       {selectedHouse === 'deputado' ? 'Deputados' : 'Senadores'}
                     </Badge>}
+                    {fpeFilter && <Badge variant="secondary">FPE</Badge>}
                   </div>
                   <Button variant="ghost" size="sm" onClick={clearFilters}>
                     Limpar filtros

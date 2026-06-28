@@ -20,8 +20,9 @@ const SobrePage = () => {
               Sobre o Projeto
             </h1>
             <p className="text-xl text-primary-foreground/90 leading-relaxed">
-              Monitorando se os membros da Frente Parlamentar Evangélica
-              votam em consonância com os valores que declaram representar.
+              Parlamentares brasileiros avaliados por critérios objetivos 
+              de valores cristãos — com filtro opcional para a 
+              Frente Parlamentar Evangélica.
             </p>
           </div>
         </div>
@@ -42,9 +43,9 @@ const SobrePage = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground leading-relaxed">
-                  Fornecer ao eleitor cristão dados transparentes e verificáveis
-                  sobre como os parlamentares evangélicos votam nas pautas que afetam
-                  a família, a vida e a liberdade religiosa.
+                  Fornecer ao cidadão dados transparentes e verificáveis
+                  sobre como os parlamentares brasileiros se posicionam em pautas
+                  que afetam a família, a vida e a liberdade religiosa.
                 </p>
               </CardContent>
             </Card>
@@ -60,9 +61,9 @@ const SobrePage = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground leading-relaxed">
-                  O foco é a <strong className="text-foreground">Frente Parlamentar Evangélica (FPE)</strong> —
+                  Todos os parlamentares são avaliados — com filtro opcional para a <strong className="text-foreground">Frente Parlamentar Evangélica (FPE)</strong>,
                   o grupo formal de deputados que se identificam publicamente com a fé
-                  cristã evangélica e, por isso, aceitam ser avaliados pelos seus valores.
+                  cristã evangélica.
                 </p>
               </CardContent>
             </Card>
@@ -90,22 +91,24 @@ const SobrePage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start mb-16">
             <div>
               <h2 className="font-serif text-3xl font-bold text-foreground mb-6">
-                Por que só a FPE?
+                FPE como filtro, não como limite
               </h2>
               <div className="space-y-4 text-muted-foreground leading-relaxed">
                 <p>
-                  Avaliar todos os 513 deputados por critérios cristãos seria injusto e sem sentido:
-                  um deputado do PSOL ou do PT nunca se apresentou como representante
-                  evangélico — não há contrato implícito.
+                  Todos os parlamentares brasileiros são avaliados pelos mesmos 5 critérios
+                  objetivos — independentemente de partido, crença ou região. A plataforma
+                  aplica a mesma régua para qualquer deputado ou senador.
                 </p>
                 <p>
-                  A lógica é diferente para quem integra a FPE.
-                  Ao fazer parte do grupo, o parlamentar afirma publicamente que representa
-                  a fé cristã evangélica. A plataforma apenas verifica se os votos confirmam
-                  essa declaração.
+                  O filtro da <strong className="text-foreground">Frente Parlamentar Evangélica (FPE)</strong> está disponível
+                  como opção para quem quer focar nos parlamentares que se identificam
+                  publicamente com a fé cristã evangélica e aceitaram ser avaliados
+                  por esses valores.
                 </p>
                 <p>
-                  É accountability interno do movimento — não um julgamento externo.
+                  Assim, a plataforma serve tanto para accountability interno do movimento
+                  quanto para qualquer cidadão que queira entender o posicionamento dos
+                  seus representantes sob essa perspectiva.
                 </p>
               </div>
             </div>

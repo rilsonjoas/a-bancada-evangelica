@@ -34,7 +34,8 @@
     "sync:votes": "tsx scripts/sync-votes.ts",
     "scores:recalculate": "tsx scripts/recalculate-scores.ts",
     "scores:seed": "tsx scripts/seed-party-scores.ts",
-    "sync:all": "pnpm sync:camara && pnpm sync:senado && pnpm sync:votes && pnpm scores:recalculate"
+    "sync:fpe": "tsx scripts/sync-fpe-members.ts",
+    "sync:all": "pnpm sync:camara && pnpm sync:senado && pnpm sync:fpe && pnpm sync:votes && pnpm scores:recalculate"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

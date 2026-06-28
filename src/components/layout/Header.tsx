@@ -37,7 +37,7 @@ const Header = () => {
                 A Bancada Evangélica
               </h1>
               <p className="text-xs text-muted-foreground">
-                MONITORANDO A BANCADA EVANGÉLICA
+                PARLAMENTARES AVALIADOS POR VALORES CRISTÃOS
               </p>
             </div>
           </Link>

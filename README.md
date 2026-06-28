@@ -1,8 +1,8 @@
 # A Bancada Evangélica
 
 <p align="center">
-  <strong>Monitorando se os parlamentares evangélicos votam como pregam</strong><br/>
-  Plataforma de transparência sobre a Frente Parlamentar Evangélica (FPE) com dados reais da Câmara dos Deputados
+  <strong>Parlamentares brasileiros avaliados por valores cristãos</strong><br/>
+  Plataforma de transparência que avalia todos os deputados federais — com filtro opcional para membros da Frente Parlamentar Evangélica (FPE)
 </p>
 
 <p align="center">
@@ -24,9 +24,11 @@
 
 ## Missão
 
-**A Bancada Evangélica** é uma plataforma de accountability que avalia se os membros da **Frente Parlamentar Evangélica (FPE)** votam em consonância com os valores cristãos que declaram representar.
+**A Bancada Evangélica** avalia todos os 514 deputados federais da 57ª legislatura usando 5 critérios de alinhamento com valores cristãos: proteção à vida, valores familiares, integridade moral, responsabilidade social e liberdade religiosa.
 
-O eleitor evangélico precisa de transparência para responder: *"O parlamentar que diz falar em nome da fé está de fato defendendo esses valores no plenário?"*
+A Frente Parlamentar Evangélica (FPE) é um **filtro opcional** — não um limite. O eleitor pode ver o ranking geral ou ativar o toggle "Apenas FPE" para focar nos deputados que se identificam publicamente como representantes evangélicos.
+
+*"O parlamentar que diz falar em nome da fé está de fato defendendo esses valores no plenário?"*
 
 ---
 
@@ -47,14 +49,11 @@ O eleitor evangélico precisa de transparência para responder: *"O parlamentar 
 | Perfil completo com abas | ✅ Visão Geral, Performance, Votações, Gastos |
 | API com Swagger/OpenAPI | ✅ Documentação automática em `/api/docs` |
 | Testes automatizados | ✅ 32 testes passando (Vitest + Testing Library) |
-| Filtro por FPE | ❌ Ainda não implementado |
+| Filtro FPE no Ranking | ✅ Toggle "Apenas FPE" — campo `is_fpe_member` no schema e na API |
+| Script de sync FPE | ✅ `pnpm sync:fpe` busca membros da FPE na API da Câmara e marca no banco |
 | Votos do critério Proteção à Vida | ❌ PL 1904/2024 foi votado em comissão — sem votos individuais disponíveis na API |
 
-### Escopo atual vs. escopo pretendido
-
-**Pretendido:** avaliar apenas os ~200 membros oficiais da FPE com base nos valores que declaram representar.
-
-**Atual:** todos os 514 deputados ativos da 57ª legislatura são scorados usando os mesmos 5 critérios. O campo `is_fpe_member` e o filtro de FPE estão pendentes de implementação.
+> **Para ativar o filtro FPE:** rode `pnpm sync:fpe` após `pnpm sync:camara`. O toggle "Apenas FPE" no ranking já está implementado e funcional — só precisa de dados.
 
 ---
 
@@ -306,9 +305,10 @@ pnpm test --run   # CI — execução única
 ```bash
 pnpm sync:camara          # 1. Deputados e mandatos
 pnpm scores:seed          # 2. Baseline por partido
-pnpm sync:votes           # 3. Votos reais (57ª legislatura, PLEN)
-pnpm sync:camara:gastos   # 4. Despesas CEAP (~60 min para 513 deputados)
-pnpm scores:recalculate   # 5. Score final: seed + votos + penalidade de gastos
+pnpm sync:fpe             # 3. Marcar membros da FPE (requer deputados no banco)
+pnpm sync:votes           # 4. Votos reais (57ª legislatura, PLEN)
+pnpm sync:camara:gastos   # 5. Despesas CEAP (~60 min para 513 deputados)
+pnpm scores:recalculate   # 6. Score final: seed + votos + penalidade de gastos
 ```
 
 ### Serviço Python
@@ -384,12 +384,11 @@ PORT=3001
 
 ## Próximos Passos
 
-- [ ] Importar lista oficial de membros da FPE via `/frentes/{id}/membros`
-- [ ] Campo `is_fpe_member` no schema e filtro padrão no ranking
+- [ ] Rodar `pnpm sync:fpe` em produção para popular `is_fpe_member` no banco
 - [ ] Ampliar varredura de votos para critérios com zero cobertura (Vida, Liberdade Religiosa)
 - [ ] Completar sync de despesas e rodar `scores:recalculate` final
-- [ ] Testes de integração para a API NestJS (supertest)
-- [ ] Revisão manual das classificações de pauta
+- [ ] Testes de integração para a API NestJS (supertest + banco de teste)
+- [ ] Revisão manual das classificações de pauta (keyword algorithm pode gerar falsos positivos)
 
 ---
 
