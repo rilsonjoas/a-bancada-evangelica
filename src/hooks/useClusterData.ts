@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { ANALYSIS_BASE_URL } from '@/lib/apiClient';
+import { ANALYSIS_BASE_URL, apiFetch } from '@/lib/apiClient';
 
 export interface ClusterMember {
   id: number;
@@ -70,11 +70,7 @@ export function useClusterData(k?: number) {
 export function usePartyAlignment() {
   return useQuery<PartyAlignmentResponse>({
     queryKey: ['party-alignment'],
-    queryFn: async () => {
-      const res = await fetch(`${ANALYSIS_BASE_URL}/api/parties/alignment`);
-      if (!res.ok) throw new Error(`Erro ao buscar alinhamento: ${res.status}`);
-      return res.json();
-    },
+    queryFn: () => apiFetch<PartyAlignmentResponse>('/api/parties/alignment'),
     staleTime: 1000 * 60 * 60,
     retry: 1,
   });

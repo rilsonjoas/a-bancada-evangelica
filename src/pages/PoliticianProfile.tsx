@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, MapPin, Building, Calendar, Mail, ExternalLink, TrendingUp, TrendingDown, Minus, Share2 } from 'lucide-react';
+import { ArrowLeft, MapPin, Building, Calendar, Mail, ExternalLink, TrendingUp, TrendingDown, Minus, Share2, Info } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -79,6 +79,37 @@ export function PoliticianProfile() {
     }
   };
 
+  const getVoteLabel = (vote: string) => {
+    switch (vote) {
+      case 'YES': return 'SIM';
+      case 'NO': return 'NÃO';
+      case 'ABSTENTION': return 'Abstenção';
+      case 'OBSTRUCTION': return 'Obstrução';
+      default: return 'Ausente';
+    }
+  };
+
+  const getCriteriaLabel = (criteria: string) => {
+    const map: Record<string, string> = {
+      LIFE_PROTECTION: '🛡️ Proteção à Vida',
+      FAMILY_VALUES: '👨‍👩‍👧‍👦 Defesa da Família',
+      MORAL_INTEGRITY: '⚖️ Integridade Moral',
+      SOCIAL_RESPONSIBILITY: '🤝 Responsabilidade Social',
+      RELIGIOUS_FREEDOM: '✝️ Liberdade Religiosa',
+    };
+    return map[criteria] ?? criteria;
+  };
+
+  const getPerformanceLevelDescription = (level: string) => {
+    const map: Record<string, { range: string; description: string }> = {
+      EXCELLENT: { range: '80–100 pts', description: 'Alinhamento elevado e consistente com os valores evangélicos' },
+      GOOD:      { range: '65–79 pts', description: 'Bom alinhamento — maioria das votações favoráveis às pautas cristãs' },
+      AVERAGE:   { range: '45–64 pts', description: 'Alinhamento parcial — votações mistas ou dados estimados por partido' },
+      POOR:      { range: '0–44 pts',  description: 'Histórico frequentemente divergente dos valores cristãos' },
+    };
+    return map[level] ?? { range: '', description: '' };
+  };
+
   const shareProfile = () => {
     if (navigator.share) {
       navigator.share({
@@ -140,15 +171,26 @@ export function PoliticianProfile() {
               </div>
 
               <div className="flex flex-col items-end gap-3">
-                <Badge className={`text-lg px-4 py-2 ${getPerformanceBadge(politician.currentScore?.performanceLevel || 'AVERAGE')}`}>
-                  {politician.currentScore?.performanceLabel || 'Sem dados'}
-                </Badge>
-                
+                <div className="text-right">
+                  <Badge className={`text-lg px-4 py-2 ${getPerformanceBadge(politician.currentScore?.performanceLevel || 'AVERAGE')}`}>
+                    {politician.currentScore?.performanceLabel || 'Sem dados'}
+                  </Badge>
+                  {(() => {
+                    const lvl = getPerformanceLevelDescription(politician.currentScore?.performanceLevel || 'AVERAGE');
+                    return (
+                      <div className="mt-1 text-xs text-gray-500 flex items-center justify-end gap-1">
+                        <Info className="w-3 h-3" />
+                        <span>{lvl.range}</span>
+                      </div>
+                    );
+                  })()}
+                </div>
+
                 <div className="text-right">
                   <div className={`text-3xl font-bold ${getScoreColor(politician.currentScore?.overall || 0)}`}>
                     {politician.currentScore?.overall?.toFixed(1) || '0.0'}
                   </div>
-                  <div className="text-sm text-gray-600">Pontuação geral</div>
+                  <div className="text-sm text-gray-600">Pontuação geral (0–100)</div>
                 </div>
 
                 <Button onClick={shareProfile} variant="outline" size="sm">
@@ -231,9 +273,19 @@ export function PoliticianProfile() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700">
-                  {politician.currentScore?.performanceDescription || 
-                   'Este político está sendo avaliado com base em nossos 7 pilares fundamentais. A pontuação reflete seu alinhamento com valores cristãos e evangélicos.'}
+                  {politician.currentScore?.performanceDescription ||
+                   'Este político está sendo avaliado com base em 5 critérios: Proteção à Vida (30%), Defesa da Família (25%), Integridade Moral (20%), Responsabilidade Social (15%) e Liberdade Religiosa (10%).'}
                 </p>
+                {(() => {
+                  const lvl = getPerformanceLevelDescription(politician.currentScore?.performanceLevel || 'AVERAGE');
+                  if (!lvl.description) return null;
+                  return (
+                    <div className="mt-3 p-3 bg-gray-50 rounded-lg border text-sm text-gray-600">
+                      <span className="font-medium">{politician.currentScore?.performanceLabel}:</span>{' '}
+                      {lvl.description}
+                    </div>
+                  );
+                })()}
                 
                 {politician.birthDate && (
                   <div className="mt-4 pt-4 border-t">
@@ -352,32 +404,76 @@ export function PoliticianProfile() {
               <CardTitle>Histórico de Votações Recentes</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {politician.recentVotes?.map((vote, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex-1">
-                      <h4 className="font-medium">{vote.agendaTitle}</h4>
-                      <p className="text-sm text-gray-600 mt-1">
-                        {new Date(vote.voteDate).toLocaleDateString('pt-BR')}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="text-right">
-                        <div className="font-medium">
-                          {vote.appliedScore > 0 ? '+' : ''}{vote.appliedScore} pts
+              <div className="space-y-3">
+                {politician.recentVotes?.length > 0 ? politician.recentVotes.map((vote, index) => {
+                  const isPositive = vote.appliedScore > 0;
+                  const isNegative = vote.appliedScore < 0;
+                  const borderColor = isPositive ? 'border-l-green-500' : isNegative ? 'border-l-red-500' : 'border-l-gray-300';
+                  return (
+                    <div key={index} className={`p-4 border rounded-lg border-l-4 ${borderColor} bg-white`}>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-sm leading-snug">{vote.agendaTitle}</h4>
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">
+                            <span className="text-xs text-gray-500">
+                              {new Date(vote.voteDate).toLocaleDateString('pt-BR')}
+                            </span>
+                            <span className="text-xs px-2 py-0.5 bg-secondary/50 rounded-full text-muted-foreground">
+                              {getCriteriaLabel(vote.criteria)}
+                            </span>
+                          </div>
                         </div>
-                        <div className="text-sm text-gray-600">Impacto</div>
+
+                        <div className="flex items-center gap-3 shrink-0">
+                          {/* Impacto */}
+                          <div className="text-right">
+                            <div className={`font-bold text-sm ${isPositive ? 'text-green-700' : isNegative ? 'text-red-700' : 'text-gray-500'}`}>
+                              {vote.appliedScore > 0 ? '+' : ''}{vote.appliedScore} pts
+                            </div>
+                            <div className="text-xs text-gray-400">no critério</div>
+                          </div>
+
+                          {/* Voto */}
+                          <div className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-lg ${
+                            vote.vote === 'YES' ? 'bg-green-50 border border-green-200' :
+                            vote.vote === 'NO'  ? 'bg-red-50 border border-red-200' :
+                            'bg-gray-50 border border-gray-200'
+                          }`}>
+                            {getVoteIcon(vote.vote)}
+                            <span className={`text-xs font-bold ${
+                              vote.vote === 'YES' ? 'text-green-700' :
+                              vote.vote === 'NO'  ? 'text-red-700' : 'text-gray-600'
+                            }`}>
+                              {getVoteLabel(vote.vote)}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        {getVoteIcon(vote.vote)}
-                        <span className="font-medium">{vote.vote}</span>
-                      </div>
+
+                      {/* Explicação do impacto */}
+                      {vote.appliedScore !== 0 && (
+                        <div className={`mt-2 text-xs px-2 py-1 rounded ${isPositive ? 'text-green-700 bg-green-50' : 'text-red-700 bg-red-50'}`}>
+                          {isPositive
+                            ? `✓ Voto alinhado com o posicionamento evangélico em ${getCriteriaLabel(vote.criteria)}`
+                            : `✗ Voto contrário ao posicionamento evangélico em ${getCriteriaLabel(vote.criteria)}`
+                          }
+                        </div>
+                      )}
                     </div>
-                  </div>
-                )) || (
-                  <p className="text-gray-500 text-center py-8">Nenhuma votação registrada</p>
+                  );
+                }) : (
+                  <p className="text-gray-500 text-center py-8">Nenhuma votação individual registrada para este político.</p>
                 )}
               </div>
+
+              {politician.recentVotes?.length === 0 && (
+                <div className="mt-4 p-4 bg-secondary/20 rounded-lg text-sm text-muted-foreground">
+                  <Info className="inline w-4 h-4 mr-1" />
+                  A pontuação deste político é estimada com base no alinhamento histórico do seu partido, pois ainda não há votos individuais registrados. Confira a{' '}
+                  <Link to="/metodologia" className="text-primary underline">Metodologia</Link>{' '}
+                  para entender como isso funciona.
+                </div>
+              )}
             </CardContent>
           </Card>
 

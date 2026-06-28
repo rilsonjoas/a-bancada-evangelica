@@ -3,14 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { 
-  BookOpen, 
-  Calculator, 
-  Database, 
-  CheckCircle, 
-  AlertCircle, 
-  Info, 
-  ExternalLink, 
+import {
+  BookOpen,
+  Calculator,
+  Database,
+  CheckCircle,
+  AlertCircle,
+  Info,
+  ExternalLink,
   Download,
   Shield,
   Heart,
@@ -18,122 +18,137 @@ import {
   Home,
   Users,
   Cross,
-  Zap
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  Star,
+  Award,
+  Target,
+  Activity
 } from 'lucide-react';
 
 const MetodologiaPage = () => {
-  const pilarsData = [
+  // 5 critérios reais com pesos do código (recalculate-scores.ts)
+  const criteriosData = [
     {
       key: 'lifeProtection',
       icon: Shield,
-      weight: 25,
+      weight: 30,
       name: '🛡️ Proteção à Vida',
-      description: 'Analisamos os votos e posicionamentos em projetos de lei sobre aborto, eutanásia, pesquisa com células-tronco embrionárias e outras pautas de bioética. Verificamos também a autoria de proposições que visam proteger a vida em todas as suas fases.',
-      whyImportant: 'A Bíblia ensina que a vida é um dom sagrado de Deus e que fomos criados à Sua imagem e semelhança (Gênesis 1:27). Desde o ventre materno, somos conhecidos e formados por Ele (Salmo 139:13-16). Defender a vida, do mais vulnerável ao mais idoso, é um mandamento fundamental da fé.',
-      howItHelps: 'Você poderá identificar claramente quais políticos são uma barreira contra a cultura da morte e quais se posicionam ativamente para proteger os nascituros e os indefesos, tratando a vida como inegociável.',
+      description: 'Analisamos votos e posicionamentos em projetos de lei sobre aborto, eutanásia, pesquisa com células-tronco embrionárias e outras pautas de bioética. Verificamos também a autoria de proposições que visam proteger a vida em todas as suas fases.',
+      whyImportant: 'A Bíblia ensina que a vida é um dom sagrado de Deus e que fomos criados à Sua imagem e semelhança (Gênesis 1:27). Desde o ventre materno, somos conhecidos e formados por Ele (Salmo 139:13-16). Defender a vida é um mandamento fundamental da fé.',
+      howItHelps: 'Identifique quais políticos são uma barreira contra a cultura da morte e quais se posicionam ativamente para proteger os nascituros e os indefesos.',
       indicators: [
         'Votações sobre projetos pró-vida',
         'Projetos de lei protegendo a vida',
         'Posicionamentos públicos sobre aborto',
         'Defesa de políticas de adoção'
       ],
-      biblicalBasis: 'Gênesis 1:27, Salmo 139:13-16'
+      biblicalBasis: 'Gênesis 1:27 · Salmo 139:13-16'
     },
     {
       key: 'familyValues',
       icon: Home,
-      weight: 20,
+      weight: 25,
       name: '👨‍👩‍👧‍👦 Defesa da Família',
-      description: 'Monitoramos votos e discursos relacionados ao conceito de família, casamento, adoção, educação domiciliar (homeschooling) e o direito dos pais na formação moral e educacional dos filhos, combatendo a erotização infantil e a ideologia de gênero nas escolas.',
-      whyImportant: 'A família é a primeira e mais fundamental instituição criada por Deus (Gênesis 2:24). É o alicerce da sociedade e o ambiente onde os filhos devem ser instruídos "no caminho em que devem andar" (Provérbios 22:6). Proteger a família é proteger o futuro da nação.',
-      howItHelps: 'A plataforma mostra quais parlamentares defendem ativamente o modelo familiar bíblico e a autoridade dos pais, e quais apoiam pautas que buscam redefinir ou enfraquecer essa instituição sagrada.',
+      description: 'Monitoramos votos e discursos relacionados ao conceito de família, casamento, adoção, educação e o direito dos pais na formação moral dos filhos. Acompanhamos pautas de proteção à infância e à família como instituição fundamental da sociedade.',
+      whyImportant: 'A família é a primeira e mais fundamental instituição criada por Deus (Gênesis 2:24). É o alicerce da sociedade e o ambiente onde os filhos devem ser instruídos "no caminho em que devem andar" (Provérbios 22:6).',
+      howItHelps: 'A plataforma mostra quais parlamentares defendem ativamente o modelo familiar bíblico e quais apoiam pautas que buscam redefinir ou enfraquecer essa instituição.',
       indicators: [
         'Votações sobre definição de família',
-        'Defesa da educação domiciliar',
+        'Defesa da educação familiar',
         'Projetos de proteção à infância',
-        'Oposição à ideologia de gênero'
+        'Combate à erotização infantil'
       ],
-      biblicalBasis: 'Gênesis 2:24, Provérbios 22:6'
+      biblicalBasis: 'Gênesis 2:24 · Provérbios 22:6'
     },
     {
       key: 'moralIntegrity',
       icon: Scale,
       weight: 20,
-      name: '⚖️ Integridade Moral e Transparência',
-      description: 'Este é um critério de caráter. Analisamos o histórico do político, incluindo processos judiciais e investigações por corrupção, improbidade administrativa ou outros crimes. A existência de condenações (trânsito em julgado) gera uma penalidade severa na pontuação. Também monitoramos o uso da cota parlamentar para identificar gastos excessivos ou suspeitos.',
-      whyImportant: 'A Palavra de Deus exalta a honestidade e a integridade: "O justo anda na sua integridade; bem-aventurados serão os seus filhos depois dele" (Provérbios 20:7). Um líder cristão deve ser "irrepreensível" (1 Timóteo 3:2) e um bom administrador dos recursos que lhe foram confiados, pois toda autoridade vem de Deus.',
-      howItHelps: 'Esta análise ajuda a ir além do "rouba, mas faz". Você poderá avaliar o caráter do político e sua conduta ética, escolhendo representantes que honrem a confiança pública e administrem com retidão, e não para benefício próprio.',
+      name: '⚖️ Integridade Moral',
+      description: 'Analisamos o caráter do político: histórico de processos judiciais, investigações por corrupção ou improbidade, e o uso da cota parlamentar. Despesas excessivas ou suspeitas penalizam esta pontuação. A presunção de inocência é respeitada — a nota começa em 80.',
+      whyImportant: '"O justo anda na sua integridade; bem-aventurados serão os seus filhos depois dele" (Provérbios 20:7). Um líder cristão deve ser "irrepreensível" (1 Timóteo 3:2) e um bom administrador dos recursos que lhe foram confiados.',
+      howItHelps: 'Esta análise ajuda a ir além do "rouba, mas faz". Avalie o caráter do político e sua conduta ética, escolhendo representantes que honrem a confiança pública.',
       indicators: [
-        'Histórico de investigações',
-        'Transparência de gastos públicos',
-        'Conduta moral pessoal',
-        'Cumprimento de promessas eleitorais'
+        'Ausência de investigações por corrupção',
+        'Gastos parlamentares dentro do padrão',
+        'Transparência no uso da cota',
+        'Conduta pública alinhada à fé'
       ],
-      biblicalBasis: 'Provérbios 20:7, 1 Timóteo 3:2'
-    },
-    {
-      key: 'mandateZeal',
-      icon: Zap,
-      weight: 10,
-      name: '🏛️ Zelo e Responsabilidade no Mandato',
-      description: 'Medimos a dedicação do parlamentar ao seu trabalho. Isso inclui a frequência e assiduidade nas sessões de votação, a participação ativa em comissões importantes e a transparência na gestão de seu gabinete e de sua agenda pública.',
-      whyImportant: 'A Bíblia nos instrui a fazer tudo com excelência, "de todo o coração, como para o Senhor, e não para os homens" (Colossenses 3:23). Um mandato é um serviço, uma mordomia. Espera-se que um representante eleito demonstre zelo, diligência e responsabilidade no cumprimento de suas funções.',
-      howItHelps: 'Com estes dados, você pode diferenciar o político que realmente trabalha e honra o seu voto daquele que é ausente e pouco produtivo. É uma medida clara do comprometimento do parlamentar com a função para a qual foi eleito.',
-      indicators: [
-        'Frequência nas sessões',
-        'Participação em comissões',
-        'Transparência do gabinete',
-        'Gestão da agenda pública'
-      ],
-      biblicalBasis: 'Colossenses 3:23'
-    },
-    {
-      key: 'legislativeProduction',
-      icon: BookOpen,
-      weight: 10,
-      name: '📜 Produção Legislativa Relevante',
-      description: 'Não basta votar certo; é preciso ser proativo. Neste pilar, avaliamos a autoria e a relatoria de projetos de lei que são relevantes para os valores defendidos pela plataforma. Analisamos a qualidade e o impacto das propostas, bem como os discursos e a defesa pública dessas pautas em plenário e na mídia.',
-      whyImportant: 'A sabedoria é um atributo essencial para quem governa (Provérbios 8:15-16). Um legislador cristão deve usar seu intelecto e sua influência para propor leis justas, que promovam o bem e restrinjam o mal, refletindo a sabedoria que vem do alto.',
-      howItHelps: 'Você poderá identificar os parlamentares que são verdadeiros líderes e protagonistas na defesa das pautas cristãs, e não apenas seguidores. Este critério revela quem tem iniciativa e capacidade de influenciar positivamente a legislação do país.',
-      indicators: [
-        'Autoria de projetos relevantes',
-        'Relatoria em comissões',
-        'Discursos em plenário',
-        'Defesa pública de pautas'
-      ],
-      biblicalBasis: 'Provérbios 8:15-16'
+      biblicalBasis: 'Provérbios 20:7 · 1 Timóteo 3:2'
     },
     {
       key: 'socialResponsibility',
       icon: Heart,
-      weight: 10,
+      weight: 15,
       name: '🤝 Responsabilidade Social',
-      description: 'Analisamos o posicionamento em pautas voltadas para a justiça social, o cuidado com os vulneráveis (pobres, órfãos, viúvas, idosos), a dignidade do trabalhador e políticas de combate à pobreza, sempre sob uma ótica de responsabilidade fiscal e sustentabilidade.',
-      whyImportant: 'A fé sem obras é morta (Tiago 2:26). A Bíblia está repleta de mandamentos sobre cuidar do necessitado e praticar a justiça (Isaías 1:17, Miquéias 6:8). Uma fé genuína se manifesta em compaixão e ação concreta em favor dos mais fracos da sociedade.',
-      howItHelps: 'Permite avaliar se a fé declarada pelo político se traduz em políticas públicas de compaixão e cuidado com o próximo, mostrando se ele possui uma visão integral do Evangelho que inclui a justiça social.',
+      description: 'Avaliamos o posicionamento em pautas voltadas para a justiça social: cuidado com os vulneráveis (pobres, órfãos, idosos), saúde pública e políticas de combate à pobreza. A fé bíblica inclui compaixão pelo próximo.',
+      whyImportant: '"A fé sem obras é morta" (Tiago 2:26). A Bíblia está repleta de mandamentos sobre cuidar do necessitado (Isaías 1:17, Miquéias 6:8). Uma fé genuína se manifesta em compaixão e ação concreta.',
+      howItHelps: 'Avalie se a fé declarada pelo político se traduz em políticas públicas de compaixão, mostrando se ele possui uma visão integral do Evangelho que inclui a justiça social.',
       indicators: [
-        'Apoio a programas sociais',
-        'Defesa dos direitos humanos',
-        'Políticas para populações vulneráveis',
-        'Combate à pobreza e desigualdade'
+        'Apoio a programas de saúde pública',
+        'Defesa de políticas para vulneráveis',
+        'Combate à pobreza',
+        'Assistência a populações carentes'
       ],
-      biblicalBasis: 'Tiago 2:26, Isaías 1:17, Miquéias 6:8'
+      biblicalBasis: 'Tiago 2:26 · Isaías 1:17 · Miquéias 6:8'
     },
     {
       key: 'religiousFreedom',
       icon: Cross,
-      weight: 5,
+      weight: 10,
       name: '✝️ Liberdade Religiosa',
-      description: 'Monitoramos a defesa do direito fundamental à liberdade de crença, de culto e de expressão religiosa. Isso inclui votos em leis que possam cercear a pregação do Evangelho, a atuação de igrejas e missionários, o ensino religioso confessional e a objeção de consciência.',
-      whyImportant: 'Jesus nos ordenou a "ir por todo o mundo e pregar o evangelho" (Marcos 16:15). A liberdade religiosa é a garantia fundamental que permite à Igreja cumprir sua missão sem a interferência indevida do Estado. É o direito de "dar a Deus o que é de Deus" (Mateus 22:21).',
-      howItHelps: 'Você saberá quais políticos estão vigilantes e atuam para proteger o direito constitucional da igreja de existir, de se expressar e de influenciar a sociedade, garantindo que as futuras gerações possam viver e proclamar sua fé livremente.',
+      description: 'Monitoramos a defesa do direito à liberdade de crença, culto e expressão religiosa. Inclui votos em leis que possam cercear a pregação do Evangelho, a atuação de igrejas e missionários, o ensino religioso e a objeção de consciência.',
+      whyImportant: 'Jesus nos ordenou a "ir por todo o mundo e pregar o evangelho" (Marcos 16:15). A liberdade religiosa é a garantia fundamental que permite à Igreja cumprir sua missão sem interferência indevida do Estado.',
+      howItHelps: 'Saiba quais políticos estão vigilantes para proteger o direito constitucional da Igreja de existir, se expressar e influenciar a sociedade.',
       indicators: [
         'Defesa da liberdade de culto',
-        'Proteção de símbolos religiosos',
-        'Direito de expressão da fé',
-        'Combate à perseguição religiosa'
+        'Proteção de expressão religiosa',
+        'Combate à intolerância religiosa',
+        'Garantia de objeção de consciência'
       ],
-      biblicalBasis: 'Marcos 16:15, Mateus 22:21'
+      biblicalBasis: 'Marcos 16:15 · Mateus 22:21'
+    }
+  ];
+
+  // Níveis de performance
+  const performanceLevels = [
+    {
+      icon: Star,
+      level: 'EXCELLENT',
+      label: 'Guardião da Fé',
+      range: '80 – 100 pontos',
+      color: 'bg-green-100 border-green-300 text-green-800',
+      iconColor: 'text-green-600',
+      description: 'Alinhamento elevado e consistente com todos os critérios evangélicos. Histórico de votos e conduta que refletem os valores cristãos de forma exemplar.'
+    },
+    {
+      icon: Award,
+      level: 'GOOD',
+      label: 'Testemunho Fiel',
+      range: '65 – 79 pontos',
+      color: 'bg-blue-100 border-blue-300 text-blue-800',
+      iconColor: 'text-blue-600',
+      description: 'Bom alinhamento com os critérios evangélicos. Votações majoritariamente favoráveis às pautas cristãs, com pequenas divergências em critérios secundários.'
+    },
+    {
+      icon: Target,
+      level: 'AVERAGE',
+      label: 'Caminhando',
+      range: '45 – 64 pontos',
+      color: 'bg-yellow-100 border-yellow-300 text-yellow-800',
+      iconColor: 'text-yellow-600',
+      description: 'Alinhamento parcial. O político apresenta votações mistas — ora favorável, ora contrário às pautas evangélicas — ou há dados insuficientes para avaliação completa.'
+    },
+    {
+      icon: Activity,
+      level: 'POOR',
+      label: 'Precisa Crescer',
+      range: '0 – 44 pontos',
+      color: 'bg-red-100 border-red-300 text-red-800',
+      iconColor: 'text-red-600',
+      description: 'Histórico de votações frequentemente divergentes dos valores cristãos nas pautas monitoradas. Posicionamento contrário aos critérios evangélicos na maioria das votações avaliadas.'
     }
   ];
 
@@ -174,14 +189,14 @@ const MetodologiaPage = () => {
                 </div>
                 <div className="space-y-6 text-muted-foreground leading-relaxed">
                   <p>
-                    Nossa missão é equipar o eleitor cristão com dados objetivos e análises criteriosas para que ele possa, 
+                    Nossa missão é equipar o eleitor cristão com dados objetivos e análises criteriosas para que ele possa,
                     em oração e com sabedoria, tomar a melhor decisão de acordo com sua consciência e seus princípios de fé.
                   </p>
                   <p>
-                    Nossa metodologia foi construída sobre a crença de que a atuação de um parlamentar vai muito além do discurso. 
-                    Ela se reflete em votos, na gestão do mandato, na integridade pessoal e na defesa ativa dos valores que professa. 
-                    Por isso, avaliamos os políticos através de 7 pilares fundamentais, cada um com um peso específico, 
-                    que juntos formam um panorama completo de sua performance.
+                    Nossa metodologia foi construída sobre a crença de que a atuação de um parlamentar vai muito além do discurso.
+                    Ela se reflete em votos, na integridade pessoal e na defesa ativa dos valores que professa.
+                    Por isso, avaliamos os políticos através de <strong>5 critérios fundamentais</strong>, cada um com um peso específico,
+                    que juntos formam a Pontuação Geral (0 a 100 pontos).
                   </p>
                 </div>
               </CardContent>
@@ -191,39 +206,166 @@ const MetodologiaPage = () => {
             <Card className="card-elevated mb-16">
               <CardHeader>
                 <CardTitle className="font-serif text-2xl text-center">
-                  A Estrutura dos 7 Pilares
+                  Os 5 Critérios de Avaliação
                 </CardTitle>
+                <p className="text-center text-sm text-muted-foreground mt-2">
+                  Pesos baseados na relevância bíblica e impacto direto em pautas legislativas
+                </p>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-border">
-                        <th className="text-left py-3 px-4 font-semibold">Pilar de Avaliação</th>
+                        <th className="text-left py-3 px-4 font-semibold">Critério</th>
                         <th className="text-center py-3 px-4 font-semibold">Peso</th>
-                        <th className="text-left py-3 px-4 font-semibold">Foco Principal</th>
+                        <th className="text-left py-3 px-4 font-semibold hidden sm:table-cell">Foco Principal</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {pilarsData.map((pilar, index) => (
-                        <tr key={pilar.key} className="border-b border-border/50">
-                          <td className="py-3 px-4 font-medium">{pilar.name}</td>
+                      {criteriosData.map((c) => (
+                        <tr key={c.key} className="border-b border-border/50">
+                          <td className="py-3 px-4 font-medium">{c.name}</td>
                           <td className="py-3 px-4 text-center">
-                            <Badge variant="secondary">{pilar.weight}%</Badge>
+                            <div className="flex flex-col items-center gap-1">
+                              <Badge variant="secondary">{c.weight}%</Badge>
+                              <Progress value={c.weight} className="h-1 w-16" />
+                            </div>
                           </td>
-                          <td className="py-3 px-4 text-sm text-muted-foreground">
-                            {pilar.description.substring(0, 100)}...
+                          <td className="py-3 px-4 text-sm text-muted-foreground hidden sm:table-cell">
+                            {c.description.substring(0, 80)}...
                           </td>
                         </tr>
                       ))}
                       <tr className="border-b-2 border-primary bg-primary/5">
-                        <td className="py-3 px-4 font-bold">Total</td>
+                        <td className="py-3 px-4 font-bold">Pontuação Geral</td>
                         <td className="py-3 px-4 text-center font-bold">100%</td>
-                        <td className="py-3 px-4 font-bold">Pontuação Geral do Político</td>
+                        <td className="py-3 px-4 font-bold hidden sm:table-cell">Média ponderada dos 5 critérios (0–100)</td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Performance Levels */}
+            <Card className="card-elevated mb-16">
+              <CardHeader>
+                <CardTitle className="font-serif text-2xl text-center">
+                  O que cada nível de performance significa
+                </CardTitle>
+                <p className="text-center text-sm text-muted-foreground mt-2">
+                  A pontuação geral determina o rótulo exibido no perfil de cada político
+                </p>
+              </CardHeader>
+              <CardContent className="pt-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {performanceLevels.map((pl) => {
+                    const Icon = pl.icon;
+                    return (
+                      <div key={pl.level} className={`rounded-lg border-2 p-4 ${pl.color}`}>
+                        <div className="flex items-center gap-3 mb-2">
+                          <Icon className={`h-6 w-6 ${pl.iconColor}`} />
+                          <div>
+                            <div className="font-bold text-base">{pl.label}</div>
+                            <div className="text-xs font-semibold opacity-75">{pl.range}</div>
+                          </div>
+                        </div>
+                        <p className="text-sm leading-relaxed opacity-90">{pl.description}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* How voting impacts work */}
+            <Card className="card-elevated mb-16">
+              <CardHeader>
+                <CardTitle className="font-serif text-2xl text-center">
+                  Como os Impactos de Votação Funcionam
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <p className="text-muted-foreground">
+                  Cada votação plenária monitorada é classificada em um dos 5 critérios e recebe um
+                  <strong> sentido evangélico</strong>: votar <em>a favor</em> de uma pauta pró-vida, por exemplo,
+                  é positivo; votar <em>contra</em> é negativo. O impacto em pontos é somado ao critério correspondente.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="flex items-start gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <TrendingUp className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
+                    <div>
+                      <div className="font-semibold text-green-800 text-sm">Impacto Positivo</div>
+                      <div className="text-xs text-green-700 mt-1">Voto alinhado com os valores evangélicos — adiciona pontos ao critério correspondente</div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <TrendingDown className="h-5 w-5 text-red-600 mt-0.5 shrink-0" />
+                    <div>
+                      <div className="font-semibold text-red-800 text-sm">Impacto Negativo</div>
+                      <div className="text-xs text-red-700 mt-1">Voto contrário ao posicionamento evangélico — subtrai pontos do critério correspondente</div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                    <Minus className="h-5 w-5 text-gray-500 mt-0.5 shrink-0" />
+                    <div>
+                      <div className="font-semibold text-gray-700 text-sm">Neutro / Ausente</div>
+                      <div className="text-xs text-gray-600 mt-1">Abstenção, obstrução ou ausência — não altera a pontuação, mas reduz o índice de consistência</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-4 bg-secondary/30 rounded-lg">
+                  <p className="text-sm text-muted-foreground">
+                    <strong>Exemplo real:</strong> O PL 2630/2020 (Marco Civil da Internet) foi classificado como
+                    <em> Defesa da Família</em>. Deputados que votaram <strong>SIM</strong> nesta lei receberam
+                    <strong className="text-red-600"> -10 pts</strong> em Família, pois o posicionamento evangélico
+                    era contrário ao projeto. Deputados que votaram <strong>NÃO</strong> receberam
+                    <strong className="text-green-600"> +10 pts</strong>.
+                  </p>
+                </div>
+                <div className="p-4 bg-secondary/30 rounded-lg">
+                  <p className="text-sm text-muted-foreground">
+                    <strong>Base de pontuação:</strong> Cada critério começa em 50 pontos (Integridade começa em 80,
+                    pela presunção de inocência). Os votos adicionam ou subtraem valores sobre esse ponto de partida,
+                    que é calibrado pelo histórico de alinhamento do partido do político.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Consistency Score */}
+            <Card className="card-elevated mb-16">
+              <CardHeader>
+                <CardTitle className="font-serif text-2xl text-center">
+                  O que é o Índice de Consistência?
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-muted-foreground">
+                  O <strong>índice de consistência</strong> mede a taxa de participação ativa do político
+                  nas votações monitoradas — ou seja, a porcentagem de votações em que ele se posicionou
+                  (SIM ou NÃO) em vez de se abster, se ausentar ou fazer obstrução.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
+                    <div className="text-2xl font-bold text-green-700">80–100%</div>
+                    <div className="text-xs text-green-600 mt-1">Alta consistência — vota em quase todas as pautas</div>
+                  </div>
+                  <div className="text-center p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <div className="text-2xl font-bold text-yellow-700">50–79%</div>
+                    <div className="text-xs text-yellow-600 mt-1">Consistência moderada — ausências frequentes</div>
+                  </div>
+                  <div className="text-center p-4 bg-red-50 rounded-lg border border-red-200">
+                    <div className="text-2xl font-bold text-red-700">0–49%</div>
+                    <div className="text-xs text-red-600 mt-1">Baixa consistência — muitas abstenções ou ausências</div>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  <strong>Nota:</strong> Para políticos com dados baseados no alinhamento histórico do partido
+                  (sem votos individuais registrados ainda), o índice de consistência exibe o padrão estimado
+                  do partido (65–78%).
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -239,16 +381,17 @@ const MetodologiaPage = () => {
                 Detalhamento de Cada Critério
               </h2>
               <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-                A seguir, explicamos o que cada pilar significa, por que ele é vital para o cristão 
+                A seguir, explicamos o que cada critério significa, por que ele é vital para o cristão
                 e como os dados coletados ajudam você a tomar uma decisão informada.
               </p>
             </div>
 
             <div className="space-y-12">
-              {pilarsData.map((pilar, index) => {
-                const IconComponent = pilar.icon;
+              {criteriosData.map((criterio, index) => {
+                const IconComponent = criterio.icon;
+
                 return (
-                  <Card key={pilar.key} className="card-elevated">
+                  <Card key={criterio.key} className="card-elevated">
                     <CardHeader className="pb-4">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center space-x-4">
@@ -256,9 +399,9 @@ const MetodologiaPage = () => {
                             <IconComponent className="h-8 w-8 text-primary" />
                           </div>
                           <div>
-                            <CardTitle className="font-serif text-2xl">{pilar.name}</CardTitle>
+                            <CardTitle className="font-serif text-2xl">{criterio.name}</CardTitle>
                             <Badge variant="secondary" className="mt-2">
-                              Peso: {pilar.weight}%
+                              Peso: {criterio.weight}% na Pontuação Geral
                             </Badge>
                           </div>
                         </div>
@@ -268,48 +411,44 @@ const MetodologiaPage = () => {
                           </div>
                         </div>
                       </div>
-                      <Progress value={pilar.weight} className="h-3" />
+                      <Progress value={criterio.weight} max={35} className="h-3" />
                     </CardHeader>
                     <CardContent className="space-y-6">
-                      {/* O Que Avaliamos */}
                       <div>
                         <h4 className="font-semibold text-foreground mb-3 flex items-center space-x-2">
                           <Calculator className="h-4 w-4" />
                           <span>O Que Avaliamos</span>
                         </h4>
                         <p className="text-muted-foreground leading-relaxed">
-                          {pilar.description}
+                          {criterio.description}
                         </p>
                       </div>
 
-                      {/* Por Que é Importante */}
                       <div>
                         <h4 className="font-semibold text-foreground mb-3 flex items-center space-x-2">
                           <Cross className="h-4 w-4" />
                           <span>Por Que é Importante para o Cristão</span>
                         </h4>
                         <p className="text-muted-foreground leading-relaxed">
-                          {pilar.whyImportant}
+                          {criterio.whyImportant}
                         </p>
                       </div>
 
-                      {/* Como Isso Ajuda */}
                       <div>
                         <h4 className="font-semibold text-foreground mb-3 flex items-center space-x-2">
                           <Users className="h-4 w-4" />
                           <span>Como Isso Ajuda na Sua Decisão</span>
                         </h4>
                         <p className="text-muted-foreground leading-relaxed">
-                          {pilar.howItHelps}
+                          {criterio.howItHelps}
                         </p>
                       </div>
 
-                      {/* Grid com indicadores e base bíblica */}
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
                         <div>
                           <h4 className="font-semibold text-foreground mb-3">Indicadores Avaliados</h4>
                           <div className="space-y-2">
-                            {pilar.indicators.map((indicator, idx) => (
+                            {criterio.indicators.map((indicator, idx) => (
                               <div key={idx} className="flex items-center space-x-2 text-sm">
                                 <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
                                 <span className="text-muted-foreground">{indicator}</span>
@@ -317,14 +456,14 @@ const MetodologiaPage = () => {
                             ))}
                           </div>
                         </div>
-                        
+
                         <div className="bg-secondary/30 rounded-lg p-4">
                           <h4 className="font-semibold text-foreground mb-3 flex items-center space-x-2">
                             <BookOpen className="h-4 w-4" />
                             <span>Base Bíblica</span>
                           </h4>
                           <p className="text-sm text-muted-foreground italic">
-                            {pilar.biblicalBasis}
+                            {criterio.biblicalBasis}
                           </p>
                         </div>
                       </div>
@@ -362,19 +501,19 @@ const MetodologiaPage = () => {
                   <ul className="space-y-3 text-sm text-muted-foreground">
                     <li className="flex items-start space-x-2">
                       <Info className="h-4 w-4 mt-0.5 text-amber-600" />
-                      <span>Dados baseados em informações públicas disponíveis</span>
+                      <span>Dados baseados em informações públicas disponíveis nas APIs da Câmara e Senado</span>
                     </li>
                     <li className="flex items-start space-x-2">
                       <Info className="h-4 w-4 mt-0.5 text-amber-600" />
-                      <span>Avaliação limitada ao período de mandato atual</span>
+                      <span>Votos individuais disponíveis somente para votações plenárias (comissões com poder conclusivo não são incluídas)</span>
                     </li>
                     <li className="flex items-start space-x-2">
                       <Info className="h-4 w-4 mt-0.5 text-amber-600" />
-                      <span>Critérios podem evoluir com feedback da comunidade</span>
+                      <span>Para políticos sem votos registrados, a nota é estimada com base no alinhamento histórico do partido</span>
                     </li>
                     <li className="flex items-start space-x-2">
                       <Info className="h-4 w-4 mt-0.5 text-amber-600" />
-                      <span>Não considera fatores pessoais não públicos</span>
+                      <span>Critérios podem evoluir com feedback da comunidade cristã</span>
                     </li>
                   </ul>
                 </CardContent>
@@ -391,19 +530,19 @@ const MetodologiaPage = () => {
                   <ul className="space-y-3 text-sm text-muted-foreground">
                     <li className="flex items-start space-x-2">
                       <CheckCircle className="h-4 w-4 mt-0.5 text-green-600" />
-                      <span>Metodologia aberta e código-fonte público</span>
+                      <span>Metodologia aberta e código-fonte público no GitHub</span>
                     </li>
                     <li className="flex items-start space-x-2">
                       <CheckCircle className="h-4 w-4 mt-0.5 text-green-600" />
-                      <span>Dados verificáveis através de fontes oficiais</span>
+                      <span>Dados de votação verificáveis diretamente na API da Câmara dos Deputados</span>
                     </li>
                     <li className="flex items-start space-x-2">
                       <CheckCircle className="h-4 w-4 mt-0.5 text-green-600" />
-                      <span>Processo de revisão por equipe multidisciplinar</span>
+                      <span>Presunção de inocência aplicada (Moral Integrity começa em 80/100)</span>
                     </li>
                     <li className="flex items-start space-x-2">
                       <CheckCircle className="h-4 w-4 mt-0.5 text-green-600" />
-                      <span>Canal aberto para contestações e correções</span>
+                      <span>Canal aberto para contestações e correções de dados</span>
                     </li>
                   </ul>
                 </CardContent>
@@ -417,46 +556,25 @@ const MetodologiaPage = () => {
                   Acesso aos Dados e Código
                 </h3>
                 <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-                  Acreditamos na transparência total. Todo nosso código, metodologia 
+                  Acreditamos na transparência total. Todo nosso código, metodologia
                   e dados estão disponíveis publicamente para auditoria e contribuições.
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-                  <Button variant="outline" size="lg">
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Ver no GitHub
+                  <Button variant="outline" size="lg" asChild>
+                    <a href="https://github.com/rilsonjoas/a-bancada-evangelica" target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Ver no GitHub
+                    </a>
                   </Button>
-                  <Button variant="outline" size="lg">
-                    <Download className="h-4 w-4 mr-2" />
-                    Baixar Dados (CSV)
+                  <Button variant="outline" size="lg" asChild>
+                    <a href="https://dadosabertos.camara.leg.br/api/v2" target="_blank" rel="noopener noreferrer">
+                      <Download className="h-4 w-4 mr-2" />
+                      API Câmara dos Deputados
+                    </a>
                   </Button>
                 </div>
               </CardContent>
             </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer CTA */}
-      <section className="py-16 bg-secondary/30">
-        <div className="container mx-auto px-4 text-center">
-          <div className="max-w-3xl mx-auto">
-            <h2 className="font-serif text-3xl font-bold text-foreground mb-4">
-              Fortaleça a Democracia Brasileira
-            </h2>
-            <p className="text-lg text-muted-foreground leading-relaxed mb-8">
-              Use essas informações para tomar decisões informadas nas próximas eleições. 
-              Conheça a metodologia, compartilhe dados e contribua para uma sociedade mais justa e transparente.
-            </p>
-            <Button size="lg" className="font-medium">
-              <ExternalLink className="h-4 w-4 mr-2" />
-              Entrar em Contato
-            </Button>
-            
-            <div className="mt-8 pt-8 border-t border-border">
-                <p className="text-sm text-muted-foreground italic">
-                  "Comprai a verdade e não a vendais" - Provérbios 23:23
-                </p>
-            </div>
           </div>
         </div>
       </section>

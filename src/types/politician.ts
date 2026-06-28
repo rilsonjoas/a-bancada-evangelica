@@ -43,9 +43,11 @@ export interface APIPoliticianDetails extends APIPolitician {
   recentVotes: Array<{
     id: string;
     agendaTitle: string;
+    criteria: string;
     vote: string;
     appliedScore: number;
     voteDate: string;
+    description: string;
   }>;
   expenseAnalysis: {
     totalValue: number;
