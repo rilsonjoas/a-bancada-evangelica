@@ -70,7 +70,7 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
                   onError={() => setImageError(true)}
                 />
               ) : (
-                <User className="h-8 w-8 text-muted-foreground" />
+                <User className="h-8 w-8 text-muted-foreground" data-testid="user-icon" />
               )}
             </div>
           </div>

@@ -1,12 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import PoliticianCard from '@/components/politicians/PoliticianCard';
 import { usePoliticians, usePoliticiansStats } from '@/hooks/usePoliticians';
-import { Search, Filter, TrendingUp, Users, Award, BookOpen, Loader2 } from 'lucide-react';
+import { Search, Filter, TrendingUp, Users, Award, BookOpen, BarChart3, Loader2, Church } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { APIPolitician } from '@/types/politician';
 
 const RankingPage = () => {
@@ -14,6 +16,7 @@ const RankingPage = () => {
   const [selectedState, setSelectedState] = useState('all');
   const [selectedParty, setSelectedParty] = useState('all');
   const [selectedHouse, setSelectedHouse] = useState('all');
+  const [fpeFilter, setFpeFilter] = useState(false);
 
   // Hooks da API
   const { data: politiciansData, isLoading: isLoadingPoliticians, error: politiciansError } = usePoliticians({
@@ -21,6 +24,7 @@ const RankingPage = () => {
     state: selectedState !== 'all' ? selectedState : undefined,
     party: selectedParty !== 'all' ? selectedParty : undefined,
     house: selectedHouse !== 'all' ? (selectedHouse === 'deputado' ? 'CAMARA' : 'SENADO') : undefined,
+    fpeFilter: fpeFilter || undefined,
     sortBy: 'score',
     sortOrder: 'desc',
     limit: 100
@@ -64,6 +68,7 @@ const RankingPage = () => {
     setSelectedState('all');
     setSelectedParty('all');
     setSelectedHouse('all');
+    setFpeFilter(false);
   };
 
   return (
@@ -168,10 +173,25 @@ const RankingPage = () => {
                     <SelectItem value="senador">Senado Federal</SelectItem>
                   </SelectContent>
                 </Select>
+
+                {/* FPE Filter */}
+                <div className="flex items-center space-x-3">
+                  <Church className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="fpe-filter"
+                      checked={fpeFilter}
+                      onCheckedChange={setFpeFilter}
+                    />
+                    <label htmlFor="fpe-filter" className="text-sm font-medium cursor-pointer select-none">
+                      Apenas FPE
+                    </label>
+                  </div>
+                </div>
               </div>
 
               {/* Active Filters */}
-              {(searchTerm || selectedState !== 'all' || selectedParty !== 'all' || selectedHouse !== 'all') && (
+              {(searchTerm || selectedState !== 'all' || selectedParty !== 'all' || selectedHouse !== 'all' || fpeFilter) && (
                 <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
                   <div className="flex items-center space-x-2">
                     <span className="text-sm text-muted-foreground">Filtros ativos:</span>
@@ -181,6 +201,7 @@ const RankingPage = () => {
                     {selectedHouse !== 'all' && <Badge variant="secondary">
                       {selectedHouse === 'deputado' ? 'Deputados' : 'Senadores'}
                     </Badge>}
+                    {fpeFilter && <Badge variant="secondary">FPE</Badge>}
                   </div>
                   <Button variant="ghost" size="sm" onClick={clearFilters}>
                     Limpar filtros
@@ -267,13 +288,18 @@ const RankingPage = () => {
               Conheça a metodologia, compartilhe dados e contribua para uma sociedade mais justa e transparente.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-              <Button size="lg" className="font-medium">
-                <TrendingUp className="h-4 w-4 mr-2" />
-                Entender a Metodologia
-              </Button>
-              <Button variant="outline" size="lg">
-                Compartilhar Ranking
-              </Button>
+              <Link to="/metodologia">
+                <Button size="lg" className="font-medium">
+                  <TrendingUp className="h-4 w-4 mr-2" />
+                  Entender a Metodologia
+                </Button>
+              </Link>
+              <Link to="/votacoes">
+                <Button variant="outline" size="lg">
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Análise de Votações
+                </Button>
+              </Link>
             </div>
           </div>
         </div>

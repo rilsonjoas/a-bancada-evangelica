@@ -42,6 +42,7 @@ app.get('/api/politicians', async (req, res) => {
       performanceLevel,
       minScore,
       maxScore,
+      fpeFilter,
       limit = '50',
       offset = '0',
       sortBy = 'name',
@@ -70,6 +71,10 @@ app.get('/api/politicians', async (req, res) => {
 
     if (house) {
       whereClause.current_house = house;
+    }
+
+    if (fpeFilter === 'true') {
+      whereClause.is_fpe_member = true;
     }
 
     // Filtro por pontuação (precisa ser feito via relacionamento)
@@ -149,6 +154,7 @@ app.get('/api/politicians', async (req, res) => {
         currentState: p.current_state,
         currentHouse: p.current_house,
         photoUrl: p.photo_url,
+        isFpeMember: p.is_fpe_member ?? false,
         scores: (() => {
           const score = p.scores && p.scores.length > 0 ? p.scores[0] : null;
           if (score) {
@@ -386,8 +392,106 @@ app.get('/api/politicians/:id', async (req, res) => {
 });
 
 // ========================================
-// STATS ENDPOINTS
+// VOTES ANALYSIS ENDPOINT
 // ========================================
+
+// GET /api/votes/analysis - Análise agregada de votações
+app.get('/api/votes/analysis', async (_req, res) => {
+  try {
+    const [totalVotes, agendas, alignment, stats] = await Promise.all([
+      prisma.vote.count(),
+      prisma.keyAgenda.findMany({ where: { status: 'ACTIVE' } }),
+      prisma.$queryRaw<Array<{ alignment_level: string; count: bigint }>>`
+        SELECT ps.performance_level AS alignment_level, COUNT(*)::bigint
+        FROM politician_scores ps
+        JOIN politicians p ON p.id = ps.politician_id
+        WHERE p.is_active = true
+        GROUP BY ps.performance_level
+      `,
+      prisma.politicianScore.aggregate({ _avg: { overall_score: true } }),
+    ]);
+
+    const voteByCriteriaRaw = await prisma.vote.groupBy({
+      by: ['key_agenda_id'],
+      _count: { id: true },
+    });
+
+    const agendasWithCriteria = await Promise.all(
+      voteByCriteriaRaw.map(async (v) => {
+        const agenda = await prisma.keyAgenda.findUnique({ where: { id: v.key_agenda_id } });
+        return { criteria: agenda?.criteria ?? 'UNKNOWN', count: v._count.id };
+      })
+    );
+
+    const voteByCriteria: Record<string, number> = {};
+    for (const item of agendasWithCriteria) {
+      voteByCriteria[item.criteria] = (voteByCriteria[item.criteria] || 0) + item.count;
+    }
+
+    // Últimas votações agrupadas por mês
+    const recentVotes = await prisma.vote.findMany({
+      select: { vote_date: true, vote_type: true },
+      orderBy: { vote_date: 'desc' },
+      take: 2000,
+    });
+
+    const monthlyMap = new Map<string, { favorable: number; contrary: number; abstentions: number }>();
+    for (const v of recentVotes) {
+      const month = v.vote_date.toISOString().slice(0, 7);
+      const entry = monthlyMap.get(month) ?? { favorable: 0, contrary: 0, abstentions: 0 };
+      if (v.vote_type === 'YES') entry.favorable++;
+      else if (v.vote_type === 'NO') entry.contrary++;
+      else entry.abstentions++;
+      monthlyMap.set(month, entry);
+    }
+
+    const timelineTrends = Array.from(monthlyMap.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .slice(-12)
+      .map(([date, counts]) => ({
+        date,
+        favorableVotes: counts.favorable,
+        contraryVotes: counts.contrary,
+        abstentions: counts.abstentions,
+      }));
+
+    const alignmentStats = {
+      high: Number(alignment.find(a => a.alignment_level === 'EXCELLENT')?.count ?? 0),
+      medium: Number(alignment.find(a => a.alignment_level === 'GOOD')?.count ?? 0),
+      low: Number(alignment.find(a => a.alignment_level === 'AVERAGE')?.count ?? 0) +
+            Number(alignment.find(a => a.alignment_level === 'POOR')?.count ?? 0),
+    };
+
+    const activePoliticians = await prisma.politician.count({ where: { is_active: true } });
+
+    const response = {
+      totalVotes,
+      activePoliticians,
+      totalAgendas: agendas.length,
+      averageConsensus: stats._avg.overall_score ?? 50,
+      voteByCriteria,
+      alignmentStats,
+      timelineTrends,
+      keyAgendas: agendas.map(a => ({
+        id: a.id,
+        title: a.title,
+        description: a.description ?? '',
+        criteria: a.criteria,
+        totalVotes: 0,
+        favorableVotes: 0,
+        contraryVotes: 0,
+        abstentions: 0,
+        consensusScore: 0,
+      })),
+      politicianRanking: [],
+    };
+
+    res.json(response);
+  } catch (error) {
+    console.error('Erro ao buscar análise de votações:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
 
 // ========================================
 // METHODOLOGY ENDPOINTS

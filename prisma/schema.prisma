@@ -29,6 +29,7 @@ model Politician {
   current_state         String
   current_house         HouseType
   legislature_id        String?  // ID na legislatura atual
+  is_fpe_member         Boolean  @default(false)  // Membro da Frente Parlamentar Evangélica
   
   // Dados eleitorais (TSE)
   voter_title           String?  @unique

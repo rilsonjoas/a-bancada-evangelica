@@ -8,6 +8,7 @@ export interface APIPolitician {
   currentState: string;
   currentHouse: 'CAMARA' | 'SENADO';
   photoUrl?: string;
+  isFpeMember?: boolean;
   scores: {
     lifeProtection: number;
     familyValues: number;

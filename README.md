@@ -1,8 +1,8 @@
 # A Bancada Evangélica
 
 <p align="center">
-  <strong>Monitorando se os parlamentares evangélicos votam como pregam</strong><br/>
-  Plataforma de transparência sobre a Frente Parlamentar Evangélica (FPE) com dados reais da Câmara dos Deputados
+  <strong>Parlamentares brasileiros avaliados por valores cristãos</strong><br/>
+  Plataforma de transparência que avalia todos os deputados federais — com filtro opcional para membros da Frente Parlamentar Evangélica (FPE)
 </p>
 
 <p align="center">
@@ -10,9 +10,12 @@
     <img src="https://img.shields.io/badge/demo-live-brightgreen?style=flat-square&logo=vercel" alt="Live Demo" />
   </a>
   <img src="https://img.shields.io/badge/React-18-blue?style=flat-square&logo=react" />
+  <img src="https://img.shields.io/badge/NestJS-11-E0234E?style=flat-square&logo=nestjs" />
   <img src="https://img.shields.io/badge/TypeScript-5.8-blue?style=flat-square&logo=typescript" />
+  <img src="https://img.shields.io/badge/Prisma-5-2D3748?style=flat-square&logo=prisma" />
   <img src="https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi" />
   <img src="https://img.shields.io/badge/scikit--learn-1.5-F7931E?style=flat-square&logo=scikit-learn" />
+  <img src="https://img.shields.io/badge/Tests-32%20passing-brightgreen?style=flat-square&logo=vitest" />
   <img src="https://img.shields.io/badge/PostgreSQL-Neon-4169E1?style=flat-square&logo=postgresql" />
   <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" />
 </p>
@@ -21,9 +24,11 @@
 
 ## Missão
 
-**A Bancada Evangélica** é uma plataforma de accountability que avalia se os membros da **Frente Parlamentar Evangélica (FPE)** votam em consonância com os valores cristãos que declaram representar.
+**A Bancada Evangélica** avalia todos os 514 deputados federais da 57ª legislatura usando 5 critérios de alinhamento com valores cristãos: proteção à vida, valores familiares, integridade moral, responsabilidade social e liberdade religiosa.
 
-O eleitor evangélico precisa de transparência para responder: *"O parlamentar que diz falar em nome da fé está de fato defendendo esses valores no plenário?"*
+A Frente Parlamentar Evangélica (FPE) é um **filtro opcional** — não um limite. O eleitor pode ver o ranking geral ou ativar o toggle "Apenas FPE" para focar nos deputados que se identificam publicamente como representantes evangélicos.
+
+*"O parlamentar que diz falar em nome da fé está de fato defendendo esses valores no plenário?"*
 
 ---
 
@@ -42,95 +47,13 @@ O eleitor evangélico precisa de transparência para responder: *"O parlamentar 
 | Análise ML de clusters de votação | ✅ 2 blocos via KMeans/PCA |
 | Alinhamento por partido | ✅ 19+ partidos no ranking |
 | Perfil completo com abas | ✅ Visão Geral, Performance, Votações, Gastos |
-| Filtro por FPE | ❌ Ainda não implementado |
+| API com Swagger/OpenAPI | ✅ Documentação automática em `/api/docs` |
+| Testes automatizados | ✅ 32 testes passando (Vitest + Testing Library) |
+| Filtro FPE no Ranking | ✅ Toggle "Apenas FPE" — campo `is_fpe_member` no schema e na API |
+| Script de sync FPE | ✅ `pnpm sync:fpe` busca membros da FPE na API da Câmara e marca no banco |
 | Votos do critério Proteção à Vida | ❌ PL 1904/2024 foi votado em comissão — sem votos individuais disponíveis na API |
 
-### Escopo atual vs. escopo pretendido
-
-**Pretendido:** avaliar apenas os ~200 membros oficiais da FPE com base nos valores que declaram representar.
-
-**Atual:** todos os 514 deputados ativos da 57ª legislatura são scorados usando os mesmos 5 critérios. O campo `is_fpe_member` e o filtro de FPE estão pendentes de implementação.
-
-Isso significa que o ranking hoje inclui deputados que nunca se identificaram como representantes evangélicos — o que torna a avaliação deles pela metodologia evangélica questionável. O sistema já foi construído para suportar o filtro; falta importar a lista oficial.
-
----
-
-## Critérios de Avaliação
-
-| Critério | Peso | Votos reais disponíveis |
-|---|---|---|
-| 🛡️ Proteção à Vida | 30% | ❌ Zero (PL 1904/2024 foi em comissão) |
-| 👨‍👩‍👧‍👦 Valores Familiares | 25% | ✅ PL 2630/2020 + outros |
-| ⚖️ Integridade Moral | 20% | ⚠️ Gastos de 96/513 deputados |
-| 🤝 Responsabilidade Social | 15% | ✅ Maioria dos votos registrados |
-| ✝️ Liberdade Religiosa | 10% | ❌ Zero |
-
-> **Consequência direta:** os scores atuais são predominantemente determinados pelo baseline de partido (seed) + ajustes de Responsabilidade Social e Valores Familiares. Proteção à Vida (30% do peso) e Liberdade Religiosa (10%) ainda usam apenas a estimativa por partido.
-
----
-
-## Metodologia de Pontuação
-
-### Scoring Híbrido
-
-**1. Baseline por partido (seed)**
-Quando não há votos reais para um critério, o score parte de um estimativa histórica por partido:
-
-```
-PL/Republicanos/PP/União → 70–90 pts
-NOVO/PSD/MDB → 55–68 pts
-PT/PSOL/PCdoB → 20–35 pts
-```
-
-**2. Ajuste por votos reais (delta)**
-Para critérios com votações registradas, deltas são aplicados sobre o baseline:
-- `SIM` alinhado → `+8` a `+15 pts` (dependendo do peso da pauta)
-- `NÃO` contrário → `-8` a `-15 pts`
-- Abstenção/ausência → `0 pts`
-
-Fórmula: `score_final = clamp(baseline + Σ(deltas), 0, 100)`
-
-**3. Penalidade por gastos suspeitos (Integridade Moral)**
-Despesas com valor atípico, glosa ou sem CNPJ reduzem `moral_integrity` em até −25 pts.
-
-### Níveis de Desempenho
-
-| Nível | Faixa | Significado |
-|---|---|---|
-| 🏆 Guardião da Fé | 80–100 pts | Votação consistentemente alinhada |
-| ✅ Testemunho Fiel | 65–79 pts | Alinhamento sólido com deslizes pontuais |
-| 🔄 Caminhando | 45–64 pts | Postura moderada, indefinida ou inconsistente |
-| ⚠️ Precisa Crescer | 0–44 pts | Padrão de votos em conflito com valores declarados |
-
-### Limitação de calibração
-
-Com Proteção à Vida (30%) sem votos reais, os scores tendem a ficar mais altos do que deveriam — especialmente para partidos com baseline elevado. A média atual (≈ 85 pts) provavelmente cairá quando mais critérios tiverem votos reais.
-
----
-
-## Dados Atuais (Junho/2026)
-
-```
-Deputados scorados:          514 (57ª legislatura, Câmara)
-Votos reais registrados:   7.544 (de 247 votações substantivas do PLEN)
-Parlamentares com votos:     509
-Pautas classificadas:          8 (entre FAMILY_VALUES e SOCIAL_RESPONSIBILITY)
-Gastos sincronizados:        96 de 513 deputados (sync rodando ~60 min)
-Despesas suspeitas:            5 registros
-Clusters de votação (ML):      2 (Bloco Conservador / Bloco Progressista)
-Partidos no ranking:          19+ (com ≥ 3 deputados ativos)
-```
-
-### Votações com votos individuais disponíveis
-
-| Pauta | Critério | Descrição técnica |
-|---|---|---|
-| PL 2630/2020 | FAMILY_VALUES | Marco das fake news / regulação da internet |
-| MP 1.165/2023 | SOCIAL_RESPONSIBILITY | Programa Mais Médicos |
-| Emenda out/2024 | SOCIAL_RESPONSIBILITY | Emenda do Senado nº 28 |
-| Votações abr/2025 | SOCIAL_RESPONSIBILITY | Múltiplas votações da semana legislativa de 29/04/2025 |
-
-> Votos individuais só estão disponíveis em votações do Plenário com contagem explícita "Sim: X; Não: Y". Comissões com poder conclusivo (caso do PL 1904/2024 — aborto) não expõem votos individuais na API da Câmara.
+> **Para ativar o filtro FPE:** rode `pnpm sync:fpe` após `pnpm sync:camara`. O toggle "Apenas FPE" no ranking já está implementado e funcional — só precisa de dados.
 
 ---
 
@@ -146,8 +69,8 @@ Partidos no ranking:          19+ (com ≥ 3 deputados ativos)
           │                     │
 ┌─────────▼──────────┐ ┌────────▼───────────┐
 │  Railway (API)     │ │  Railway (Analysis) │
-│  Express 5 · Prisma│ │  FastAPI · sklearn  │
-│  TypeScript        │ │  Python 3.12        │
+│  NestJS 11 · Prisma│ │  FastAPI · sklearn  │
+│  TypeScript · DI   │ │  Python 3.12        │
 └─────────┬──────────┘ └────────┬───────────┘
           │                     │
           └──────────┬──────────┘
@@ -156,6 +79,95 @@ Partidos no ranking:          19+ (com ≥ 3 deputados ativos)
           │   Neon PostgreSQL   │
           │   (serverless)      │
           └─────────────────────┘
+```
+
+---
+
+## API NestJS — Arquitetura Modular
+
+A API foi construída com **NestJS 11**, substituindo um servidor Express monolítico por uma arquitetura modular com Injeção de Dependência, decorators TypeScript e documentação OpenAPI automática.
+
+### Módulos
+
+```
+src/api/
+├── main.ts                    # Bootstrap: NestFactory, Swagger, ValidationPipe, CORS
+├── app.module.ts              # Root module — orquestra todos os feature modules
+├── prisma/
+│   ├── prisma.module.ts       # @Global() — PrismaService disponível em toda a API
+│   └── prisma.service.ts      # extends PrismaClient com lifecycle hooks NestJS
+├── politicians/
+│   ├── politicians.module.ts
+│   ├── politicians.controller.ts   # @Controller, @Get, @ParseIntPipe, @ApiTags
+│   ├── politicians.service.ts      # @Injectable, lógica de negócio, Prisma queries
+│   └── dto/
+│       ├── query-politicians.dto.ts  # class-validator: @IsOptional, @IsString
+│       └── query-ranking.dto.ts
+├── parties/parties.{controller,service,module}.ts
+├── stats/stats.{controller,service,module}.ts
+├── methodology/methodology.{controller,service,module}.ts
+├── health/health.{controller,module}.ts
+└── common/filters/http-exception.filter.ts  # @Catch() global — JSON de erro com CORS
+```
+
+### Endpoints documentados (Swagger em `/api/docs`)
+
+```
+GET /health                       → healthcheck para Railway
+GET /api/politicians              → lista com filtros (estado, partido, casa)
+GET /api/politicians/ranking      → ranking ordenado por pontuação
+GET /api/politicians/:id          → perfil: score, votos, gastos, mandatos
+GET /api/parties/alignment        → alinhamento médio por partido
+GET /api/stats/overview           → distribuição de performance geral
+GET /api/methodology/pillars      → critérios com pesos
+GET /api/methodology/content      → conteúdo descritivo
+GET /api/methodology/full         → metodologia completa
+```
+
+### Por que NestJS?
+
+| Aspecto | Express (antes) | NestJS (agora) |
+|---|---|---|
+| Estrutura | Arquivo único `server.ts` com 700 linhas | Módulos independentes, separação de responsabilidades |
+| Injeção de Dependência | Manual (`const prisma = new PrismaClient()`) | Automática via decorators e IoC container |
+| Documentação API | Zero | Swagger/OpenAPI gerado automaticamente |
+| Validação de entrada | Nenhuma | `class-validator` + `ValidationPipe` global |
+| Testabilidade | Difícil (acoplamento direto) | Services isolados, fácil de mockar |
+| Organização | Sem convenção | Convenção clara: controller → service → repository |
+
+---
+
+## Testes Automatizados
+
+32 testes passando, organizados em 4 suítes com **Vitest** + **Testing Library**:
+
+```
+✓ src/services/scoring/__tests__/criteriaEngine.test.ts    (8 testes)
+✓ src/components/voting/__tests__/VotingStatsCard.test.tsx  (7 testes)
+✓ src/components/politicians/__tests__/PoliticianCard.test.tsx (11 testes)
+✓ src/lib/__tests__/utils.test.ts                          (6 testes)
+```
+
+### O que é testado
+
+**Motor de pontuação (`criteriaEngine.test.ts`)**
+- Classificação de performance por faixas de score (0–100)
+- Valores de borda exatos (80 = excellent, 79 = good, etc.)
+- Score composto calculado dentro do intervalo `[0, 100]`
+- Análise detalhada para contexto vazio (baseline neutro)
+
+**Componentes React (`PoliticianCard`, `VotingStatsCard`)**
+- Renderização de dados reais via `@testing-library/react`
+- Verificação de links de navegação (`href` correto para `/politicos/:id`)
+- Fallback de foto faltante (ícone padrão)
+- Contagem de votos e badge de performance
+
+**Utilitários (`utils.test.ts`)**
+- Funções de formatação de strings e números
+
+```bash
+pnpm test           # modo watch
+pnpm test --run     # CI / execução única
 ```
 
 ---
@@ -169,7 +181,7 @@ Serviço Python independente que aplica clustering não-supervisionado sobre a m
 3. **Redução**: `PCA` preservando 95% da variância explicada antes do clustering
 4. **Clustering**: `KMeans` com k ótimo calculado por silhouette score
 5. **Visualização**: segunda redução PCA a 2D para scatter plot no frontend
-6. **Nomeação neutra**: clusters ordenados por score evangélico médio, nomeados sem referência a partido dominante
+6. **Nomeação neutra**: clusters ordenados por score evangélico médio
 
 **Silhouette atual:** 0.270 (escala 0–1, onde 1 = clusters perfeitos)
 
@@ -180,7 +192,68 @@ GET /api/deputies/{id}/similar  → n deputados com padrão de votação mais pr
 GET /health                     → healthcheck
 ```
 
-O endpoint `GET /api/parties/alignment` foi movido para o Express para funcionar sem dependência do serviço Python.
+---
+
+## Critérios de Avaliação
+
+| Critério | Peso | Votos reais disponíveis |
+|---|---|---|
+| 🛡️ Proteção à Vida | 30% | ❌ Zero (PL 1904/2024 foi em comissão) |
+| 👨‍👩‍👧‍👦 Valores Familiares | 25% | ✅ PL 2630/2020 + outros |
+| ⚖️ Integridade Moral | 20% | ⚠️ Gastos de 96/513 deputados |
+| 🤝 Responsabilidade Social | 15% | ✅ Maioria dos votos registrados |
+| ✝️ Liberdade Religiosa | 10% | ❌ Zero |
+
+> **Consequência direta:** com Proteção à Vida (30%) sem votos reais, os scores tendem a ficar mais altos do que deveriam — especialmente para partidos com baseline elevado. A média atual (≈ 85 pts) provavelmente cairá quando mais critérios tiverem votos reais.
+
+---
+
+## Metodologia de Pontuação
+
+### Scoring Híbrido
+
+**1. Baseline por partido (seed)**
+
+```
+PL/Republicanos/PP/União → 70–90 pts
+NOVO/PSD/MDB → 55–68 pts
+PT/PSOL/PCdoB → 20–35 pts
+```
+
+**2. Ajuste por votos reais (delta)**
+
+- `SIM` alinhado → `+8` a `+15 pts`
+- `NÃO` contrário → `-8` a `-15 pts`
+- Abstenção/ausência → `0 pts`
+
+Fórmula: `score_final = clamp(baseline + Σ(deltas), 0, 100)`
+
+**3. Penalidade por gastos suspeitos (Integridade Moral)**
+
+Despesas com valor atípico, glosa ou sem CNPJ reduzem `moral_integrity` em até −25 pts.
+
+### Níveis de Desempenho
+
+| Nível | Faixa |
+|---|---|
+| 🏆 Guardião da Fé | 80–100 pts |
+| ✅ Testemunho Fiel | 65–79 pts |
+| 🔄 Caminhando | 45–64 pts |
+| ⚠️ Precisa Crescer | 0–44 pts |
+
+---
+
+## Dados Atuais (Junho/2026)
+
+```
+Deputados scorados:          514 (57ª legislatura, Câmara)
+Votos reais registrados:   7.544 (de 247 votações substantivas do PLEN)
+Parlamentares com votos:     509
+Pautas classificadas:          8 (FAMILY_VALUES e SOCIAL_RESPONSIBILITY)
+Gastos sincronizados:        96 de 513 deputados
+Clusters de votação (ML):      2 (Bloco Conservador / Bloco Progressista)
+Partidos no ranking:          19+ (com ≥ 3 deputados ativos)
+```
 
 ---
 
@@ -189,9 +262,10 @@ O endpoint `GET /api/parties/alignment` foi movido para o Express para funcionar
 | Camada | Tecnologia |
 |---|---|
 | Frontend | React 18 · TypeScript · Vite · Tailwind CSS · shadcn/ui · TanStack Query · Recharts |
-| API JS | Express 5 · Prisma ORM · TypeScript · tsx |
+| API | **NestJS 11** · Prisma ORM · TypeScript · Swagger/OpenAPI · class-validator |
 | API Python | FastAPI · scikit-learn · pandas · numpy · psycopg2 |
 | Banco | PostgreSQL (Neon serverless, com pgbouncer pooler) |
+| Testes | Vitest · Testing Library (React + jsdom) |
 | Deploy | Vercel (frontend) · Railway (API Node + Python) |
 | Dados | API aberta da Câmara dos Deputados V2 |
 
@@ -209,33 +283,32 @@ O endpoint `GET /api/parties/alignment` foi movido para o Express para funcionar
 ```bash
 git clone https://github.com/rilsonjoas/a-bancada-evangelica.git
 cd a-bancada-evangelica
-
 pnpm install
-
 cp .env.example .env
 # Edite .env com suas credenciais
-
 pnpm db:push
 pnpm dev:full
+```
+
+### Comandos
+
+```bash
+pnpm dev          # Frontend (Vite, porta 8080)
+pnpm dev:api      # API NestJS (porta 3001) — http://localhost:3001/api/docs
+pnpm dev:full     # Frontend + API em paralelo
+pnpm test         # Suíte de testes (watch mode)
+pnpm test --run   # CI — execução única
 ```
 
 ### Pipeline de dados (ordem recomendada)
 
 ```bash
-# 1. Importar deputados e mandatos da Câmara
-pnpm sync:camara
-
-# 2. Calcular scores baseline por partido
-pnpm scores:seed
-
-# 3. Sincronizar votos reais (57ª legislatura, apenas PLEN com votos individuais)
-pnpm sync:votes
-
-# 4. Sincronizar despesas parlamentares — cota CEAP (~60 min para 513 deputados)
-pnpm sync:camara:gastos
-
-# 5. Recalcular scores finais (híbrido: seed + votos + penalidade de gastos)
-pnpm scores:recalculate
+pnpm sync:camara          # 1. Deputados e mandatos
+pnpm scores:seed          # 2. Baseline por partido
+pnpm sync:fpe             # 3. Marcar membros da FPE (requer deputados no banco)
+pnpm sync:votes           # 4. Votos reais (57ª legislatura, PLEN)
+pnpm sync:camara:gastos   # 5. Despesas CEAP (~60 min para 513 deputados)
+pnpm scores:recalculate   # 6. Score final: seed + votos + penalidade de gastos
 ```
 
 ### Serviço Python
@@ -259,22 +332,7 @@ VITE_ANALYSIS_URL=https://seu-analysis.up.railway.app
 PORT=3001
 ```
 
-> `DATABASE_URL` usa o pooler do Neon (para Prisma em runtime). `DIRECT_URL` usa conexão direta (para migrations e o serviço Python, que não suporta o parâmetro `pgbouncer`).
-
----
-
-## API Reference
-
-```
-GET /api/politicians              → lista com filtros (estado, partido, casa)
-GET /api/politicians/ranking      → ranking ordenado por pontuação
-GET /api/politicians/:id          → perfil completo: score, votos, gastos, mandatos
-GET /api/parties/alignment        → alinhamento médio por partido
-GET /api/stats/overview           → estatísticas gerais (distribuição de performance)
-GET /api/methodology/pillars      → critérios de avaliação com pesos
-GET /api/methodology/full         → conteúdo completo da metodologia
-GET /health                       → healthcheck
-```
+> `DATABASE_URL` usa o pooler do Neon (para Prisma em runtime). `DIRECT_URL` usa conexão direta (para migrations).
 
 ---
 
@@ -282,25 +340,32 @@ GET /health                       → healthcheck
 
 ```
 ├── src/
-│   ├── api/server.ts              # Express — API REST principal
-│   ├── components/                # UI: cards, gráficos, comparação
-│   ├── hooks/                     # TanStack Query: usePoliticians, useClusters…
-│   ├── lib/
-│   │   ├── apiClient.ts           # fetch centralizado com VITE_API_URL
-│   │   └── prisma.ts              # singleton PrismaClient
-│   ├── pages/                     # Ranking, Perfil, Comparação, Clusters, Metodologia, Sobre
-│   └── services/scoring/
-│       └── criteriaEngine.ts      # motor de pontuação determinístico
-├── analysis/                      # Serviço Python (FastAPI + sklearn)
-│   ├── main.py
-│   ├── app/
-│   │   ├── database.py            # psycopg2 — leitura da matriz de votações
-│   │   └── services/clustering.py # KMeans + PCA + silhouette
-│   └── requirements.txt
-├── prisma/schema.prisma           # schema PostgreSQL completo
-├── scripts/                       # sync-camara, sync-votes, sync-all-gastos, recalculate-scores
-├── railway.toml                   # config deploy Node no Railway
-└── vercel.json                    # rewrite SPA + headers de cache
+│   ├── api/
+│   │   ├── main.ts                      # Bootstrap NestJS
+│   │   ├── app.module.ts                # Root module
+│   │   ├── prisma/                      # PrismaModule @Global
+│   │   ├── politicians/                 # Controller + Service + Module + DTOs
+│   │   ├── parties/                     # Controller + Service + Module
+│   │   ├── stats/                       # Controller + Service + Module
+│   │   ├── methodology/                 # Controller + Service + Module
+│   │   ├── health/                      # Healthcheck (Railway)
+│   │   └── common/filters/              # AllExceptionsFilter global
+│   ├── components/
+│   │   ├── politicians/__tests__/       # 11 testes: PoliticianCard
+│   │   └── voting/__tests__/           # 7 testes: VotingStatsCard
+│   ├── services/scoring/
+│   │   ├── criteriaEngine.ts            # Motor de pontuação determinístico
+│   │   └── __tests__/                  # 8 testes: scoring engine
+│   ├── lib/__tests__/                   # 6 testes: utilitários
+│   ├── hooks/                           # TanStack Query: usePoliticians, useClusters…
+│   └── pages/                          # Ranking, Perfil, Comparação, Clusters, Sobre
+├── analysis/                            # Serviço Python (FastAPI + sklearn)
+├── prisma/schema.prisma                 # Schema PostgreSQL completo
+├── scripts/                            # sync-camara, sync-votes, recalculate-scores…
+├── api-server.cjs                       # Bootstrap CJS — resolve conflito ESM/NestJS
+├── tsconfig.api.json                    # TS config para NestJS (emitDecoratorMetadata)
+├── railway.toml                         # Deploy Railway: healthcheck + restart policy
+└── vercel.json                          # Rewrite SPA + headers de cache
 ```
 
 ---
@@ -308,25 +373,22 @@ GET /health                       → healthcheck
 ## Limitações Conhecidas
 
 **Dados:**
-- Votos individuais de **comissões** não estão disponíveis na API da Câmara, mesmo quando a comissão tem poder conclusivo. O PL 1904/2024 (aborto) é o caso mais relevante — foi votado no CPASF, não no Plenário.
-- O critério **Proteção à Vida** (30% do peso) usa apenas o baseline de partido, sem votos reais.
-- O critério **Liberdade Religiosa** (10%) também não tem votações PLEN registradas ainda.
-- A sincronização de gastos cobre apenas os **últimos 2 anos** (2025–2026) e demora ~60 min para todos os deputados.
+- Votos individuais de **comissões** não estão disponíveis na API da Câmara. O PL 1904/2024 (aborto) foi votado no CPASF, não no Plenário.
+- **Proteção à Vida** (30%) e **Liberdade Religiosa** (10%) usam apenas o baseline de partido, sem votos reais.
+- O sync de gastos cobre apenas os últimos 2 anos (2025–2026).
 
 **Escopo:**
 - O filtro de membros da FPE **ainda não está implementado**. O ranking atual mostra todos os 514 deputados da 57ª legislatura.
-- Scores com Proteção à Vida sem votos reais tendem a ser **inflados para partidos com baseline alto**.
 
 ---
 
 ## Próximos Passos
 
-- [ ] Importar lista oficial de membros da FPE via `/frentes/{id}/membros`
-- [ ] Campo `is_fpe_member` no schema e filtro padrão no ranking/busca
+- [ ] Rodar `pnpm sync:fpe` em produção para popular `is_fpe_member` no banco
 - [ ] Ampliar varredura de votos para critérios com zero cobertura (Vida, Liberdade Religiosa)
 - [ ] Completar sync de despesas e rodar `scores:recalculate` final
+- [ ] Testes de integração para a API NestJS (supertest + banco de teste)
 - [ ] Revisão manual das classificações de pauta (keyword algorithm pode gerar falsos positivos)
-- [ ] Testes automatizados (zero cobertura atual)
 
 ---
 
