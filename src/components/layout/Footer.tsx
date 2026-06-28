@@ -19,14 +19,14 @@ const Footer = () => {
                   A Bancada Evangélica
                 </h3>
                 <p className="text-xs text-muted-foreground">
-                  TRANSPARÊNCIA PARLAMENTAR
+                  MONITORANDO A BANCADA EVANGÉLICA
                 </p>
               </div>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-              Plataforma independente para avaliar parlamentares brasileiros com base em 
-              critérios objetivos de integridade, responsabilidade social e alinhamento 
-              com valores cristãos.
+              Monitorando se os membros da Frente Parlamentar Evangélica votam em
+              consonância com os valores cristãos que declaram representar.
+              Dados públicos, metodologia aberta.
             </p>
             <div className="flex items-center space-x-4">
               <a 
@@ -37,7 +37,7 @@ const Footer = () => {
                 <Mail className="h-4 w-4" />
               </a>
               <a 
-                href="https://github.com/bancada-evangelica"
+                href="https://github.com/rilsonjoas/a-bancada-evangelica"
                 className="text-muted-foreground hover:text-primary transition-colors"
                 target="_blank"
                 rel="noopener noreferrer"

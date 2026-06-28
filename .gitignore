@@ -29,3 +29,8 @@ dist-ssr
 *.sw?
 
 CLAUDE.md
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo

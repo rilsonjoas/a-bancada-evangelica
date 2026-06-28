@@ -5,7 +5,7 @@ from sklearn.decomposition import PCA
 from sklearn.metrics import silhouette_score
 from sklearn.preprocessing import StandardScaler
 
-from app.database import load_voting_matrix, load_politicians_info
+from app.database import load_voting_matrix, load_politicians_info, _query_df
 
 
 def _optimal_k(X: np.ndarray, k_min: int = 2, k_max: int = 10) -> int:
@@ -91,10 +91,33 @@ def run_clustering(k: int | None = None) -> dict:
             "party_breakdown": dict(sorted(party_counts.items(), key=lambda x: x[1], reverse=True)[:8]),
         })
 
-    # Ordenar por tamanho decrescente
-    clusters.sort(key=lambda c: c["size"], reverse=True)
+    # Enriquecer clusters com score médio evangélico (da tabela politician_scores)
+    member_ids = [m["id"] for c in clusters for m in c["members"]]
+    if member_ids:
+        placeholders = ",".join(str(i) for i in member_ids)
+        scores_df = _query_df(f"""
+            SELECT politician_id, overall_score
+            FROM politician_scores
+            WHERE politician_id IN ({placeholders})
+        """)
+        score_map = dict(zip(scores_df["politician_id"], scores_df["overall_score"]))
+    else:
+        score_map = {}
+
+    for c in clusters:
+        scores = [score_map.get(m["id"]) for m in c["members"] if score_map.get(m["id"]) is not None]
+        c["avg_evangelical_score"] = round(float(np.mean(scores)), 1) if scores else None
+
+    # Ordenar por score evangélico decrescente (maior alinhamento primeiro)
+    clusters.sort(key=lambda c: c.get("avg_evangelical_score") or 0, reverse=True)
+
+    # Nomear blocos de forma neutra baseada no padrão de votação (não por partido dominante)
+    bloc_names = ["Conservador", "Progressista", "Centro", "Moderado", "Liberal"]
     for rank, c in enumerate(clusters):
-        c["label"] = f"Grupo {rank + 1} — {c['dominant_party']} ({c['size']} membros)"
+        name = bloc_names[rank] if rank < len(bloc_names) else f"Bloco {rank + 1}"
+        score = c.get("avg_evangelical_score")
+        score_str = f" · {score:.0f} pts" if score is not None else ""
+        c["label"] = f"Bloco {name} ({c['size']} parlamentares{score_str})"
 
     return {
         "clusters": clusters,
