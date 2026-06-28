@@ -1,16 +1,18 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, MapPin, Building, Calendar, Mail, ExternalLink, TrendingUp, TrendingDown, Minus, Share2, Info } from 'lucide-react';
+import { ArrowLeft, MapPin, Building, Calendar, Mail, TrendingUp, TrendingDown, Minus, Share2, Info } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { toast } from 'sonner';
 import { usePoliticianDetail } from '@/hooks/usePoliticianDetail';
 import { PerformanceChart } from '@/components/charts/PerformanceChart';
 import { VotingHistoryChart } from '@/components/charts/VotingHistoryChart';
 import { ExpenseAnalysisChart } from '@/components/charts/ExpenseAnalysisChart';
+import { CRITERIA, CRITERIA_BY_KEY } from '@/lib/criteria';
 
 export function PoliticianProfile() {
   const { id } = useParams<{ id: string }>();
@@ -89,16 +91,8 @@ export function PoliticianProfile() {
     }
   };
 
-  const getCriteriaLabel = (criteria: string) => {
-    const map: Record<string, string> = {
-      LIFE_PROTECTION: '🛡️ Proteção à Vida',
-      FAMILY_VALUES: '👨‍👩‍👧‍👦 Defesa da Família',
-      MORAL_INTEGRITY: '⚖️ Integridade Moral',
-      SOCIAL_RESPONSIBILITY: '🤝 Responsabilidade Social',
-      RELIGIOUS_FREEDOM: '✝️ Liberdade Religiosa',
-    };
-    return map[criteria] ?? criteria;
-  };
+  const getCriteriaLabel = (criteria: string) =>
+    CRITERIA_BY_KEY[criteria]?.label ?? criteria;
 
   const getPerformanceLevelDescription = (level: string) => {
     const map: Record<string, { range: string; description: string }> = {
@@ -119,7 +113,7 @@ export function PoliticianProfile() {
       });
     } else {
       navigator.clipboard.writeText(window.location.href);
-      // TODO: Add toast notification
+      toast.success('Link copiado para a área de transferência!');
     }
   };
 
@@ -214,55 +208,39 @@ export function PoliticianProfile() {
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Score Cards */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium">🛡️ Proteção à Vida</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className={`text-2xl font-bold ${getScoreColor(politician.currentScore?.lifeProtection || 0)}`}>
-                  {politician.currentScore?.lifeProtection?.toFixed(1) || '0.0'}
-                </div>
-                <Progress value={politician.currentScore?.lifeProtection || 0} className="mt-2" />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium">👨‍👩‍👧‍👦 Família</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className={`text-2xl font-bold ${getScoreColor(politician.currentScore?.familyValues || 0)}`}>
-                  {politician.currentScore?.familyValues?.toFixed(1) || '0.0'}
-                </div>
-                <Progress value={politician.currentScore?.familyValues || 0} className="mt-2" />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium">⚖️ Integridade</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className={`text-2xl font-bold ${getScoreColor(politician.currentScore?.moralIntegrity || 0)}`}>
-                  {politician.currentScore?.moralIntegrity?.toFixed(1) || '0.0'}
-                </div>
-                <Progress value={politician.currentScore?.moralIntegrity || 0} className="mt-2" />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium">✝️ Liberdade Religiosa</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className={`text-2xl font-bold ${getScoreColor(politician.currentScore?.religiousFreedom || 0)}`}>
-                  {politician.currentScore?.religiousFreedom?.toFixed(1) || '0.0'}
-                </div>
-                <Progress value={politician.currentScore?.religiousFreedom || 0} className="mt-2" />
-              </CardContent>
-            </Card>
+          {!politician.currentScore && (
+            <div className="p-4 bg-secondary/30 border border-border rounded-lg flex items-start gap-3 text-sm text-muted-foreground mb-2">
+              <Info className="h-4 w-4 shrink-0 mt-0.5" />
+              <span>Pontuação ainda não calculada para este parlamentar. Os dados aparecem após o próximo ciclo de sincronização.</span>
+            </div>
+          )}
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+            {CRITERIA.map(c => {
+              const score = politician.currentScore
+                ? ((politician.currentScore[c.field as keyof typeof politician.currentScore] as number) ?? 0)
+                : null;
+              return (
+                <Card key={c.key}>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-xs font-medium flex items-center gap-1.5">
+                      <c.Icon className={`h-3.5 w-3.5 shrink-0 ${c.iconClass}`} />
+                      <span className="truncate">{c.label}</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    {score !== null ? (
+                      <>
+                        <div className={`text-2xl font-bold ${getScoreColor(score)}`}>{score.toFixed(1)}</div>
+                        <Progress value={score} className="mt-2 h-1.5" />
+                      </>
+                    ) : (
+                      <div className="text-2xl font-bold text-muted-foreground">—</div>
+                    )}
+                    <p className="text-xs text-muted-foreground mt-1">{c.weight}</p>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
 
           {/* Description and Mandates */}
@@ -360,9 +338,9 @@ export function PoliticianProfile() {
                 <div className="flex justify-between">
                   <span>Última Atualização:</span>
                   <span className="font-semibold">
-                    {politician.currentScore?.lastCalculation ? 
-                      new Date(politician.currentScore.lastCalculation).toLocaleDateString('pt-BR') : 
-                      'Nunca'
+                    {politician.currentScore?.lastCalculation
+                      ? new Date(politician.currentScore.lastCalculation).toLocaleDateString('pt-BR')
+                      : 'Nunca'
                     }
                   </span>
                 </div>

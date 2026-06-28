@@ -184,14 +184,35 @@ export default function VotingClusters() {
           </div>
         )}
 
-        {/* Error */}
+        {/* Alinhamento por partido — sempre visível (dados da API NestJS) */}
+        <div className="bg-card border border-border rounded-lg p-6 mb-8">
+          <div className="flex items-center gap-2 mb-1">
+            <Award className="w-4 h-4 text-muted-foreground" />
+            <h2 className="font-semibold text-foreground">Alinhamento por partido</h2>
+          </div>
+          <p className="text-xs text-muted-foreground mb-4">
+            Score médio nos 5 critérios evangélicos.{' '}
+            <span className="inline-flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> alta (≥70)
+            </span>{' · '}
+            <span className="inline-flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-amber-500 inline-block" /> moderada (50–70)
+            </span>{' · '}
+            <span className="inline-flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-red-500 inline-block" /> baixa (&lt;50)
+            </span>
+          </p>
+          <PartyAlignmentChart />
+        </div>
+
+        {/* Error — clusters indisponíveis, mas alinhamento já apareceu acima */}
         {isError && (
-          <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
-            <AlertCircle className="w-10 h-10 text-destructive" />
-            <p className="font-semibold text-foreground">Serviço de análise indisponível</p>
+          <div className="flex flex-col items-center justify-center py-16 gap-3 text-center border border-border rounded-lg bg-card">
+            <AlertCircle className="w-8 h-8 text-muted-foreground" />
+            <p className="font-semibold text-foreground">Agrupamento ML indisponível</p>
             <p className="text-sm text-muted-foreground max-w-sm">
-              O serviço Python ainda não está implantado ou está inicializando.
-              Volte em breve.
+              A análise de clusters KMeans requer um serviço Python separado que ainda está sendo implantado.
+              Os dados de alinhamento por partido acima estão disponíveis normalmente.
             </p>
           </div>
         )}
@@ -221,27 +242,6 @@ export default function VotingClusters() {
                 value={`${(data.pca_variance_2d * 100).toFixed(1)}%`}
                 sub="explicada pelos 2 eixos"
               />
-            </div>
-
-            {/* Party alignment */}
-            <div className="bg-card border border-border rounded-lg p-6 mb-8">
-              <div className="flex items-center gap-2 mb-1">
-                <Award className="w-4 h-4 text-muted-foreground" />
-                <h2 className="font-semibold text-foreground">Alinhamento por partido</h2>
-              </div>
-              <p className="text-xs text-muted-foreground mb-4">
-                Score médio nos 5 critérios evangélicos.{' '}
-                <span className="inline-flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> alta (≥70)
-                </span>{' · '}
-                <span className="inline-flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-amber-500 inline-block" /> moderada (50–70)
-                </span>{' · '}
-                <span className="inline-flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-red-500 inline-block" /> baixa (&lt;50)
-                </span>
-              </p>
-              <PartyAlignmentChart />
             </div>
 
             {/* Scatter */}

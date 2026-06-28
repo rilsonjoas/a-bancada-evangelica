@@ -18,15 +18,7 @@ export class PoliticiansService {
   constructor(private readonly prisma: PrismaService) {}
 
   private formatScore(score: any) {
-    if (!score) {
-      return {
-        lifeProtection: 50, familyValues: 50, moralIntegrity: 50,
-        socialResponsibility: 50, religiousFreedom: 50, overall: 50,
-        performanceLevel: 'AVERAGE', performanceLabel: 'Sem Dados',
-        performanceDescription: 'Aguardando análise', totalVotes: 0,
-        consistencyScore: 0, lastCalculation: new Date().toISOString(),
-      };
-    }
+    if (!score) return null;
     return {
       lifeProtection: score.life_protection ?? 0,
       familyValues: score.family_values ?? 0,

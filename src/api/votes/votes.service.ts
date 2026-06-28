@@ -74,11 +74,42 @@ export class VotesService {
 
     const activePoliticians = await this.prisma.politician.count({ where: { is_active: true } });
 
+    // Pautas por critério (todos os 5 critérios têm dados)
+    const agendaByCriteria: Record<string, number> = {};
+    for (const a of agendas) {
+      agendaByCriteria[a.criteria] = (agendaByCriteria[a.criteria] ?? 0) + 1;
+    }
+
+    // Top 50 políticos por pontuação (deduplicado por politician_id)
+    const rankingRaw = await this.prisma.politicianScore.findMany({
+      where: { politician: { is_active: true } },
+      orderBy: { overall_score: 'desc' },
+      select: {
+        overall_score: true,
+        total_votes: true,
+        politician: { select: { id: true, name: true, current_party: true, current_state: true } },
+      },
+    });
+
+    const seen = new Set<number>();
+    const politicianRanking = rankingRaw
+      .filter(s => { if (seen.has(s.politician.id)) return false; seen.add(s.politician.id); return true; })
+      .slice(0, 50)
+      .map(s => ({
+        id: s.politician.id,
+        name: s.politician.name,
+        party: s.politician.current_party,
+        state: s.politician.current_state,
+        alignmentScore: Math.round(s.overall_score * 10) / 10,
+        totalVotes: s.total_votes,
+      }));
+
     return {
       totalVotes,
       activePoliticians,
       totalAgendas: agendas.length,
-      averageConsensus: scoreStats._avg.overall_score ?? 50,
+      averageScore: Math.round((scoreStats._avg.overall_score ?? 50) * 10) / 10,
+      agendaByCriteria,
       voteByCriteria,
       alignmentStats: {
         high:   Number(alignmentRaw.find(a => a.alignment_level === 'EXCELLENT')?.count ?? 0),
@@ -87,22 +118,24 @@ export class VotesService {
               + Number(alignmentRaw.find(a => a.alignment_level === 'POOR')?.count ?? 0),
       },
       timelineTrends,
-      keyAgendas: agendas.map(a => {
-        const votes = agendaVoteMap.get(a.id) ?? { YES: 0, NO: 0, ABSTENTION: 0, ABSENT: 0 };
-        const total = votes.YES + votes.NO + votes.ABSTENTION + votes.ABSENT;
-        return {
-          id: a.id,
-          title: a.title,
-          description: a.description ?? '',
-          criteria: a.criteria,
-          totalVotes: total,
-          favorableVotes: votes.YES,
-          contraryVotes: votes.NO,
-          abstentions: votes.ABSTENTION,
-          consensusScore: total > 0 ? Math.round((votes.YES / total) * 100) : 0,
-        };
-      }),
-      politicianRanking: [],
+      keyAgendas: agendas
+        .map(a => {
+          const votes = agendaVoteMap.get(a.id) ?? { YES: 0, NO: 0, ABSTENTION: 0, ABSENT: 0 };
+          const total = votes.YES + votes.NO + votes.ABSTENTION + votes.ABSENT;
+          return {
+            id: a.id,
+            title: a.title,
+            description: a.description ?? '',
+            criteria: a.criteria,
+            totalVotes: total,
+            favorableVotes: votes.YES,
+            contraryVotes: votes.NO,
+            abstentions: votes.ABSTENTION,
+            consensusScore: total > 0 ? Math.round((votes.YES / total) * 100) : 0,
+          };
+        })
+        .filter(a => a.totalVotes > 0),
+      politicianRanking,
     };
   }
 }

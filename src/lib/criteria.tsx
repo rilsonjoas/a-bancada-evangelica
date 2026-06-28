@@ -10,28 +10,29 @@ export interface CriteriaConfig {
   badgeClass: string;
   iconClass: string;
   weight: string;
+  barColor: string;
 }
 
 export const CRITERIA: CriteriaConfig[] = [
   {
     key: 'LIFE_PROTECTION', field: 'lifeProtection', label: 'Proteção à Vida',
-    Icon: Shield, iconClass: 'text-red-500', badgeClass: 'bg-red-100 text-red-800', weight: '30%',
+    Icon: Shield, iconClass: 'text-red-500', badgeClass: 'bg-red-100 text-red-800', weight: '30%', barColor: '#ef4444',
   },
   {
     key: 'FAMILY_VALUES', field: 'familyValues', label: 'Valores Familiares',
-    Icon: Home, iconClass: 'text-blue-500', badgeClass: 'bg-blue-100 text-blue-800', weight: '25%',
+    Icon: Home, iconClass: 'text-blue-500', badgeClass: 'bg-blue-100 text-blue-800', weight: '25%', barColor: '#3b82f6',
   },
   {
     key: 'MORAL_INTEGRITY', field: 'moralIntegrity', label: 'Integridade Moral',
-    Icon: Scale, iconClass: 'text-purple-500', badgeClass: 'bg-purple-100 text-purple-800', weight: '20%',
+    Icon: Scale, iconClass: 'text-purple-500', badgeClass: 'bg-purple-100 text-purple-800', weight: '20%', barColor: '#a855f7',
   },
   {
     key: 'SOCIAL_RESPONSIBILITY', field: 'socialResponsibility', label: 'Responsabilidade Social',
-    Icon: Handshake, iconClass: 'text-green-500', badgeClass: 'bg-green-100 text-green-800', weight: '15%',
+    Icon: Handshake, iconClass: 'text-green-500', badgeClass: 'bg-green-100 text-green-800', weight: '15%', barColor: '#22c55e',
   },
   {
     key: 'RELIGIOUS_FREEDOM', field: 'religiousFreedom', label: 'Liberdade Religiosa',
-    Icon: Church, iconClass: 'text-amber-500', badgeClass: 'bg-amber-100 text-amber-800', weight: '10%',
+    Icon: Church, iconClass: 'text-amber-500', badgeClass: 'bg-amber-100 text-amber-800', weight: '10%', barColor: '#f59e0b',
   },
 ];
 

@@ -30,11 +30,14 @@ export function KeyAgendaCard({ agenda }: KeyAgendaCardProps) {
     return { label: 'Muito Polarizado', color: 'text-red-600' };
   };
 
-  const favorablePercentage = (agenda.favorableVotes / agenda.totalVotes) * 100;
-  const contraryPercentage = (agenda.contraryVotes / agenda.totalVotes) * 100;
-  const abstentionPercentage = (agenda.abstentions / agenda.totalVotes) * 100;
+  const safe = (n: number) => (agenda.totalVotes > 0 ? n : 0);
+  const favorablePercentage = safe((agenda.favorableVotes / agenda.totalVotes) * 100);
+  const contraryPercentage = safe((agenda.contraryVotes / agenda.totalVotes) * 100);
+  const abstentionPercentage = safe((agenda.abstentions / agenda.totalVotes) * 100);
 
   const consensus = getConsensusLevel(agenda.consensusScore);
+
+  const hasVotes = agenda.totalVotes > 0;
 
   return (
     <Card className="hover:shadow-lg transition-shadow">
@@ -49,7 +52,7 @@ export function KeyAgendaCard({ agenda }: KeyAgendaCardProps) {
               </Badge>
               <div className="flex items-center gap-1 text-sm text-gray-500">
                 <Users className="w-4 h-4" />
-                <span>{agenda.totalVotes} votos</span>
+                <span>{hasVotes ? `${agenda.totalVotes} votos` : 'Sem votos registrados'}</span>
               </div>
             </div>
           </div>
@@ -63,7 +66,12 @@ export function KeyAgendaCard({ agenda }: KeyAgendaCardProps) {
       </CardHeader>
       
       <CardContent>
-        <div className="space-y-4">
+        {!hasVotes && (
+          <p className="text-sm text-muted-foreground text-center py-4 italic">
+            Votos ainda não registrados para esta pauta no banco de dados.
+          </p>
+        )}
+        {hasVotes && <div className="space-y-4">
           {/* Voting Distribution */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
@@ -126,7 +134,7 @@ export function KeyAgendaCard({ agenda }: KeyAgendaCardProps) {
               </div>
             </div>
           </div>
-        </div>
+        </div>}
       </CardContent>
     </Card>
   );

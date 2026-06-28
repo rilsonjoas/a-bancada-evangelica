@@ -219,9 +219,9 @@ export function VotingAnalysis() {
               icon={<Calendar className="w-6 h-6" />}
             />
             <VotingStatsCard
-              title="Consenso Médio"
-              value={`${analysisData?.averageConsensus || 0}%`}
-              subtitle="Alinhamento"
+              title="Pontuação Média"
+              value={`${analysisData?.averageScore?.toFixed(1) ?? '—'}%`}
+              subtitle="Score geral dos parlamentares"
               icon={<TrendingUp className="w-6 h-6" />}
             />
           </div>
@@ -230,29 +230,35 @@ export function VotingAnalysis() {
           <div className="grid md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Distribuição de Votos por Critério</CardTitle>
+                <CardTitle>Pautas Monitoradas por Critério</CardTitle>
               </CardHeader>
               <CardContent>
-                {analysisData?.voteByCriteria ? (
+                {analysisData?.agendaByCriteria ? (
                   <div className="space-y-4">
-                    {criteriaOptions.map(criteria => (
-                      <div key={criteria.value} className="flex items-center justify-between">
-                        <span className="text-sm">{criteria.label}</span>
-                        <div className="flex items-center gap-2">
-                          <div className="w-20 bg-gray-200 rounded-full h-2">
-                            <div 
-                              className="bg-blue-600 h-2 rounded-full"
-                              style={{ 
-                                width: `${(analysisData.voteByCriteria[criteria.value] / analysisData.totalVotes) * 100}%` 
-                              }}
-                            ></div>
-                          </div>
-                          <span className="text-sm font-medium">
-                            {analysisData.voteByCriteria[criteria.value] || 0}
+                    {CRITERIA.map(c => {
+                      const count = analysisData.agendaByCriteria[c.key] ?? 0;
+                      const total = analysisData.totalAgendas || 1;
+                      return (
+                        <div key={c.key} className="flex items-center justify-between gap-3">
+                          <span className="text-sm flex items-center gap-1.5 min-w-0 flex-1">
+                            <c.Icon className={`h-3.5 w-3.5 shrink-0 ${c.iconClass}`} />
+                            <span className="truncate">{c.label}</span>
                           </span>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <div className="w-24 bg-gray-200 rounded-full h-2">
+                              <div
+                                className="h-2 rounded-full transition-all"
+                                style={{
+                                  width: `${(count / total) * 100}%`,
+                                  backgroundColor: c.barColor,
+                                }}
+                              ></div>
+                            </div>
+                            <span className="text-sm font-semibold w-8 text-right">{count}</span>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   <p className="text-gray-500 text-center py-8">Carregando dados...</p>
@@ -324,31 +330,29 @@ export function VotingAnalysis() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {analysisData?.politicianRanking?.map((politician: { id: number; name: string; currentScore?: { overall: number }; [key: string]: unknown }, index: number) => (
-                  <div key={politician.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center gap-4">
-                      <div className="text-lg font-bold text-gray-500">
-                        #{index + 1}
+                {(analysisData?.politicianRanking?.length ?? 0) > 0
+                  ? analysisData!.politicianRanking.map((politician: { id: number; name: string; party: string; state: string; alignmentScore: number; totalVotes: number }, index: number) => (
+                    <div key={politician.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-secondary/30 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 text-center text-sm font-bold ${index < 3 ? 'text-primary' : 'text-muted-foreground'}`}>
+                          #{index + 1}
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-sm">{politician.name}</h3>
+                          <p className="text-xs text-muted-foreground">
+                            {politician.party} · {politician.state}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-medium">{politician.name}</h3>
-                        <p className="text-sm text-gray-600">
-                          {politician.party} - {politician.state}
-                        </p>
+                      <div className="text-right shrink-0">
+                        <div className={`text-base font-bold ${politician.alignmentScore >= 70 ? 'text-green-600' : politician.alignmentScore >= 50 ? 'text-blue-600' : 'text-red-600'}`}>
+                          {politician.alignmentScore.toFixed(1)}%
+                        </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-lg font-bold text-blue-600">
-                        {politician.alignmentScore.toFixed(1)}%
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        {politician.totalVotes} votações
-                      </div>
-                    </div>
-                  </div>
-                )) || (
-                  <p className="text-gray-500 text-center py-8">Carregando ranking...</p>
-                )}
+                  ))
+                  : <p className="text-muted-foreground text-center py-8">Carregando ranking...</p>
+                }
               </div>
             </CardContent>
           </Card>
