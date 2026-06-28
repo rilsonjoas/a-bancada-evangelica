@@ -282,23 +282,37 @@ app.get('/api/politicians/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    const politician = await prisma.politician.findUnique({
-      where: { id: parseInt(id) },
-      include: {
-        scores: {
-          take: 1,
-          orderBy: { created_at: 'desc' }
-        },
-        mandates: true,
-        votes: {
-          include: {
-            key_agenda: true
+    const [politician, expenseAgg] = await Promise.all([
+      prisma.politician.findUnique({
+        where: { id: parseInt(id) },
+        include: {
+          scores: {
+            take: 1,
+            orderBy: { created_at: 'desc' }
           },
-          orderBy: { vote_date: 'desc' },
-          take: 10 // Últimas 10 votações
+          mandates: true,
+          votes: {
+            include: {
+              key_agenda: true
+            },
+            orderBy: { vote_date: 'desc' },
+            take: 10
+          }
         }
-      }
-    });
+      }),
+      prisma.expense.aggregate({
+        where: { politician_id: parseInt(id) },
+        _sum: { net_value: true },
+        _count: { id: true },
+      }).then(async agg => {
+        const suspicious = await prisma.expense.aggregate({
+          where: { politician_id: parseInt(id), is_suspicious: true },
+          _sum: { net_value: true },
+          _count: { id: true },
+        });
+        return { agg, suspicious };
+      })
+    ]);
 
     if (!politician) {
       return res.status(404).json({ error: 'Político não encontrado' });
@@ -347,13 +361,21 @@ app.get('/api/politicians/:id', async (req, res) => {
         voteDate: v.vote_date.toISOString(),
         description: v.voting_description ?? v.key_agenda.description ?? '',
       })),
-      expenseAnalysis: {
-        totalValue: 0, // TODO: implementar
-        suspiciousValue: 0,
-        suspiciousPercentage: 0,
-        integrityScore: politician.scores && politician.scores.length > 0 ? politician.scores[0].moral_integrity || 0 : 0,
-        riskLevel: 'LOW',
-      }
+      expenseAnalysis: (() => {
+        const totalValue = expenseAgg.agg._sum.net_value ?? 0;
+        const suspiciousValue = expenseAgg.suspicious._sum.net_value ?? 0;
+        const suspiciousPercentage = totalValue > 0 ? (suspiciousValue / totalValue) * 100 : 0;
+        const integrityScore = politician.scores?.[0]?.moral_integrity ?? 0;
+        return {
+          totalValue,
+          suspiciousValue,
+          suspiciousCount: expenseAgg.suspicious._count.id,
+          totalCount: expenseAgg.agg._count.id,
+          suspiciousPercentage: Math.round(suspiciousPercentage * 10) / 10,
+          integrityScore,
+          riskLevel: suspiciousPercentage > 10 ? 'HIGH' : suspiciousPercentage > 5 ? 'MEDIUM' : 'LOW',
+        };
+      })()
     };
 
     res.json(response);
