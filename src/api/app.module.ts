@@ -6,6 +6,7 @@ import { PartiesModule } from './parties/parties.module';
 import { StatsModule } from './stats/stats.module';
 import { MethodologyModule } from './methodology/methodology.module';
 import { HealthModule } from './health/health.module';
+import { VotesModule } from './votes/votes.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { HealthModule } from './health/health.module';
     StatsModule,
     MethodologyModule,
     HealthModule,
+    VotesModule,
   ],
 })
 export class AppModule {}

@@ -1,5 +1,6 @@
 import React from 'react';
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Award } from 'lucide-react';
+import { CRITERIA, CriteriaLabel } from '@/lib/criteria';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 
@@ -26,13 +27,7 @@ interface ComparisonTableProps {
 }
 
 export function ComparisonTable({ politicians }: ComparisonTableProps) {
-  const criteria = [
-    { key: 'lifeProtection', label: '🛡️ Proteção à Vida', weight: '25%' },
-    { key: 'familyValues', label: '👨‍👩‍👧‍👦 Valores Familiares', weight: '20%' },
-    { key: 'moralIntegrity', label: '⚖️ Integridade Moral', weight: '20%' },
-    { key: 'socialResponsibility', label: '🤝 Responsabilidade Social', weight: '10%' },
-    { key: 'religiousFreedom', label: '✝️ Liberdade Religiosa', weight: '5%' }
-  ];
+  const criteria = CRITERIA;
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return 'text-green-600 font-bold';
@@ -41,32 +36,17 @@ export function ComparisonTable({ politicians }: ComparisonTableProps) {
     return 'text-red-600 font-bold';
   };
 
-  const getBestInCriteria = (criteriaKey: string) => {
-    return politicians.reduce((best, current) => {
-      const bestScore = best.currentScore?.[criteriaKey as keyof typeof best.currentScore] || 0;
-      const currentScore = current.currentScore?.[criteriaKey as keyof typeof current.currentScore] || 0;
-      return currentScore > bestScore ? current : best;
-    });
-  };
+  type ScoreField = keyof NonNullable<ComparisonTableProps['politicians'][number]['currentScore']>;
 
-  const getWorstInCriteria = (criteriaKey: string) => {
-    return politicians.reduce((worst, current) => {
-      const worstScore = worst.currentScore?.[criteriaKey as keyof typeof worst.currentScore] || 100;
-      const currentScore = current.currentScore?.[criteriaKey as keyof typeof current.currentScore] || 100;
-      return currentScore < worstScore ? current : worst;
-    });
-  };
+  const getFieldScore = (p: ComparisonTableProps['politicians'][number], field: string) =>
+    ((p.currentScore?.[field as ScoreField] ?? 0) as number);
 
-  const getRankIcon = (politician: ComparisonTableProps['politicians'][number], criteriaKey: string) => {
-    const best = getBestInCriteria(criteriaKey);
-    const worst = getWorstInCriteria(criteriaKey);
-    
-    if (politician.id === best.id && politicians.length > 1) {
-      return <TrendingUp className="w-4 h-4 text-green-600" />;
-    }
-    if (politician.id === worst.id && politicians.length > 1) {
-      return <TrendingDown className="w-4 h-4 text-red-600" />;
-    }
+  const getRankIcon = (politician: ComparisonTableProps['politicians'][number], field: string) => {
+    if (politicians.length < 2) return <Minus className="w-4 h-4 text-gray-400" />;
+    const best = politicians.reduce((a, b) => getFieldScore(a, field) >= getFieldScore(b, field) ? a : b);
+    const worst = politicians.reduce((a, b) => getFieldScore(a, field) <= getFieldScore(b, field) ? a : b);
+    if (politician.id === best.id) return <TrendingUp className="w-4 h-4 text-green-600" />;
+    if (politician.id === worst.id) return <TrendingDown className="w-4 h-4 text-red-600" />;
     return <Minus className="w-4 h-4 text-gray-400" />;
   };
 
@@ -102,7 +82,7 @@ export function ComparisonTable({ politicians }: ComparisonTableProps) {
           <tr className="border-b bg-blue-50">
             <td className="p-4 font-semibold">
               <div className="flex items-center gap-2">
-                <span>🏆 Pontuação Geral</span>
+                <span className="flex items-center gap-1.5"><Award className="h-4 w-4 text-yellow-500" /> Pontuação Geral</span>
                 <Badge variant="secondary" className="text-xs">100%</Badge>
               </div>
             </td>
@@ -126,17 +106,17 @@ export function ComparisonTable({ politicians }: ComparisonTableProps) {
             <tr key={criterion.key} className="border-b hover:bg-gray-50">
               <td className="p-4">
                 <div className="flex items-center gap-2">
-                  <span>{criterion.label}</span>
+                  <CriteriaLabel criteriaKey={criterion.key} />
                   <Badge variant="outline" className="text-xs">{criterion.weight}</Badge>
                 </div>
               </td>
               {politicians.map(politician => (
                 <td key={politician.id} className="text-center p-4">
                   <div className="flex flex-col items-center gap-1">
-                    <div className={`text-lg ${getScoreColor(politician.currentScore?.[criterion.key as keyof typeof politician.currentScore] || 0)}`}>
-                      {(politician.currentScore?.[criterion.key as keyof typeof politician.currentScore] || 0).toFixed(1)}
+                    <div className={`text-lg ${getScoreColor(getFieldScore(politician, criterion.field))}`}>
+                      {getFieldScore(politician, criterion.field).toFixed(1)}
                     </div>
-                    {getRankIcon(politician, criterion.key)}
+                    {getRankIcon(politician, criterion.field)}
                   </div>
                 </td>
               ))}
@@ -145,7 +125,7 @@ export function ComparisonTable({ politicians }: ComparisonTableProps) {
 
           {/* Estatísticas adicionais */}
           <tr className="border-b bg-gray-50">
-            <td className="p-4 font-semibold">📊 Total de Votações</td>
+            <td className="p-4 font-semibold">Total de Votações</td>
             {politicians.map(politician => (
               <td key={politician.id} className="text-center p-4">
                 <div className="text-lg font-medium">
@@ -156,7 +136,7 @@ export function ComparisonTable({ politicians }: ComparisonTableProps) {
           </tr>
 
           <tr className="border-b bg-gray-50">
-            <td className="p-4 font-semibold">🎯 Consistência</td>
+            <td className="p-4 font-semibold">Consistência</td>
             {politicians.map(politician => (
               <td key={politician.id} className="text-center p-4">
                 <div className="text-lg font-medium">

@@ -11,6 +11,7 @@ import { useVotingAnalysisData } from '@/hooks/useVotingAnalysisData';
 import { VotingTrendsChart } from '@/components/voting/VotingTrendsChart';
 import { KeyAgendaCard } from '@/components/voting/KeyAgendaCard';
 import { VotingStatsCard } from '@/components/voting/VotingStatsCard';
+import { CRITERIA } from '@/lib/criteria';
 
 export function VotingAnalysis() {
   const [filters, setFilters] = useState({
@@ -20,19 +21,11 @@ export function VotingAnalysis() {
     search: ''
   });
 
-  const { 
-    data: analysisData, 
-    isLoading, 
-    error 
+  const {
+    data: analysisData,
+    isLoading,
+    error
   } = useVotingAnalysisData(filters);
-
-  const criteriaOptions = [
-    { value: 'LIFE_PROTECTION', label: '🛡️ Proteção à Vida' },
-    { value: 'FAMILY_VALUES', label: '👨‍👩‍👧‍👦 Valores Familiares' },
-    { value: 'MORAL_INTEGRITY', label: '⚖️ Integridade Moral' },
-    { value: 'SOCIAL_RESPONSIBILITY', label: '🤝 Responsabilidade Social' },
-    { value: 'RELIGIOUS_FREEDOM', label: '✝️ Liberdade Religiosa' }
-  ];
 
   const getVoteTypeIcon = (voteType: string) => {
     switch (voteType) {
@@ -55,8 +48,12 @@ export function VotingAnalysis() {
   };
 
   const updateFilter = (key: string, value: string) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
+    // Radix Select não aceita value="", usamos "all" como sentinel e convertemos para ""
+    setFilters(prev => ({ ...prev, [key]: value === 'all' ? '' : value }));
   };
+
+  // Converte "" → "all" para o Select (sentido inverso para exibição)
+  const selectValue = (v: string) => v === '' ? 'all' : v;
 
   if (isLoading) {
     return (
@@ -69,6 +66,24 @@ export function VotingAnalysis() {
             ))}
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Link to="/" className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Voltar ao ranking
+        </Link>
+        <Card>
+          <CardContent className="py-16 text-center">
+            <Vote className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="font-serif text-lg font-semibold mb-2">Dados de votação indisponíveis</h3>
+            <p className="text-muted-foreground">Não foi possível carregar a análise de votações. Tente novamente mais tarde.</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -118,15 +133,18 @@ export function VotingAnalysis() {
             
             <div>
               <label className="text-sm font-medium mb-2 block">Critério</label>
-              <Select value={filters.criteria} onValueChange={(value) => updateFilter('criteria', value)}>
+              <Select value={selectValue(filters.criteria)} onValueChange={(value) => updateFilter('criteria', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Todos os critérios" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os critérios</SelectItem>
-                  {criteriaOptions.map(option => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
+                  <SelectItem value="all">Todos os critérios</SelectItem>
+                  {CRITERIA.map(c => (
+                    <SelectItem key={c.key} value={c.key}>
+                      <span className="flex items-center gap-1.5">
+                        <c.Icon className={`h-3.5 w-3.5 ${c.iconClass}`} />
+                        {c.label}
+                      </span>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -135,12 +153,12 @@ export function VotingAnalysis() {
             
             <div>
               <label className="text-sm font-medium mb-2 block">Período</label>
-              <Select value={filters.dateRange} onValueChange={(value) => updateFilter('dateRange', value)}>
+              <Select value={selectValue(filters.dateRange)} onValueChange={(value) => updateFilter('dateRange', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Todos os períodos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os períodos</SelectItem>
+                  <SelectItem value="all">Todos os períodos</SelectItem>
                   <SelectItem value="30d">Últimos 30 dias</SelectItem>
                   <SelectItem value="90d">Últimos 3 meses</SelectItem>
                   <SelectItem value="1y">Último ano</SelectItem>
@@ -152,12 +170,12 @@ export function VotingAnalysis() {
             
             <div>
               <label className="text-sm font-medium mb-2 block">Tipo de voto</label>
-              <Select value={filters.voteType} onValueChange={(value) => updateFilter('voteType', value)}>
+              <Select value={selectValue(filters.voteType)} onValueChange={(value) => updateFilter('voteType', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Todos os votos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os votos</SelectItem>
+                  <SelectItem value="all">Todos os votos</SelectItem>
                   <SelectItem value="YES">Favorável</SelectItem>
                   <SelectItem value="NO">Contrário</SelectItem>
                   <SelectItem value="ABSTENTION">Abstenção</SelectItem>

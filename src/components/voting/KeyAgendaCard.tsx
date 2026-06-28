@@ -1,5 +1,6 @@
 import React from 'react';
 import { TrendingUp, TrendingDown, Minus, Users, Calendar } from 'lucide-react';
+import { CriteriaLabel, CRITERIA_BY_KEY } from '@/lib/criteria';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -19,27 +20,8 @@ interface KeyAgendaCardProps {
 }
 
 export function KeyAgendaCard({ agenda }: KeyAgendaCardProps) {
-  const getCriteriaLabel = (criteria: string) => {
-    const labels = {
-      'LIFE_PROTECTION': '🛡️ Proteção à Vida',
-      'FAMILY_VALUES': '👨‍👩‍👧‍👦 Valores Familiares',
-      'MORAL_INTEGRITY': '⚖️ Integridade Moral',
-      'SOCIAL_RESPONSIBILITY': '🤝 Responsabilidade Social',
-      'RELIGIOUS_FREEDOM': '✝️ Liberdade Religiosa'
-    };
-    return labels[criteria as keyof typeof labels] || criteria;
-  };
-
-  const getCriteriaColor = (criteria: string) => {
-    const colors = {
-      'LIFE_PROTECTION': 'bg-red-100 text-red-800',
-      'FAMILY_VALUES': 'bg-blue-100 text-blue-800',
-      'MORAL_INTEGRITY': 'bg-purple-100 text-purple-800',
-      'SOCIAL_RESPONSIBILITY': 'bg-green-100 text-green-800',
-      'RELIGIOUS_FREEDOM': 'bg-yellow-100 text-yellow-800'
-    };
-    return colors[criteria as keyof typeof colors] || 'bg-gray-100 text-gray-800';
-  };
+  const getCriteriaColor = (criteria: string) =>
+    CRITERIA_BY_KEY[criteria]?.badgeClass ?? 'bg-gray-100 text-gray-800';
 
   const getConsensusLevel = (score: number) => {
     if (score >= 80) return { label: 'Alto Consenso', color: 'text-green-600' };
@@ -63,7 +45,7 @@ export function KeyAgendaCard({ agenda }: KeyAgendaCardProps) {
             <p className="text-gray-600 text-sm mb-3">{agenda.description}</p>
             <div className="flex items-center gap-3">
               <Badge className={`text-xs ${getCriteriaColor(agenda.criteria)}`}>
-                {getCriteriaLabel(agenda.criteria)}
+                <CriteriaLabel criteriaKey={agenda.criteria} />
               </Badge>
               <div className="flex items-center gap-1 text-sm text-gray-500">
                 <Users className="w-4 h-4" />

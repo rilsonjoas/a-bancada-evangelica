@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
-import { Download, Share2 } from 'lucide-react';
+import { Download, Share2, BarChart2 } from 'lucide-react';
+import { CRITERIA } from '@/lib/criteria';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -177,26 +178,17 @@ export function ShareableCard({ politician, type = 'summary' }: ShareableCardPro
 
           {/* Criteria Scores */}
           <div className="space-y-2 mb-6">
-            <div className="flex justify-between text-sm">
-              <span>🛡️ Proteção à Vida</span>
-              <span className="font-semibold">{politician.currentScore?.lifeProtection?.toFixed(0) || '0'}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span>👨‍👩‍👧‍👦 Valores Familiares</span>
-              <span className="font-semibold">{politician.currentScore?.familyValues?.toFixed(0) || '0'}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span>⚖️ Integridade Moral</span>
-              <span className="font-semibold">{politician.currentScore?.moralIntegrity?.toFixed(0) || '0'}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span>🤝 Resp. Social</span>
-              <span className="font-semibold">{politician.currentScore?.socialResponsibility?.toFixed(0) || '0'}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span>✝️ Lib. Religiosa</span>
-              <span className="font-semibold">{politician.currentScore?.religiousFreedom?.toFixed(0) || '0'}</span>
-            </div>
+            {CRITERIA.map(c => (
+              <div key={c.key} className="flex justify-between text-sm">
+                <span className="flex items-center gap-1.5">
+                  <c.Icon className={`h-3.5 w-3.5 ${c.iconClass}`} />
+                  {c.label}
+                </span>
+                <span className="font-semibold">
+                  {(politician.currentScore?.[c.field as keyof typeof politician.currentScore] as number | undefined)?.toFixed(0) || '0'}
+                </span>
+              </div>
+            ))}
           </div>
 
           {/* Footer */}
@@ -260,35 +252,22 @@ export function ShareableCard({ politician, type = 'summary' }: ShareableCardPro
           </div>
 
           <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="text-center p-3 bg-gray-50 rounded-lg">
-              <div className="text-lg font-bold text-green-600">
-                {politician.currentScore?.lifeProtection?.toFixed(0) || '0'}
+            {CRITERIA.slice(0, 4).map(c => (
+              <div key={c.key} className="text-center p-3 bg-gray-50 rounded-lg">
+                <div className={`text-lg font-bold ${c.iconClass.replace('text-', 'text-').replace('-500', '-600')}`}>
+                  {(politician.currentScore?.[c.field as keyof typeof politician.currentScore] as number | undefined)?.toFixed(0) || '0'}
+                </div>
+                <div className="text-xs text-gray-600 flex items-center justify-center gap-1 mt-0.5">
+                  <c.Icon className={`h-3 w-3 ${c.iconClass}`} />
+                  {c.label.split(' ')[0]}
+                </div>
               </div>
-              <div className="text-xs text-gray-600">🛡️ Vida</div>
-            </div>
-            <div className="text-center p-3 bg-gray-50 rounded-lg">
-              <div className="text-lg font-bold text-blue-600">
-                {politician.currentScore?.familyValues?.toFixed(0) || '0'}
-              </div>
-              <div className="text-xs text-gray-600">👨‍👩‍👧‍👦 Família</div>
-            </div>
-            <div className="text-center p-3 bg-gray-50 rounded-lg">
-              <div className="text-lg font-bold text-purple-600">
-                {politician.currentScore?.moralIntegrity?.toFixed(0) || '0'}
-              </div>
-              <div className="text-xs text-gray-600">⚖️ Integridade</div>
-            </div>
-            <div className="text-center p-3 bg-gray-50 rounded-lg">
-              <div className="text-lg font-bold text-green-600">
-                {politician.currentScore?.socialResponsibility?.toFixed(0) || '0'}
-              </div>
-              <div className="text-xs text-gray-600">🤝 Social</div>
-            </div>
+            ))}
           </div>
 
           <div className="text-center border-t pt-4">
-            <p className="text-xs text-gray-600 mb-1">
-              📊 Avaliação baseada em valores cristãos
+            <p className="text-xs text-gray-600 mb-1 flex items-center justify-center gap-1">
+              <BarChart2 className="h-3.5 w-3.5" /> Avaliação baseada em valores cristãos
             </p>
             <p className="text-sm font-semibold text-blue-600">
               A Bancada Evangélica
