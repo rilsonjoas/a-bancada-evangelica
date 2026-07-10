@@ -194,6 +194,8 @@ Documentação interativa: `https://a-bancada-evangelica-production.up.railway.a
 
 O deploy é automático via **Railway** no push para `main`.
 
+> **⚠️ Atenção:** O Railway é gratuito apenas por 30 dias. Após esse período, o backend deixará de funcionar a menos que seja migrado para uma alternativa (ex.: Render, Fly.io, Coolify, ou um VPS próprio).
+
 ```bash
 # Variáveis de ambiente necessárias no Railway:
 DATABASE_URL       # Neon PostgreSQL connection string
