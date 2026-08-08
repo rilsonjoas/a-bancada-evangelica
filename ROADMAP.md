@@ -63,9 +63,16 @@ segurança real que não existia nos outros dois.
       especificamente (verificar se `a-bancada-evangelica.vercel.app` e
       a API do VPS estão nos monitores existentes)
 
-## P5 — UI/UX e responsividade
+## P5 — UI/UX, acessibilidade e SEO
 
-- Não auditado neste levantamento — stack usa shadcn/ui + Tailwind
+- [x] **SEO já implementado** (achado em 2026-08-08, tinha passado batido
+      no levantamento original): `index.html` já tem `description`,
+      Open Graph completo (`og:title`, `og:description`, `og:image`,
+      `og:url`) e Twitter Card, `public/robots.txt` presente
+- [ ] `sitemap.xml` — não existe ainda (site tem só um punhado de rotas,
+      baixa prioridade, mas é rápido de gerar)
+- [ ] Acessibilidade — não auditado neste levantamento
+- Responsividade não auditada — stack usa shadcn/ui + Tailwind
   (mesma base dos outros projetos web), provavelmente responsivo por
   padrão, mas não confirmado
 
