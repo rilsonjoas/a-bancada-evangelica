@@ -30,7 +30,7 @@ segurança real que não existia nos outros dois.
 - [ ] Confirmar se o rate limiting existe nas rotas de auth da API
       NestJS (não verificado neste levantamento — os outros 2 projetos
       não tinham antes de eu checar, vale a mesma checagem aqui)
-- [ ] `pnpm audit` no CI (nem CI existe ainda, ver P2)
+- [ ] `pnpm audit` no CI (nem CI existe ainda, ver P3)
 
 ## P1 — Docker & VPS
 
@@ -43,7 +43,13 @@ segurança real que não existia nos outros dois.
       remove
 - [x] Frontend continua na Vercel (arquitetura intencional, não é gap)
 
-## P2 — CI/CD
+## P2 — Saúde & Resiliência
+
+- [ ] Não auditado — categoria nova (fusão com o SHIELD, 2026-08-09).
+      Confirmar se a API NestJS tem endpoint de health check testando
+      dependência real (banco), e se trata `SIGTERM` graciosamente
+
+## P3 — CI/CD
 
 - [ ] **Não existe `.github/workflows/` hoje** — apesar de ter 32 testes
       reais (`vitest run`) e lint (`eslint .`) configurados, nada disso
@@ -51,19 +57,26 @@ segurança real que não existia nos outros dois.
       já no VPS — nenhum dos 3 tem CI ainda
 - [ ] `pnpm audit` como parte do mesmo workflow
 
-## P3 — Testes
+## P4 — Testes
 
 - [x] 32 testes já existem (Vitest + Testing Library, 4 suites) — mais
       maduro que meus-remedios (mobile zero) e muito mais que
-      biblia-na-arte (zero) nesse quesito. Só falta rodar em CI (P2)
+      biblia-na-arte (zero) nesse quesito. Só falta rodar em CI (P3)
 
-## P4 — Monitoramento
+## P5 — Monitoramento & Logs
 
 - [ ] Sem Sentry, sem Uptime Kuma confirmado pra este domínio
       especificamente (verificar se `a-bancada-evangelica.vercel.app` e
       a API do VPS estão nos monitores existentes)
+- [ ] Rotação de log não auditada (categoria nova, do SHIELD-I)
 
-## P5 — UI/UX, acessibilidade e SEO
+## P6 — Backups & Recuperação
+
+- [ ] Depende 100% do backup geral do VPS (`hetzner-infra/backup/`) —
+      não auditado se cobre `bancada_evangelica_db` especificamente.
+      Categoria nova (fusão com SHIELD)
+
+## P7 — UI/UX, acessibilidade e SEO
 
 - [x] **SEO já implementado** (achado em 2026-08-08, tinha passado batido
       no levantamento original): `index.html` já tem `description`,
@@ -76,13 +89,13 @@ segurança real que não existia nos outros dois.
   (mesma base dos outros projetos web), provavelmente responsivo por
   padrão, mas não confirmado
 
-## P6 — Funcionalidades / entrega de valor
+## P8 — Funcionalidades / entrega de valor
 
 - Fora do escopo deste roadmap de engenharia — produto já é real (514
   deputados avaliados, dados oficiais da Câmara), sem mudança proposta
   aqui
 
-## P7 — Documentação
+## P9 — Documentação
 
 - [ ] Corrigir o `README.md` (ver P1 — Railway desatualizado)
 - [ ] API NestJS: confirmar se já tem Swagger/OpenAPI configurado (o
@@ -94,11 +107,15 @@ segurança real que não existia nos outros dois.
 
 ## Ordem recomendada
 
+> Numeração renumerada em 2026-08-09 (fusão com o SHIELD, ver
+> `PADRAO-DE-ENGENHARIA.md`) — 2 categorias novas (P2, P6) entraram sem
+> auditoria ainda, não são regressão
+
 1. P0 (limpar o backup do histórico — barato de fazer, resolve um risco
    real mesmo que hoje esteja com impacto zero)
-2. P2 (CI — o projeto já tem testes prontos, só falta ligá-los; é o
+2. P3 (CI — o projeto já tem testes prontos, só falta ligá-los; é o
    menor esforço/maior retorno dos três projetos no VPS, já que o
    trabalho de escrever teste já foi feito)
 3. P1 (corrigir README) — trivial, mas evita alguém (inclusive você, em
    6 meses) tomar decisão errada achando que ainda é Railway
-4. P4/P7 conforme o tempo permitir
+4. P2/P5/P6/P9 conforme o tempo permitir
