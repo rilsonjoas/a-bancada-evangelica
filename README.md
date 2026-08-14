@@ -14,7 +14,7 @@
   <img src="https://img.shields.io/badge/TypeScript-5.8-3178C6?style=flat-square&logo=typescript&logoColor=white" />
   <img src="https://img.shields.io/badge/Prisma-5-2D3748?style=flat-square&logo=prisma&logoColor=white" />
   <img src="https://img.shields.io/badge/Testes-32%20passando-brightgreen?style=flat-square&logo=vitest" />
-  <img src="https://img.shields.io/badge/Deploy-Railway-8B5CF6?style=flat-square" />
+  <img src="https://img.shields.io/badge/Deploy-Hetzner%20VPS-orange?style=flat-square&logo=hetzner" />
 </p>
 
 ---
@@ -34,9 +34,9 @@ A Frente Parlamentar Evangélica (FPE) é um **filtro opcional** — não um lim
 | Camada | Tecnologias |
 |---|---|
 | **Frontend** | React 18, TypeScript, Vite, TanStack Query, shadcn/ui, Tailwind CSS, Recharts |
-| **API** | NestJS 11 (IoC/DI), Prisma ORM, PostgreSQL (Neon serverless) |
+| **API** | NestJS 11 (IoC/DI), Prisma ORM, PostgreSQL (Hetzner VPS) |
 | **Testes** | Vitest, Testing Library (32 testes, 4 suites) |
-| **Infra** | Railway (API + deploy automático via `main`), Vercel (frontend) |
+| **Infra** | Hetzner VPS (API + Análise ML via Docker), Vercel (frontend) |
 | **Fontes de dados** | API oficial da Câmara dos Deputados, CEAP (cota parlamentar) |
 
 ---
@@ -50,7 +50,7 @@ A Frente Parlamentar Evangélica (FPE) é um **filtro opcional** — não um lim
 └──────────────────────┬──────────────────────────────────┘
                        │ VITE_API_URL
           ┌────────────▼────────────┐
-          │     Railway (NestJS)    │
+          │     Hetzner (NestJS)    │
           │  AppModule              │
           │  ├─ PoliticiansModule   │
           │  ├─ VotesModule         │
@@ -61,7 +61,7 @@ A Frente Parlamentar Evangélica (FPE) é um **filtro opcional** — não um lim
           └────────────┬────────────┘
                        │ Prisma Client
           ┌────────────▼────────────┐
-          │     Neon PostgreSQL     │
+          │    Shared PostgreSQL    │
           │  politicians            │
           │  politician_scores      │
           │  votes · key_agendas    │
