@@ -51,11 +51,8 @@ segurança real que não existia nos outros dois.
 
 ## P3 — CI/CD
 
-- [ ] **Não existe `.github/workflows/` hoje** — apesar de ter 32 testes
-      reais (`vitest run`) e lint (`eslint .`) configurados, nada disso
-      roda sozinho em push/PR. É o mesmo buraco dos outros 2 projetos
-      já no VPS — nenhum dos 3 tem CI ainda
-- [ ] `pnpm audit` como parte do mesmo workflow
+- [x] **Configurado `.github/workflows/ci.yml`** (2026-08-14) — executa lint (`eslint .`), testes (`vitest`), auditoria e build/push automático das imagens Docker (`bancada-api` e `bancada-analysis`) para o GHCR com permissões de pacotes e escopo resolvidos.
+- [x] `pnpm audit` como parte do mesmo workflow (usando `audit` de produção).
 
 ## P4 — Testes
 
