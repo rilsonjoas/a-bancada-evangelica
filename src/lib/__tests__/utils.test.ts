@@ -7,7 +7,8 @@ describe("cn", () => {
   });
 
   it("handles conditional classes via clsx", () => {
-    expect(cn("base", false && "hidden", "visible")).toBe("base visible");
+    const isHidden = false;
+    expect(cn("base", isHidden ? "hidden" : undefined, "visible")).toBe("base visible");
   });
 
   it("merges tailwind classes via twMerge (later wins)", () => {

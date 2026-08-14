@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, PoliticianScore } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { QueryPoliticiansDto } from './dto/query-politicians.dto';
 import { QueryRankingDto } from './dto/query-ranking.dto';
@@ -17,7 +17,7 @@ const CRITERIA_FIELD_MAP: Record<string, string> = {
 export class PoliticiansService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private formatScore(score: any) {
+  private formatScore(score: PoliticianScore | null | undefined) {
     if (!score) return null;
     return {
       lifeProtection: score.life_protection ?? 0,
@@ -59,7 +59,7 @@ export class PoliticiansService {
       if (maxScore) range.lte = parseFloat(maxScore);
       scoreFilter.some = { ...scoreFilter.some, overall_score: range };
     }
-    if (Object.keys(scoreFilter).length > 0) (where as any).scores = scoreFilter;
+    if (Object.keys(scoreFilter).length > 0) where.scores = scoreFilter;
 
     const takeN = parseInt(limit);
     const skipN = parseInt(offset);
@@ -125,8 +125,8 @@ export class PoliticiansService {
     return politicians
       .filter(p => p.scores?.length > 0)
       .sort((a, b) => {
-        const aScore = (a.scores[0] as any)[orderField] as number ?? 0;
-        const bScore = (b.scores[0] as any)[orderField] as number ?? 0;
+        const aScore = a.scores[0][orderField as keyof PoliticianScore] as number ?? 0;
+        const bScore = b.scores[0][orderField as keyof PoliticianScore] as number ?? 0;
         return bScore - aScore;
       })
       .slice(0, parseInt(limit))

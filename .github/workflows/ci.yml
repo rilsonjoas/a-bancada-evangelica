@@ -7,6 +7,10 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   lint-test:
     name: Lint & Test
@@ -57,7 +61,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}/bancada-api
+          images: ghcr.io/${{ github.repository_owner }}/bancada-api
           tags: |
             type=edge,branch=main
             type=semver,pattern={{version}}
@@ -96,7 +100,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}/bancada-analysis
+          images: ghcr.io/${{ github.repository_owner }}/bancada-analysis
           tags: |
             type=edge,branch=main
             type=semver,pattern={{version}}
