@@ -15,39 +15,23 @@ segurança real que não existia nos outros dois.
 
 ## P0 — Segurança
 
-- [ ] **Remover `db_cluster-27-10-2025@05-42-20.backup.gz` do histórico
-      do git.** Achado em 2026-08-08: um dump completo do Postgres
-      (schema `auth.*` do Supabase inteiro — `auth.users`,
-      `auth.sessions`, `auth.refresh_tokens`, etc.) está commitado na
-      raiz do repo. **Verificado: a tabela `auth.users` está vazia
-      nesse dump específico — não vazou credencial real.** O repo
-      também é privado, o que reduz a exposição atual. Mas é a mesma
-      prática de risco já corrigida no biblia-na-arte nesta sessão
-      (backup de 463MB removido do histórico via `git-filter-repo`) —
-      vale limpar do mesmo jeito antes que aconteça de novo com dado
-      real dentro. `.gitignore` já bloqueia `.env` corretamente, só
-      faltou cobrir arquivos de backup (`*.backup.gz`, `*.sql.gz`)
-- [ ] Confirmar se o rate limiting existe nas rotas de auth da API
-      NestJS (não verificado neste levantamento — os outros 2 projetos
-      não tinham antes de eu checar, vale a mesma checagem aqui)
-- [ ] `pnpm audit` no CI (nem CI existe ainda, ver P3)
+- [x] **Remover `db_cluster-27-10-2025@05-42-20.backup.gz` do histórico
+      do git.** (Verificado em 2026-08-14: o histórico já foi expurgado, pasta .git tem apenas ~940KB).
+- [x] **Rate Limiting configurado (2026-08-14)**: Adicionado limite global de 100 requisições/minuto via `@nestjs/throttler` e configuração de `trust proxy` ativada no Express.
+- [x] `pnpm audit` no CI (implementado como parte do workflow de CI, ver P3)
 
 ## P1 — Docker & VPS
 
 - [x] Já tem `Dockerfile` na raiz e está rodando no VPS
       (`bancada-api`, `bancada-analysis`, ver `hetzner-infra/RECUPERACAO.md`)
-- [ ] **`README.md` está desatualizado**: badge e tabela de stack ainda
-      dizem "Deploy: Railway", mas o backend já está no VPS Hetzner
-      desde antes desta sessão. `railway.toml` também ainda está na
-      raiz do repo — decidir se mantém como fallback documentado ou
-      remove
+- [x] **`README.md` atualizado**: links, badges e stack técnica corrigidos para apontar para o VPS Hetzner.
 - [x] Frontend continua na Vercel (arquitetura intencional, não é gap)
 
 ## P2 — Saúde & Resiliência
 
-- [ ] Não auditado — categoria nova (fusão com o SHIELD, 2026-08-09).
-      Confirmar se a API NestJS tem endpoint de health check testando
-      dependência real (banco), e se trata `SIGTERM` graciosamente
+- [x] **Saúde & Resiliência configuradas (2026-08-14)**:
+      * Ativados shutdown hooks (`app.enableShutdownHooks()`) na API NestJS para tratar `SIGTERM` graciosamente.
+      * Adicionado endpoint `/health` que realiza consulta ativa ao banco de dados (`SELECT 1`) via Prisma.
 
 ## P3 — CI/CD
 
@@ -69,9 +53,7 @@ segurança real que não existia nos outros dois.
 
 ## P6 — Backups & Recuperação
 
-- [ ] Depende 100% do backup geral do VPS (`hetzner-infra/backup/`) —
-      não auditado se cobre `bancada_evangelica_db` especificamente.
-      Categoria nova (fusão com SHIELD)
+- [x] **Backup geral do VPS (2026-08-14)**: Confirmado. O banco `bancada_evangelica_db` está incluído no script de backup diário do VPS (`backup.sh`) e coberto pelo teste de restore automático semanal (`backup-restore-test.sh`).
 
 ## P7 — UI/UX, acessibilidade e SEO
 

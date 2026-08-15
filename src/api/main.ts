@@ -2,12 +2,16 @@ import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { apiReference } from '@scalar/nestjs-api-reference';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule, { logger: ['error', 'warn', 'log'] });
+
+  // Confia no proxy reverso (Traefik) para capturar o IP real do cliente
+  app.getHttpAdapter().getInstance().set('trust proxy', 1);
 
   // Habilita shutdown hooks para tratar SIGTERM/SIGINT graciosamente
   app.enableShutdownHooks();
@@ -38,13 +42,26 @@ async function bootstrap() {
     .addTag('health',      'Healthcheck')
     .build();
 
-  SwaggerModule.setup('api/docs', app, SwaggerModule.createDocument(app, doc));
+  const document = SwaggerModule.createDocument(app, doc);
+  SwaggerModule.setup('api/docs', app, document);
+
+  app.use(
+    '/api/reference',
+    apiReference({
+      spec: {
+        content: document,
+      },
+      theme: 'purple',
+      darkMode: true,
+    }),
+  );
 
   const port = process.env.PORT ?? 3001;
   await app.listen(port);
 
   logger.log(`🚀 NestJS API rodando em http://localhost:${port}`);
-  logger.log(`📖 Swagger: http://localhost:${port}/api/docs`);
+  logger.log(`📖 Swagger UI: http://localhost:${port}/api/docs`);
+  logger.log(`📖 Scalar:     http://localhost:${port}/api/reference`);
 }
 
 bootstrap();
