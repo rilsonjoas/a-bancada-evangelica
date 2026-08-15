@@ -13,11 +13,12 @@ export class HealthController {
     try {
       await this.prisma.$queryRaw`SELECT 1`;
       return { status: 'ok', database: 'connected', timestamp: new Date().toISOString() };
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
       throw new ServiceUnavailableException({
         status: 'error',
         database: 'disconnected',
-        error: error.message || error,
+        error: message,
         timestamp: new Date().toISOString(),
       });
     }
