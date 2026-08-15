@@ -9,6 +9,9 @@ async function bootstrap() {
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule, { logger: ['error', 'warn', 'log'] });
 
+  // Habilita shutdown hooks para tratar SIGTERM/SIGINT graciosamente
+  app.enableShutdownHooks();
+
   // CORS — API pública de leitura
   app.enableCors({ origin: '*', methods: ['GET', 'OPTIONS'] });
 
