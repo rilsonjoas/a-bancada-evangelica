@@ -29,6 +29,14 @@ A Frente Parlamentar Evangélica (FPE) é um **filtro opcional** — não um lim
 
 ---
 
+## Por que isto existe
+
+Parlamentar que se apresenta como representante de valores cristãos é cobrado por isso na campanha, mas dificilmente depois — o eleitor não tem tempo nem ferramenta pra cruzar discurso com voto real de cada projeto de lei. A imprensa secular cobre o Congresso, mas não com essa lente; a imprensa cristã cobre com essa lente, mas raramente com dado verificável de voto, só de posicionamento público.
+
+Isso é sobre uma coisa só: verdade sustentada por dado, não por retórica. "E tudo o que saia da minha boca revele esta verdade" vale tanto pra mim escrevendo isto quanto pra qualquer parlamentar que citei aqui — os critérios são objetivos, documentados e auditáveis, e o projeto não existe pra empurrar um partido, existe pra que o voto real fique visível.
+
+Hoje são 514 deputados avaliados com dado oficial da Câmara, metodologia publicada, sem viés partidário declarado. A visão de longo prazo não é audiência de massa — é virar a fonte que jornalista e pesquisador citam quando precisam saber, com dado, se o discurso bate com o voto. Isso se constrói com credibilidade acumulada votação a votação, não com uma campanha de lançamento.
+
 ## Stack técnica
 
 | Camada | Tecnologias |
