@@ -46,9 +46,13 @@ segurança real que não existia nos outros dois.
 
 ## P5 — Monitoramento & Logs
 
-- [ ] Sem Sentry, sem Uptime Kuma confirmado pra este domínio
-      especificamente (verificar se `a-bancada-evangelica.vercel.app` e
-      a API do VPS estão nos monitores existentes)
+- [x] **Uptime Kuma com alerta real (achado 2026-08-14, já confirmado em
+      `hetzner-infra/MIGRATION.md` desde 2026-08-07)**: monitores
+      `api-bancada` (`/health`) e `analise-bancada` (`/api/clusters`)
+      ativos, com alerta configurado em **Telegram e e-mail** (não é só
+      painel visual). Este item estava marcado como pendente/não
+      confirmado antes — checagem cruzada mostrou que já estava resolvido.
+- [ ] Sem Sentry — sem visibilidade de erro em runtime (front Vercel + API)
 - [ ] Rotação de log não auditada (categoria nova, do SHIELD-I)
 
 ## P6 — Backups & Recuperação
@@ -63,7 +67,13 @@ segurança real que não existia nos outros dois.
       `og:url`) e Twitter Card, `public/robots.txt` presente
 - [ ] `sitemap.xml` — não existe ainda (site tem só um punhado de rotas,
       baixa prioridade, mas é rápido de gerar)
-- [ ] Acessibilidade — não auditado neste levantamento
+- [ ] **Acessibilidade — checagem rápida feita, gap real (2026-08-16)**:
+      12 usos de `aria-label`/`alt` em 64 componentes (~19% de
+      cobertura) — não é auditoria completa (não mediu contraste, foco,
+      navegação por teclado), só uma varredura de grep pra dar noção de
+      escala. Cobertura baixa o bastante pra valer uma auditoria de
+      verdade — mesmo processo que já funcionou no `lecionario`
+      (contraste calculado de verdade, não só olhar).
 - Responsividade não auditada — stack usa shadcn/ui + Tailwind
   (mesma base dos outros projetos web), provavelmente responsivo por
   padrão, mas não confirmado
@@ -98,6 +108,37 @@ segurança real que não existia nos outros dois.
 3. P1 (corrigir README) — trivial, mas evita alguém (inclusive você, em
    6 meses) tomar decisão errada achando que ainda é Railway
 4. P2/P5/P6/P9 conforme o tempo permitir
+
+## Estratégia — o que "sucesso" significa aqui (2026-08-15)
+
+Público-alvo: evangélicos politicamente engajados, jornalistas de mídia
+cristã, pesquisadores de ciência política/sociologia da religião —
+qualquer um que queira verificar se parlamentar que invoca fé cristã
+vota de forma coerente com isso, usando voto real (dado da Câmara), não
+discurso.
+
+**Estimativa de potencial (teto plausível, não medição real):** a Frente
+Parlamentar Evangélica tem ~200+ deputados identificados, cobertura de
+imprensa secular já existe — mas não existe hoje uma ferramenta pública
+que avalie por critério declarado. O produto (514 parlamentares, votos
+reais monitorados) já tem dado suficiente pra ser citável. Sucesso
+plausível aqui não é tráfego de massa constante — é **virar fonte
+citada** (imprensa cristã, acadêmicos, jornalistas) em momentos
+específicos (votação polêmica, período eleitoral), com picos de
+interesse em vez de base de usuário fiel diária.
+
+**O que isso implica pra estratégia e infra:**
+- Canal principal é imprensa/citação, não SEO nem redes sociais —
+  metodologia transparente e documentada é o que sustenta credibilidade
+  o suficiente pra ser citado sem ficar refém de controvérsia sobre os
+  critérios.
+- **O risco de infra é pico, não volume médio** — dia de votação
+  polêmica pode gerar tráfego bem acima do normal; cache agressivo do
+  ranking (invalidar só após recálculo) resolve isso sem precisar de
+  mais VPS.
+- Monetização (se algum dia fizer sentido) não deveria ser ads — um
+  site de transparência parlamentar com ads perde credibilidade;
+  financiamento coletivo transparente é mais coerente com o propósito.
 
 ## Nota: se este projeto ganhar conta de usuário final (2026-08-14)
 
