@@ -185,7 +185,12 @@ const ContatoPage = () => {
                     </div>
                     <div>
                       <h4 className="font-semibold text-foreground">Email Principal</h4>
-                      <p className="text-sm text-muted-foreground">contato@abancadaevangelica.org.br</p>
+                      <a
+                        href="mailto:abancada@narniano.com"
+                        className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                      >
+                        abancada@narniano.com
+                      </a>
                       <p className="text-xs text-muted-foreground mt-1">
                         Para dúvidas gerais, sugestões e parcerias
                       </p>

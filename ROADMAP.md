@@ -61,14 +61,14 @@ segurança real que não existia nos outros dois.
 
 ## P7 — UI/UX, acessibilidade e SEO
 
-- [ ] **E-mail de contato falso, com `mailto:` real e clicável (achado
-      2026-08-16)** — `Contato.tsx` e `Footer.tsx` apontam pra
+- [x] **E-mail de contato falso, corrigido (achado 2026-08-16, resolvido
+      no mesmo dia)** — `Contato.tsx` e `Footer.tsx` apontavam pra
       `contato@abancadaevangelica.org.br`, domínio que o Rilson não
-      possui; todo clique falha silenciosamente. Ver decisão central em
-      `hetzner-infra/README.md` ("Roadmap" — alias no cPanel do
-      narniano.com redirecionando pro Gmail, não caixa nova). Solução
-      rápida até lá: trocar por `rilsonjoas10@gmail.com` direto no
-      código (mesmo padrão já aplicado no `scriptorium-divinum`).
+      possui; todo clique falhava silenciosamente. Alias
+      `abancada@narniano.com` criado e testado (redireciona pro Gmail
+      via cPanel) — código dos dois arquivos atualizado, `Contato.tsx`
+      também virou link `mailto:` clicável de verdade (antes era só
+      texto estático).
 
 - [x] **SEO já implementado** (achado em 2026-08-08, tinha passado batido
       no levantamento original): `index.html` já tem `description`,
