@@ -1,6 +1,8 @@
 // Servidor de API simples para servir dados do banco
 import express from 'express';
 import cors from 'cors';
+import rateLimit from 'express-rate-limit';
+import { z } from 'zod';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 
@@ -11,13 +13,100 @@ console.log('[startup] NODE_ENV:', process.env.NODE_ENV);
 console.log('[startup] DATABASE_URL set:', !!process.env.DATABASE_URL);
 console.log('[startup] DATABASE_URL prefix:', process.env.DATABASE_URL?.slice(0, 40) ?? 'UNDEFINED');
 
-// API pública de leitura — sem cookies/sessão, origin aberta é seguro
+app.use(express.json());
+
+// ========================================
+// CONTACT FORM — achado real 2026-08-16: o formulário no front era
+// decorativo ("// Simulate form submission"), não mandava nada pra
+// lugar nenhum. Endpoint de verdade, via Resend (domínio narniano.com
+// verificado no mesmo dia). CORS aberto do GET abaixo não vale aqui de
+// propósito — POST tem escopo de origem restrito, e rate limit por IP
+// evita abuso (não tem auth/captcha, é formulário público).
+//
+// Registrado ANTES do `cors()` global de baixo de propósito: o global
+// só permite GET/OPTIONS e, sendo `app.use` sem path, intercepta e
+// responde ao preflight de QUALQUER rota antes dela ser alcançada —
+// inclusive POST /api/contact, quebrando o preflight. Registrando aqui
+// primeiro, esta rota responde antes do meio-termo global ser atingido.
+// ========================================
+
+const contactCors = cors({
+  origin: process.env.FRONTEND_URL ?? true,
+  methods: ['POST', 'OPTIONS'],
+  optionsSuccessStatus: 200,
+});
+
+const contactLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Muitas mensagens enviadas. Tente novamente em alguns minutos.' },
+});
+
+const contactSchema = z.object({
+  name: z.string().trim().min(1, 'Nome é obrigatório').max(200),
+  email: z.string().trim().email('E-mail inválido').max(320),
+  subject: z.string().trim().min(1, 'Assunto é obrigatório').max(200),
+  message: z.string().trim().min(1, 'Mensagem é obrigatória').max(5000),
+});
+
+app.options('/api/contact', contactCors);
+
+app.post('/api/contact', contactCors, contactLimiter, async (req, res) => {
+  const parsed = contactSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ error: 'Dados inválidos.', details: parsed.error.flatten() });
+  }
+  const { name, email, subject, message } = parsed.data;
+
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.error('[contact] RESEND_API_KEY não configurada — e-mail não enviado');
+    return res.status(503).json({ error: 'Envio de e-mail está indisponível no momento. Tente de novo mais tarde.' });
+  }
+
+  const to = process.env.CONTACT_EMAIL_TO ?? 'abancada@narniano.com';
+  const from = process.env.CONTACT_EMAIL_FROM ?? 'abancada@narniano.com';
+
+  try {
+    const resendRes = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: `A Bancada Evangélica <${from}>`,
+        to: [to],
+        reply_to: email,
+        subject: `[Contato do site] ${subject}`,
+        text: `Nome: ${name}\nE-mail: ${email}\n\n${message}`,
+      }),
+    });
+
+    if (!resendRes.ok) {
+      const body = await resendRes.text();
+      console.error('[contact] Resend respondeu erro:', resendRes.status, body);
+      return res.status(502).json({ error: 'Não foi possível enviar sua mensagem agora. Tente de novo mais tarde.' });
+    }
+
+    res.json({ message: 'Mensagem enviada com sucesso.' });
+  } catch (error) {
+    console.error('[contact] erro ao enviar e-mail:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
+// API pública de leitura — sem cookies/sessão, origin aberta é seguro.
+// Registrada depois da rota de contato de propósito (ver comentário
+// acima) — não afeta as rotas GET, que só chegam a este middleware
+// depois de passar (sem casar) pelas rotas específicas de /api/contact.
 app.use(cors({
   origin: '*',
   methods: ['GET', 'OPTIONS'],
   optionsSuccessStatus: 200,
 }));
-app.use(express.json());
 
 // ========================================
 // HEALTHCHECK
@@ -679,6 +768,7 @@ app.listen(PORT, () => {
   console.log(`   GET /api/methodology/content`);
   console.log(`   GET /api/methodology/full`);
   console.log(`   GET /api/parties/alignment`);
+  console.log(`   POST /api/contact`);
 });
 
 export default app;

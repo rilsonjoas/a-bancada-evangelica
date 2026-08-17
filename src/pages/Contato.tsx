@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Mail, MessageCircle, Github, Send, Clock, HelpCircle, BookOpen } from 'lucide-react';
+import { Mail, MessageCircle, Github, Send, Clock, HelpCircle, BookOpen, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { apiFetch } from '@/lib/apiClient';
 
 const ContatoPage = () => {
   const [formData, setFormData] = useState({
@@ -14,16 +15,35 @@ const ContatoPage = () => {
     subject: '',
     message: ''
   });
+  const [sending, setSending] = useState(false);
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Achado real 2026-08-16: esse formulário era decorativo — só mostrava
+  // o toast de sucesso e não mandava nada pra lugar nenhum. Agora chama
+  // POST /api/contact de verdade (backend usa Resend).
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate form submission
-    toast({
-      title: "Mensagem enviada!",
-      description: "Obrigado pelo contato. Responderemos em breve.",
-    });
-    setFormData({ name: '', email: '', subject: '', message: '' });
+    setSending(true);
+    try {
+      await apiFetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      toast({
+        title: "Mensagem enviada!",
+        description: "Obrigado pelo contato. Responderemos em breve.",
+      });
+      setFormData({ name: '', email: '', subject: '', message: '' });
+    } catch {
+      toast({
+        title: "Não foi possível enviar",
+        description: "Tente de novo em alguns instantes, ou escreva direto pra abancada@narniano.com.",
+        variant: "destructive",
+      });
+    } finally {
+      setSending(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -157,9 +177,13 @@ const ContatoPage = () => {
                     />
                   </div>
                   
-                  <Button type="submit" size="lg" className="w-full font-medium">
-                    <Send className="h-4 w-4 mr-2" />
-                    Enviar Mensagem
+                  <Button type="submit" size="lg" className="w-full font-medium" disabled={sending}>
+                    {sending ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Send className="h-4 w-4 mr-2" />
+                    )}
+                    {sending ? 'Enviando...' : 'Enviar Mensagem'}
                   </Button>
                   
                   <p className="text-xs text-muted-foreground text-center">
