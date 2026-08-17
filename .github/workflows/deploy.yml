@@ -32,5 +32,12 @@ jobs:
 
       - name: Smoke test
         run: |
-          sleep 3
-          curl -sf -o /dev/null https://api-bancada.narniano.com/health
+          # Achado 2026-08-16 nos outros 4 projetos, replicado aqui
+          # (esse tinha ficado de fora): "sleep 3" fixo dava
+          # falso-negativo (container ainda reiniciando) mesmo com
+          # deploy real funcionando. Retry até 10x com 3s entre elas.
+          for i in $(seq 1 10); do
+            curl -sf -o /dev/null https://api-bancada.narniano.com/health && break
+            [ "$i" -eq 10 ] && exit 1
+            sleep 3
+          done
