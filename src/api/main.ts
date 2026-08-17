@@ -16,8 +16,11 @@ async function bootstrap() {
   // Habilita shutdown hooks para tratar SIGTERM/SIGINT graciosamente
   app.enableShutdownHooks();
 
-  // CORS — API pública de leitura
-  app.enableCors({ origin: '*', methods: ['GET', 'OPTIONS'] });
+  // CORS — API pública de leitura + POST /api/contact (2026-08-16,
+  // formulário de contato de verdade). Origem aberta em ambos: já era
+  // assim pro GET, e o POST não tem auth/captcha mesmo — rate limit
+  // (Throttle, 5/15min) é a defesa real contra abuso, não CORS.
+  app.enableCors({ origin: '*', methods: ['GET', 'POST', 'OPTIONS'] });
 
   // Validação global de DTOs
   app.useGlobalPipes(
@@ -40,6 +43,7 @@ async function bootstrap() {
     .addTag('stats',       'Estatísticas gerais da plataforma')
     .addTag('methodology', 'Pilares e critérios de avaliação')
     .addTag('health',      'Healthcheck')
+    .addTag('contact',     'Formulário de contato')
     .build();
 
   const document = SwaggerModule.createDocument(app, doc);
