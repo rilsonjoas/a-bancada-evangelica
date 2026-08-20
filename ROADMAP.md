@@ -114,9 +114,27 @@ segurança real que não existia nos outros dois.
 
 ## P8 — Funcionalidades / entrega de valor
 
-- Fora do escopo deste roadmap de engenharia — produto já é real (514
-  deputados avaliados, dados oficiais da Câmara), sem mudança proposta
-  aqui
+- Fora do escopo original deste roadmap de engenharia — produto já é
+  real (514 deputados avaliados, dados oficiais da Câmara). Passou a
+  registrar aqui o fechamento das issues do backlog de produto
+  conforme avaliação de 2026-08-20 (ver questão "o que falta pra ser
+  referência" na sessão que gerou este ciclo de correções).
+
+### Issues do GitHub — status real (2026-08-20)
+
+Conferido issue por issue contra o código, não só pelo título:
+- [x] #1 Análise de despesa por político — já estava implementado
+      (`expenseAnalysis` em `politicians.service.ts`), só não tinha sido
+      fechada
+- [x] #2 Pipeline de deploy — obsoleta, é VPS+Docker+Actions há semanas
+- [x] #3 Estatísticas por estado/partido — implementado, testado
+      (`groupByCountMap`, 4 testes unitários) e verificado ao vivo em
+      produção (filtro por partido reflete só esse partido)
+- [ ] #4 Imagem compartilhável (`ShareableCard.tsx` + `html2canvas`)
+- [ ] #5 Integração TSE — nenhum scaffolding real ainda, só o tipo
+      TypeScript existe
+- [ ] #6 Fundamentação bíblica na Metodologia — referências já existem
+      por critério; falta só o glossário de termos técnicos
 
 ## P9 — Documentação
 

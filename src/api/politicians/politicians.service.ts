@@ -3,6 +3,7 @@ import { Prisma, PoliticianScore } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { QueryPoliticiansDto } from './dto/query-politicians.dto';
 import { QueryRankingDto } from './dto/query-ranking.dto';
+import { groupByCountMap } from './politicians.utils';
 
 const CRITERIA_FIELD_MAP: Record<string, string> = {
   overall: 'overall_score',
@@ -92,16 +93,8 @@ export class PoliticiansService {
       this.prisma.politician.groupBy({ by: ['current_party'], where, _count: true }),
     ]);
 
-    const byState = Object.fromEntries(
-      stateStats
-        .map(s => [s.current_state, s._count] as const)
-        .sort((a, b) => b[1] - a[1]),
-    );
-    const byParty = Object.fromEntries(
-      partyStats
-        .map(s => [s.current_party, s._count] as const)
-        .sort((a, b) => b[1] - a[1]),
-    );
+    const byState = groupByCountMap(stateStats, s => s.current_state);
+    const byParty = groupByCountMap(partyStats, s => s.current_party);
 
     return {
       politicians: politicians.map(p => ({
