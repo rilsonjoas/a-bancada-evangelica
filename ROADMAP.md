@@ -140,8 +140,71 @@ Conferido issue por issue contra o código, não só pelo título:
       wired no perfil do político via Dialog ("Card pra imagem" ao lado
       de "Compartilhar"), tipo reusa `PoliticianDetail` do hook em vez de
       interface duplicada, 7 testes novos (43/43 no total)
-- [ ] #5 Integração TSE — nenhum scaffolding real ainda, só o tipo
-      TypeScript existe
+- [ ] #5 Integração TSE — EM ANDAMENTO na branch `feature/tse-integration`,
+      pausado em 2026-08-20 a pedido do usuário. Status exato abaixo pra
+      retomar sem re-investigar do zero.
+
+      **Decisão de escopo** (esclarecida com o usuário, que inicialmente
+      não sabia o que o TSE contribuía pra missão do site): dois usos,
+      não um. (1) Financiamento de campanha — transparência pura no
+      perfil, **não entra na pontuação** (doação legal não é crime,
+      misturar com score seria insinuação sem base). (2) Ficha-limpa/
+      cassação de candidatura — alimenta Integridade Moral, mesma lógica
+      de despesa suspeita já usada hoje.
+
+      **Achado crítico de infra**: dadosabertos.tse.jus.br bloqueia IP de
+      nuvem/datacenter (testado daqui e do próprio VPS — 403 nos dois,
+      inclusive no CDN direto contornando o portal). **Não dá pra
+      automatizar via sync-worker** — precisa de download manual
+      (navegador, IP residencial) toda vez que for atualizar. Arquivos
+      baixados vão em `data/tse/` (gitignored, grandes demais e
+      regeneráveis, não fazem sentido versionados).
+
+      **O que já foi validado contra dado real** (não suposição):
+      - CPF bate 100% entre TSE e produção (513/514 — o que falta é
+        provavelmente senador eleito em 2018, fora do ciclo 2022)
+      - Schema real do CSV mapeado (nomes oficiais do TSE — `NR_CPF_
+        CANDIDATO`, `DS_SITUACAO_CANDIDATURA` etc. — diferente do que o
+        scaffolding antigo em `src/types/api.ts` supunha)
+      - Deputado Federal/Senador ficam sob `DS_ELEICAO = "Eleições
+        Gerais Estaduais 2022"`, não "Eleição Geral Federal" como seria
+        intuitivo
+      - "Motivo de cassação": ~70% do dataset bruto é administrativo
+        (indeferimento de coligação, partido invalidado) — **não é
+        sobre a pessoa**, isolei só os motivos de conduta pessoal real
+        (Ficha Limpa, abuso de poder, compra de voto, gasto ilícito,
+        conduta vedada). Cruzando só esses com os 514 atuais: **zero
+        resultado** — esperado e correto (quem foi desqualificado não
+        teria sido eleito). Vale como infraestrutura duradoura mesmo
+        sem efeito hoje (próxima eleição, ou cassação de mandato em
+        exercício por outro processo, ainda não coberto)
+      - `education_level`/`marital_status`/`occupation` no banco:
+        500/0/0 de 514 preenchidos — achado real de valor imediato,
+        vem junto na mesma sincronização
+
+      **Já construído nessa branch** (schema validado contra Postgres
+      descartável, script com tsc limpo, mas **dry-run ainda não
+      executado**):
+      - `prisma/schema.prisma`: novo model `PoliticianDisqualification`
+      - `scripts/sync-tse-candidatura.ts`: lê `consulta_cand_2022.zip` +
+        `motivo_cassacao_2022.zip` de `data/tse/`, preenche biografia,
+        grava cassação de conduta pessoal só
+      - Dependências novas: `csv-parse`, `iconv-lite`, `unzipper`
+
+      **Próximos passos exatos pra retomar**:
+      1. `pnpm sync:tse:candidatura --dry-run` (só lê, não grava) —
+         testar antes de rodar de verdade em produção
+      2. Se ok, rodar sem `--dry-run`, `prisma db push` (projeto usa
+         `db push`, nunca usou `prisma migrate` — não introduzir
+         migração versionada, foge do padrão real do projeto)
+      3. Financiamento de campanha: usuário já achou o arquivo certo —
+         `receitas_candidatos_2022_BRASIL.csv` dentro de
+         `prestacao_de_contas_eleitorais_candidatos_2022.zip` (432MB
+         descomprimido, schema já conferido no cabeçalho: `NR_CPF_
+         CANDIDATO`, `NR_CPF_CNPJ_DOADOR`, `NM_DOADOR`, `VR_RECEITA`).
+         Ainda não processado — só cabeçalho e 2 linhas de amostra
+      4. Fechar a issue #5 no GitHub só depois de testado em produção
+         de verdade, não antes
 - [ ] #6 Fundamentação bíblica na Metodologia — referências já existem
       por critério; falta só o glossário de termos técnicos
 

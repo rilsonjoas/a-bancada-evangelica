@@ -35,3 +35,10 @@ CLAUDE.md
 __pycache__/
 *.py[cod]
 *.pyo
+
+# Dados brutos baixados manualmente (TSE bloqueia IP de nuvem/datacenter,
+# então isso não dá pra automatizar — ver scripts/sync-tse-*.ts e
+# ROADMAP.md). Arquivos grandes, regeneráveis a partir da fonte oficial,
+# não fazem sentido versionados no git.
+data/tse/*.zip
+data/tse/**/*.csv

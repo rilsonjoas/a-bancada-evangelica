@@ -33,6 +33,7 @@
     "scores:recalculate": "tsx scripts/recalculate-scores.ts",
     "scores:seed": "tsx scripts/seed-party-scores.ts",
     "sync:fpe": "tsx scripts/sync-fpe-members.ts",
+    "sync:tse:candidatura": "tsx scripts/sync-tse-candidatura.ts",
     "sync:all": "pnpm sync:camara && pnpm sync:senado && pnpm sync:fpe && pnpm sync:votes && pnpm scores:recalculate"
   },
   "dependencies": {
@@ -84,10 +85,12 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
+    "csv-parse": "^7.0.2",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.6.0",
     "express": "^5.1.0",
     "html2canvas": "^1.4.1",
+    "iconv-lite": "^0.7.3",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.462.0",
     "next-themes": "^0.3.0",
@@ -104,6 +107,7 @@
     "sonner": "^1.7.4",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
+    "unzipper": "^0.12.5",
     "vaul": "^0.9.9",
     "xml2js": "^0.6.2",
     "zod": "^3.25.76"
@@ -119,6 +123,7 @@
     "@types/node": "^22.16.5",
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
+    "@types/unzipper": "^0.10.11",
     "@vitejs/plugin-react-swc": "^3.11.0",
     "autoprefixer": "^10.4.21",
     "concurrently": "^9.2.1",
