@@ -19,6 +19,24 @@ segurança real que não existia nos outros dois.
       do git.** (Verificado em 2026-08-14: o histórico já foi expurgado, pasta .git tem apenas ~940KB).
 - [x] **Rate Limiting configurado (2026-08-14)**: Adicionado limite global de 100 requisições/minuto via `@nestjs/throttler` e configuração de `trust proxy` ativada no Express.
 - [x] `pnpm audit` no CI (implementado como parte do workflow de CI, ver P3)
+- [x] **Integridade de dado — achado grave, corrigido (2026-08-20)**: ao
+      preparar o `sync-worker.ts` pra rodar em produção pela primeira vez,
+      achado que sua tarefa de recálculo de score tinha **fórmula própria,
+      duplicada e majoritariamente hardcoded** (`life_protection`,
+      `family_values` e `religious_freedom` fixos pra todo mundo, sem
+      olhar voto real; pesos 25/20/20/10/5 + 20% de "outros critérios"
+      que não existe, diferentes dos 30/25/20/15/10 publicados na
+      Metodologia). Ia rodar todo dia às 5h e sobrescrever os scores reais
+      (calculados por `criteriaEngine.ts`, testado) com valores genéricos
+      — pra um produto cujo valor inteiro é "voto real, não retórica",
+      isso destruiria a credibilidade se alguém auditasse. Nunca chegou a
+      rodar em produção (worker nunca tinha sido deployado antes).
+      Corrigido: a tarefa agora chama `pnpm scores:recalculate` (o motor
+      real) via subprocesso. Achado relacionado: os 6 scripts de sync
+      (`sync-camara`, `sync-senado`, `sync-votes`, `sync-fpe-members`,
+      `sync-all-gastos`, `recalculate-scores`) rodavam `main()`
+      incondicionalmente ao serem só *importados* (sem guarda de "sou eu
+      o entry point?") — corrigido nos 6.
 
 ## P1 — Docker & VPS
 
@@ -26,6 +44,13 @@ segurança real que não existia nos outros dois.
       (`bancada-api`, `bancada-analysis`, ver `hetzner-infra/RECUPERACAO.md`)
 - [x] **`README.md` atualizado**: links, badges e stack técnica corrigidos para apontar para o VPS Hetzner.
 - [x] Frontend continua na Vercel (arquitetura intencional, não é gap)
+- [x] **Sync automatizado (2026-08-20)**: `sync-worker.ts` já existia no
+      código (node-cron: políticos 03h, gastos domingo 04h, scores 05h,
+      análise de gastos segunda 06h, limpeza de log mensal) mas nunca
+      tinha container — sync era manual até hoje. Novo serviço
+      `bancada-sync-worker` no `hetzner-infra/bancada/docker-compose.yml`,
+      mesma imagem do `bancada-api`, sem porta exposta. Testado ao vivo
+      contra produção (514 políticos recalculados com sucesso).
 
 ## P2 — Saúde & Resiliência
 
@@ -95,7 +120,11 @@ segurança real que não existia nos outros dois.
 
 ## P9 — Documentação
 
-- [ ] Corrigir o `README.md` (ver P1 — Railway desatualizado)
+- [x] **Corrigir o `README.md`** (2026-08-20) — ainda dizia Railway
+      (URL de docs morta, seção de Deploy inteira errada) mesmo já
+      estando no VPS desde 02/08. P1 já dizia "atualizado" antes, mas
+      não estava — reescrito de verdade agora, com o fluxo real
+      (GitHub Actions → SSH → git pull → make deploy → smoke test).
 - [ ] API NestJS: confirmar se já tem Swagger/OpenAPI configurado (o
       NestJS tem suporte de primeira classe pra isso,
       `@nestjs/swagger`) — se não tiver, é o mesmo padrão do SIC
