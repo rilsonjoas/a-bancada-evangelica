@@ -130,7 +130,16 @@ Conferido issue por issue contra o código, não só pelo título:
 - [x] #3 Estatísticas por estado/partido — implementado, testado
       (`groupByCountMap`, 4 testes unitários) e verificado ao vivo em
       produção (filtro por partido reflete só esse partido)
-- [ ] #4 Imagem compartilhável (`ShareableCard.tsx` + `html2canvas`)
+- [x] #4 Imagem compartilhável — `ShareableCard.tsx` já existia mas
+      **nunca era importado em lugar nenhum** (dead code) e tinha 3
+      problemas reais: `html2canvas` nunca chegou a virar dependência do
+      projeto (ia quebrar em runtime se clicado), texto dizia "7 pilares
+      fundamentais" (real são 5, `CRITERIA.length`), e domínio
+      `abancadaevangelica.com.br` que nunca existiu (correto é
+      `a-bancada-evangelica.vercel.app`, o mesmo do `og:url`). Corrigido,
+      wired no perfil do político via Dialog ("Card pra imagem" ao lado
+      de "Compartilhar"), tipo reusa `PoliticianDetail` do hook em vez de
+      interface duplicada, 7 testes novos (43/43 no total)
 - [ ] #5 Integração TSE — nenhum scaffolding real ainda, só o tipo
       TypeScript existe
 - [ ] #6 Fundamentação bíblica na Metodologia — referências já existem

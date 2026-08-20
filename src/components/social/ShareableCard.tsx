@@ -6,26 +6,21 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'sonner';
+import type { PoliticianDetail } from '@/hooks/usePoliticianDetail';
 
 interface ShareableCardProps {
-  politician: {
-    id: number;
-    name: string;
-    currentParty: string;
-    currentState: string;
-    photoUrl: string;
-    currentScore?: {
-      overall: number;
-      performanceLevel: string;
-      performanceLabel: string;
-      lifeProtection: number;
-      familyValues: number;
-      moralIntegrity: number;
-      socialResponsibility: number;
-      religiousFreedom: number;
-    };
-  };
-  type?: 'summary' | 'detailed' | 'comparison';
+  // Reusa o tipo real do hook em vez de duplicar a forma do currentScore
+  // — achado real (2026-08-20): esse componente nunca era importado em
+  // lugar nenhum, e tinha uma cópia própria e desatualizada dos dados
+  // (dizia "7 pilares fundamentais", a Metodologia real publica 5;
+  // dizia domínio abancadaevangelica.com.br, que não existe/não é
+  // usado — o real é a-bancada-evangelica.vercel.app, o mesmo do
+  // og:url em index.html).
+  politician: Pick<
+    PoliticianDetail,
+    'id' | 'name' | 'currentParty' | 'currentState' | 'photoUrl' | 'currentScore'
+  >;
+  type?: 'summary' | 'detailed';
 }
 
 export function ShareableCard({ politician, type = 'summary' }: ShareableCardProps) {
@@ -194,10 +189,10 @@ export function ShareableCard({ politician, type = 'summary' }: ShareableCardPro
           {/* Footer */}
           <div className="text-center border-t pt-4">
             <p className="text-xs text-gray-600">
-              Avaliação baseada em 7 pilares fundamentais
+              Avaliação baseada em {CRITERIA.length} critérios ponderados
             </p>
             <p className="text-xs text-blue-600 font-medium mt-1">
-              abancadaevangelica.com.br
+              a-bancada-evangelica.vercel.app
             </p>
           </div>
         </div>

@@ -1,17 +1,19 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, MapPin, Building, Calendar, Mail, TrendingUp, TrendingDown, Minus, Share2, Info } from 'lucide-react';
+import { ArrowLeft, MapPin, Building, Calendar, Mail, TrendingUp, TrendingDown, Minus, Share2, Image as ImageIcon, Info } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { usePoliticianDetail } from '@/hooks/usePoliticianDetail';
 import { PerformanceChart } from '@/components/charts/PerformanceChart';
 import { VotingHistoryChart } from '@/components/charts/VotingHistoryChart';
 import { ExpenseAnalysisChart } from '@/components/charts/ExpenseAnalysisChart';
+import { ShareableCard } from '@/components/social/ShareableCard';
 import { CRITERIA, CRITERIA_BY_KEY } from '@/lib/criteria';
 
 export function PoliticianProfile() {
@@ -187,10 +189,27 @@ export function PoliticianProfile() {
                   <div className="text-sm text-gray-600">Pontuação geral (0–100)</div>
                 </div>
 
-                <Button onClick={shareProfile} variant="outline" size="sm">
-                  <Share2 className="w-4 h-4 mr-2" />
-                  Compartilhar
-                </Button>
+                <div className="flex gap-2">
+                  <Button onClick={shareProfile} variant="outline" size="sm">
+                    <Share2 className="w-4 h-4 mr-2" />
+                    Compartilhar
+                  </Button>
+
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <ImageIcon className="w-4 h-4 mr-2" />
+                        Card pra imagem
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>Card de {politician.name}</DialogTitle>
+                      </DialogHeader>
+                      <ShareableCard politician={politician} type="summary" />
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </div>
             </div>
           </div>
