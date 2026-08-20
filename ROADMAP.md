@@ -140,8 +140,12 @@ Conferido issue por issue contra o código, não só pelo título:
       wired no perfil do político via Dialog ("Card pra imagem" ao lado
       de "Compartilhar"), tipo reusa `PoliticianDetail` do hook em vez de
       interface duplicada, 7 testes novos (43/43 no total)
-- [ ] #5 Integração TSE — nenhum scaffolding real ainda, só o tipo
-      TypeScript existe
+- [ ] #5 Integração TSE — **em andamento, pausado em 2026-08-20** na
+      branch `feature/tse-integration` (não mergeada — schema + script
+      validados, dry-run ainda não executado contra produção). Status
+      detalhado, achados reais já confirmados e próximos passos exatos
+      no `ROADMAP.md` dessa branch, não repetidos aqui pra não
+      desatualizar dois lugares
 - [ ] #6 Fundamentação bíblica na Metodologia — referências já existem
       por critério; falta só o glossário de termos técnicos
 
