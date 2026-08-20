@@ -1,8 +1,11 @@
 import { PrismaClient } from '@prisma/client';
 import cron from 'node-cron';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { syncCamara, CamaraSyncService } from './sync-camara';
 import { syncSenado, SenadoSyncService } from './sync-senado';
 
+const execFileAsync = promisify(execFile);
 const prisma = new PrismaClient();
 
 interface SyncSchedule {
@@ -192,101 +195,34 @@ class SyncWorkerService {
   }
 
   private async recalculateAllScores(): Promise<void> {
+    // Chama scripts/recalculate-scores.ts (mesmo motor testado em
+    // criteriaEngine.test.ts, pesos publicados na Metodologia:
+    // 30/25/20/15/10) via subprocesso, em vez de duplicar a lógica de
+    // pontuação aqui dentro.
+    //
+    // Achado real (2026-08-20): a versão anterior deste método tinha sua
+    // própria fórmula, com pesos diferentes (25/20/20/10/5 + 20% de
+    // "outros critérios" que não existe na Metodologia) e a maioria dos
+    // critérios FIXOS pra todo mundo — life_protection, family_values e
+    // religious_freedom nunca olhavam voto real nenhum. Isso ia rodar
+    // todo dia às 5h e sobrescrever os scores reais e calculados com
+    // esses valores genéricos, incompatíveis com o que o site publica
+    // como metodologia. Rodar via subprocesso também evita duplicar o
+    // ciclo de vida do PrismaClient do script real (ele já gerencia
+    // conexão/desconexão sozinho).
     try {
-      const politicians = await prisma.politician.findMany({
-        where: { is_active: true },
-        include: {
-          scores: true,
-          votes: true,
-          expenses: {
-            where: {
-              year: new Date().getFullYear()
-            }
-          }
-        }
+      console.log('📊 Recalculando pontuações via scripts/recalculate-scores.ts...');
+      const { stdout, stderr } = await execFileAsync('pnpm', ['scores:recalculate'], {
+        cwd: process.cwd(),
+        maxBuffer: 1024 * 1024 * 10,
       });
-
-      console.log(`📊 Recalculando pontuações de ${politicians.length} políticos...`);
-
-      for (const politician of politicians) {
-        try {
-          await this.calculatePoliticianScore(politician);
-        } catch (error) {
-          console.error(`❌ Erro ao recalcular score de ${politician.name}:`, error);
-        }
-      }
-
+      if (stdout) console.log(stdout);
+      if (stderr) console.error(stderr);
       console.log('✅ Recálculo de pontuações concluído');
     } catch (error) {
       console.error('❌ Erro no recálculo de pontuações:', error);
       throw error;
     }
-  }
-
-  private async calculatePoliticianScore(politician: any): Promise<void> {
-    // Cálculo básico de pontuação (pode ser expandido)
-    const scores = {
-      life_protection: 50, // Baseado em votações específicas
-      family_values: 50,   // Baseado em votações específicas
-      moral_integrity: 80, // Reduzido se houver gastos suspeitos
-      social_responsibility: 50, // Baseado em projetos sociais
-      religious_freedom: 60 // Baseado em votações específicas
-    };
-
-    // Penalizar integridade moral baseada em gastos suspeitos
-    const suspiciousExpenses = politician.expenses.filter((e: any) => e.is_suspicious);
-    if (suspiciousExpenses.length > 0) {
-      const suspiciousPercentage = suspiciousExpenses.length / politician.expenses.length;
-      scores.moral_integrity = Math.max(20, 80 - (suspiciousPercentage * 60));
-    }
-
-    // Calcular pontuação geral ponderada
-    const overall_score = 
-      scores.life_protection * 0.25 +
-      scores.family_values * 0.20 +
-      scores.moral_integrity * 0.20 +
-      scores.social_responsibility * 0.10 +
-      scores.religious_freedom * 0.05 +
-      50 * 0.20; // 20% para outros critérios
-
-    // Determinar nível de performance
-    let performance_level, performance_label;
-    if (overall_score >= 80) {
-      performance_level = 'EXCELLENT';
-      performance_label = 'Excelente';
-    } else if (overall_score >= 60) {
-      performance_level = 'GOOD';
-      performance_label = 'Bom';
-    } else if (overall_score >= 40) {
-      performance_level = 'AVERAGE';
-      performance_label = 'Médio';
-    } else {
-      performance_level = 'POOR';
-      performance_label = 'Insuficiente';
-    }
-
-    // Atualizar ou criar pontuação
-    await prisma.politicianScore.upsert({
-      where: { politician_id: politician.id },
-      update: {
-        ...scores,
-        overall_score,
-        performance_level,
-        performance_label,
-        performance_description: `Pontuação calculada automaticamente em ${new Date().toLocaleDateString()}`,
-        total_votes: politician.votes.length,
-        last_calculation: new Date()
-      },
-      create: {
-        politician_id: politician.id,
-        ...scores,
-        overall_score,
-        performance_level,
-        performance_label,
-        performance_description: `Pontuação calculada automaticamente em ${new Date().toLocaleDateString()}`,
-        total_votes: politician.votes.length
-      }
-    });
   }
 
   private async analyzeExpenses(): Promise<void> {

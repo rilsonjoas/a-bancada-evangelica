@@ -142,7 +142,11 @@ async function main() {
   await prisma.$disconnect();
 }
 
-main().catch(err => {
-  console.error('❌ Erro:', err);
-  process.exit(1);
-});
+// Roda só se este arquivo for o entry point (achado real 2026-08-20,
+// mesma correção dos outros scripts de sync).
+if (process.argv[1] && import.meta.url === `file://${process.argv[1]}`) {
+  main().catch(err => {
+    console.error('❌ Erro:', err);
+    process.exit(1);
+  });
+}

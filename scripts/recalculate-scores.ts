@@ -159,6 +159,12 @@ async function recalculate() {
   console.log(`   📊 ${updated - hybridUpdated} mantiveram score de partido`);
 }
 
-recalculate()
-  .catch(console.error)
-  .finally(() => prisma.$disconnect());
+// Roda só se este arquivo for o entry point de verdade — mesma correção
+// aplicada em sync-camara.ts/sync-senado.ts (achado real 2026-08-20):
+// sem isso, importar este módulo de outro lugar recalcularia (e
+// sobrescreveria) todos os scores como efeito colateral.
+if (process.argv[1] && import.meta.url === `file://${process.argv[1]}`) {
+  recalculate()
+    .catch(console.error)
+    .finally(() => prisma.$disconnect());
+}

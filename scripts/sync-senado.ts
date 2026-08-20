@@ -476,10 +476,13 @@ async function main() {
   }
 }
 
-// Run main if this file is executed directly
-main().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+// Roda main() só se este arquivo for o entry point de verdade — mesma
+// correção do sync-camara.ts (achado real 2026-08-20).
+if (process.argv[1] && import.meta.url === `file://${process.argv[1]}`) {
+  main().catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+}
 
 export { syncSenado, syncGastosSenador, SenadoSyncService };

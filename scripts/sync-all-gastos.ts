@@ -143,6 +143,10 @@ async function main() {
   console.log('\n💡 Próximo passo: pnpm scores:recalculate');
 }
 
-main()
-  .catch(console.error)
-  .finally(() => prisma.$disconnect());
+// Roda só se este arquivo for o entry point (achado real 2026-08-20,
+// mesma correção dos outros scripts de sync).
+if (process.argv[1] && import.meta.url === `file://${process.argv[1]}`) {
+  main()
+    .catch(console.error)
+    .finally(() => prisma.$disconnect());
+}

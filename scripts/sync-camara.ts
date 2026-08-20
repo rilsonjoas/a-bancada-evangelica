@@ -422,10 +422,15 @@ async function main() {
   }
 }
 
-// Run main if this file is executed directly
-main().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+// Roda main() só se este arquivo for o entry point de verdade — sem essa
+// guarda, apenas IMPORTAR este módulo (ex.: sync-worker.ts faz isso) já
+// disparava uma sincronização completa como efeito colateral (achado real
+// 2026-08-20, ao testar o worker antes de ligar em produção).
+if (process.argv[1] && import.meta.url === `file://${process.argv[1]}`) {
+  main().catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+}
 
 export { syncCamara, syncGastosDeputado, CamaraSyncService };
