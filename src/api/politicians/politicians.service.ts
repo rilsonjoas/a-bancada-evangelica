@@ -82,10 +82,26 @@ export class PoliticiansService {
       });
     }
 
-    const [total, performanceStats] = await Promise.all([
+    const [total, performanceStats, stateStats, partyStats] = await Promise.all([
       this.prisma.politician.count({ where }),
       this.prisma.politicianScore.groupBy({ by: ['performance_level'], _count: true }),
+      // byState/byParty respeitam os mesmos filtros da listagem (where) —
+      // se o pedido já filtrou por partido, a distribuição por estado
+      // reflete só esse partido, não a base inteira (issue #3)
+      this.prisma.politician.groupBy({ by: ['current_state'], where, _count: true }),
+      this.prisma.politician.groupBy({ by: ['current_party'], where, _count: true }),
     ]);
+
+    const byState = Object.fromEntries(
+      stateStats
+        .map(s => [s.current_state, s._count] as const)
+        .sort((a, b) => b[1] - a[1]),
+    );
+    const byParty = Object.fromEntries(
+      partyStats
+        .map(s => [s.current_party, s._count] as const)
+        .sort((a, b) => b[1] - a[1]),
+    );
 
     return {
       politicians: politicians.map(p => ({
@@ -103,6 +119,8 @@ export class PoliticiansService {
         good:      performanceStats.find(s => s.performance_level === 'GOOD')?._count ?? 0,
         average:   performanceStats.find(s => s.performance_level === 'AVERAGE')?._count ?? 0,
         poor:      performanceStats.find(s => s.performance_level === 'POOR')?._count ?? 0,
+        byState,
+        byParty,
       },
     };
   }
