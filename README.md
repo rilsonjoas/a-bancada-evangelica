@@ -96,6 +96,7 @@ A API segue o padrão de **módulos NestJS com injeção de dependência** — c
 | **Metodologia** | Página completa explicando pesos, critérios e fontes de dados |
 | **API REST** | 10 endpoints com documentação Swagger em `/api/docs` |
 | **Testes** | 32 testes automatizados cobrindo componentes e lógica de UI |
+| **Sync automático** | Worker próprio (`sync-worker.ts`, node-cron): políticos 03h diário, gastos domingo 04h, scores 05h diário — dado não fica desatualizado numa votação importante |
 
 ### Critérios de avaliação
 
@@ -192,22 +193,28 @@ pnpm test:coverage      # com cobertura
 | GET | `/api/parties/alignment` | Score médio por partido |
 | GET | `/api/stats/overview` | Estatísticas gerais do banco |
 | GET | `/api/methodology/pillars` | Critérios e pesos |
-| GET | `/health` | Health check (Railway) |
+| GET | `/health` | Health check |
 
-Documentação interativa: `https://a-bancada-evangelica-production.up.railway.app/api/docs`
+Documentação interativa: `https://api-bancada.narniano.com/api/docs`
 
 ---
 
 ## Deploy
 
-O deploy é automático via **Railway** no push para `main`.
+Self-hosted no VPS Hetzner desde 2026-08-02 — saiu do Railway (trial de 30 dias
+expirou em 08/08 e derrubou o deploy sozinho) e do Neon (Postgres agora é o
+compartilhado do VPS). Frontend segue no Vercel; API e worker de sync rodam em
+containers Docker atrás de Traefik.
 
-> **⚠️ Atenção:** O Railway é gratuito apenas por 30 dias. Após esse período, o backend deixará de funcionar a menos que seja migrado para uma alternativa (ex.: Render, Fly.io, Coolify, ou um VPS próprio).
+Deploy é automático (`.github/workflows/deploy.yml`) no push pra `main`: a
+Action conecta via SSH no VPS, dá `git pull` neste repo e roda
+`make deploy service=bancada` (definido em `hetzner-infra`), depois confere
+com smoke test (retry em `/health` até 10x) antes de considerar concluído.
 
 ```bash
-# Variáveis de ambiente necessárias no Railway:
-DATABASE_URL       # Neon PostgreSQL connection string
-PORT               # definida automaticamente pelo Railway
+# Variáveis de ambiente (arquivo .env no VPS, nunca commitado):
+DATABASE_URL       # Postgres compartilhado do VPS (bancada_evangelica_db)
+PORT               # 3001, fixo (ver docker-compose.yml em hetzner-infra/bancada/)
 FRONTEND_URL       # URL do Vercel (para CORS em prod)
 ```
 
