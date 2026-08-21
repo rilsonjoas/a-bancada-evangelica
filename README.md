@@ -37,6 +37,12 @@ Isso é sobre uma coisa só: verdade sustentada por dado, não por retórica. "E
 
 Hoje são 514 deputados avaliados com dado oficial da Câmara, metodologia publicada, sem viés partidário declarado. A visão de longo prazo não é audiência de massa — é virar a fonte que jornalista e pesquisador citam quando precisam saber, com dado, se o discurso bate com o voto. Isso se constrói com credibilidade acumulada votação a votação, não com uma campanha de lançamento.
 
+### Decisão permanente: sem anúncio, sem afiliado, sem destaque pago
+
+Este projeto não roda anúncio, não tem afiliado, não vende dado nem destaque pago — por decisão, não por falta de tráfego. Uma ferramenta de fiscalização parlamentar que depende desse tipo de receita carrega, estruturalmente, o incentivo errado: quem paga a conta pode acabar influenciando o que aparece em destaque ou como. O valor real de "A Bancada Evangélica" é ser citável sem essa dúvida pairando — nenhum anunciante, nenhum partido, nenhum parlamentar tem como comprar visibilidade aqui. Isso é o produto, não uma limitação dele.
+
+**Doação, se algum dia existir, é diferente** — é financiamento tipo Wikipedia: quem lê sustenta a existência do projeto, sem comprar nada em troca (sem destaque, sem influência sobre critério, sem logo de patrocinador). Essa porta continua aberta e é candidata a entrar no roadmap em breve (ver `ROADMAP.md`) — o que está fechado pra sempre é qualquer modelo onde alguém paga e o produto muda de forma em troca.
+
 ## Stack técnica
 
 | Camada | Tecnologias |

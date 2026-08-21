@@ -205,9 +205,16 @@ interesse em vez de base de usuário fiel diária.
   polêmica pode gerar tráfego bem acima do normal; cache agressivo do
   ranking (invalidar só após recálculo) resolve isso sem precisar de
   mais VPS.
-- Monetização (se algum dia fizer sentido) não deveria ser ads — um
-  site de transparência parlamentar com ads perde credibilidade;
-  financiamento coletivo transparente é mais coerente com o propósito.
+- **Decisão permanente (2026-08-21, revisada): sem ads, sem afiliado,
+  sem destaque pago — ponto final.** Ver seção "Decisão permanente"
+  no `README.md`. Qualquer fonte de receita onde quem paga pode
+  esperar algo em troca (visibilidade, tratamento diferente) é
+  incompatível com watchdog de transparência parlamentar.
+- **Doação segue aberta, candidata a entrar em breve** — modelo
+  Wikipedia (quem lê sustenta, sem contrapartida nenhuma sobre o
+  produto). Próximo passo real: decidir plataforma (Pix direto vs.
+  algo tipo Apoia.se/Ko-fi) e onde expor o link sem competir
+  visualmente com o ranking em si.
 
 ## Nota: se este projeto ganhar conta de usuário final (2026-08-14)
 
