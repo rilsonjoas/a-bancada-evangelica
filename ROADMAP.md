@@ -245,6 +245,34 @@ interesse em vez de base de usuário fiel diária.
   algo tipo Apoia.se/Ko-fi) e onde expor o link sem competir
   visualmente com o ranking em si.
 
+
+## 💡 Visão de Produto — de ferramenta a lugar favorito (2026-08-22)
+
+> Nascida da pergunta do Rilson: "o que faria deste um dos meus lugares
+> favoritos na internet?" Princípio: lugar favorito é lugar que VOLTA —
+> então o foco é motivo de retorno, não mais features de consulta.
+
+| # | Feature | Esforço | Impacto | Dependência |
+|---|---|---|---|---|
+| V1 | **Ranking com pesos do usuário** — 5 sliders ("puxe o que pesa mais pra você") recomputando o ranking ao vivo sobre os sub-scores que a API já devolve. Salvo em localStorage | Pequeno (só frontend) | Alto — transforma opinião alheia em FERRAMENTA minha | Nenhuma ⭐ começar por aqui |
+| V2 | **Resumo semanal automático** — cron de segunda consulta os votos da semana e publica página + imagem compartilhável (pipeline de cards já existe). Semana sem sessão = edição honesta de silêncio | Médio | Alto — ritual cria hábito de retorno | Esteira de sync já ativa |
+| V3 | **Seguir políticos + alerta de voto** — "me avise quando o deputado X votar". Exige CONTAS DE USUÁRIO (gate arquitetural já previsto na nota de 2024) + canal (Resend/Web Push/Telegram) | Grande | Máximo — converte site em relacionamento | Contas de usuário |
+| V4 | **Direito de resposta self-serve** — gabinete acessa link único e justifica o voto; aparece moderado junto ao registro. Nenhum concorrente faz; deputados passam a VISITAR o watchdog | Médio | Alto — credibilidade citada pelos monitorados | Moderação manual inicial |
+| V5 | **Open data + página para jornalistas** — download CSV dos rankings/votações, link pro Swagger (`/api/docs`, confirmado), guia "como citar estes dados" | Pequeno | Médio-alto — jornalista que usa o dado cita e linka | Nenhuma |
+| V6 | **Comunidade open source** — repo já é público: CONTRIBUTING.md, templates de issue, guia de curadoria de dados pra voluntários, good-first-issues reais | Pequeno | Médio — olhos a mais nos dados + legitimidade | Definir política de expectativa pública |
+
+**Resposta à dúvida operacional**: itens V2/V3 NÃO exigem coleta manual —
+o sync-worker (ativo desde 20/08) já consome as APIs públicas da
+Câmara/Senado sozinho; são consumidores da esteira, não coletores. Toque
+humano recorrente continua só na curadoria de keywords (item 🔴 Liberdade
+Religiosa acima).
+
+**Anti-roadmap (decidido NÃO fazer)**: comentários abertos (moderação +
+polarização destroem a neutralidade), quiz doutrinário, gamificação com
+pontos. A marca é confiabilidade — carinho vem dela, não de distração.
+
+---
+
 ## Nota: se este projeto ganhar conta de usuário final (2026-08-14)
 
 Decisão registrada no `meus-remedios` (único projeto pessoal com auth
