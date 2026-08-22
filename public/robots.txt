@@ -12,3 +12,5 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+Sitemap: https://a-bancada-evangelica.vercel.app/sitemap.xml

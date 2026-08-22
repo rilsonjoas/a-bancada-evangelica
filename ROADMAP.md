@@ -102,7 +102,7 @@ segurança real que não existia nos outros dois.
       no levantamento original): `index.html` já tem `description`,
       Open Graph completo (`og:title`, `og:description`, `og:image`,
       `og:url`) e Twitter Card, `public/robots.txt` presente
-- [ ] `sitemap.xml` — não existe ainda (site tem só um punhado de rotas,
+- [x] **`sitemap.xml` — criado (2026-08-22)**. Estático com as 10 rotas públicas fixas; páginas dinâmicas `/politicos/:id` descobertas via links internos do /ranking por enquanto. `robots.txt` ganhou a linha `Sitemap:`. (era: "não existe ainda (site tem só um punhado de rotas,
       baixa prioridade, mas é rápido de gerar)
 - [ ] **Acessibilidade — checagem rápida feita, gap real (2026-08-16)**:
       12 usos de `aria-label`/`alt` em 64 componentes (~19% de
