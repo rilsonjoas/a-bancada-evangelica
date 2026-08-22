@@ -255,8 +255,8 @@ interesse em vez de base de usuário fiel diária.
 | # | Feature | Esforço | Impacto | Dependência |
 |---|---|---|---|---|
 | V1 | **Ranking com pesos do usuário** — 5 sliders ("puxe o que pesa mais pra você") recomputando o ranking ao vivo sobre os sub-scores que a API já devolve. Salvo em localStorage | Pequeno (só frontend) | Alto — transforma opinião alheia em FERRAMENTA minha | Nenhuma ⭐ começar por aqui |
-| V2 | **Resumo semanal automático** — cron de segunda consulta os votos da semana e publica página + imagem compartilhável (pipeline de cards já existe). Semana sem sessão = edição honesta de silêncio | Médio | Alto — ritual cria hábito de retorno | Esteira de sync já ativa |
-| V3 | **Seguir políticos + alerta de voto** — "me avise quando o deputado X votar". Exige CONTAS DE USUÁRIO (gate arquitetural já previsto na nota de 2024) + canal (Resend/Web Push/Telegram) | Grande | Máximo — converte site em relacionamento | Contas de usuário |
+| V2 | **Resumo semanal automático (versão sem IA)** — cron de segunda LISTA todas as votações nominais da semana agrupadas por pauta; destaque apenas nas que casarem com keywords ampliadas do `SCAN_RULES`. Publica página + imagem compartilhável. Semana sem sessão = silêncio honesto. **Sem API paga e sem revisão semanal** (decisão Rilson 2026-08-22); classificação via LLM estacionada em 💤 Ideias distantes | Médio | Alto — ritual cria hábito de retorno | Esteira de sync já ativa + ampliação de keywords (mesma ação do item 🔴 Liberdade Religiosa) |
+| V3 | **Seguir políticos + alerta de voto (versão sem IA)** — dois tipos: "Votei!" (todo voto do seguido, zero filtragem) e "Pauta quente" (só keywords ampliadas; disparar pouco é aceitável). Exige CONTAS DE USUÁRIO (gate arquitetural já previsto na nota de 2024) + canal (Resend/Web Push/Telegram) | Grande | Máximo — converte site em relacionamento | Contas de usuário |
 | V4 | **Direito de resposta self-serve** — gabinete acessa link único e justifica o voto; aparece moderado junto ao registro. Nenhum concorrente faz; deputados passam a VISITAR o watchdog | Médio | Alto — credibilidade citada pelos monitorados | Moderação manual inicial |
 | V5 | **Open data + página para jornalistas** — download CSV dos rankings/votações, link pro Swagger (`/api/docs`, confirmado), guia "como citar estes dados" | Pequeno | Médio-alto — jornalista que usa o dado cita e linka | Nenhuma |
 | V6 | **Comunidade open source** — repo já é público: CONTRIBUTING.md, templates de issue, guia de curadoria de dados pra voluntários, good-first-issues reais | Pequeno | Médio — olhos a mais nos dados + legitimidade | Definir política de expectativa pública |
@@ -270,6 +270,13 @@ Religiosa acima).
 **Anti-roadmap (decidido NÃO fazer)**: comentários abertos (moderação +
 polarização destroem a neutralidade), quiz doutrinário, gamificação com
 pontos. A marca é confiabilidade — carinho vem dela, não de distração.
+
+### 💤 Ideias distantes (estacionadas — decisão Rilson 2026-08-22)
+
+- Classificação semântica de votações via LLM no ingest (custo de API +
+  fila de revisão humana semanal) — volta à mesa SÓ se o volume de dados
+  ou a monetização justificarem operação ativa. Até lá: keywords
+  ampliadas + listagem completa cobrem resumos e alertas.
 
 ---
 
