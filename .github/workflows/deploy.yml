@@ -29,6 +29,12 @@ jobs:
             git pull --ff-only origin main
             cd ~/hetzner-infra
             make deploy service=bancada
+            # Prevenção de incidente (2026-08-22): o disco do VPS encheu
+            # (100%) com cache de build acumulado dos deploys — o Postgres
+            # compartilhado crashou com "No space left on device" e entrou
+            # em crash-loop. O docker builder prune NÃO roda sozinho.
+            # Mantém cache da última semana; descarta o resto.
+            docker builder prune -f --filter "until=168h"
 
       - name: Smoke test
         run: |

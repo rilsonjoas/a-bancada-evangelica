@@ -308,6 +308,46 @@ tabs 2×2 no mobile.
 4. [x] **Metodologia: party seed explicado** — bloco "Como a nota é calculada — transparência total": base partidária + delta por voto nominal + penalidade de gastos; estimativa parcial sinalizada; fórmula final apontando pro motor open source.
 5. [ ] Interpretação por grupo na página de Clusters — aguardando serviço Python ativo em produção (a página hoje mostra estado de erro gracioso com fallback de alinhamento por partido).
 
+### 🚨 Incidente 2026-08-22 — disco cheio derrubou o Postgres compartilhado
+
+**O que aconteceu:** no meio da fase 3 (sync de votações em produção), o
+PostgreSQL shared crashou com `PANIC: could not write ... No space left on
+device` e entrou em **crash-loop de recovery** (recover → PANIC → recover).
+Causa raiz: disco do VPS em 100% — **25,75 GB de cache de build do Docker**
+(243 entradas, 0 ativas) acumulados pelos rebuilds de deploy. O
+`docker builder prune` NÃO roda automaticamente.
+
+**Resolução:** `docker builder prune -af` (25,75 GB liberados, disco 100% → 36%)
+→ `docker restart postgres-shared` → shutdown limpo, sem perda de dados.
+Todos os 13 containers voltaram healthy.
+
+**Prevenção aplicada:** `docker builder prune -f --filter "until=168h"` no
+final do deploy.yml deste projeto (mantém cache de 7 dias). Se outros
+projetos do cluster começarem a encher o disco de novo, promover pro
+Makefile do hetzner-infra (alvo `deploy`), que cobre todos de uma vez.
+
+**Lição:** monitorar espaço em disco no Uptime Kuma (hoje só monitora
+HTTP) — alerta de disco >85% teria pego isso antes do crash. Backlog P5.
+
+### 🔬 Achado real da fase 3 — coluna total_votes congelada
+
+Sintoma que levou à descoberta: após rodar o motor de recálculo corrigido,
+484 políticos ativos seguiam com `consistency_score >= 99%` + `total_votes = 0`.
+Investigação linha a linha: as linhas ERAM atualizadas às 03:00 (updated_at
+prova) — o upsert nunca escrevia **`total_votes`**, coluna congelada desde a
+criação. Político 9, por exemplo: exibia "0 votações" mas tinha **10 votos
+reais** no banco; consistência 100% era legítima (10/10 votos com posição
+definida SIM/NÃO).
+
+Correções encadeadas:
+1. Motor zera consistência quando não há votos (não preserva lixo antigo)
+2. Motor mantém `total_votes = votes.length` no create/update
+3. UI (fase 1) já protegia a exibição com "—" / "sem votações registradas"
+
+Resultado esperado pós re-run em prod: ~509 ativos com contagem real de
+votações; ~5 sem votos nenhum exibindo "—"; consistência alta passa a ser
+dado verdadeiro (proporção de votos com posição definida), não bug.
+
 ### 🧭 Fase 4 — Marca e polimento
 1. Missão revisitada com lente watchdog (home explica método antes do ranking?)
 2. Ícone/logo unificado (hoje convivem favicon livro preto, Logo.png azul e BookOpen lucide)

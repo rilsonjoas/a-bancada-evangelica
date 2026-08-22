@@ -144,6 +144,7 @@ async function recalculate() {
         overall_score: overall, performance_level: perf.level,
         performance_label: perf.label, performance_description: perf.description,
         consistency_score: consistency,
+        total_votes: politician.votes.length,
       },
       update: {
         life_protection: life, family_values: family,
@@ -151,6 +152,10 @@ async function recalculate() {
         overall_score: overall, performance_level: perf.level,
         performance_label: perf.label, performance_description: perf.description,
         consistency_score: consistency,
+        // Achado real (2026-08-22): a coluna nunca era atualizada por este
+        // motor — ficava congelada da criação (509 ativos com votos reais
+        // exibindo "0 votações"; a UI e qualquer verificação lixo liam 0).
+        total_votes: politician.votes.length,
       },
     });
 
