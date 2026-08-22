@@ -163,6 +163,32 @@ Conferido issue por issue contra o código, não só pelo título:
 
 ---
 
+## Qualidade de Conteúdo (2026-08-22)
+
+Padrão cross-projeto: `Padrão de Qualidade de Conteúdo.md` no vault
+(princípio #7 de `Filosofia e Padrões de Engenharia.md`). Este projeto
+já é a referência positiva do padrão — os dois achados abaixo mostram a
+disciplina certa acontecendo antes mesmo do documento existir:
+
+- **"Liberdade Religiosa aparece com 0 em pautas monitoradas"**
+  (2026-08-21) — investigado até a raiz (keywords de scan não casaram
+  nenhuma votação desde fev/2023) e a decisão registrada foi *"ação
+  real é de curadoria de dados, não de UI... NÃO inventar número — 0
+  com explicação honesta > dado fabricado"*.
+- **Congressista sem dado de gastos** (2026-08-21) — em vez de inventar
+  ou omitir, virou estimativa parcial explicitamente marcada (badge
+  some, risco mostra "—", nota explicativa no card).
+
+**O que falta pra fechar o padrão aqui:**
+- [ ] #6 acima (Fundamentação bíblica na Metodologia) é literalmente
+      este princípio aplicado — completar o glossário de termos
+      técnicos pendente
+- [ ] Quando o TSE voltar (branch `feature/tse-integration`, pausada):
+      aplicar a mesma disciplina — desqualificação/ficha suja só entra
+      no score com fonte oficial TSE citável, nunca inferência
+
+---
+
 ## Ordem recomendada
 
 > Numeração renumerada em 2026-08-09 (fusão com o SHIELD, ver
