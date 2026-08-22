@@ -2,7 +2,6 @@ import React, { useRef } from 'react';
 import { Download, Share2 } from 'lucide-react';
 import { CRITERIA } from '@/lib/criteria';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { API_BASE_URL } from '@/lib/apiClient';
 import type { PoliticianDetail } from '@/hooks/usePoliticianDetail';
@@ -25,21 +24,9 @@ export function ShareableCard({ politician, type = 'summary' }: ShareableCardPro
 
   // Card v2 (2026-08-22): dois humores por desempenho — "orgulho"
   // (>=60, pra o PRÓPRIO deputado querer compartilhar) e "neutro"
-  // (<60, factual e respeitoso, sem vermelho de exposição). Direção
-  // registrada no ROADMAP: foto em destaque, nota como herói visual,
-  // selo da marca e deep link pro perfil real no rodapé.
+  // (<60, factual e respeitoso, sem vermelho de exposição).
   const overall = politician.currentScore?.overall ?? 0;
   const isProud = overall >= 60;
-
-  const getPerformanceBadge = (level: string) => {
-    const variants = {
-      EXCELLENT: 'bg-green-100 text-green-800',
-      GOOD: 'bg-blue-100 text-blue-800',
-      AVERAGE: 'bg-yellow-100 text-yellow-800',
-      POOR: 'bg-red-100 text-red-800'
-    };
-    return variants[level as keyof typeof variants] || variants.AVERAGE;
-  };
 
   const downloadAsImage = async () => {
     if (!cardRef.current) return;
@@ -50,12 +37,11 @@ export function ShareableCard({ politician, type = 'summary' }: ShareableCardPro
 
       const canvas = await html2canvas(cardRef.current, {
         backgroundColor: '#ffffff',
-        scale: 2, // Maior qualidade
+        scale: 2,
         useCORS: true,
-        allowTaint: true
+        allowTaint: true,
       });
 
-      // Criar link de download
       const link = document.createElement('a');
       link.download = `${politician.name.replace(/\s+/g, '_')}_perfil.png`;
       link.href = canvas.toDataURL();
@@ -76,7 +62,7 @@ export function ShareableCard({ politician, type = 'summary' }: ShareableCardPro
         backgroundColor: '#ffffff',
         scale: 2,
         useCORS: true,
-        allowTaint: true
+        allowTaint: true,
       });
 
       canvas.toBlob(async (blob) => {
@@ -84,7 +70,7 @@ export function ShareableCard({ politician, type = 'summary' }: ShareableCardPro
 
         if (navigator.share && navigator.canShare) {
           const file = new File([blob], `${politician.name}_perfil.png`, {
-            type: 'image/png'
+            type: 'image/png',
           });
 
           if (navigator.canShare({ files: [file] })) {
@@ -92,7 +78,7 @@ export function ShareableCard({ politician, type = 'summary' }: ShareableCardPro
               await navigator.share({
                 title: `Perfil de ${politician.name} - A Bancada Evangélica`,
                 text: `Confira a avaliação de ${politician.name} na A Bancada Evangélica`,
-                files: [file]
+                files: [file],
               });
               toast.success('Card compartilhado!');
             } catch (error) {
@@ -100,12 +86,9 @@ export function ShareableCard({ politician, type = 'summary' }: ShareableCardPro
             }
           }
         } else {
-          // Fallback: copy image to clipboard
           try {
             await navigator.clipboard.write([
-              new ClipboardItem({
-                'image/png': blob
-              })
+              new ClipboardItem({ 'image/png': blob }),
             ]);
             toast.success('Imagem copiada para a área de transferência!');
           } catch (error) {
@@ -131,103 +114,110 @@ export function ShareableCard({ politician, type = 'summary' }: ShareableCardPro
     </div>
   );
 
-  // Rodapé com deep link real pro perfil — domínio separado do caminho
-  // pra manter o contrato textual dos testes (getByText exato).
-  const deepLinkFooter = (
-    <div className="text-center pt-4 mt-auto">
-      <p className="text-xs text-gray-600">
-        Votos nominais registrados · {CRITERIA.length} critérios ponderados
-      </p>
-      <p className="text-sm font-semibold text-blue-700 mt-1">
-        <span>a-bancada-evangelica.vercel.app</span>
-        <span className="text-blue-500">/politicos/{politician.id}</span>
-      </p>
-    </div>
-  );
-
-  // Selo da marca (logo branco sobre a faixa)
-  const brandSeal = (
-    <div className="flex items-center justify-center gap-2 mb-3">
-      <img src="/marca-white.png" alt="" aria-hidden="true" className="h-7 w-7" />
-      <div className="text-left">
-        <p className="text-[13px] font-bold leading-none">A Bancada Evangélica</p>
-        <p className="text-[10px] opacity-75 leading-tight mt-0.5">
-          Transparência parlamentar por votos nominais
-        </p>
-      </div>
-    </div>
-  );
+  // Data da última apuração, formato curto (ex.: "ago 2026")
+  const lastCalc =
+    politician.currentScore?.lastCalculation
+      ? new Date(politician.currentScore.lastCalculation)
+          .toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })
+          .replace('.', '')
+      : null;
 
   if (type === 'summary') {
-    const levelLabel = politician.currentScore?.performanceLevel || 'AVERAGE';
-
     return (
       <div className="space-y-4">
         {shareButtons}
 
-        <div ref={cardRef} className="w-96 mx-auto rounded-xl overflow-hidden shadow-lg bg-white">
-          {/* Faixa superior: gradiente cívico (orgulho) ou azul sóbrio (neutro) */}
+        {/* ── PÔSTER DE EXPORTAÇÃO (v2.1) ─────────────────────────────
+            Layout dedicado pra imagem final: sem margens negativas, sem
+            elementos sobrepostos, paddings explícitos em toda seção e
+            rodapé sólido. O que vale é o PNG que sai, não a página. */}
+        <div ref={cardRef} className="w-[420px] mx-auto bg-white shadow-xl">
+          {/* Fio dourado de topo */}
+          <div className="h-1.5 bg-[#b49a60]" />
+
+          {/* Cabeçalho institucional */}
           <div
-            className="px-6 pb-16 pt-5 text-center"
+            className="px-7 pt-6 pb-24 text-center"
             style={{
               backgroundImage: isProud
-                ? 'linear-gradient(135deg, #1e3a8a 0%, #4338ca 100%)'
-                : 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
+                ? 'linear-gradient(135deg, #1e3a8a 0%, #3730a3 100%)'
+                : 'linear-gradient(135deg, #0f172a 0%, #334155 100%)',
             }}
           >
-            {brandSeal}
-            <Badge
-              className={
-                isProud ? 'bg-amber-300 text-amber-900 hover:bg-amber-300' : 'bg-slate-100 text-slate-800 hover:bg-slate-100'
-              }
+            {/* Selo da marca */}
+            <div className="flex items-center justify-center gap-3">
+              <img src="/marca-white.png" alt="" aria-hidden="true" className="h-10 w-10" />
+              <div className="text-left">
+                <p className="text-white text-base font-bold leading-tight">
+                  A Bancada Evangélica
+                </p>
+                <p className="text-slate-300 text-[11px] leading-tight">
+                  Transparência por votos nominais
+                </p>
+              </div>
+            </div>
+
+            {/* Selo de desempenho */}
+            <span
+              className={`inline-block mt-4 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${
+                isProud ? 'bg-[#b49a60] text-[#1e293b]' : 'bg-slate-600 text-slate-100'
+              }`}
             >
               {politician.currentScore?.performanceLabel || 'Sem dados'}
-            </Badge>
+            </span>
           </div>
 
-          {/* Foto em destaque — pousando na borda da faixa */}
-          <div className="-mt-12 flex flex-col items-center px-6">
-            <img
-              src={proxiedPhotoUrl}
-              alt={politician.name}
-              className={`h-28 w-28 rounded-full object-cover shadow-md bg-white ${
-                isProud ? 'border-4 border-double border-[#b49a60]' : 'border-4 border-slate-300'
-              }`}
-            />
+          {/* Corpo — foto cortando o cabeçalho com anel branco */}
+          <div className="px-8 -mt-16">
+            <div className="flex justify-center">
+              <img
+                src={proxiedPhotoUrl}
+                alt={politician.name}
+                className="h-32 w-32 rounded-full object-cover border-[6px] border-white shadow-md bg-white"
+              />
+            </div>
 
-            <h2 className="text-xl font-extrabold text-gray-900 mt-3">{politician.name}</h2>
-            <p className="text-sm text-gray-600 mt-0.5">
+            <h2 className="text-center text-[26px] leading-tight font-extrabold text-gray-900 mt-4">
+              {politician.name}
+            </h2>
+            <p className="text-center text-sm font-semibold text-slate-500 mt-1">
               {politician.currentParty} - {politician.currentState}
             </p>
 
-            {/* Nota: herói visual — verde quando orgulho, azul-marinho quando neutro */}
-            <div className="mt-4 mb-1 text-center">
-              <span
-                className={`text-6xl font-black tracking-tight ${isProud ? 'text-emerald-600' : 'text-[#1e3a5f]'}`}
-              >
-                {(overall ?? 0).toFixed(1)}
-              </span>
-              <span className="text-lg font-medium text-gray-400">/100</span>
+            {/* Nota — herói absoluto, bloco próprio, zero colisão */}
+            <div className="mt-7 text-center">
+              <div className="flex items-start justify-center">
+                <span
+                  className={`text-[88px] leading-[0.85] font-black ${
+                    isProud ? 'text-emerald-600' : 'text-[#1e3a5f]'
+                  }`}
+                >
+                  {(overall ?? 0).toFixed(1)}
+                </span>
+                <span className="text-2xl font-bold text-slate-400 mt-2 ml-1">/100</span>
+              </div>
+              <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-400">
+                Pontuação geral
+              </p>
             </div>
-            <p className="text-xs uppercase tracking-wider text-gray-500 mb-5">Pontuação geral</p>
 
-            {/* Critérios como barras visuais — mais legível que lista chave=valor */}
-            <div className="w-full space-y-2.5">
+            {/* Critérios */}
+            <div className="mt-8 space-y-4">
               {CRITERIA.map((c) => {
                 const value =
                   (politician.currentScore?.[c.field as keyof typeof politician.currentScore] as number | undefined) ?? 0;
                 return (
                   <div key={c.key}>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="flex items-center gap-1.5 text-gray-700">
-                        <c.Icon className={`h-3.5 w-3.5 ${c.iconClass}`} />
+                    <div className="flex items-center justify-between text-[13px] mb-1.5">
+                      <span className="flex items-center gap-2 font-medium text-gray-700">
+                        <c.Icon className={`h-4 w-4 ${c.iconClass}`} />
                         {c.label}
                       </span>
-                      <span className="font-bold text-gray-900">{value.toFixed(0)}</span>
+                      <span className="font-extrabold text-gray-900">{value.toFixed(0)}</span>
                     </div>
-                    <div className="h-2 w-full rounded-full bg-gray-100">
+                    <div className="h-2.5 w-full rounded-full bg-slate-100">
                       <div
-                        className={`h-2 rounded-full ${isProud ? 'bg-indigo-600' : 'bg-slate-500'}`}
+                        className={`h-2.5 rounded-full ${isProud ? 'bg-indigo-600' : 'bg-slate-500'}`}
                         style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
                       />
                     </div>
@@ -236,82 +226,154 @@ export function ShareableCard({ politician, type = 'summary' }: ShareableCardPro
               })}
             </div>
 
-            {/* Frase-quadro pelo humor do card */}
-            <p className="mt-5 text-xs italic text-gray-600">
+            {/* Frase-quadro + frescor do dado */}
+            <p className="mt-8 text-center text-[13px] italic leading-relaxed text-slate-600">
               {isProud
                 ? 'Compromisso público com a transparência, verificado em votações nominais.'
                 : 'Perfil público construído a partir de votos nominais registrados.'}
             </p>
+            <p className="mt-4 text-center text-[12px] font-medium text-slate-500">
+              Votos nominais registrados · {CRITERIA.length} critérios ponderados
+            </p>
+            {lastCalc && (
+              <p className="mt-3 text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+                Dados atualizados em {lastCalc}
+              </p>
+            )}
+            <div className="pb-8" />
+          </div>
 
-            {deepLinkFooter}
+          {/* Rodapé sólido — barra de fechamento estilo pôster */}
+          <div
+            className="px-7 py-4 flex items-center justify-between"
+            style={{ backgroundColor: isProud ? '#1e3a8a' : '#0f172a' }}
+          >
+            <div className="flex items-center gap-2">
+              <img src="/marca-white.png" alt="" aria-hidden="true" className="h-6 w-6" />
+              <span className="text-white text-[11px] font-bold">A Bancada Evangélica</span>
+            </div>
+            <div className="text-right leading-tight">
+              <p className="text-[10px] text-white font-semibold">
+                a-bancada-evangelica.vercel.app
+              </p>
+              <p className="text-[10px] text-[#b49a60] font-medium">
+                /politicos/{politician.id}
+              </p>
+            </div>
           </div>
         </div>
       </div>
     );
   }
 
-  // Detailed card version — selo da marca aplicado, estrutura mantida
-  const levelLabelDetailed = politician.currentScore?.performanceLabel || 'AVERAGE';
-
+  // ── Variante detailed: mesmo pôster, com os 5 critérios em destaque
+  // maior e frase de valores. Mantém selo e humores do summary.
   return (
     <div className="space-y-4">
       {shareButtons}
 
-      <div ref={cardRef} className="w-[500px] mx-auto bg-white border rounded-xl shadow-lg overflow-hidden">
-        {/* Header with gradient */}
+      <div ref={cardRef} className="w-[480px] mx-auto bg-white shadow-xl">
+        <div className="h-1.5 bg-[#b49a60]" />
+
         <div
-          className="text-white p-6"
+          className="px-7 pt-6 pb-20 text-center"
           style={{
             backgroundImage: isProud
-              ? 'linear-gradient(135deg, #1e3a8a 0%, #4338ca 100%)'
-              : 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
+              ? 'linear-gradient(135deg, #1e3a8a 0%, #3730a3 100%)'
+              : 'linear-gradient(135deg, #0f172a 0%, #334155 100%)',
           }}
         >
-          <div className="flex items-center gap-4">
-            <img
-              src="/marca-white.png"
-              alt=""
-              aria-hidden="true"
-              className="h-10 w-10 shrink-0"
-            />
-            <div className="flex-1">
-              <h2 className="text-xl font-bold">{politician.name}</h2>
-              <p className="opacity-80">{politician.currentParty} - {politician.currentState}</p>
+          <div className="flex items-center justify-center gap-3">
+            <img src="/marca-white.png" alt="" aria-hidden="true" className="h-10 w-10" />
+            <div className="text-left">
+              <p className="text-white text-base font-bold leading-tight">A Bancada Evangélica</p>
+              <p className="text-slate-300 text-[11px] leading-tight">
+                Transparência por votos nominais
+              </p>
             </div>
-            <Badge className={isProud ? 'bg-amber-300 text-amber-900 hover:bg-amber-300' : 'bg-slate-100 text-slate-800 hover:bg-slate-100'}>
-              {politician.currentScore?.performanceLabel || 'Sem dados'}
-            </Badge>
           </div>
+          <span
+            className={`inline-block mt-4 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${
+              isProud ? 'bg-[#b49a60] text-[#1e293b]' : 'bg-slate-600 text-slate-100'
+            }`}
+          >
+            {politician.currentScore?.performanceLabel || 'Sem dados'}
+          </span>
         </div>
 
-        {/* Content */}
-        <div className="p-6">
-          <div className="text-center mb-6">
-            <div className={`text-5xl font-black ${isProud ? 'text-emerald-600' : 'text-[#1e3a5f]'}`}>
-              {(overall ?? 0).toFixed(1)}
+        <div className="px-8 -mt-16">
+          <div className="flex justify-center">
+            <img
+              src={proxiedPhotoUrl}
+              alt={politician.name}
+              className="h-36 w-36 rounded-full object-cover border-[6px] border-white shadow-md bg-white"
+            />
+          </div>
+
+          <h2 className="text-center text-[28px] leading-tight font-extrabold text-gray-900 mt-4">
+            {politician.name}
+          </h2>
+          <p className="text-center text-sm font-semibold text-slate-500 mt-1">
+            {politician.currentParty} - {politician.currentState}
+          </p>
+
+          <div className="mt-7 text-center">
+            <div className="flex items-start justify-center">
+              <span
+                className={`text-[92px] leading-[0.85] font-black ${
+                  isProud ? 'text-emerald-600' : 'text-[#1e3a5f]'
+                }`}
+              >
+                {(overall ?? 0).toFixed(1)}
+              </span>
+              <span className="text-2xl font-bold text-slate-400 mt-2 ml-1">/100</span>
             </div>
-            <p className="text-gray-600 mt-1">Pontuação Geral</p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            {CRITERIA.slice(0, 4).map((c) => (
-              <div key={c.key} className="text-center p-3 bg-gray-50 rounded-lg">
-                <div className={`text-lg font-bold ${c.iconClass.replace('text-', 'text-').replace('-500', '-600')}`}>
-                  {(politician.currentScore?.[c.field as keyof typeof politician.currentScore] as number | undefined)?.toFixed(0) || '0'}
-                </div>
-                <div className="text-xs text-gray-600 flex items-center justify-center gap-1 mt-0.5">
-                  <c.Icon className={`h-3 w-3 ${c.iconClass}`} />
-                  {c.label.split(' ')[0]}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="text-center border-t pt-4">
-            <p className="text-xs text-gray-600">
-              Avaliação baseada em valores cristãos · votos nominais
+            <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-400">
+              Pontuação geral
             </p>
-            {deepLinkFooter}
+          </div>
+
+          <div className="mt-8 grid grid-cols-2 gap-3">
+            {CRITERIA.slice(0, 4).map((c) => {
+              const value =
+                (politician.currentScore?.[c.field as keyof typeof politician.currentScore] as number | undefined) ?? 0;
+              return (
+                <div key={c.key} className="rounded-xl bg-slate-50 p-4 text-center">
+                  <c.Icon className={`mx-auto h-5 w-5 ${c.iconClass}`} />
+                  <div className="mt-1 text-2xl font-extrabold text-gray-900">{value.toFixed(0)}</div>
+                  <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                    {c.label}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <p className="mt-7 text-center text-[13px] italic leading-relaxed text-slate-600">
+            Avaliação baseada em valores cristãos, apurada por votos nominais públicos.
+          </p>
+          <p className="mt-4 text-center text-[12px] font-medium text-slate-500">
+            Votos nominais registrados · {CRITERIA.length} critérios ponderados
+          </p>
+          {lastCalc && (
+            <p className="mt-3 text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+              Dados atualizados em {lastCalc}
+            </p>
+          )}
+          <div className="pb-8" />
+        </div>
+
+        <div
+          className="px-7 py-4 flex items-center justify-between"
+          style={{ backgroundColor: isProud ? '#1e3a8a' : '#0f172a' }}
+        >
+          <div className="flex items-center gap-2">
+            <img src="/marca-white.png" alt="" aria-hidden="true" className="h-6 w-6" />
+            <span className="text-white text-[11px] font-bold">A Bancada Evangélica</span>
+          </div>
+          <div className="text-right leading-tight">
+            <p className="text-[10px] text-white font-semibold">a-bancada-evangelica.vercel.app</p>
+            <p className="text-[10px] text-[#b49a60] font-medium">/politicos/{politician.id}</p>
           </div>
         </div>
       </div>

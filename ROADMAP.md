@@ -300,6 +300,12 @@ Google" não é viável em iOS de qualquer forma.
 - [ ] **Missão do site revisitada** — pendente. Lente: watchdog de transparência. Perguntas a responder: a home comunica o método antes do ranking? O leigo entende que nota não é "simpatia política" mas voto nominal registrado? Textos do hero prometem o que os dados entregam?
 - [ ] **Ícone do projeto** — pendente. Hoje convivem: favicon SVG (livro preto), Logo.png OG (livro azul em quadrado) e ícone lucide `BookOpen` genérico no header/heroes. Avaliar unificação (logo real no header) com Design Narniano como referência de coerência.
 - [ ] **Acessibilidade + responsividade fina** — 12 de 64 componentes têm `aria-label` (~19%). Auditoria completa de contraste, foco, teclado e viewports 375/390/430 nas páginas de dados (tabelas, cards, filtros).
+- [ ] **Auditoria tipográfica e de espaçamento (pedido direto do Rilson, 2026-08-22)** — dor sentida também no Lecionário e Bíblia na Arte: "textos grandes quando não deveriam, espaçamento sem cuidado, leiturabilidade comprometida por coisas pequenas". Escopo mínimo:
+  - Hierarquia honesta: título grande SÓ no herói da página; corpo de leitura ≥14px em páginas de dados; labels uppercase pequenos reservados a rótulos (nunca parágrafos)
+  - Ritmo vertical numa escala única (4/8px) e respiro consistente entre seções
+  - line-height ≥1.5 em qualquer parágrafo de leitura
+  - Extrair os padrões que JÁ funcionam nos irmãos (Lecionário/Bíblia na Arte) e virar seção tipográfica no `PADRAO-DE-ENGENHARIA.md` pra valer pros próximos projetos
+  - Aplicar primeiro nas páginas de dados (Ranking/Votações/Perfil político), onde o card v2.1 já deu o tom
 - [x] **`sitemap.xml` — RESOLVIDO (2026-08-21)**. Estático em `public/sitemap.xml` com as 8 rotas + prioridades/changefreq. `robots.txt` já existia.
 - [x] **Swagger/OpenAPI no NestJS — JÁ ESTAVA CONFIGURADO** (achado 2026-08-21): `src/api/main.ts:43-70` monta Swagger em `/api/docs` e Scalar em `/api/reference`. Item encerrado sem trabalho — o roadmap não sabia.
 
