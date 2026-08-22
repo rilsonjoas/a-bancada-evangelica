@@ -294,12 +294,19 @@ humana · nota parcial explícita quando não há análise de gastos · proxy de
 fotos + card redesenhado (tondo, anel dourado, nota-herói) · sitemap.xml ·
 tabs 2×2 no mobile.
 
-### 🔜 Fase 3 — Dados e profundidade (próxima)
-1. **Enriquecer `sync-votes.ts`** com ementas da Câmara (`/proposicoes`) — mata os títulos "Mantido o texto." (maior ganho de credibilidade restante)
-2. **Liberdade Religiosa = 0**: ampliar `SCAN_RULES` ("liberdade de culto", "símbolos religiosos", "perseguição religiosa") e/ou semear pautas manualmente; se seguir 0, exibir "sem votações nominais identificadas" em vez de 0 nu
-3. **Rodar `scores:recalculate` em produção** — limpar consistência congelada no banco (a UI já protege, o dado não)
-4. Metodologia: texto explicando o party seed abertamente
-5. Interpretação por grupo na página de Clusters
+### 🔄 Fase 3 — Dados e profundidade (código pronto 2026-08-21; execução em prod pendente do push)
+
+1. [x] **`sync-votes.ts` enriquecido** — agora busca detalhe+proposição de TODA votação casada e compõe título `SIGLA numero/ano — ementa` + descrição com contexto. **Idempotente:** no re-run atualiza agendas antigas que têm título cru ("Mantido o texto.") — corrige o banco existente sem SQL manual. Custo: ~2 requests a mais por pauta casada (~31), trivial.
+2. [x] **Liberdade Religiosa**: `SCAN_RULES` ampliadas ("liberdade de culto", "símbolo religioso", "perseguição religiosa", "assistência espiritual", "folga religiosa"). UI: critério sem pauta exibe "sem votações nominais identificadas no Plenário" em vez de 0 nu. **A verificação real acontece no re-run em prod** — se ainda der 0, o rótulo honesto fica.
+3. [ ] **Rodar scripts em produção após push** (ordem importa):
+   ```
+   ssh narniano@100.67.163.103
+   docker exec bancada-worker node_modules/.bin/tsx scripts/sync-votes.ts      # 1. enriquece pautas + novas keywords
+   docker exec bancada-worker node_modules/.bin/tsx scripts/recalculate-scores.ts  # 2. recalcula notas (limpa consistência congelada)
+   ```
+   Verificar depois: `/api/votes/analysis` (agendaByCriteria) e um perfil que tinha consistência 100% com 0 votos.
+4. [x] **Metodologia: party seed explicado** — bloco "Como a nota é calculada — transparência total": base partidária + delta por voto nominal + penalidade de gastos; estimativa parcial sinalizada; fórmula final apontando pro motor open source.
+5. [ ] Interpretação por grupo na página de Clusters — aguardando serviço Python ativo em produção (a página hoje mostra estado de erro gracioso com fallback de alinhamento por partido).
 
 ### 🧭 Fase 4 — Marca e polimento
 1. Missão revisitada com lente watchdog (home explica método antes do ranking?)

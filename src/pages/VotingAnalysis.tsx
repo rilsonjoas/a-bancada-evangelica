@@ -233,22 +233,34 @@ export function VotingAnalysis() {
                       const total = analysisData.totalAgendas || 1;
                       return (
                         <div key={c.key} className="flex items-center justify-between gap-3">
-                          <span className="text-sm flex items-center gap-1.5 min-w-0 flex-1">
-                            <c.Icon className={`h-3.5 w-3.5 shrink-0 ${c.iconClass}`} />
-                            <span className="truncate">{c.label}</span>
+                          <span className="text-sm flex flex-col min-w-0 flex-1">
+                            <span className="flex items-center gap-1.5">
+                              <c.Icon className={`h-3.5 w-3.5 shrink-0 ${c.iconClass}`} />
+                              <span className="truncate">{c.label}</span>
+                            </span>
+                            {/* Honestidade > número nu: quando o sync nunca
+                                identificou votação nominal pra esse critério,
+                                dizer isso em vez de um "0" sem contexto */}
+                            {count === 0 && (
+                              <span className="text-xs text-muted-foreground mt-0.5">
+                                sem votações nominais identificadas no Plenário
+                              </span>
+                            )}
                           </span>
-                          <div className="flex items-center gap-2 shrink-0">
-                            <div className="w-24 bg-gray-200 rounded-full h-2">
-                              <div
-                                className="h-2 rounded-full transition-all"
-                                style={{
-                                  width: `${(count / total) * 100}%`,
-                                  backgroundColor: c.barColor,
-                                }}
-                              ></div>
+                          {count > 0 && (
+                            <div className="flex items-center gap-2 shrink-0">
+                              <div className="w-24 bg-gray-200 rounded-full h-2">
+                                <div
+                                  className="h-2 rounded-full transition-all"
+                                  style={{
+                                    width: `${(count / total) * 100}%`,
+                                    backgroundColor: c.barColor,
+                                  }}
+                                ></div>
+                              </div>
+                              <span className="text-sm font-semibold w-8 text-right">{count}</span>
                             </div>
-                            <span className="text-sm font-semibold w-8 text-right">{count}</span>
-                          </div>
+                          )}
                         </div>
                       );
                     })}

@@ -366,6 +366,30 @@ const MetodologiaPage = () => {
                   (sem votos individuais registrados ainda), o índice de consistência exibe o padrão estimado
                   do partido (65–78%).
                 </p>
+                <div className="mt-6 rounded-lg border border-border bg-background p-5">
+                  <h4 className="font-serif font-semibold text-foreground mb-2">
+                    Como a nota é calculada — transparência total
+                  </h4>
+                  <div className="text-sm text-muted-foreground leading-relaxed space-y-2">
+                    <p>
+                      A nota de cada parlamentar começa na <strong>média histórica do partido dele</strong>
+                      {' '}em cada critério e é ajustada por <strong>cada voto nominal registrado</strong>:
+                      votos alinhados sobem a nota daquele critério, votos contrários descem. Integridade
+                      Moral também considera despesas públicas suspeitas (penalidade proporcional).
+                    </p>
+                    <p>
+                      Consequência honesta: enquanto um parlamentar tem poucos votos registrados ou
+                      análise de gastos pendente, a nota dele é uma <strong>estimativa parcial</strong> —
+                      herança partidária ajustada pelo que já se sabe. Perfis nessa situação são marcados
+                      no site. A estimativa vira medição conforme mais votações nominais são incorporadas.
+                    </p>
+                    <p className="text-xs">
+                      Fórmula final: soma ponderada dos 5 critérios nos pesos 30/25/20/15/10, limitada a
+                      0–100. O motor completo é open source:{' '}
+                      <code className="text-xs bg-secondary px-1 py-0.5 rounded">scripts/recalculate-scores.ts</code>.
+                    </p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>

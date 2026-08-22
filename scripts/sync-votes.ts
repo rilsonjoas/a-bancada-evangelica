@@ -39,8 +39,11 @@ const SCAN_RULES: ScanRule[] = [
   { criteria: 'SOCIAL_RESPONSIBILITY', keywords: ['assistencia social', 'bolsa familia', 'beneficio social', 'populacao em situacao de rua'], simIsPositive: true, weight: 10, priority: 3 },
   { criteria: 'SOCIAL_RESPONSIBILITY', keywords: ['saude publica', 'sus', 'atendimento a vitimas'], simIsPositive: true, weight: 8, priority: 2 },
   // Liberdade Religiosa
-  { criteria: 'RELIGIOUS_FREEDOM', keywords: ['liberdade religiosa', 'discriminacao religiosa', 'intolerancia religiosa', 'expressao religiosa'], simIsPositive: true, weight: 20, priority: 5 },
-  { criteria: 'RELIGIOUS_FREEDOM', keywords: ['laicidade', 'ensino religioso', 'crenca'], simIsPositive: true, weight: 10, priority: 3 },
+  // Achado real (2026-08-21): as keywords originais nunca casaram nenhuma
+  // votação nominal do Plenário desde fev/2023 — o critério vivia com 0
+  // pautas. Frases adicionais cobrem os termos que aparecem nas ementas.
+  { criteria: 'RELIGIOUS_FREEDOM', keywords: ['liberdade religiosa', 'liberdade de culto', 'discriminacao religiosa', 'intolerancia religiosa', 'expressao religiosa', 'simbolo religioso', 'perseguicao religiosa'], simIsPositive: true, weight: 20, priority: 5 },
+  { criteria: 'RELIGIOUS_FREEDOM', keywords: ['laicidade', 'ensino religioso', 'crenca', 'assistencia espiritual', 'folga religiosa'], simIsPositive: true, weight: 10, priority: 3 },
 ];
 
 // ── Trimestres da 57ª legislatura ─────────────────────────────────────────────
@@ -112,24 +115,42 @@ interface CamaraVotacaoDetail {
 interface CamaraProposicao { ementa?: string; keywords?: string; ano?: number; numero?: number; siglaTipo?: string }
 
 // ── Buscar ementa da proposição referenciada ───────────────────────────────────
-async function getProposicaoEmenta(votacaoDetail: CamaraVotacaoDetail): Promise<string> {
+interface ProposicaoInfo {
+  /** Texto completo pra casamento de keywords (descrições + ementa + keywords) */
+  fullText: string;
+  /** Dados estruturados da proposição citada, se houver */
+  prop: CamaraProposicao | null;
+}
+
+async function getProposicaoInfo(votacaoDetail: CamaraVotacaoDetail): Promise<ProposicaoInfo> {
   const ap = votacaoDetail.ultimaApresentacaoProposicao;
   const parts: string[] = [
     votacaoDetail.descricao ?? '',
     ap?.descricao ?? '',
   ];
 
+  let prop: CamaraProposicao | null = null;
   const uri = ap?.uriProposicaoCitada;
   if (uri) {
-    const prop = await fetchJson<{ dados: CamaraProposicao }>(uri);
-    if (prop?.dados) {
-      parts.push(prop.dados.ementa ?? '');
-      parts.push(prop.dados.keywords ?? '');
+    const fetched = await fetchJson<{ dados: CamaraProposicao }>(uri);
+    if (fetched?.dados) {
+      prop = fetched.dados;
+      parts.push(prop.ementa ?? '');
+      parts.push(prop.keywords ?? '');
     }
     await sleep(200);
   }
 
-  return parts.filter(Boolean).join(' ');
+  return { fullText: parts.filter(Boolean).join(' '), prop };
+}
+
+/** Título legível a partir da proposição — mata títulos crus do Plenário
+ * como "Mantido o texto." que não dizem nada pro eleitor (achado real
+ * 2026-08-21: o title antigo vinha de proposicaoObjeto/descrição). */
+function buildEnrichedTitle(prop: CamaraProposicao | null): string | null {
+  if (!prop?.siglaTipo || !prop.numero || !prop.ano || !prop.ementa) return null;
+  const ref = `${prop.siglaTipo} ${prop.numero}/${prop.ano}`;
+  return `${ref} — ${prop.ementa.trim()}`.slice(0, 200);
 }
 
 // ── Registrar votos individuais de uma votação ────────────────────────────────
@@ -196,44 +217,61 @@ async function scanPlenario(): Promise<{ agendas: number; votes: number; checked
     for (const v of substantivas) {
       checked++;
 
-      // 1. Verificar por keywords diretas na descrição
-      let rule = matchRule(`${v.descricao ?? ''} ${v.proposicaoObjeto ?? ''}`);
+      // Detalhe + proposição SEMPRE — além de casar keywords pela ementa
+      // (quando a descrição não basta), fornece o título legível pro card.
+      await sleep(200);
+      const detail = await fetchJson<{ dados: CamaraVotacaoDetail }>(`${BASE}/votacoes/${v.id}`);
+      if (!detail?.dados) continue;
 
-      // 2. Se não encontrou, buscar detalhe com ementa da proposição
-      if (!rule) {
-        await sleep(200);
-        const detail = await fetchJson<{ dados: CamaraVotacaoDetail }>(`${BASE}/votacoes/${v.id}`);
-        if (detail?.dados) {
-          const fullText = await getProposicaoEmenta(detail.dados);
-          rule = matchRule(fullText);
-          if (rule) {
-            process.stdout.write(`   ✓ ${v.id} (${v.data.slice(0,10)}) → ${rule.criteria} via ementa\n`);
-          }
-        }
-        await sleep(200);
-      } else {
-        process.stdout.write(`   ✓ ${v.id} (${v.data.slice(0,10)}) → ${rule.criteria} via descrição\n`);
-      }
-
+      const { fullText, prop } = await getProposicaoInfo(detail.dados);
+      const rule = matchRule(`${v.descricao ?? ''} ${v.proposicaoObjeto ?? ''} ${fullText}`);
       if (!rule) continue;
 
-      // 3. Criar/buscar KeyAgenda
-      const existingAgenda = await prisma.keyAgenda.findFirst({ where: { source_id: v.id, source: 'CAMARA' } });
-      const agenda = existingAgenda ?? await prisma.keyAgenda.create({
-        data: {
-          title: (v.proposicaoObjeto ?? v.descricao ?? v.id).slice(0, 200),
-          description: (v.descricao ?? '').slice(0, 500),
-          criteria: rule.criteria,
-          positive_weight: rule.weight,
-          negative_weight: -rule.weight,
-          source: 'CAMARA', source_id: v.id,
-          source_url: `${BASE}/votacoes/${v.id}`,
-          keywords: rule.keywords, status: 'ACTIVE', priority: rule.priority,
-        },
-      });
-      if (!existingAgenda) agendas++;
+      process.stdout.write(`   ✓ ${v.id} (${v.data.slice(0,10)}) → ${rule.criteria}\n`);
 
-      // 4. Registrar votos individuais
+      // Título enriquecido: "PL 1904/2024 — <ementa>" em vez de "Mantido o texto."
+      const enrichedTitle = buildEnrichedTitle(prop);
+      // Descrição: ementa (contexto do que é a matéria) + o que aconteceu no Plenário
+      const enrichedDescription = [
+        prop?.ementa ?? '',
+        detail.dados.ultimaApresentacaoProposicao?.descricao ?? '',
+        v.descricao ?? '',
+      ].filter(Boolean).join(' · ').slice(0, 500);
+
+      // Criar/buscar KeyAgenda — e ENRIQUECER agendas antigas no re-run
+      // (idempotente: só atualiza se mudou; corrige títulos crus já no banco)
+      const existingAgenda = await prisma.keyAgenda.findFirst({ where: { source_id: v.id, source: 'CAMARA' } });
+      let agenda = existingAgenda;
+      if (existingAgenda) {
+        const needsTitle = Boolean(enrichedTitle) && existingAgenda.title !== enrichedTitle;
+        const needsDescription = Boolean(enrichedDescription) && existingAgenda.description !== enrichedDescription;
+        if (needsTitle || needsDescription) {
+          await prisma.keyAgenda.update({
+            where: { id: existingAgenda.id },
+            data: {
+              ...(enrichedTitle ? { title: enrichedTitle } : {}),
+              ...(enrichedDescription ? { description: enrichedDescription } : {}),
+            },
+          });
+          process.stdout.write(`   ↻ agenda enriquecida com ementa\n`);
+        }
+      } else {
+        agenda = await prisma.keyAgenda.create({
+          data: {
+            title: (enrichedTitle ?? v.proposicaoObjeto ?? v.descricao ?? v.id).slice(0, 200),
+            description: (enrichedDescription || v.descricao || '').slice(0, 500),
+            criteria: rule.criteria,
+            positive_weight: rule.weight,
+            negative_weight: -rule.weight,
+            source: 'CAMARA', source_id: v.id,
+            source_url: `${BASE}/votacoes/${v.id}`,
+            keywords: rule.keywords, status: 'ACTIVE', priority: rule.priority,
+          },
+        });
+        agendas++;
+      }
+
+      // Registrar votos individuais
       await sleep(300);
       const n = await processVotacao(v.id, agenda.id, rule, v.data, v.descricao ?? '');
       process.stdout.write(`   → ${n} votos individuais registrados\n`);
