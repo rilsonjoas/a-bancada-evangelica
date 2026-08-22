@@ -243,7 +243,7 @@ Google" não é viável em iOS de qualquer forma.
 - [x] **Todos os deputados com 100% consistência na página inicial — RESOLVIDO (2026-08-21)**. Mesma causa raiz do item acima; a home exibia o valor cru sem guard. Agora: 0 votações → "sem votações registradas".
 - [x] **Número de pautas/votações monitoradas inconsistente entre páginas — RESOLVIDO (2026-08-21)**. A página Sobre tinha hardcode ("1.679+", "5") que já divergia do README ("31 pautas / 7.930 votos") e da página de Votações. Agora Sobre consome as MESMAS APIs (`usePoliticiansStats` + `useVotingAnalysisData`) — fonte única, números vivos. Nota: o README ainda cita "31 pautas / 7.930 votos" de quando foi escrito — conferir contra produção no próximo ciclo de sync.
 - [ ] **"Liberdade Religiosa aparece com 0 em pautas monitoradas"** — INVESTIGADO (2026-08-21): não é bug de JOIN nem de nome de critério. O endpoint conta apenas `KeyAgenda` existentes (`votes.service.ts:78-81`) e o `sync-votes.ts` nunca casou nenhuma votação do Plenário com as keywords desse critério (`SCAN_RULES:28-44` — "liberdade religiosa/intolerancia religiosa" não apareceu nos títulos de votações nominais desde fev/2023). **Ação real é de curadoria de dados**, não de UI: ampliar keywords (ex.: "liberdade de culto", "símbolos religiosos", projetos específicos) e/ou semear pautas manualmente. NÃO inventar número — 0 com explicação honesta > dado fabricado.
-- [ ] **Congressista sem dado nenhum de gastos mas com nota 77** — INVESTIGADO (2026-08-21): a nota vem do modelo híbrido "party seed + delta" — sem despesas analisadas, o pilar de integridade moral usa a base herdada do partido (e a penalidade de gastos simplesmente não se aplica). É uma *estimativa por partido*, não medição. **Pendente de decisão de produto:** marcar visualmente esses perfis como "nota parcial — análise de gastos pendente" vs. rebaixar o peso do pilar. Enquanto isso, o texto da metodologia deveria explicar o party seed abertamente.
+- [x] **Congressista sem dado nenhum de gastos mas com nota 77 — RESOLVIDO com transparência (2026-08-21)**. Causa documentada: modelo híbrido "party seed + delta" — sem despesas analisadas, integridade moral usa a base do partido. Decisão de produto tomada: **marcar como estimativa parcial**, não rebaixar peso. No perfil: risco mostra "—", badge some, e nota explicativa ("Análise de gastos ainda não realizada… trate-a como estimativa parcial") aparece no card de estatísticas. Texto da Metodologia sobre o party seed continua pendente.
 - [x] **86.3 Média Geral vs. 65.8% Pontuação Média — RESOLVIDO (2026-08-21)**. Eram DUAS fórmulas diferentes: a home media só o top-100 carregado no cliente (~86, enviesado pra cima) e Votações usava a média global do banco (~66). Agora existe UMA fonte: `stats.service.overview()` expõe `averageScore` (média global dos ativos) e a home consome. Rótulo unificado: "Nota Média" com subtítulo "Média global dos parlamentares ativos (0-100)".
 - [x] **"LOW" em inglês — RESOLVIDO (2026-08-21)**. O badge do perfil traduzia errado (`|| 'BAIXO'` mostrava o enum cru); agora mapeia HIGH/MEDIUM/LOW → Alto/Médio/Baixo (mesmo mapping que `ExpenseAnalysisChart.tsx` já usava). Fonte do enum continua EN na API (decisão: enum é contrato interno; tradução é responsabilidade da UI).
 - [x] **Frequência de atualização falsa — RESOLVIDO (2026-08-21)**. FAQ trocado pela verdade real do worker/cron: cadastro e gastos semanais (domingo 04h), scores recalculados diários (05h), votações incorporadas por curadoria conforme sessões relevantes (o scan trimestral do `sync-votes` é manual — por isso o total cresce em ritmo variável).
@@ -253,23 +253,65 @@ Google" não é viável em iOS de qualquer forma.
 - [x] **Páginas não carregam no topo — RESOLVIDO (2026-08-21)**. Componente `<ScrollToTop />` em `App.tsx` (useEffect por pathname). react-router v6 SPA não reseta scroll por padrão.
 - [x] **Filtros de análise na página de Votações não funcionam — RESOLVIDO (2026-08-21)**. Causa raiz dupla: (1) o backend IGNORAVA os query params (`VotesController.analysis()` sem assinatura de params); (2) nem havia dado pra filtrar período por pauta. Correção: API agora devolve `firstVoteDate`/`lastVoteDate` por pauta (`votes.service.ts`, groupBy min/max) e a filtragem é client-side sobre `keyAgendas` (payload pequeno ~30 itens): busca textual (título+descrição), critério e período. Removidos: filtro "Tipo de voto" (sem sentido numérico agregado — era ruído pro leigo) e botão morto "Filtros Avançados". Adicionados: contador "X de Y pautas correspondem" + limpar filtros.
 - [x] **Botão de busca na navbar não funciona — RESOLVIDO (2026-08-21)**. Desktop: clique abre input inline, Enter navega pra `/ranking?search=...`. Mobile: barra de busca expansível sob o header + campo dentro do menu hamburger. O Ranking lê `?search=` via useSearchParams.
-- [ ] **Card de compartilhamento não carrega fotos dos congressistas** — CAUSA CONFIRMADA (2026-08-21): fotos vêm de URL cross-origin da Câmara e o html2canvas as descarta mesmo com `useCORS` (servidor da Câmara não manda headers CORS). Solução projetada: proxy same-origin na API (`GET /api/politicians/:id/photo` → stream com cache) apontando o card pro próprio domínio. Próxima rodada.
-- [x] **Hambúrguer menu não funciona bem no mobile — RESOLVIDO em estrutura (2026-08-21), auditoria fina continua**. Hamburger agora abre Sheet lateral funcional (nav completa + busca); nav horizontal de ícones restrita à faixa sm–lg onde cabe sem espremer; abaixo de sm só hamburger. Auditoria viewport-a-viewport (375/390/430px) das páginas de dados continua aberta no item de acessibilidade/responsividade abaixo.
+- [x] **Card de compartilhamento não carrega fotos dos congressistas — RESOLVIDO (2026-08-21)**. Proxy same-origin na API: `GET /api/politicians/:id/photo` busca a URL institucional server-side (fetch + buffer, cache 7 dias) e o card usa esse endereço — html2canvas rasteriza imagem same-origin sem drama. Bônus: se a fonte oficial cair, vira 404 com mensagem clara em vez de foto branca silenciosa.
+- [x] **Hambúrguer menu não funciona bem no mobile — RESOLVIDO em estrutura (2026-08-21), auditoria fina continua**. Hamburger agora abre Sheet lateral funcional (nav completa + busca); nav horizontal de ícones restrita à faixa sm–lg onde cabe sem espremer; abaixo de sm só hamburger. Tabs de Votações viram grid 2×2 no mobile (4 colunas apertadas eram ilegíveis). Auditoria viewport-a-viewport (375/390/430px) das páginas de dados continua aberta no item de acessibilidade/responsividade abaixo.
 - [x] **Botões "Fazer uma pergunta", "Compartilhar projeto" e "Contribuir no GitHub" não fazem nada — RESOLVIDO (2026-08-21)**. Pergunta → `mailto:abancada@narniano.com` com subject preenchido; Compartilhar → Web Share API com fallback de clipboard + toast; GitHub → link real `rilsonjoas/a-bancada-evangelica` (que aliás era o correto — o texto de contato na página mostrava um org inexistente).
 - [x] **Dropdown com animação exagerada — RESOLVIDO (2026-08-21)**. `select.tsx`: removidos zoom-95 e slide-in; restou fade 150ms. Global (afeta todos os selects do site, incluindo os 3 lado a lado em Votações).
-- [ ] **Página de Votações não explica o que foi votado** — PARCIAL (2026-08-21): as pautas hoje carregam título/descrição crus da Câmara ("Mantido o texto.") porque o sync grava o que vem da API sem enriquecimento. Solução real exige: buscar ementa/projeto vinculado na sincronização (API Câmara `/proposicoes`) e guardar contexto legível por pauta; na UI, adicionar bloco fixo "Por que este critério?" com o rationale do critério (definição de `criteria.tsx`). Próxima rodada — começa pelo enriquecimento no `sync-votes.ts`.
+- [x] **Página de Votações não explica o que foi votado — RESOLVIDO na UI (2026-08-21)**. Cada pauta agora exibe o bloco **"Por que este critério?"** com o rationale em linguagem de eleitor (`criteria.tsx` ganhou campo `rationale` nos 5 critérios, renderizado no `KeyAgendaCard`) + período real das votações (datas min/max da API). O que FALTA é dado, não UI: títulos/descrições ainda vêm crus da Câmara ("Mantido o texto.") — enriquecer `sync-votes.ts` buscando a ementa do projeto vinculado (`/proposicoes`). Pendência de sync, próxima rodada.
 - [x] **Página "Sobre" ainda menciona Railway — RESOLVIDO (2026-08-21)**. Cards técnicos reescritos com a realidade: NestJS 11 (dizia "Express 5" — outro erro factual), PostgreSQL na VPS (dizia Neon), Docker + Traefik no Hetzner. Os arquivos `railway.toml` (raiz e analysis/) seguem no repo como histórico morto — remover em commit de limpeza.
 
 ### 🟡 Melhoria — UX e produto
 
 - [x] **TSE: zips de prestação de contas (2022) — 451MB — RESOLVIDO (2026-08-21)**. Os 5 zips estavam COMMITADOS (8ac4fb7) e nunca empurrados — o primeiro push seria rejeitado pelo limite de 100MB/arquivo do GitHub. Como os 2 commits locais nunca foram ao remote, rewrite local seguro: reset --soft pra origin/main, unstage dos zips, recommit limpo. Zips continuam no disco local; `data/tse/*.zip` no `.gitignore`; `data/tse/README.md` documenta tamanhos, fontes oficiais (dadosabertos.tse.jus.br) e status da integração pausada. **Lição:** material bruto pesado NUNCA entra no git — processa fora, versiona só resultado limpo.
 - [x] **Filtro "Apenas FPE" — RESOLVIDO (2026-08-21)**. Ativo por padrão (o recorte do projeto É a FPE — quem chega deve ver primeiro quem faz parte) e renomeado pra "Frente Parlamentar Evangélica" por extenso.
-- [ ] **Página de Grupos de Votação precisa de contexto para leigos** — pendente. Plano: intro explicando o que é cluster de votação ("deputados que votam juntos"), glossário inline (silhouette, KMeans em linguagem humana), e 1 frase de interpretação por grupo.
+- [x] **Página de Grupos de Votação precisa de contexto para leigos — RESOLVIDO na primeira dobra (2026-08-21)**. Hero reescrito: abertura em linguagem humana ("deputados que votam juntos, tema a tema — radiografia do comportamento real, além dos rótulos de campanha"); o jargão técnico (KMeans, PCA, silhouette) desceu pra um `<details>` opcional "Como essa análise é feita". Falta ainda 1 frase de interpretação por grupo individual (depende do output real do serviço Python).
 - [ ] **Card de compartilhamento — design para incentivar o próprio deputado a compartilhar** — pendente. Depende do fix do proxy de fotos (item Grave acima). Direção: foto em destaque, nota grande e legível, selo do projeto, versão "compartilhável com orgulho" para notas altas + neutra para baixas.
 - [x] **Horário de Atendimento na página de Contato — RESOLVIDO (2026-08-21)**. Removido (produto digital não tem expediente).
 - [x] **Card de tipos de contato — RESOLVIDO (2026-08-21)**. Removido (não levava a nada).
 - [ ] **Missão do site revisitada** — pendente. Lente: watchdog de transparência. Perguntas a responder: a home comunica o método antes do ranking? O leigo entende que nota não é "simpatia política" mas voto nominal registrado? Textos do hero prometem o que os dados entregam?
 - [ ] **Ícone do projeto** — pendente. Hoje convivem: favicon SVG (livro preto), Logo.png OG (livro azul em quadrado) e ícone lucide `BookOpen` genérico no header/heroes. Avaliar unificação (logo real no header) com Design Narniano como referência de coerência.
 - [ ] **Acessibilidade + responsividade fina** — 12 de 64 componentes têm `aria-label` (~19%). Auditoria completa de contraste, foco, teclado e viewports 375/390/430 nas páginas de dados (tabelas, cards, filtros).
-- [ ] **`sitemap.xml` não existe** — gerar estático (rotas conhecidas: /, /ranking, /votacoes, /grupos, /metodologia, /sobre, /contato).
+- [x] **`sitemap.xml` — RESOLVIDO (2026-08-21)**. Estático em `public/sitemap.xml` com as 8 rotas + prioridades/changefreq. `robots.txt` já existia.
 - [x] **Swagger/OpenAPI no NestJS — JÁ ESTAVA CONFIGURADO** (achado 2026-08-21): `src/api/main.ts:43-70` monta Swagger em `/api/docs` e Scalar em `/api/reference`. Item encerrado sem trabalho — o roadmap não sabia.
+
+---
+
+## Plano de Valor — fases de produção (2026-08-21)
+
+> Mapa de navegação do que resta. Ordenado por valor pro eleitor ÷ esforço.
+> Atualizar status aqui a cada rodada — este documento é onde eu (Rilson)
+> volto pra saber onde o projeto está.
+
+### ✅ Fase 1 — Credibilidade dos dados (CONCLUÍDA)
+Consistência honesta · média única global · Sobre dinâmico · risco em PT ·
+FAQ verídico · scroll-to-top · filtros de Votações reais · busca na navbar ·
+hamburger funcional · botões do Contato vivos · dropdowns discretos · FPE
+default+nome · zips TSE fora do git.
+
+### ✅ Fase 2 — Transparência pro eleitor (CONCLUÍDA)
+Bloco "Por que este critério?" nas pautas · Grupos de Votação em linguagem
+humana · nota parcial explícita quando não há análise de gastos · proxy de
+fotos + card redesenhado (tondo, anel dourado, nota-herói) · sitemap.xml ·
+tabs 2×2 no mobile.
+
+### 🔜 Fase 3 — Dados e profundidade (próxima)
+1. **Enriquecer `sync-votes.ts`** com ementas da Câmara (`/proposicoes`) — mata os títulos "Mantido o texto." (maior ganho de credibilidade restante)
+2. **Liberdade Religiosa = 0**: ampliar `SCAN_RULES` ("liberdade de culto", "símbolos religiosos", "perseguição religiosa") e/ou semear pautas manualmente; se seguir 0, exibir "sem votações nominais identificadas" em vez de 0 nu
+3. **Rodar `scores:recalculate` em produção** — limpar consistência congelada no banco (a UI já protege, o dado não)
+4. Metodologia: texto explicando o party seed abertamente
+5. Interpretação por grupo na página de Clusters
+
+### 🧭 Fase 4 — Marca e polimento
+1. Missão revisitada com lente watchdog (home explica método antes do ranking?)
+2. Ícone/logo unificado (hoje convivem favicon livro preto, Logo.png azul e BookOpen lucide)
+3. Auditoria acessibilidade + responsividade fina (375/390/430px) nas páginas de dados
+4. Remover `railway.toml` mortos (raiz e analysis/)
+5. Card viral v2 — versão "compartilhável com orgulho" para notas altas
+
+### 🚢 Ritual de deploy deste projeto (diferente do Gerador!)
+- **Frontend:** Vercel — deploy automático no push pra `main`
+- **API/worker:** GitHub Action `.github/workflows/deploy.yml` — SSH no VPS,
+  `git pull` em `/opt/a-bancada-evangelica`, `make deploy service=bancada`,
+  smoke test em `/health` com retry 10x
+- Ou seja: **push = deploy dos dois lados**, com smoke test embutido.
+  Conferir Action verde + `/health` + frontend após cada push.

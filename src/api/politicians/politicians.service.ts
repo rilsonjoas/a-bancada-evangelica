@@ -225,4 +225,16 @@ export class PoliticiansService {
       },
     };
   }
+
+  /**
+   * URL da foto institucional de um parlamentar (query mínima — sem os
+   * joins pesados do findOne). Usada pelo endpoint de proxy de imagem.
+   */
+  async photoUrlOf(id: number): Promise<string | null> {
+    const p = await this.prisma.politician.findUnique({
+      where: { id },
+      select: { photo_url: true },
+    });
+    return p?.photo_url ?? null;
+  }
 }

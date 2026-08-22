@@ -391,18 +391,28 @@ export function PoliticianProfile() {
                 </div>
                 <div className="flex justify-between">
                   <span>Nível de Risco:</span>
-                  <Badge variant={(politician.expenseAnalysis?.riskLevel || 'LOW') === 'LOW' ? 'secondary' : 'destructive'}>
-                    {/* Tradução PT-BR — a API manda o enum em inglês
-                        (HIGH/MEDIUM/LOW); renderizar cru era ver "LOW" no meio
-                        da página em português. Mesmo mapping de
-                        ExpenseAnalysisChart. */}
-                    {politician.expenseAnalysis?.riskLevel === 'HIGH'
-                      ? 'Alto'
-                      : politician.expenseAnalysis?.riskLevel === 'MEDIUM'
-                        ? 'Médio'
-                        : 'Baixo'}
-                  </Badge>
+                  {(politician.expenseAnalysis?.totalCount ?? 0) === 0 ? (
+                    <span className="font-semibold text-muted-foreground">—</span>
+                  ) : (
+                    <Badge variant={politician.expenseAnalysis?.riskLevel === 'HIGH' ? 'destructive' : politician.expenseAnalysis?.riskLevel === 'MEDIUM' ? 'default' : 'secondary'}>
+                      {politician.expenseAnalysis?.riskLevel === 'HIGH'
+                        ? 'Alto'
+                        : politician.expenseAnalysis?.riskLevel === 'MEDIUM'
+                          ? 'Médio'
+                          : 'Baixo'}
+                    </Badge>
+                  )}
                 </div>
+                {/* Honestidade sobre a origem da nota: sem despesas
+                    analisadas, parte dela vem da base partidária — o eleitor
+                    precisa saber que é estimativa, não medição completa. */}
+                {(politician.expenseAnalysis?.totalCount ?? 0) === 0 && (
+                  <p className="text-xs text-muted-foreground border-t pt-3 leading-relaxed">
+                    Análise de gastos ainda não realizada para este parlamentar.
+                    Parte da nota vem da média histórica do partido (metodologia
+                    híbrida) — trate-a como <strong>estimativa parcial</strong>.
+                  </p>
+                )}
               </CardContent>
             </Card>
           </div>

@@ -2,20 +2,13 @@ import React, { useRef } from 'react';
 import { Download, Share2, BarChart2 } from 'lucide-react';
 import { CRITERIA } from '@/lib/criteria';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'sonner';
+import { API_BASE_URL } from '@/lib/apiClient';
 import type { PoliticianDetail } from '@/hooks/usePoliticianDetail';
 
 interface ShareableCardProps {
   // Reusa o tipo real do hook em vez de duplicar a forma do currentScore
-  // — achado real (2026-08-20): esse componente nunca era importado em
-  // lugar nenhum, e tinha uma cópia própria e desatualizada dos dados
-  // (dizia "7 pilares fundamentais", a Metodologia real publica 5;
-  // dizia domínio abancadaevangelica.com.br, que não existe/não é
-  // usado — o real é a-bancada-evangelica.vercel.app, o mesmo do
-  // og:url em index.html).
   politician: Pick<
     PoliticianDetail,
     'id' | 'name' | 'currentParty' | 'currentState' | 'photoUrl' | 'currentScore'
@@ -25,6 +18,10 @@ interface ShareableCardProps {
 
 export function ShareableCard({ politician, type = 'summary' }: ShareableCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
+
+  // Foto via proxy same-origin da API — a URL direta da Câmara é
+  // cross-origin e o html2canvas a descarta (fotos brancas no PNG).
+  const proxiedPhotoUrl = `${API_BASE_URL}/api/politicians/${politician.id}/photo`;
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return 'text-green-600';
@@ -136,7 +133,8 @@ export function ShareableCard({ politician, type = 'summary' }: ShareableCardPro
 
         <div 
           ref={cardRef}
-          className="w-96 mx-auto bg-gradient-to-br from-blue-50 to-indigo-100 p-6 rounded-xl shadow-lg"
+          className="w-96 mx-auto rounded-xl border-2 border-[#1e3a5f]/15 bg-white p-6 shadow-lg"
+          style={{ backgroundImage: 'linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%)' }}
         >
           {/* Header */}
           <div className="text-center mb-6">
@@ -144,14 +142,13 @@ export function ShareableCard({ politician, type = 'summary' }: ShareableCardPro
             <p className="text-xs text-gray-600">Transparência Parlamentar</p>
           </div>
 
-          {/* Politician Info */}
+          {/* Politician Info — retrato em tondo com anel, foto via proxy */}
           <div className="text-center mb-6">
-            <Avatar className="w-20 h-20 mx-auto mb-4">
-              <AvatarImage src={politician.photoUrl} alt={politician.name} />
-              <AvatarFallback className="text-lg">
-                {politician.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-              </AvatarFallback>
-            </Avatar>
+            <img
+              src={proxiedPhotoUrl}
+              alt={politician.name}
+              className="h-24 w-24 mx-auto mb-4 rounded-full object-cover border-4 border-double border-[#b49a60] bg-white p-0.5 shadow"
+            />
             
             <h2 className="text-xl font-bold text-gray-900 mb-2">{politician.name}</h2>
             <p className="text-sm text-gray-600 mb-3">
@@ -163,12 +160,12 @@ export function ShareableCard({ politician, type = 'summary' }: ShareableCardPro
             </Badge>
           </div>
 
-          {/* Score */}
+          {/* Score — o número é o herói do card */}
           <div className="text-center mb-6">
-            <div className={`text-4xl font-bold mb-2 ${getScoreColor(politician.currentScore?.overall || 0)}`}>
-              {politician.currentScore?.overall?.toFixed(1) || '0.0'}
+            <div className={`text-5xl font-bold mb-1 ${getScoreColor(politician.currentScore?.overall || 0)}`}>
+              {(politician.currentScore?.overall ?? 0).toFixed(1)}
             </div>
-            <p className="text-sm text-gray-600">Pontuação Geral</p>
+            <p className="text-sm text-gray-600">de 100 · Pontuação Geral</p>
           </div>
 
           {/* Criteria Scores */}
@@ -189,7 +186,7 @@ export function ShareableCard({ politician, type = 'summary' }: ShareableCardPro
           {/* Footer */}
           <div className="text-center border-t pt-4">
             <p className="text-xs text-gray-600">
-              Avaliação baseada em {CRITERIA.length} critérios ponderados
+              Votos nominais registrados · {CRITERIA.length} critérios ponderados
             </p>
             <p className="text-xs text-blue-600 font-medium mt-1">
               a-bancada-evangelica.vercel.app
@@ -221,12 +218,11 @@ export function ShareableCard({ politician, type = 'summary' }: ShareableCardPro
         {/* Header with gradient */}
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6">
           <div className="flex items-center gap-4">
-            <Avatar className="w-16 h-16 border-2 border-white">
-              <AvatarImage src={politician.photoUrl} alt={politician.name} />
-              <AvatarFallback className="text-lg">
-                {politician.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-              </AvatarFallback>
-            </Avatar>
+            <img
+              src={proxiedPhotoUrl}
+              alt={politician.name}
+              className="h-16 w-16 rounded-full object-cover border-2 border-white bg-white"
+            />
             <div>
               <h2 className="text-xl font-bold">{politician.name}</h2>
               <p className="text-blue-100">{politician.currentParty} - {politician.currentState}</p>

@@ -168,12 +168,25 @@ export default function VotingClusters() {
             <span className="text-xs font-medium text-primary uppercase tracking-widest">Análise ML</span>
           </div>
           <h1 className="text-3xl font-bold text-foreground mb-2">Grupos de Votação</h1>
-          <p className="text-muted-foreground max-w-2xl">
-            Parlamentares agrupados por similaridade de padrão de voto usando{' '}
-            <strong>KMeans clustering</strong> sobre a matriz de votações.
-            Dimensionalidade reduzida via <strong>PCA</strong> antes do agrupamento.
-            O número ótimo de grupos é determinado pelo maior <strong>silhouette score</strong>.
+          <p className="text-muted-foreground max-w-2xl mb-3">
+            Quando organizamos os parlamentares pelo jeito que eles votam —
+            sem olhar partido nem religião — surgem <strong>grupos naturais</strong>:
+            deputados e senadores que votam juntos, tema a tema. É uma radiografia
+            do comportamento real de voto, além dos rótulos de campanha.
           </p>
+          {/* Nota técnica para quem quiser profundidade */}
+          <details className="max-w-2xl text-sm text-muted-foreground">
+            <summary className="cursor-pointer select-none font-medium text-foreground hover:text-primary transition-colors">
+              Como essa análise é feita (para quem gosta de detalhes)
+            </summary>
+            <p className="mt-2 leading-relaxed">
+              Cada parlamentar vira um ponto no espaço das votações; o algoritmo{' '}
+              <strong>KMeans</strong> agrupa pontos parecidos, com as dimensões
+              reduzidas antes por <strong>PCA</strong>. O número de grupos não é
+              escolhido à mão: usamos o maior <strong>silhouette score</strong>{' '}
+              (medida de quão bem cada ponto encaixa no seu grupo).
+            </p>
+          </details>
         </div>
 
         {/* Loading */}

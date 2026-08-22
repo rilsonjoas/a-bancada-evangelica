@@ -1,5 +1,5 @@
 import React from 'react';
-import { TrendingUp, TrendingDown, Minus, Users, Calendar } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Users, Calendar, Info } from 'lucide-react';
 import { CriteriaLabel, CRITERIA_BY_KEY } from '@/lib/criteria';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,12 +16,25 @@ interface KeyAgendaCardProps {
     contraryVotes: number;
     abstentions: number;
     consensusScore: number;
+    firstVoteDate?: string | null;
+    lastVoteDate?: string | null;
   };
 }
 
 export function KeyAgendaCard({ agenda }: KeyAgendaCardProps) {
   const getCriteriaColor = (criteria: string) =>
     CRITERIA_BY_KEY[criteria]?.badgeClass ?? 'bg-gray-100 text-gray-800';
+
+  const rationale = CRITERIA_BY_KEY[agenda.criteria]?.rationale;
+
+  const formatDate = (iso?: string | null) => {
+    if (!iso) return null;
+    try {
+      return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
+    } catch { return null; }
+  };
+  const firstDate = formatDate(agenda.firstVoteDate);
+  const lastDate = formatDate(agenda.lastVoteDate);
 
   const getConsensusLevel = (score: number) => {
     if (score >= 80) return { label: 'Alto Consenso', color: 'text-green-600' };
@@ -66,6 +79,23 @@ export function KeyAgendaCard({ agenda }: KeyAgendaCardProps) {
       </CardHeader>
       
       <CardContent>
+        {/* Contexto pro eleitor — o que o critério cobre e quando foi votado.
+            Sem isso o card era só "Valores Familiares +15 pts" sem sentido. */}
+        {rationale && (
+          <div className="mb-4 flex items-start gap-2.5 rounded-lg bg-secondary/40 p-3">
+            <Info className="h-4 w-4 shrink-0 text-muted-foreground mt-0.5" />
+            <div className="text-sm">
+              <p className="font-medium text-foreground mb-0.5">Por que esta pauta está neste critério?</p>
+              <p className="text-muted-foreground leading-relaxed">{rationale}</p>
+            </div>
+          </div>
+        )}
+        {(firstDate || lastDate) && (
+          <p className="mb-4 flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Calendar className="h-3.5 w-3.5" />
+            Votações entre {firstDate} e {lastDate}
+          </p>
+        )}
         {!hasVotes && (
           <p className="text-sm text-muted-foreground text-center py-4 italic">
             Votos ainda não registrados para esta pauta no banco de dados.

@@ -182,7 +182,7 @@ export function VotingAnalysis() {
 
       {/* Main Content */}
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="trends">Tendências</TabsTrigger>
           <TabsTrigger value="agendas">Pautas-Chave</TabsTrigger>
