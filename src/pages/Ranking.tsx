@@ -8,9 +8,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import PoliticianCard from '@/components/politicians/PoliticianCard';
 import { usePoliticians, usePoliticiansStats } from '@/hooks/usePoliticians';
-import { Search, Filter, TrendingUp, Users, Award, BookOpen, BarChart3, Loader2, Church } from 'lucide-react';
+import { Search, Filter, TrendingUp, Users, Award, BookOpen, BarChart3, Loader2, Church, SlidersHorizontal } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { APIPolitician } from '@/types/politician';
+import { Slider } from '@/components/ui/slider';
+import { CRITERIA } from '@/lib/criteria';
 
 const RankingPage = () => {
   const [searchParams] = useSearchParams();
@@ -21,6 +23,30 @@ const RankingPage = () => {
   // FPE ativa por padrão — o recorte do projeto É a Frente Parlamentar
   // Evangélica; o usuário leigo deve ver primeiro quem faz parte dela.
   const [fpeFilter, setFpeFilter] = useState(true);
+
+  // ── V1 (2026-08-22): pesos personalizados do usuário ──
+  // Ranking recalculado NO NAVEGADOR sobre os sub-scores que a API já
+  // devolve. Nota oficial e labels de desempenho seguem a metodologia
+  // pública; isto é uma lente pessoal, não uma segunda verdade.
+  const [weightsEnabled, setWeightsEnabled] = useState(false);
+  const [customWeights, setCustomWeights] = useState<Record<string, number> | null>(() => {
+    try {
+      const saved = localStorage.getItem('bancada-weights-v1');
+      return saved ? JSON.parse(saved) as Record<string, number> : null;
+    } catch {
+      return null;
+    }
+  });
+
+  useEffect(() => {
+    if (customWeights) {
+      try {
+        localStorage.setItem('bancada-weights-v1', JSON.stringify(customWeights));
+      } catch {
+        /* storage indisponível: segue funcionando só em memória */
+      }
+    }
+  }, [customWeights]);
 
   // Busca vinda da navbar (?search=) atualiza o campo
   useEffect(() => {
@@ -72,6 +98,38 @@ const RankingPage = () => {
 
     return { total, avgScore, excellentCount, deputadosCount };
   }, [politiciansData, statsData]);
+
+  // Pesos efetivos + ranking derivado quando o usuário personalizou
+  const DEFAULT_WEIGHTS: Record<string, number> = {
+    lifeProtection: 30,
+    familyValues: 25,
+    moralIntegrity: 20,
+    socialResponsibility: 15,
+    religiousFreedom: 10,
+  };
+  const effectiveWeights = customWeights ?? DEFAULT_WEIGHTS;
+  const weightTotal = Object.values(effectiveWeights).reduce((a, b) => a + b, 0);
+
+  const displayPoliticians = useMemo(() => {
+    if (!weightsEnabled || !weightTotal) return politicians;
+    return [...politicians]
+      .map((p) => {
+        let custom = 0;
+        for (const c of CRITERIA) {
+          const v = (p.scores as Record<string, number> | undefined)?.[c.field];
+          if (typeof v === 'number') custom += v * (effectiveWeights[c.field] / weightTotal);
+        }
+        return { ...p, overallScore: Math.round(custom * 10) / 10 };
+      })
+      .sort((a, b) => b.overallScore - a.overallScore);
+  }, [politicians, weightsEnabled, weightTotal, effectiveWeights]);
+
+  const restoreDefaults = () => {
+    setCustomWeights(null);
+    try {
+      localStorage.removeItem('bancada-weights-v1');
+    } catch {}
+  };
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -223,6 +281,72 @@ const RankingPage = () => {
         </div>
       </section>
 
+      {/* Pesos personalizados — V1 (2026-08-22) */}
+      <section className="py-6 bg-background border-b border-border">
+        <div className="container mx-auto px-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center justify-between">
+                <span className="flex items-center space-x-2">
+                  <SlidersHorizontal className="h-5 w-5" />
+                  <span>Seus pesos</span>
+                </span>
+                <div className="flex items-center gap-2 pr-1">
+                  <span className="text-sm font-normal text-muted-foreground">Personalizar</span>
+                  <Switch
+                    id="weights-toggle"
+                    checked={weightsEnabled}
+                    onCheckedChange={setWeightsEnabled}
+                  />
+                </div>
+              </CardTitle>
+            </CardHeader>
+            {weightsEnabled && (
+              <CardContent className="pt-0">
+                <p className="text-sm text-muted-foreground mb-6">
+                  Puxe os critérios que importam mais pra você — o ranking é
+                  recalculado no seu navegador. A nota oficial e os rótulos de
+                  desempenho continuam seguindo a metodologia pública.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-5">
+                  {CRITERIA.map((c) => (
+                    <div key={c.key}>
+                      <div className="flex items-center justify-between mb-2">
+                        <label htmlFor={`w-${c.field}`} className="text-sm font-medium flex items-center gap-2">
+                          <c.Icon className={`h-4 w-4 ${c.iconClass}`} />
+                          {c.label}
+                        </label>
+                        <span className="text-sm font-bold tabular-nums">
+                          {effectiveWeights[c.field]} pts ·{' '}
+                          {weightTotal ? Math.round((effectiveWeights[c.field] / weightTotal) * 100) : 0}%
+                        </span>
+                      </div>
+                      <Slider
+                        min={0}
+                        max={40}
+                        step={1}
+                        value={[effectiveWeights[c.field]]}
+                        onValueChange={(v) =>
+                          setCustomWeights({ ...effectiveWeights, [c.field]: v[0] ?? 0 })
+                        }
+                      />
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <Button variant="ghost" size="sm" onClick={restoreDefaults}>
+                    Restaurar padrão da metodologia
+                  </Button>
+                  <span className="text-xs text-muted-foreground">
+                    Padrão oficial: Vida 30 · Família 25 · Moral 20 · Social 15 · Religião 10
+                  </span>
+                </div>
+              </CardContent>
+            )}
+          </Card>
+        </div>
+      </section>
+
       {/* Results Section */}
       <section className="py-8">
         <div className="container mx-auto px-4">
@@ -231,7 +355,7 @@ const RankingPage = () => {
               Parlamentares Avaliados
             </h2>
             <div className="text-sm text-muted-foreground">
-              Mostrando {politicians.length} de {politiciansData?.total || 0} parlamentares
+              Mostrando {displayPoliticians.length} de {politiciansData?.total || 0} parlamentares
             </div>
           </div>
 
@@ -273,7 +397,7 @@ const RankingPage = () => {
             </Card>
           ) : (
             <div className="space-y-4">
-              {politicians.map((politician, index) => (
+              {displayPoliticians.map((politician, index) => (
                 <PoliticianCard
                   key={politician.id}
                   politician={politician}
