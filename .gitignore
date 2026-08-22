@@ -35,3 +35,6 @@ CLAUDE.md
 __pycache__/
 *.py[cod]
 *.pyo
+# Dados brutos do TSE — ~463MB, excede limite de 100MB/arquivo do GitHub
+# (ver data/tse/README.md para fontes oficiais de download)
+data/tse/*.zip
