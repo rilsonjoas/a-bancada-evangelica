@@ -294,7 +294,9 @@ humana · nota parcial explícita quando não há análise de gastos · proxy de
 fotos + card redesenhado (tondo, anel dourado, nota-herói) · sitemap.xml ·
 tabs 2×2 no mobile.
 
-### 🔄 Fase 3 — Dados e profundidade (código pronto 2026-08-21; execução em prod pendente do push)
+### ✅ Fase 3 — Dados e profundidade (EXECUTADA EM PRODUÇÃO — 2026-08-22)
+
+**Resultados reais medidos:** 31 → **83 pautas** monitoradas · 7.930 → **26.860 votos** individuais · títulos crus "Mantido o texto." de 6 para **1** (única pauta sem nenhuma referência de proposição na API da Câmara — resíduo aceito e documentado). Verificação tripla pós-recálculo: 0 políticos com coluna total_votes congelada, 0 consistência-fantasma, distribuição real min 0 / média 15 / max 23 votações por ativo.
 
 1. [x] **`sync-votes.ts` enriquecido** — agora busca detalhe+proposição de TODA votação casada e compõe título `SIGLA numero/ano — ementa` + descrição com contexto. **Idempotente:** no re-run atualiza agendas antigas que têm título cru ("Mantido o texto.") — corrige o banco existente sem SQL manual. Custo: ~2 requests a mais por pauta casada (~31), trivial.
 2. [x] **Liberdade Religiosa**: `SCAN_RULES` ampliadas ("liberdade de culto", "símbolo religioso", "perseguição religiosa", "assistência espiritual", "folga religiosa"). UI: critério sem pauta exibe "sem votações nominais identificadas no Plenário" em vez de 0 nu. **A verificação real acontece no re-run em prod** — se ainda der 0, o rótulo honesto fica.
@@ -354,6 +356,16 @@ dado verdadeiro (proporção de votos com posição definida), não bug.
 - [x] **Termos de Uso** (`/termos`) — disclaimers de watchdog: independência (sem partido/igreja/campanha), notas como cálculo automatizado reproduzível sobre registros públicos (não verdade absoluta), direito de resposta com SLA de 15 dias, uso dos dados com atribuição, limitação de responsabilidade.
 - [x] **Links no rodapé + rotas + sitemap** atualizados.
 - [x] **Analytics — decisão registrada: Umami auto-hospedado, modo cookieless**; GA4 descartado (banner LGPD obrigatório por cookies de rastreamento, ~30-40% de perda por adblock, tensão com a posição de privacidade da marca). Hook `src/components/Analytics.tsx` DORMENTE: só carrega com `VITE_UMAMI_SRC`+`VITE_UMAMI_ID` definidos no build (zero custo até ativação). Ativação = subir container Umami + apontar DNS + definir variáveis no Vercel.
+
+### 📊 Umami implantado (2026-08-22)
+
+- Container `umami` na VPS (`~/hetzner-infra/umami/`, compose espelhado no repo local hetzner-infra), Postgres compartilhado (db `umami_db`, owner `umami`, senha gerada — só no `.env` da VPS, chmod 600)
+- DNS: registro A `umami.narniano.com` → 167.233.254.53 adicionado pelo Rilson no painel Nuvem Hospedagem; certificado Let's Encrypt emitido pelo Traefik no primeiro acesso
+- Site registrado: "A Bancada Evangélica" / `website_id 2d26f077-fe38-4a94-8a07-b31b484e9f91`
+- Tracker público verificado: `https://umami.narniano.com/script.js` HTTP 200
+- **PENDENTE DO RILSON:** renomear as variáveis na Vercel de volta pra `VITE_UMAMI_SRC`/`VITE_UMAMI_ID` (estão como `UMAMI_SRC`/`UMAMI_ID`) + Redeploy. O aviso da Vercel sobre exposição ao browser é genérico: ID de analytics é identificador PÚBLICO por natureza (aparece no HTML de todo site que usa analytics — GA4 igual). Segredo de verdade (DATABASE_URL etc.) não tem prefixo VITE_ e vive só na VPS.
+- **Primeiro login no Umami** (`https://umami.narniano.com/login`, usuário `admin`, senha `umami`): TROCAR A SENHA imediatamente — credencial default pública.
+- Polish futuro: títulos idênticos quando várias votações da mesma matéria (ex.: 3 destaques do PL 3469/2024) — diferenciar com o resultado específico da votação no título.
 
 ### 🧭 Fase 4 — Marca e polimento
 1. Missão revisitada com lente watchdog (home explica método antes do ranking?)
