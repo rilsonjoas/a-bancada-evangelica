@@ -364,7 +364,7 @@ dado verdadeiro (proporção de votos com posição definida), não bug.
 - Site registrado: "A Bancada Evangélica" / `website_id 2d26f077-fe38-4a94-8a07-b31b484e9f91`
 - Tracker público verificado: `https://umami.narniano.com/script.js` HTTP 200
 - **PENDENTE DO RILSON:** renomear as variáveis na Vercel de volta pra `VITE_UMAMI_SRC`/`VITE_UMAMI_ID` (estão como `UMAMI_SRC`/`UMAMI_ID`) + Redeploy. O aviso da Vercel sobre exposição ao browser é genérico: ID de analytics é identificador PÚBLICO por natureza (aparece no HTML de todo site que usa analytics — GA4 igual). Segredo de verdade (DATABASE_URL etc.) não tem prefixo VITE_ e vive só na VPS.
-- **Primeiro login no Umami** (`https://umami.narniano.com/login`, usuário `admin`, senha `umami`): TROCAR A SENHA imediatamente — credencial default pública.
+- [x] **Senha default do Umami trocada pelo Rilson (2026-08-22)** — credencial `admin`/`umami` desativada; acesso agora restrito à senha pessoal. Pendência de segurança encerrada.
 - Polish futuro: títulos idênticos quando várias votações da mesma matéria (ex.: 3 destaques do PL 3469/2024) — diferenciar com o resultado específico da votação no título.
 
 ### 🧭 Fase 4 — Marca e polimento
