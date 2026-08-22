@@ -54,7 +54,8 @@ const Header = () => {
           {/* Brand */}
           <Link to="/" className="flex shrink-0 items-center gap-2.5 group">
             <div className="bg-gradient-primary p-1.5 rounded-lg shadow-card group-hover:shadow-elevated transition-shadow">
-              <BookOpen className="h-5 w-5 text-primary-foreground" />
+              {/* Marca unificada (2026-08-22): favicon.svg branco em vez do ícone lucide genérico */}
+              <img src="/marca-white.png" alt="" aria-hidden="true" className="h-5 w-5" />
             </div>
             <div className="hidden sm:block leading-tight">
               <p className="font-serif text-base font-bold text-foreground leading-none">A Bancada Evangélica</p>

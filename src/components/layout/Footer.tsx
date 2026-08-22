@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { BookOpen, Mail, Github, ExternalLink } from 'lucide-react';
+import { Mail, Github, ExternalLink } from 'lucide-react';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -12,7 +12,7 @@ const Footer = () => {
           <div className="md:col-span-2">
             <div className="flex items-center space-x-3 mb-4">
               <div className="bg-gradient-primary p-2 rounded-lg shadow-card">
-                <BookOpen className="h-5 w-5 text-primary-foreground" />
+                <img src="/marca-white.png" alt="" aria-hidden="true" className="h-5 w-5" />
               </div>
               <div>
                 <h3 className="font-serif text-lg font-bold text-foreground">

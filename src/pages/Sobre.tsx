@@ -22,7 +22,7 @@ const SobrePage = () => {
           <div className="max-w-3xl mx-auto text-center">
             <div className="flex justify-center mb-6">
               <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-sm">
-                <BookOpen className="h-12 w-12 text-white" />
+                <img src="/marca-white.png" alt="" aria-hidden="true" className="h-12 w-12" />
               </div>
             </div>
             <h1 className="font-serif text-4xl md:text-5xl font-bold mb-4 text-white">
