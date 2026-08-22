@@ -105,12 +105,18 @@ function appliedScore(vt: VoteType, rule: ScanRule): number {
 
 interface CamaraVoto { tipoVoto: string; deputado_: { id: number; nome?: string } }
 interface CamaraVotacaoBrief { id: string; data: string; descricao?: string; proposicaoObjeto?: string }
+interface CamaraProposicaoAfetada { id: number; uri: string; siglaTipo: string; numero?: number; ano?: number }
 interface CamaraVotacaoDetail {
   id: string; data: string; descricao?: string; siglaOrgao?: string;
   ultimaApresentacaoProposicao?: {
     descricao?: string;
     uriProposicaoCitada?: string;
   };
+  /** Proposições às quais esta votação se refere — a cadeia que salva os
+   * títulos quando a apresentação é um parecer procedural (achado real
+   * 2026-08-22: PPP tem uriPropPrincipal=null e ano=0, mas a votação
+   * aponta direto pro PL real aqui). */
+  proposicoesAfetadas?: CamaraProposicaoAfetada[];
 }
 interface CamaraProposicao { ementa?: string; keywords?: string; ano?: number; numero?: number; siglaTipo?: string }
 
@@ -137,6 +143,27 @@ async function getProposicaoInfo(votacaoDetail: CamaraVotacaoDetail): Promise<Pr
       prop = fetched.dados;
       parts.push(prop.ementa ?? '');
       parts.push(prop.keywords ?? '');
+    }
+    await sleep(200);
+  }
+
+  // Cadeia de fallback: pareceres procedurais (PPP/RPD etc.) vêm com
+  // ano=0 e ementa procedural ("Leitura realizada em Plenário…") — não
+  // servem de título. Quando a proposição citada for desse tipo, segue
+  // por proposicoesAfetadas até achar matéria substantiva (PL/PLP/PEC/
+  // MPV/PDC/SDC), que é o projeto de verdade por trás do parecer.
+  const isProcedural = (p: CamaraProposicao | null) =>
+    !p?.ementa || !p.ano || /^(PPP|REQ|RPD|RDT|REC)$/i.test(p.siglaTipo ?? '');
+  if (isProcedural(prop) && votacaoDetail.proposicoesAfetadas?.length) {
+    const alvo =
+      votacaoDetail.proposicoesAfetadas.find(p => /^(PL|PLP|PEC|MPV|PDC|SDC)/i.test(p.siglaTipo)) ??
+      votacaoDetail.proposicoesAfetadas[0];
+    if (alvo?.uri) {
+      const fetched = await fetchJson<{ dados: CamaraProposicao }>(alvo.uri);
+      if (fetched?.dados?.ementa && !isProcedural(fetched.dados)) {
+        prop = fetched.dados;
+        parts.push(prop.ementa ?? '', prop.keywords ?? '');
+      }
     }
     await sleep(200);
   }

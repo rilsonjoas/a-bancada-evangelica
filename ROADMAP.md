@@ -348,6 +348,13 @@ Resultado esperado pós re-run em prod: ~509 ativos com contagem real de
 votações; ~5 sem votos nenhum exibindo "—"; consistência alta passa a ser
 dado verdadeiro (proporção de votos com posição definida), não bug.
 
+### ⚖️ Legal e métricas (2026-08-22)
+
+- [x] **Política de Privacidade** (`/privacidade`) — LGPD em linguagem simples: dados de parlamentares vêm de fontes públicas oficiais com finalidade de controle social/jornalismo de dados; formulário de contato (nome/e-mail/mensagem) com base legal, retenção e canal do titular (art. 18); **sem cookies de rastreamento => sem banner de consentimento** (declaração explícita na seção 3).
+- [x] **Termos de Uso** (`/termos`) — disclaimers de watchdog: independência (sem partido/igreja/campanha), notas como cálculo automatizado reproduzível sobre registros públicos (não verdade absoluta), direito de resposta com SLA de 15 dias, uso dos dados com atribuição, limitação de responsabilidade.
+- [x] **Links no rodapé + rotas + sitemap** atualizados.
+- [x] **Analytics — decisão registrada: Umami auto-hospedado, modo cookieless**; GA4 descartado (banner LGPD obrigatório por cookies de rastreamento, ~30-40% de perda por adblock, tensão com a posição de privacidade da marca). Hook `src/components/Analytics.tsx` DORMENTE: só carrega com `VITE_UMAMI_SRC`+`VITE_UMAMI_ID` definidos no build (zero custo até ativação). Ativação = subir container Umami + apontar DNS + definir variáveis no Vercel.
+
 ### 🧭 Fase 4 — Marca e polimento
 1. Missão revisitada com lente watchdog (home explica método antes do ranking?)
 2. Ícone/logo unificado (hoje convivem favicon livro preto, Logo.png azul e BookOpen lucide)

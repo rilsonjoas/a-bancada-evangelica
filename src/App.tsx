@@ -17,6 +17,9 @@ import { PoliticianComparison } from "./pages/PoliticianComparison";
 import VotingClusters from "./pages/VotingClusters";
 import { VotingAnalysis } from "./pages/VotingAnalysis";
 import NotFound from "./pages/NotFound";
+import Privacidade from "./pages/Privacidade";
+import Termos from "./pages/Termos";
+import { Analytics } from "@/components/Analytics";
 
 /** Rola pro topo a cada navegação — sem isso o SPA mantém a altura da
  * página anterior e o usuário "cai" no meio da página seguinte. */
@@ -33,6 +36,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <Analytics />
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <ScrollToTop />
         <div className="min-h-screen flex flex-col">
@@ -48,6 +52,8 @@ const App = () => (
               <Route path="/sobre" element={<SobrePage />} />
               <Route path="/metodologia" element={<MetodologiaPage />} />
               <Route path="/contato" element={<ContatoPage />} />
+              <Route path="/privacidade" element={<Privacidade />} />
+              <Route path="/termos" element={<Termos />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
