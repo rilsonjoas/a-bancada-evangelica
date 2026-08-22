@@ -229,3 +229,47 @@ conta local não tem (achado real: `meus-remedios/README.md`, seção
 "Decisão: Google OAuth + conta local"); (3) App Store exige "Entrar
 com Apple" se você oferece "Entrar com Google" (Guideline 4.8) — "só
 Google" não é viável em iOS de qualquer forma.
+
+---
+
+## Backlog de Produto — Issues e Bugs (levantamento 2026-08-21)
+
+> Levantamento feito pelo Rilson ao usar o produto de verdade.
+> Organizado por gravidade. Fonte da verdade aqui — não duplicar em issues do GitHub sem referência cruzada.
+
+### 🔴 Crítico — dados errados/inconsistentes (credibilidade do produto)
+
+- [ ] **Score de Consistência com 0 votações** — tem deputado com "Total de Votações: 0" e "Score de Consistência: 100%". Matematicamente impossível e destrói a credibilidade. Investigar cálculo: se é 100%, porque a nota é 92? Corrigir ou ocultar consistência quando votações = 0.
+- [ ] **Todos os deputados com 100% consistência na página inicial** — isso é bug de cálculo ou de exibição. Verificar se `syncWorker` está calculando scores reais ou se há fallback de 100%.
+- [ ] **Número de pautas/votações monitoradas inconsistente entre páginas** — checar se o número exibido na home, em Votações e em Sobre bate. Se não bate, há bug de query ou de dado desatualizado em cache.
+- [ ] **"Liberdade Religiosa aparece com 0 em pautas monitoradas"** — verificar se o critério existe com esse nome exato no banco, se há votações vinculadas a ele, e se o JOIN está correto.
+- [ ] **Congressista sem dado nenhum de gastos mas com nota 77** — explicar de onde vem a nota se não há dado. O score deve refletir o que foi calculado ou deixar claro que é parcial.
+- [ ] **86.3 Média Geral vs. 65.8% Pontuação Média** — duas métricas que deveriam se explicar mutuamente mas parecem desconexas. Definir claramente o que cada uma significa e garantir que estejam no mesmo contexto visual (mesma unidade, mesma escala).
+- [ ] **"LOW" em inglês** — "Nível de Risco: LOW" deve ser "Nível de Risco: BAIXO". Auditar todo o código para strings hardcoded em inglês.
+- [ ] **Frequência de atualização falsa** — texto no site diz "trimestralmente ou quando há votações importantes". Isso é mentira. Corrigir para a frequência real do `syncWorker` (diária para políticos/scores, domingo para gastos) ou ser honesto sobre o intervalo real.
+
+### 🟠 Grave — funcionalidades quebradas
+
+- [ ] **Páginas não carregam no topo** — ao clicar em links internos, a página nova abre na mesma posição de scroll. Adicionar `ScrollRestoration` (react-router v7) ou `useEffect(() => window.scrollTo(0,0), [pathname])`.
+- [ ] **Filtros de análise na página de Votações não funcionam** — verificar handlers dos dropdowns/selects.
+- [ ] **Botão de busca na navbar não funciona** — implementar ou remover.
+- [ ] **Card de compartilhamento não carrega fotos dos congressistas** — `html2canvas` não consegue renderizar imagens cross-origin. Precisa de proxy ou pré-carregar as fotos como base64.
+- [ ] **Hambúrguer menu não funciona bem no mobile** — toda a responsividade está ruim. Fazer auditoria completa em viewport mobile (375px, 390px, 430px).
+- [ ] **Botões "Fazer uma pergunta", "Compartilhar projeto" e "Contribuir no GitHub" não fazem nada** — implementar ações reais (mailto:, Web Share API, link real do GitHub).
+- [ ] **Dropdown com animação exagerada na página de Votações** — reduzir ou remover `transition`/`animation` no componente de select/dropdown.
+- [ ] **Página de Votações não explica o que foi votado** — cada votação deve ter: (1) título da matéria, (2) ementa resumida, (3) por que se alinha ou não ao critério. Hoje mostra só "Valores Familiares +15 pts SIM" sem contexto.
+- [ ] **Página "Sobre" ainda menciona Railway** — reescrever seção técnica com VPS Hetzner real.
+
+### 🟡 Melhoria — UX e produto
+
+- [ ] **TSE: zips de prestação de contas (2022) — 451MB, não cabe no GitHub** — mover para armazenamento local (`data/tse/` fora do repo, no `.gitignore`), processar com script, commitar só os resultados processados (CSV/JSON limpos).
+- [ ] **Filtro "Apenas FPE" na home deve estar ativo por padrão** — usuários não sabem o que é "FPE". Renomear para "Apenas Frente Parlamentar Evangélica" e ativar por padrão.
+- [ ] **Página de Grupos de Votação precisa de contexto para leigos** — adicionar explicação antes da tabela: o que é um grupo de votação, por que importa, como interpretar os dados.
+- [ ] **Card de compartilhamento — design para incentivar o próprio deputado a compartilhar** — layout mais limpo, foto em destaque, nota e critérios legíveis em 1 linha. O card deve ser o maior trunfo viral do produto.
+- [ ] **Horário de Atendimento na página de Contato deve ser removido** — não faz sentido para um produto digital sem equipe de suporte com horário.
+- [ ] **Card de tipos de contato na página de Contato não faz sentido** — remover.
+- [ ] **Missão do site revisitar** — o site está fiel à missão de watchdog de transparência parlamentar? Revisar textos da home e do Sobre com essa lente.
+- [ ] **Ícone do projeto** — conversa com a proposta (transparência parlamentar evangélica)? Avaliar com o Design Narniano como referência.
+- [ ] **Acessibilidade** — 12 de 64 componentes têm `aria-label` (~19%). Auditoria completa de contraste, foco, navegação por teclado.
+- [ ] **`sitemap.xml` não existe** — gerar sitemap estático (poucas rotas, é rápido).
+- [ ] **Swagger/OpenAPI no NestJS** — verificar se `@nestjs/swagger` está configurado; se não, adicionar (mesmo padrão do SIC).
