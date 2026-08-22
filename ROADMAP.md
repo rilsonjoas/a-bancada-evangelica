@@ -78,7 +78,10 @@ segurança real que não existia nos outros dois.
       painel visual). Este item estava marcado como pendente/não
       confirmado antes — checagem cruzada mostrou que já estava resolvido.
 - [ ] Sem Sentry — sem visibilidade de erro em runtime (front Vercel + API)
-- [ ] Rotação de log não auditada (categoria nova, do SHIELD-I)
+- [x] **Rotação de log — AUDITADA (2026-08-22)**. API e worker rodam em
+      Docker com driver `json-file` limitado (`max-size: 10m`, `max-file: 3`)
+      direto no compose do hetzner-infra — NestJS loga em stdout, rotação é
+      responsabilidade do driver, já coberta. Nada a fazer em app-level.
 
 ## P6 — Backups & Recuperação
 
@@ -156,10 +159,10 @@ Conferido issue por issue contra o código, não só pelo título:
       estando no VPS desde 02/08. P1 já dizia "atualizado" antes, mas
       não estava — reescrito de verdade agora, com o fluxo real
       (GitHub Actions → SSH → git pull → make deploy → smoke test).
-- [ ] API NestJS: confirmar se já tem Swagger/OpenAPI configurado (o
-      NestJS tem suporte de primeira classe pra isso,
-      `@nestjs/swagger`) — se não tiver, é o mesmo padrão do SIC
-      (Swagger+Scalar) que vale replicar
+- [x] **Swagger/OpenAPI — CONFIRMADO (2026-08-22)**. `@nestjs/swagger`
+      v11 configurado no `src/api/main.ts` (`DocumentBuilder` +
+      `SwaggerModule.setup('api/docs')`). UI disponível em `/api/docs`.
+      Item era falta de auditoria, não falta de feature.
 
 ---
 
@@ -284,7 +287,7 @@ Google" não é viável em iOS de qualquer forma.
 - [x] **Botões "Fazer uma pergunta", "Compartilhar projeto" e "Contribuir no GitHub" não fazem nada — RESOLVIDO (2026-08-21)**. Pergunta → `mailto:abancada@narniano.com` com subject preenchido; Compartilhar → Web Share API com fallback de clipboard + toast; GitHub → link real `rilsonjoas/a-bancada-evangelica` (que aliás era o correto — o texto de contato na página mostrava um org inexistente).
 - [x] **Dropdown com animação exagerada — RESOLVIDO (2026-08-21)**. `select.tsx`: removidos zoom-95 e slide-in; restou fade 150ms. Global (afeta todos os selects do site, incluindo os 3 lado a lado em Votações).
 - [x] **Página de Votações não explica o que foi votado — RESOLVIDO na UI (2026-08-21)**. Cada pauta agora exibe o bloco **"Por que este critério?"** com o rationale em linguagem de eleitor (`criteria.tsx` ganhou campo `rationale` nos 5 critérios, renderizado no `KeyAgendaCard`) + período real das votações (datas min/max da API). O que FALTA é dado, não UI: títulos/descrições ainda vêm crus da Câmara ("Mantido o texto.") — enriquecer `sync-votes.ts` buscando a ementa do projeto vinculado (`/proposicoes`). Pendência de sync, próxima rodada.
-- [x] **Página "Sobre" ainda menciona Railway — RESOLVIDO (2026-08-21)**. Cards técnicos reescritos com a realidade: NestJS 11 (dizia "Express 5" — outro erro factual), PostgreSQL na VPS (dizia Neon), Docker + Traefik no Hetzner. Os arquivos `railway.toml` (raiz e analysis/) seguem no repo como histórico morto — remover em commit de limpeza.
+- [x] **Página "Sobre" ainda menciona Railway — RESOLVIDO (2026-08-21)**. Cards técnicos reescritos com a realidade: NestJS 11 (dizia "Express 5" — outro erro factual), PostgreSQL na VPS (dizia Neon), Docker + Traefik no Hetzner. Os arquivos `railway.toml` (raiz e analysis/) foram REMOVIDOS no commit de limpeza de 2026-08-22.
 
 ### 🟡 Melhoria — UX e produto
 
@@ -398,7 +401,7 @@ dado verdadeiro (proporção de votos com posição definida), não bug.
 1. Missão revisitada com lente watchdog (home explica método antes do ranking?)
 2. Ícone/logo unificado (hoje convivem favicon livro preto, Logo.png azul e BookOpen lucide)
 3. Auditoria acessibilidade + responsividade fina (375/390/430px) nas páginas de dados
-4. Remover `railway.toml` mortos (raiz e analysis/)
+4. ~~Remover `railway.toml` mortos~~ — REMOVIDOS (2026-08-22, commit de limpeza)
 5. Card viral v2 — versão "compartilhável com orgulho" para notas altas
 
 ### 🚢 Ritual de deploy deste projeto (diferente do Gerador!)
