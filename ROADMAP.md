@@ -300,13 +300,14 @@ tabs 2×2 no mobile.
 
 1. [x] **`sync-votes.ts` enriquecido** — agora busca detalhe+proposição de TODA votação casada e compõe título `SIGLA numero/ano — ementa` + descrição com contexto. **Idempotente:** no re-run atualiza agendas antigas que têm título cru ("Mantido o texto.") — corrige o banco existente sem SQL manual. Custo: ~2 requests a mais por pauta casada (~31), trivial.
 2. [x] **Liberdade Religiosa**: `SCAN_RULES` ampliadas ("liberdade de culto", "símbolo religioso", "perseguição religiosa", "assistência espiritual", "folga religiosa"). UI: critério sem pauta exibe "sem votações nominais identificadas no Plenário" em vez de 0 nu. **A verificação real acontece no re-run em prod** — se ainda der 0, o rótulo honesto fica.
-3. [ ] **Rodar scripts em produção após push** (ordem importa):
-   ```
-   ssh narniano@100.67.163.103
-   docker exec bancada-worker node_modules/.bin/tsx scripts/sync-votes.ts      # 1. enriquece pautas + novas keywords
-   docker exec bancada-worker node_modules/.bin/tsx scripts/recalculate-scores.ts  # 2. recalcula notas (limpa consistência congelada)
-   ```
-   Verificar depois: `/api/votes/analysis` (agendaByCriteria) e um perfil que tinha consistência 100% com 0 votos.
+3. [x] **Rodar scripts em produção após push** — feito, e **verificado ao
+   vivo de novo em 2026-08-22** (a checkbox tinha ficado destravada por
+   esquecimento, não porque não rodou): `/api/votes/analysis` retorna
+   `totalAgendas: 83` e `totalVotes: 26860` — bate exato com os
+   "resultados reais medidos" acima. Perfil do Político 9 (o exemplo
+   citado no achado): `totalVotes: 14`, não mais "0 com 100%
+   consistência". `README.md` também tinha ficado com o número antigo
+   (7.930/31) — corrigido pros números reais atuais.
 4. [x] **Metodologia: party seed explicado** — bloco "Como a nota é calculada — transparência total": base partidária + delta por voto nominal + penalidade de gastos; estimativa parcial sinalizada; fórmula final apontando pro motor open source.
 5. [ ] Interpretação por grupo na página de Clusters — aguardando serviço Python ativo em produção (a página hoje mostra estado de erro gracioso com fallback de alinhamento por partido).
 
@@ -381,3 +382,35 @@ dado verdadeiro (proporção de votos com posição definida), não bug.
   smoke test em `/health` com retry 10x
 - Ou seja: **push = deploy dos dois lados**, com smoke test embutido.
   Conferir Action verde + `/health` + frontend após cada push.
+
+---
+
+## Distribuição e Impacto (2026-08-22)
+
+> Projeto cívico: decisão permanente de não monetizar (sem ads/afiliado;
+> doação como porta aberta). Aqui sucesso = alcance e confiança, não receita.
+
+### Janela eleitoral (até out/2026)
+
+- Mesma janela do Teste Político: pico de interesse nas semanas antes do 1º turno (4/out)
+- Diferencial: dados TSE/Câmara/Senado verificáveis — formato "como seu deputado votou"
+
+### Formato viral já construído: ShareableCard
+
+- Cards "você sabia como Fulano votou?" são conteúdo printável de WhatsApp/X
+- Produzir cards por tema pauta — liberdade religiosa (fase 3, já no ar) é o tema âncora do nicho
+
+### Canais (com guardrail de neutralidade)
+
+1. Mídia evangélica de notícias e podcasts fé & política — pitch "dados, não opinião" (credibilidade watchdog)
+2. Líderes/pastores com audiência — oferecer dados e método, nunca endosso partidário
+3. X/Twitter político BR — gráficos de votação por partido/estado (a API `/api/politicians` já agrega byState/byParty)
+
+### Guardrails
+
+- Sem candidatos/partidos específicos na divulgação (risco TSE, mesma regra do Teste Político)
+- Neutralidade percebida É o produto — qualquer push tendencioso mata o projeto inteiro
+
+### Métricas (Umami já instalado)
+
+- Visitas por card compartilhado, retorno de jornalistas/comunidades, menções espontâneas

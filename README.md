@@ -97,7 +97,7 @@ A API segue o padrão de **módulos NestJS com injeção de dependência** — c
 | **Filtro FPE** | Toggle "Apenas FPE" — 209 membros identificados via API da Câmara |
 | **Perfil individual** | Score por critério, histórico de votações, análise de gastos, mandatos |
 | **Comparação** | Compare até 4 parlamentares lado a lado em todos os critérios |
-| **Análise de Votações** | 7.930 votos, 31 pautas monitoradas, ranking de alinhamento |
+| **Análise de Votações** | 26.860 votos, 83 pautas monitoradas, ranking de alinhamento |
 | **Alinhamento por partido** | Score médio por partido com segmentação por nível |
 | **Metodologia** | Página completa explicando pesos, critérios e fontes de dados |
 | **API REST** | 10 endpoints com documentação Swagger em `/api/docs` |
@@ -129,8 +129,8 @@ A API segue o padrão de **módulos NestJS com injeção de dependência** — c
 ```
 Parlamentares ativos:   514
 Com scores calculados:  514 (100%)
-Votos monitorados:      7.930
-Pautas-chave:           31
+Votos monitorados:      26.860
+Pautas-chave:           83
 Membros da FPE:         209 / 514 (40,6%)
 
 Distribuição de performance:
