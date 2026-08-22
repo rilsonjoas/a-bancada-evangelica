@@ -123,11 +123,15 @@ async function recalculate() {
 
     const perf = performanceLabel(overall);
 
-    // Consistência: mantém a do partido se sem votos; recalcula se tem votos
+    // Consistência: recalcula se tem votos; ZERADO se não tem.
+    // Achado real (2026-08-22): o fallback antigo preservava
+    // `existing?.consistency_score` — lixo congelado da fórmula quebrada do
+    // sync-worker antigo (100% pra quem nunca votou) voltava a cada recálculo.
+    // Sem votos NÃO existe consistência medida: grava 0; a UI exibe "—".
     const totalVotes = politician.votes.length;
     const consistency = totalVotes > 0
       ? politician.votes.filter(v => v.applied_score !== 0).length / totalVotes
-      : (existing?.consistency_score ?? 0.50);
+      : 0;
 
     if (politician.votes.length > 0) hybridUpdated++;
 
