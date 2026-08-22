@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Filter, Calendar, TrendingUp, TrendingDown, Users, Vote, Search } from 'lucide-react';
+import { ArrowLeft, Calendar, TrendingUp, TrendingDown, Users, Vote, Search } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -17,7 +16,6 @@ export function VotingAnalysis() {
   const [filters, setFilters] = useState({
     criteria: '',
     dateRange: '',
-    voteType: '',
     search: ''
   });
 
@@ -25,27 +23,33 @@ export function VotingAnalysis() {
     data: analysisData,
     isLoading,
     error
-  } = useVotingAnalysisData(filters);
+  } = useVotingAnalysisData({});
 
-  const getVoteTypeIcon = (voteType: string) => {
-    switch (voteType) {
-      case 'YES': return <TrendingUp className="w-4 h-4 text-green-600" />;
-      case 'NO': return <TrendingDown className="w-4 h-4 text-red-600" />;
-      case 'ABSTENTION': return <Vote className="w-4 h-4 text-yellow-600" />;
-      default: return <Users className="w-4 h-4 text-gray-600" />;
-    }
-  };
+  // Filtros aplicados no cliente sobre a lista de pautas — o payload é
+  // pequeno (~30 pautas) e agora cada pauta carrega firstVoteDate/
+  // lastVoteDate da API. Antes os filtros eram enviados à API, que
+  // IGNORAVA tudo (controller sem params) — filtro decorativo.
+  const filteredAgendas = useMemo(() => {
+    if (!analysisData?.keyAgendas) return [];
+    return analysisData.keyAgendas.filter(a => {
+      if (filters.criteria && a.criteria !== filters.criteria) return false;
+      if (
+        filters.search &&
+        !`${a.title} ${a.description}`.toLowerCase().includes(filters.search.toLowerCase())
+      ) return false;
+      if (filters.dateRange && a.lastVoteDate) {
+        const last = new Date(a.lastVoteDate);
+        const now = new Date();
+        if (filters.dateRange === '30d' && (now.getTime() - last.getTime()) > 30 * 864e5) return false;
+        if (filters.dateRange === '90d' && (now.getTime() - last.getTime()) > 90 * 864e5) return false;
+        if (filters.dateRange === '1y' && (now.getTime() - last.getTime()) > 365 * 864e5) return false;
+        if (/^\d{4}$/.test(filters.dateRange) && String(last.getFullYear()) !== filters.dateRange) return false;
+      }
+      return true;
+    });
+  }, [analysisData, filters]);
 
-  const getVoteTypeLabel = (voteType: string) => {
-    switch (voteType) {
-      case 'YES': return 'Favorável';
-      case 'NO': return 'Contrário';
-      case 'ABSTENTION': return 'Abstenção';
-      case 'ABSENT': return 'Ausente';
-      case 'OBSTRUCTION': return 'Obstrução';
-      default: return 'Não definido';
-    }
-  };
+  const hasActiveFilters = Boolean(filters.criteria || filters.dateRange || filters.search);
 
   const updateFilter = (key: string, value: string) => {
     // Radix Select não aceita value="", usamos "all" como sentinel e convertemos para ""
@@ -104,11 +108,6 @@ export function VotingAnalysis() {
               Explore os padrões de votação dos parlamentares em pautas-chave
             </p>
           </div>
-          
-          <Button variant="outline">
-            <Filter className="w-4 h-4 mr-2" />
-            Filtros Avançados
-          </Button>
         </div>
       </div>
 
@@ -121,7 +120,7 @@ export function VotingAnalysis() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid md:grid-cols-4 gap-4">
+          <div className="grid md:grid-cols-3 gap-4">
             <div>
               <label className="text-sm font-medium mb-2 block">Buscar pauta</label>
               <Input
@@ -162,28 +161,22 @@ export function VotingAnalysis() {
                   <SelectItem value="30d">Últimos 30 dias</SelectItem>
                   <SelectItem value="90d">Últimos 3 meses</SelectItem>
                   <SelectItem value="1y">Último ano</SelectItem>
-                  <SelectItem value="2024">2024</SelectItem>
-                  <SelectItem value="2023">2023</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <label className="text-sm font-medium mb-2 block">Tipo de voto</label>
-              <Select value={selectValue(filters.voteType)} onValueChange={(value) => updateFilter('voteType', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Todos os votos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os votos</SelectItem>
-                  <SelectItem value="YES">Favorável</SelectItem>
-                  <SelectItem value="NO">Contrário</SelectItem>
-                  <SelectItem value="ABSTENTION">Abstenção</SelectItem>
-                  <SelectItem value="ABSENT">Ausente</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
+
+          {hasActiveFilters && (
+            <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
+              <p className="text-sm text-muted-foreground">
+                {filteredAgendas.length} de {analysisData?.keyAgendas?.length ?? 0} pautas correspondem aos filtros
+                <span className="hidden md:inline"> (afetam a lista em "Pautas-Chave")</span>
+              </p>
+              <Button variant="ghost" size="sm" onClick={() => setFilters({ criteria: '', dateRange: '', search: '' })}>
+                Limpar filtros
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -219,9 +212,9 @@ export function VotingAnalysis() {
               icon={<Calendar className="w-6 h-6" />}
             />
             <VotingStatsCard
-              title="Pontuação Média"
-              value={`${analysisData?.averageScore?.toFixed(1) ?? '—'}%`}
-              subtitle="Score geral dos parlamentares"
+              title="Nota Média"
+              value={`${analysisData?.averageScore?.toFixed(1) ?? '—'}`}
+              subtitle="Média global dos parlamentares ativos (0-100)"
               icon={<TrendingUp className="w-6 h-6" />}
             />
           </div>
@@ -311,12 +304,18 @@ export function VotingAnalysis() {
         {/* Key Agendas Tab */}
         <TabsContent value="agendas" className="space-y-6">
           <div className="grid gap-6">
-            {analysisData?.keyAgendas?.map((agenda: { id: string; [key: string]: unknown }) => (
-              <KeyAgendaCard key={agenda.id} agenda={agenda} />
-            )) || (
+            {filteredAgendas.length > 0 ? (
+              filteredAgendas.map((agenda) => (
+                <KeyAgendaCard key={agenda.id} agenda={agenda} />
+              ))
+            ) : (
               <div className="text-center py-8 text-gray-500">
                 <Vote className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                <p>Nenhuma pauta encontrada com os filtros selecionados</p>
+                <p>
+                  {hasActiveFilters
+                    ? 'Nenhuma pauta encontrada com os filtros selecionados'
+                    : 'Nenhuma pauta com votações registradas no momento'}
+                </p>
               </div>
             )}
           </div>

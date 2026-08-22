@@ -3,8 +3,17 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Target, Eye, Shield, Database, Code2, Brain, Github, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { usePoliticiansStats } from '@/hooks/usePoliticians';
+import { useVotingAnalysisData } from '@/hooks/useVotingAnalysisData';
 
 const SobrePage = () => {
+  // Números vivos da API — antes eram hardcode ("1.679+", "5") que já
+  // divergia do README e da página de Votações. Mesma fonte pra todo o site.
+  const { data: statsData } = usePoliticiansStats();
+  const { data: votingData } = useVotingAnalysisData({});
+
+  const fmt = (n: number | undefined) => (n ?? 0).toLocaleString('pt-BR');
+
   return (
     <div className="min-h-screen bg-gradient-subtle">
       {/* Hero */}
@@ -123,9 +132,9 @@ const SobrePage = () => {
               <CardContent>
                 <div className="space-y-3">
                   {[
-                    { label: 'Deputados com scores', value: '514', note: 'Câmara, 57ª legislatura' },
-                    { label: 'Votos reais registrados', value: '1.679+', note: 'De 5 pautas do Plenário' },
-                    { label: 'Pautas monitoradas', value: '5', note: 'PLEN com votos individuais' },
+                    { label: 'Parlamentares com scores', value: fmt(statsData?.totalPoliticians), note: 'Câmara e Senado, mandatos ativos' },
+                    { label: 'Votos reais registrados', value: fmt(votingData?.totalVotes), note: 'Votações nominais do Plenário' },
+                    { label: 'Pautas monitoradas', value: fmt(votingData?.totalAgendas), note: 'Classificadas nos 5 critérios' },
                     { label: 'Partidos no ranking', value: '19+', note: 'Com ≥ 3 deputados ativos' },
                     { label: 'Clusters de votação (ML)', value: '2', note: 'KMeans · silhouette 0.27' },
                   ].map(item => (
@@ -170,12 +179,12 @@ const SobrePage = () => {
               {
                 icon: <Database className="h-6 w-6" />,
                 title: 'API + Banco',
-                items: ['Express 5 + Prisma ORM', 'PostgreSQL (Neon)', 'Deploy: Railway', 'Scripts de sync tsx', 'APIs da Câmara V2'],
+                items: ['NestJS 11 + Prisma ORM', 'PostgreSQL (VPS)', 'Deploy: Docker + Traefik (Hetzner)', 'Sync automático via worker', 'APIs da Câmara V2'],
               },
               {
                 icon: <Brain className="h-6 w-6" />,
                 title: 'Análise ML',
-                items: ['Python 3.12 + FastAPI', 'scikit-learn KMeans', 'PCA + StandardScaler', 'Silhouette score', 'Deploy: Railway'],
+                items: ['Python 3.12 + FastAPI', 'scikit-learn KMeans', 'PCA + StandardScaler', 'Silhouette score', 'Serviço dedicado'],
               },
               {
                 icon: <Shield className="h-6 w-6" />,

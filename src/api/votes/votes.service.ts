@@ -65,6 +65,16 @@ export class VotesService {
       _count: { id: true },
     });
 
+    // Datas mínima/máxima por pauta — habilita o filtro de período
+    const datesByAgenda = await this.prisma.vote.groupBy({
+      by: ['key_agenda_id'],
+      _min: { vote_date: true },
+      _max: { vote_date: true },
+    });
+    const agendaDateMap = new Map(
+      datesByAgenda.map(d => [d.key_agenda_id, { min: d._min.vote_date, max: d._max.vote_date }])
+    );
+
     const agendaVoteMap = new Map<string, { YES: number; NO: number; ABSTENTION: number; ABSENT: number }>();
     for (const v of votesByAgenda) {
       const curr = agendaVoteMap.get(v.key_agenda_id) ?? { YES: 0, NO: 0, ABSTENTION: 0, ABSENT: 0 };
@@ -132,6 +142,8 @@ export class VotesService {
             contraryVotes: votes.NO,
             abstentions: votes.ABSTENTION,
             consensusScore: total > 0 ? Math.round((votes.YES / total) * 100) : 0,
+            firstVoteDate: agendaDateMap.get(a.id)?.min?.toISOString() ?? null,
+            lastVoteDate: agendaDateMap.get(a.id)?.max?.toISOString() ?? null,
           };
         })
         .filter(a => a.totalVotes > 0),

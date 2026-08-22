@@ -1,5 +1,14 @@
-import { Link, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 import { BookOpen, BarChart3, Vote, Network, BookMarked, Info, Mail, Search, Menu } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -7,7 +16,7 @@ const navigation = [
   { name: 'Ranking',     href: '/ranking',    icon: BookOpen },
   { name: 'Comparação',  href: '/comparacao', icon: BarChart3 },
   { name: 'Votações',    href: '/votacoes',   icon: Vote },
-  { name: 'Grupos ML',   href: '/grupos',     icon: Network },
+  { name: 'Grupos',      href: '/grupos',     icon: Network },
   { name: 'Metodologia', href: '/metodologia', icon: BookMarked },
   { name: 'Sobre',       href: '/sobre',      icon: Info },
   { name: 'Contato',     href: '/contato',    icon: Mail },
@@ -15,11 +24,27 @@ const navigation = [
 
 const Header = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const isActive = (href: string) =>
     href === '/ranking'
       ? location.pathname === '/' || location.pathname === '/ranking'
       : location.pathname.startsWith(href);
+
+  // A busca da navbar leva pro ranking com o termo na URL — o Ranking
+  // lê ?search= no estado inicial e o usuário já cai na lista filtrada.
+  const submitSearch = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    const q = searchTerm.trim();
+    if (!q) return;
+    navigate(`/ranking?search=${encodeURIComponent(q)}`);
+    setSearchTerm('');
+    setSearchOpen(false);
+    setMenuOpen(false);
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-sm">
@@ -40,7 +65,7 @@ const Header = () => {
           </Link>
 
           {/* Desktop nav — texto apenas, sem ícones */}
-          <nav className="hidden md:flex items-center gap-1 flex-1">
+          <nav className="hidden lg:flex items-center gap-1 flex-1">
             {navigation.map(item => (
               <Link
                 key={item.name}
@@ -57,25 +82,116 @@ const Header = () => {
             ))}
           </nav>
 
-          {/* Search — desktop */}
-          <div className="hidden md:flex items-center ml-auto">
-            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground gap-1.5">
-              <Search className="h-4 w-4" />
-              <span className="hidden lg:inline text-sm">Buscar</span>
-            </Button>
+          {/* Search — desktop: abre input inline */}
+          <div className="hidden md:flex items-center ml-auto gap-2">
+            {searchOpen ? (
+              <form onSubmit={submitSearch} className="flex items-center gap-2">
+                <Input
+                  autoFocus
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Buscar parlamentar..."
+                  className="h-8 w-48 lg:w-56"
+                  aria-label="Buscar parlamentar"
+                />
+                <Button type="submit" size="sm" variant="ghost" aria-label="Confirmar busca">
+                  <Search className="h-4 w-4" />
+                </Button>
+              </form>
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground hover:text-foreground gap-1.5"
+                onClick={() => setSearchOpen(true)}
+                aria-label="Abrir busca"
+              >
+                <Search className="h-4 w-4" />
+                <span className="hidden lg:inline text-sm">Buscar</span>
+              </Button>
+            )}
           </div>
 
-          {/* Mobile: hamburger placeholder */}
-          <div className="md:hidden ml-auto">
-            <Button variant="ghost" size="sm">
-              <Menu className="h-5 w-5" />
+          {/* Mobile: hamburger funcional (Sheet com navegação + busca) */}
+          <div className="lg:hidden ml-auto flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="md:hidden"
+              onClick={() => setSearchOpen((v) => !v)}
+              aria-label={searchOpen ? 'Fechar busca' : 'Abrir busca'}
+            >
+              <Search className="h-5 w-5" />
             </Button>
+
+            <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="sm" aria-label="Abrir menu de navegação">
+                  <Menu className="h-6 w-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[280px] px-4">
+                <SheetHeader className="px-1">
+                  <SheetTitle className="font-serif text-left">A Bancada Evangélica</SheetTitle>
+                </SheetHeader>
+                <form onSubmit={submitSearch} className="flex items-center gap-2 mt-2 mb-4">
+                  <Input
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Buscar parlamentar..."
+                    aria-label="Buscar parlamentar"
+                  />
+                  <Button type="submit" size="icon" variant="secondary" aria-label="Buscar">
+                    <Search className="h-4 w-4" />
+                  </Button>
+                </form>
+                <nav className="flex flex-col gap-1">
+                  {navigation.map(item => {
+                    const Icon = item.icon;
+                    return (
+                      <Link
+                        key={item.name}
+                        to={item.href}
+                        onClick={() => setMenuOpen(false)}
+                        className={cn(
+                          'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                          isActive(item.href)
+                            ? 'bg-primary text-primary-foreground'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                        )}
+                      >
+                        <Icon className="h-4 w-4 shrink-0" />
+                        {item.name}
+                      </Link>
+                    );
+                  })}
+                </nav>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
 
-        {/* Mobile nav — ícone + label */}
-        <nav className="md:hidden border-t border-border py-2">
-          <div className="flex items-center justify-around overflow-x-auto gap-1">
+        {/* Busca mobile aberta */}
+        {searchOpen && (
+          <form onSubmit={submitSearch} className="md:hidden pb-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                autoFocus
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Buscar por nome ou partido..."
+                className="pl-10"
+                aria-label="Buscar por nome ou partido"
+              />
+            </div>
+          </form>
+        )}
+
+        {/* Mobile nav horizontal — só em telas ≥sm (entre mobile puro e lg),
+            onde cabe; abaixo disso o hamburger resolve */}
+        <nav className="hidden sm:flex lg:hidden border-t border-border py-2">
+          <div className="flex items-center justify-around overflow-x-auto gap-1 w-full">
             {navigation.map(item => {
               const Icon = item.icon;
               return (

@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -12,11 +13,19 @@ import { Link } from 'react-router-dom';
 import { APIPolitician } from '@/types/politician';
 
 const RankingPage = () => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchParams] = useSearchParams();
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') ?? '');
   const [selectedState, setSelectedState] = useState('all');
   const [selectedParty, setSelectedParty] = useState('all');
   const [selectedHouse, setSelectedHouse] = useState('all');
-  const [fpeFilter, setFpeFilter] = useState(false);
+  // FPE ativa por padrão — o recorte do projeto É a Frente Parlamentar
+  // Evangélica; o usuário leigo deve ver primeiro quem faz parte dela.
+  const [fpeFilter, setFpeFilter] = useState(true);
+
+  // Busca vinda da navbar (?search=) atualiza o campo
+  useEffect(() => {
+    setSearchTerm(searchParams.get('search') ?? '');
+  }, [searchParams]);
 
   // Hooks da API
   const { data: politiciansData, isLoading: isLoadingPoliticians, error: politiciansError } = usePoliticians({
@@ -48,20 +57,21 @@ const RankingPage = () => {
     [politiciansData]
   );
 
-  // Calculate statistics
+  // Calculate statistics — "Média Geral" vem da API (média global real de
+  // todos os parlamentares ativos), NÃO da média do top-100 carregado.
+  // A média client-side (~86) mentia pra cima frente à global (~66).
   const stats = useMemo(() => {
     if (!politiciansData || !statsData) {
       return { total: 0, avgScore: 0, excellentCount: 0, deputadosCount: 0 };
     }
 
     const total = politiciansData.total;
-    const avgScore = politicians.length > 0 ?
-      politicians.reduce((sum, p) => sum + p.scores.overall, 0) / politicians.length : 0;
+    const avgScore = statsData.averageScore ?? 0;
     const excellentCount = statsData.performanceDistribution.excellent;
     const deputadosCount = statsData.houseDistribution.camara;
 
     return { total, avgScore, excellentCount, deputadosCount };
-  }, [politiciansData, statsData, politicians]);
+  }, [politiciansData, statsData]);
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -184,7 +194,7 @@ const RankingPage = () => {
                       onCheckedChange={setFpeFilter}
                     />
                     <label htmlFor="fpe-filter" className="text-sm font-medium cursor-pointer select-none">
-                      Apenas FPE
+                      Frente Parlamentar Evangélica
                     </label>
                   </div>
                 </div>

@@ -158,7 +158,14 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
             <div className="flex items-center justify-between text-xs text-muted-foreground mb-4">
               <div className="flex items-center space-x-1">
                 <Award className="h-3 w-3" />
-                <span>{formatConsistency(politician.scores.consistencyScore)} consistência</span>
+                {/* Sem votações não existe consistência a exibir — o valor
+                    antigo vinha de um fallback do sync-worker antigo que
+                    preservava lixo (100%) no banco */}
+                <span>
+                  {politician.scores.totalVotes > 0
+                    ? `${formatConsistency(politician.scores.consistencyScore)} consistência`
+                    : 'sem votações registradas'}
+                </span>
               </div>
               {politician.scores.totalVotes > 0 && (
                 <div>

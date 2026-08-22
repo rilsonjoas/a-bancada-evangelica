@@ -3,8 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Mail, MessageCircle, Github, Send, Clock, HelpCircle, BookOpen, Loader2 } from 'lucide-react';
+import { Mail, MessageCircle, Github, Send, HelpCircle, BookOpen, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiFetch } from '@/lib/apiClient';
 
@@ -60,7 +59,7 @@ const ContatoPage = () => {
     },
     {
       question: "Com que frequência os dados são atualizados?",
-      answer: "Os dados são atualizados trimestralmente, ou sempre que houver votações importantes relacionadas aos nossos critérios de avaliação."
+      answer: "Cadastro e gastos dos parlamentares são sincronizados automaticamente da Câmara e do Senado toda semana, e as notas são recalculadas diariamente. As votações do Plenário são incorporadas por curadoria sempre que há sessões relevantes para nossos critérios — por isso o total de pautas monitoradas cresce em ritmo variável."
     },
     {
       question: "Como posso contestar uma avaliação?",
@@ -227,64 +226,10 @@ const ContatoPage = () => {
                     </div>
                     <div>
                       <h4 className="font-semibold text-foreground">GitHub</h4>
-                      <p className="text-sm text-muted-foreground">github.com/bancada-evangelica</p>
+                      <p className="text-sm text-muted-foreground">github.com/rilsonjoas/a-bancada-evangelica</p>
                       <p className="text-xs text-muted-foreground mt-1">
                         Para colaborações técnicas e issues
                       </p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start space-x-3">
-                    <div className="bg-primary/10 p-2 rounded-lg">
-                      <Clock className="h-4 w-4 text-primary" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-foreground">Horário de Atendimento</h4>
-                      <p className="text-sm text-muted-foreground">Segunda a Sexta: 9h às 18h</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Respondemos em até 48 horas úteis
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="card-elevated">
-                <CardHeader>
-                  <CardTitle className="font-serif text-xl">Tipos de Contato</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-3 bg-secondary/30 rounded-lg">
-                      <div>
-                        <h4 className="font-medium text-foreground">Dúvidas sobre Metodologia</h4>
-                        <p className="text-xs text-muted-foreground">Critérios e processo de avaliação</p>
-                      </div>
-                      <Badge variant="secondary">FAQ</Badge>
-                    </div>
-                    
-                    <div className="flex items-center justify-between p-3 bg-secondary/30 rounded-lg">
-                      <div>
-                        <h4 className="font-medium text-foreground">Correções de Dados</h4>
-                        <p className="text-xs text-muted-foreground">Informações incorretas ou desatualizadas</p>
-                      </div>
-                      <Badge variant="outline">Prioritário</Badge>
-                    </div>
-                    
-                    <div className="flex items-center justify-between p-3 bg-secondary/30 rounded-lg">
-                      <div>
-                        <h4 className="font-medium text-foreground">Colaborações</h4>
-                        <p className="text-xs text-muted-foreground">Parcerias e contribuições</p>
-                      </div>
-                      <Badge>Bem-vindo</Badge>
-                    </div>
-                    
-                    <div className="flex items-center justify-between p-3 bg-secondary/30 rounded-lg">
-                      <div>
-                        <h4 className="font-medium text-foreground">Imprensa</h4>
-                        <p className="text-xs text-muted-foreground">Solicitações de entrevistas e dados</p>
-                      </div>
-                      <Badge variant="secondary">Media</Badge>
                     </div>
                   </div>
                 </CardContent>
@@ -329,9 +274,11 @@ const ContatoPage = () => {
               <p className="text-muted-foreground mb-4">
                 Não encontrou a resposta que procurava?
               </p>
-              <Button variant="outline" size="lg">
-                <Mail className="h-4 w-4 mr-2" />
-                Fazer uma Pergunta
+              <Button variant="outline" size="lg" asChild>
+                <a href="mailto:abancada@narniano.com?subject=D%C3%BAvida%20sobre%20a%20Bancada%20Evang%C3%A9lica">
+                  <Mail className="h-4 w-4 mr-2" />
+                  Fazer uma Pergunta
+                </a>
               </Button>
             </div>
           </div>
@@ -351,12 +298,34 @@ const ContatoPage = () => {
               um Brasil com líderes íntegros e compromissados com os valores do Reino.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-              <Button size="lg" className="font-medium">
+              <Button
+                size="lg"
+                className="font-medium"
+                onClick={async () => {
+                  const shareData = {
+                    title: 'A Bancada Evangélica',
+                    text: 'Transparência parlamentar: como seus representantes votam nos valores que você defende?',
+                    url: window.location.origin,
+                  };
+                  try {
+                    if (navigator.share) {
+                      await navigator.share(shareData);
+                    } else {
+                      await navigator.clipboard.writeText(window.location.origin);
+                      toast({ title: 'Link copiado!', description: 'Cole onde quiser compartilhar o projeto.' });
+                    }
+                  } catch {
+                    // usuário cancelou o share nativo — nada a fazer
+                  }
+                }}
+              >
                 Compartilhar Projeto
               </Button>
-              <Button variant="outline" size="lg">
-                <Github className="h-4 w-4 mr-2" />
-                Contribuir no GitHub
+              <Button variant="outline" size="lg" asChild>
+                <a href="https://github.com/rilsonjoas/a-bancada-evangelica" target="_blank" rel="noopener noreferrer">
+                  <Github className="h-4 w-4 mr-2" />
+                  Contribuir no GitHub
+                </a>
               </Button>
             </div>
             

@@ -351,7 +351,13 @@ export function PoliticianProfile() {
                 <div className="flex justify-between">
                   <span>Score de Consistência:</span>
                   <span className="font-semibold">
-                    {((politician.currentScore?.consistencyScore || 0) * 100).toFixed(1)}%
+                    {/* Sem votações registradas não existe consistência a
+                        medir — exibir "—" em vez do número (linhas antigas
+                        mostravam 100% pra quem nunca votou, lixo de uma
+                        fórmula antiga do sync-worker preservada no banco). */}
+                    {(politician.currentScore?.totalVotes ?? 0) === 0
+                      ? '—'
+                      : `${((politician.currentScore?.consistencyScore ?? 0) * 100).toFixed(1)}%`}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -385,8 +391,16 @@ export function PoliticianProfile() {
                 </div>
                 <div className="flex justify-between">
                   <span>Nível de Risco:</span>
-                  <Badge variant={politician.expenseAnalysis?.riskLevel === 'LOW' ? 'secondary' : 'destructive'}>
-                    {politician.expenseAnalysis?.riskLevel || 'BAIXO'}
+                  <Badge variant={(politician.expenseAnalysis?.riskLevel || 'LOW') === 'LOW' ? 'secondary' : 'destructive'}>
+                    {/* Tradução PT-BR — a API manda o enum em inglês
+                        (HIGH/MEDIUM/LOW); renderizar cru era ver "LOW" no meio
+                        da página em português. Mesmo mapping de
+                        ExpenseAnalysisChart. */}
+                    {politician.expenseAnalysis?.riskLevel === 'HIGH'
+                      ? 'Alto'
+                      : politician.expenseAnalysis?.riskLevel === 'MEDIUM'
+                        ? 'Médio'
+                        : 'Baixo'}
                   </Badge>
                 </div>
               </CardContent>

@@ -28,6 +28,8 @@ export interface VotingAnalysisData {
     contraryVotes: number;
     abstentions: number;
     consensusScore: number;
+    firstVoteDate: string | null;
+    lastVoteDate: string | null;
   }>;
   politicianRanking: Array<{
     id: number;
