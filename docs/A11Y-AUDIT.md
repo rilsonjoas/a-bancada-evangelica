@@ -46,7 +46,9 @@ referenciando este documento. Meta: WCAG 2.1 AA.
 1. alt nas 3 imgs *(15 min)*
 2. Skip-link + `<main id="conteudo">` *(30 min)*
 3. Accessible names em todos os icon-only buttons *(1–2h)*
-4. aria-labels por página, começando por Ranking e Perfil *(meio dia)*
+4. aria-labels por página — ✅ PARCIAL CONCLUÍDO (2026-08-23): Ranking
+   (busca + sliders de peso com valor anunciado) e Perfil (barras de
+   critério com "X de 100 pontos"). Restam: comparacao, grupos, votacoes.
 5. focus-visible padronizado nos ui components *(2h)*
 6. Validação final: Lighthouse + axe DevTools nas 6 páginas principais
 

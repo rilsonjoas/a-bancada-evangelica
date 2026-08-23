@@ -223,6 +223,7 @@ const RankingPage = () => {
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
+                      aria-label="Buscar parlamentar por nome ou partido"
                       placeholder="Buscar por nome ou partido..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
@@ -349,6 +350,7 @@ const RankingPage = () => {
                         </span>
                       </div>
                       <Slider
+                        aria-label={`Peso do critério ${c.label}: ${effectiveWeights[c.field]} pontos`}
                         min={0}
                         max={40}
                         step={1}

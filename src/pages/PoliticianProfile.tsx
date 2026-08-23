@@ -250,7 +250,11 @@ export function PoliticianProfile() {
                     {score !== null ? (
                       <>
                         <div className={`text-2xl font-bold ${getScoreColor(score)}`}>{score.toFixed(1)}</div>
-                        <Progress value={score} className="mt-2 h-1.5" />
+                        <Progress
+                          value={score}
+                          aria-label={`${c.label}: ${score.toFixed(1)} de 100 pontos`}
+                          className="mt-2 h-1.5"
+                        />
                       </>
                     ) : (
                       <div className="text-2xl font-bold text-muted-foreground">—</div>
