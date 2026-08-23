@@ -149,16 +149,41 @@ const RankingPage = () => {
           <div className="max-w-4xl mx-auto text-center">
             <div className="flex justify-center mb-6">
               <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-sm">
-                <BookOpen className="h-12 w-12 text-white" />
+                {/* Marca real (2026-08-22): logo do projeto no lugar do ícone genérico */}
+                <img src="/marca-white.png" alt="" aria-hidden="true" className="h-12 w-12" />
               </div>
             </div>
-            <h1 className="font-serif text-4xl md:text-5xl font-bold mb-6 text-white">
-              Ranking de Testemunho Fiel
+            {/* Lente watchdog (2026-08-22): o método vem ANTES do ranking.
+                O leigo precisa entender que a nota não é "simpatia política":
+                é voto nominal registrado, verificável por qualquer pessoa. */}
+            <h1 className="text-4xl md:text-5xl font-extrabold mb-4 text-white tracking-tight">
+              Como a Bancada Evangélica vota
             </h1>
-            <p className="text-xl text-primary-foreground/90 leading-relaxed mb-8">
-              Avaliação independente de parlamentares brasileiros com base em critérios objetivos 
-              de integridade moral, defesa da vida, valores familiares e responsabilidade social.
+            <p className="text-lg md:text-xl text-primary-foreground/90 leading-relaxed max-w-2xl mx-auto mb-6">
+              Notas calculadas exclusivamente a partir de{' '}
+              <strong>votos nominais públicos</strong> registrados na Câmara e no Senado.
+              Sem enquete, sem declaração, sem simpatia — o voto registrado é o único dado.
             </p>
+            {/* Três passos do método */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-2xl mx-auto mb-8 text-sm">
+              {[
+                'Votação nominal acontece na Câmara ou no Senado',
+                'Cruzamos cada voto com os 5 critérios da metodologia',
+                'Nota pública, aberta e verificável por qualquer pessoa',
+              ].map((passo, i) => (
+                <div key={i} className="bg-white/10 rounded-lg px-4 py-3 backdrop-blur-sm flex items-start gap-2 text-left">
+                  <span className="shrink-0 h-5 w-5 rounded-full bg-[#b49a60] text-[#0f172a] text-[11px] font-bold flex items-center justify-center mt-0.5">
+                    {i + 1}
+                  </span>
+                  <span className="opacity-95 leading-snug">{passo}</span>
+                </div>
+              ))}
+            </div>
+            <Link to="/metodologia" className="inline-flex items-center gap-2 text-[#b49a60] hover:text-amber-300 font-semibold transition-colors">
+              Ler a metodologia completa
+              <TrendingUp className="h-4 w-4" />
+            </Link>
+            <div className="mt-6" />
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
               <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
                 <div className="text-2xl font-bold">{stats.total}</div>
@@ -399,6 +424,16 @@ const RankingPage = () => {
             </Card>
           ) : (
             <div className="space-y-4">
+              {/* Como ler a nota — lente watchdog: escopo honesto e explícito */}
+              <div className="rounded-xl border border-border bg-muted/40 px-5 py-4 text-sm leading-relaxed text-muted-foreground">
+                <strong className="text-foreground">Como ler a nota:</strong> soma ponderada
+                das votações nominais registradas nos 5 critérios da metodologia.
+                Ela mede o <strong className="text-foreground">voto registrado</strong> —
+                não mede fé, discurso nem intenção.{' '}
+                <Link to="/metodologia" className="underline font-medium">
+                  Ver como cada critério é calculado
+                </Link>.
+              </div>
               {displayPoliticians.map((politician, index) => (
                 <PoliticianCard
                   key={politician.id}

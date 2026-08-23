@@ -332,7 +332,12 @@ Google" não é viável em iOS de qualquer forma.
 - [x] **Card de compartilhamento v2 — FEITO (2026-08-22, noite)**. Dois humores por desempenho: >=60 'orgulho' (gradiente cívico azul→índigo, foto com anel dourado, nota em verde) e <60 'neutro' (azul sóbrio, sem vermelho de exposição). Foto em destaque pousando na faixa, nota 72px como herói, critérios como barras visuais, selo `marca-white.png` + deep link `/politicos/:id` no rodapé. Proxy de fotos (pré-requisito) já resolvido. 43/43 testes frontend passando.
 - [x] **Horário de Atendimento na página de Contato — RESOLVIDO (2026-08-21)**. Removido (produto digital não tem expediente).
 - [x] **Card de tipos de contato — RESOLVIDO (2026-08-21)**. Removido (não levava a nada).
-- [ ] **Missão do site revisitada** — pendente. Lente: watchdog de transparência. Perguntas a responder: a home comunica o método antes do ranking? O leigo entende que nota não é "simpatia política" mas voto nominal registrado? Textos do hero prometem o que os dados entregam?
+- [x] **Missão do site revisitada — FEITA (2026-08-22, noite)**. Home reescrita com lente watchdog:
+  - H1 novo: "Como a Bancada Evangélica vota" (antes: "Ranking de Testemunho Fiel", linguagem de igreja sem método)
+  - Subtítulo explícito: notas vêm EXCLUSIVAMENTE de votos nominais públicos — sem enquete, sem declaração, sem simpatia
+  - Três passos do método como chips ANTES das estatísticas; link pra metodologia no topo (não só no CTA do fim)
+  - Banner "Como ler a nota" acima da lista: mede voto registrado, não fé/discurso/intenção
+  - Hero usa a marca real (marca-white.png); rótulos de faixa ("Testemunho Fiel" etc.) preservados na metodologia
 - [ ] **Ícone do projeto** — pendente. Hoje convivem: favicon SVG (livro preto), Logo.png OG (livro azul em quadrado) e ícone lucide `BookOpen` genérico no header/heroes. Avaliar unificação (logo real no header) com Design Narniano como referência de coerência.
 - [ ] **Acessibilidade + responsividade fina** — 12 de 64 componentes têm `aria-label` (~19%). Auditoria completa de contraste, foco, teclado e viewports 375/390/430 nas páginas de dados (tabelas, cards, filtros).
 - [ ] **Auditoria tipográfica e de espaçamento (pedido direto do Rilson, 2026-08-22)** — dor sentida também no Lecionário e Bíblia na Arte: "textos grandes quando não deveriam, espaçamento sem cuidado, leiturabilidade comprometida por coisas pequenas". Escopo mínimo:
