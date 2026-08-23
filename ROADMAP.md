@@ -355,7 +355,11 @@ Google" não é viável em iOS de qualquer forma.
   - Três passos do método como chips ANTES das estatísticas; link pra metodologia no topo (não só no CTA do fim)
   - Banner "Como ler a nota" acima da lista: mede voto registrado, não fé/discurso/intenção
   - Hero usa a marca real (marca-white.png); rótulos de faixa ("Testemunho Fiel" etc.) preservados na metodologia
-- [ ] **Ícone do projeto** — pendente. Hoje convivem: favicon SVG (livro preto), Logo.png OG (livro azul em quadrado) e ícone lucide `BookOpen` genérico no header/heroes. Avaliar unificação (logo real no header) com Design Narniano como referência de coerência.
+- [x] **Ícone do projeto** — RESOLVIDO (2026-08-23, auditoria asset a asset):
+  - favicon.png JÁ era a marca (branco/preto) — entrada do roadmap estava desatualizada
+  - OG Logo.png REGENERADA: livro azul da identidade velha → marca roxa sobre navy #0f172a (1200×630, gerada do logo-master via ImageMagick)
+  - Heróis de Metodologia e Contato: BookOpen genérico → marca-white.png (Ranking/Sobre já estavam certos)
+  - Mantidos de propósito: ícones lucide semânticos (nav do Header, botões, arrays de dados) — não são marca
 - [ ] **Acessibilidade + responsividade fina** — 12 de 64 componentes têm `aria-label` (~19%). Auditoria completa de contraste, foco, teclado e viewports 375/390/430 nas páginas de dados (tabelas, cards, filtros).
 - [ ] **Auditoria tipográfica e de espaçamento (pedido direto do Rilson, 2026-08-22)** — dor sentida também no Lecionário e Bíblia na Arte: "textos grandes quando não deveriam, espaçamento sem cuidado, leiturabilidade comprometida por coisas pequenas". Escopo mínimo:
   - Hierarquia honesta: título grande SÓ no herói da página; corpo de leitura ≥14px em páginas de dados; labels uppercase pequenos reservados a rótulos (nunca parágrafos)
