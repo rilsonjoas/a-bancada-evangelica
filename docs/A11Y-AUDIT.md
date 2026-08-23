@@ -50,6 +50,18 @@ referenciando este documento. Meta: WCAG 2.1 AA.
    (busca + sliders de peso com valor anunciado) e Perfil (barras de
    critério com "X de 100 pontos"). Restam: comparacao, grupos, votacoes.
 5. focus-visible padronizado nos ui components *(2h)*
-6. Validação final: Lighthouse + axe DevTools nas 6 páginas principais
+6. **Validação final** — ⚠️ PARCIAL (2026-08-23): estática ✅ completa
+   (contraste, imgs, aria, landmarks). Navegador BLOQUEADA no ambiente de
+   trabalho — Chrome headless sem render (NO_FCP em 4 estratégias; quota
+   PSI esgotada). **Rodar na máquina pessoal:**
+
+   ```bash
+   npx lighthouse https://a-bancada-evangelica.vercel.app/ \
+     --only-categories=accessibility --view
+   # repetir em: /metodologia /politicos/<id> /sobre /dados /contato
+   # alternativa visual: extensão axe DevTools
+   ```
+
+   Meta ≥90 em todas; resultados colar neste documento.
 
 *Regra da casa: cada item corrigido referencia este doc no commit.*
