@@ -26,14 +26,19 @@ referenciando este documento. Meta: WCAG 2.1 AA.
    visível só no foco via `sr-only`/`focus:not-sr-only`.
 3. **aria-label: 0 nas páginas** — Ranking, Metodologia, Sobre, Contato,
    Perfil, Votações, /dados, legais (componentes têm ~19%, roadmap 2026-08-16)
-4. **Botões só-com-ícone sem accessible name** — varredura encontrou 1 com
-   aria-label/sr-only; mapear todos e nomear
+4. **Botões só-com-ícone sem accessible name** — ✅ RESOLVIDO (2026-08-23):
+   varredura regex completa achou 10 botões-ícone; 9 já tinham sr-only/aria
+   (shadcn), 1 corrigido (`PoliticianSelector.tsx` fechar → aria-label).
+   Falso positivo descartado: botão Enviar do Contato tem texto visível.
 
 ## 🟡 Melhorias
 
 - Accent laranja (#ea580c) com branco ≈ 3.1:1 — usar apenas em UI grande/
   ícones; nunca texto pequeno sobre laranja
-- Uniformizar focus-visible nos ~38 componentes ui restantes
+- ~~Uniformizar focus-visible nos ~38 componentes~~ ✅ RESOLVIDO (2026-08-23):
+   regra global `:focus-visible { outline: 2px solid hsl(var(--ring)); offset 2 }`
+   no index.css — quem tem ring próprio mantém; o resto herda o contorno.
+   Mais barato e à prova de componente novo.
 - Landmarks semânticos (`<main>`, `<nav aria-label>`)
 
 ## Plano de correção (ordem)

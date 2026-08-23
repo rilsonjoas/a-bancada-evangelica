@@ -36,7 +36,7 @@ export function PoliticianSelector({ excludeIds, onSelect, onClose }: Politician
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-xl font-semibold">Selecionar Político</h2>
-          <Button onClick={onClose} variant="ghost" size="sm">
+          <Button onClick={onClose} variant="ghost" size="sm" aria-label="Fechar seleção de político">
             <X className="w-4 h-4" />
           </Button>
         </div>

@@ -261,3 +261,11 @@
     @apply bg-primary text-primary-foreground font-medium;
   }
 }
+/* ── A11Y-AUDIT.md item 5: foco visível como rede global ──────────────────
+   Componentes shadcn com focus-visible:ring próprio mantêm o comportamento;
+   tudo que NÃO tem anel próprio ganha este contorno padrão. Cor do ring
+   vem do token --ring do tema. */
+:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
