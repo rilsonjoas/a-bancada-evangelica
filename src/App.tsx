@@ -40,8 +40,16 @@ const App = () => (
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <ScrollToTop />
         <div className="min-h-screen flex flex-col">
+          {/* Skip-link (A11Y-AUDIT.md item 2): primeiro elemento focável —
+              aparece ao Tab, some ao clicar/blur. Alvo: main#conteudo. */}
+          <a
+            href="#conteudo"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-primary focus:text-primary-foreground focus:px-4 focus:py-2 focus:rounded-md focus:font-medium"
+          >
+            Pular para o conteúdo principal
+          </a>
           <Header />
-          <main className="flex-1">
+          <main id="conteudo" tabIndex={-1} className="flex-1">
             <Routes>
               <Route path="/" element={<RankingPage />} />
               <Route path="/ranking" element={<RankingPage />} />
@@ -51,6 +59,7 @@ const App = () => (
               <Route path="/votacoes" element={<VotingAnalysis />} />
               <Route path="/sobre" element={<SobrePage />} />
               <Route path="/metodologia" element={<MetodologiaPage />} />
+              <Route path="/dados" element={<DadosAbertos />} />
               <Route path="/contato" element={<ContatoPage />} />
               <Route path="/privacidade" element={<Privacidade />} />
               <Route path="/termos" element={<Termos />} />

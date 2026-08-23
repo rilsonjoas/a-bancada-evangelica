@@ -17,10 +17,13 @@ referenciando este documento. Meta: WCAG 2.1 AA.
 
 ## 🔴 Críticos (corrigir primeiro)
 
-1. **Imagens sem alt** (3 de 13):
-   - `PoliticianCard.tsx:66` — foto do político → alt obrigatório: "Foto de {nome}"
-   - `ShareableCard.tsx:173` e `:306` — fotos no card compartilhável
-2. **Sem skip-link** para o conteúdo principal (`index.html`/`Header`)
+1. ~~**Imagens sem alt**~~ **RETIFICADO (2026-08-23): falso positivo do grep
+   monolinha** — o `alt` estava na linha seguinte do JSX multiline.
+   Re-auditado com parser multiline: **13/13 imgs com alt** ✅
+   *(lição registrada: grep de JSX exige `re.S` ou equivalente)*
+2. **Skip-link** — ✅ IMPLEMENTADO (2026-08-23): `<a href="#conteudo">`
+   como primeiro elemento focável + `<main id="conteudo" tabIndex={-1}>`;
+   visível só no foco via `sr-only`/`focus:not-sr-only`.
 3. **aria-label: 0 nas páginas** — Ranking, Metodologia, Sobre, Contato,
    Perfil, Votações, /dados, legais (componentes têm ~19%, roadmap 2026-08-16)
 4. **Botões só-com-ícone sem accessible name** — varredura encontrou 1 com
