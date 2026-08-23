@@ -25,16 +25,27 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
+            # Guarda de disco (incidentes 2026-08-22 e 2026-08-23): se a raiz
+            # estiver >=90%, aborta ANTES de piorar tudo com mais um build.
+            USO=$(df --output=pcent / | tail -1 | tr -dc '0-9')
+            if [ "$USO" -ge 90 ]; then
+              echo "❌ Abortado: disco em ${USO}% (limite 90%). Rode: docker builder prune -af"
+              exit 1
+            fi
             cd /opt/a-bancada-evangelica
             git pull --ff-only origin main
             cd ~/hetzner-infra
             make deploy service=bancada
-            # Prevenção de incidente (2026-08-22): o disco do VPS encheu
-            # (100%) com cache de build acumulado dos deploys — o Postgres
-            # compartilhado crashou com "No space left on device" e entrou
-            # em crash-loop. O docker builder prune NÃO roda sozinho.
-            # Mantém cache da última semana; descarta o resto.
-            docker builder prune -f --filter "until=168h"
+            # Prevenção de reincidência: o filtro semanal (until=168h) NÃO pegava
+            # rajadas — 7 pushes em 2h geraram 4,4GB de cache novo. E o prune
+            # SIMPLES (-f) deixa de fora registros compartilhados: achado real
+            # (2026-08-23), docker system df acusava 17,9GB em cache MESMO após
+            # um prune -f ter rodado. O -a limpa tudo; custo = rebuild seguinte
+            # sem cache de camada (segundos a mais, irrelevante neste porte).
+            docker builder prune -af >/dev/null
+            docker image prune -f >/dev/null
+            USO=$(df --output=pcent / | tail -1 | tr -dc '0-9')
+            echo "✅ Deploy ok — disco em ${USO}%"
 
       - name: Smoke test
         run: |

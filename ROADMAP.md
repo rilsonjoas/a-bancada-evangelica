@@ -506,3 +506,24 @@ dado verdadeiro (proporção de votos com posição definida), não bug.
 ### Métricas (Umami já instalado)
 
 - Visitas por card compartilhado, retorno de jornalistas/comunidades, menções espontâneas
+
+---
+
+## Operação — Disco do VPS (incidentes 2026-08-22 e 2026-08-23)
+
+Duas recorrências da mesma causa em 24h, segunda com diagnóstico completo:
+
+- **Sintoma**: Deploy VPS verde no rebuild, smoke test vermelho — API respondendo
+  **404 em TODAS as rotas** (Traefik vivo, container atrás dele em crash-loop).
+- **Causa raiz**: cache de build do Docker. `docker system df` acusou
+  **17,9GB** de build cache (133 entradas) + 7,5GB de imagens ≈ 25GB dos
+  31GB usados num disco de 38G.
+- **Achado técnico**: `docker builder prune -f` (sem `-a`) liberou só 4,4GB —
+  registros compartilhados exigem a flag `-a`. O filtro semanal do workflow
+  (`until=168h`) nunca pegaria rajadas: 7 deploys em 2h geraram 4,4GB novos.
+- **Prevenção aplicada no deploy.yml**:
+  1. Guarda de disco ANTES do build: aborta se raiz ≥90% (evita piorar)
+  2. Prune total após cada deploy (`builder prune -af` + `image prune -f`)
+  3. Percentual de disco reportado no log de cada deploy
+- **Tradeoff aceito**: todo rebuild agora começa sem cache de camada
+  (segundos a mais por deploy) em troca de disco estável.
