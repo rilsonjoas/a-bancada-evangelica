@@ -620,25 +620,24 @@ consistência entre o que é explicado na página e o que aparece nos cards e re
 
 Glossário:
 
-- Life Protection (Proteção à Vida): Conjunto de votações e posicionamentos em
-  projetos de lei sobre aborto, eutanásia, pesquisa com células-tronco embrionárias
-  e outras pautas de bioética. Base bíblica: Gênesis 1:27 · Salmo 139:13-16.
+- Proteção à Vida: Conjunto de votações e posicionamentos em projetos de lei sobre
+  aborto, eutanásia, pesquisa com células-tronco embrionárias e outras pautas de
+  bioética. Base bíblica: Gênesis 1:27 · Salmo 139:13-16.
 
-- Family Values (Defesa da Família): Votos e discursos relacionados ao conceito
-  de família, casamento, adoção, educação e o direito dos pais na formação moral
-  dos filhos. Base bíblica: Gênesis 2:24 · Provérbios 22:6.
+- Defesa da Família: Votos e discursos relacionados ao conceito de família, casamento,
+  adoção, educação e o direito dos pais na formação moral dos filhos. Base bíblica:
+  Gênesis 2:24 · Provérbios 22:6.
 
-- Moral Integrity (Integridade Moral): Caráter do político: histórico de processos
-  judiciais, investigações por corrupção ou improbidade, e uso da cota parlamentar.
-  Base bíblica: Provérbios 20:7 · 1 Timóteo 3:2.
+- Integridade Moral: Caráter do político: histórico de processos judiciais, investigações
+  por corrupção ou improbidade, e uso da cota parlamentar. Base bíblica: Provérbios 20:7 ·
+  1 Timóteo 3:2.
 
-- Social Responsibility (Responsabilidade Social): Posicionamento em pautas
-  voltadas para a justiça social: cuidado com os vulneráveis (pobres, órfãos,
-  idosos), saúde pública e políticas de combate à pobreza. Base bíblica: Tiago 2:26 ·
-  Isaías 1:17 · Miquéias 6:8.
+- Responsabilidade Social: Posicionamento em pautas voltadas para a justiça social:
+  cuidado com os vulneráveis (pobres, órfãos, idosos), saúde pública e políticas de
+  combate à pobreza. Base bíblica: Tiago 2:26 · Isaías 1:17 · Miquéias 6:8.
 
-- Religious Freedom (Liberdade Religiosa): Defesa do direito à liberdade de
-  crença, culto e expressão religiosa. Inclui votos em leis que possam cercear a
-  pregação do Evangelho, a atuação de igrejas e missionários, o ensino religioso
-  e a objeção de consciência. Base bíblica: Marcos 16:15 · Mateus 22:21.
+- Liberdade Religiosa: Defesa do direito à liberdade de crença, culto e expressão
+  religiosa. Inclui votos em leis que possam cercear a pregação do Evangelho, a
+  atuação de igrejas e missionários, o ensino religioso e a objeção de consciência.
+  Base bíblica: Marcos 16:15 · Mateus 22:21.
 ----------------------------------------------------------------------- */
