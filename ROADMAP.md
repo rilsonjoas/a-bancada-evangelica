@@ -196,9 +196,11 @@ disciplina certa acontecendo antes mesmo do documento existir:
     e a decisão de non-fabrication.
 
 **O que falta pra fechar o padrão aqui:**
-- [ ] #6 acima (Fundamentação bíblica na Metodologia) é literalmente
-      este princípio aplicado — completar o glossário de termos
-      técnicos pendente
+- [ ] #6 acima (Fundamentação bíblica na Metodologia) ✅
+      conclusa — glossário de termos técnicos completado em 2026-08-23.
+      Contém definições, pesos, bases bíblicas e indicadores dos 5 critérios
+      da metodologia, centralizado para consistência entre página, cards e
+      relatórios.
 - [ ] Quando o TSE voltar (branch `feature/tse-integration`, pausada):
       aplicar a mesma disciplina — desqualificação/ficha suja só entra
       no score com fonte oficial TSE citável, nunca inferência
