@@ -1,5 +1,5 @@
 import { Controller, Get, Param, Query, ParseIntPipe, Res, NotFoundException } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiParam } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { Response } from 'express';
 import { PoliticiansService } from './politicians.service';
 import { QueryPoliticiansDto } from './dto/query-politicians.dto';
@@ -22,6 +22,52 @@ export class PoliticiansController {
     return this.politicians.ranking(query);
   }
 
+  /**
+   * Open data (2026-08-23): CSV do ranking completo.
+   * Rota ESTÁTICA declarada ANTES de @Get(':id') — NestJS casa rotas em
+   * ordem de declaração; depois de :id, o ParseIntPipe capturava "export"
+   * e respondia 400 antes de chegar aqui (achado real do primeiro deploy).
+   */
+  @Get('export/csv')
+  @ApiOperation({ summary: 'Exportar ranking em CSV — dados abertos para jornalistas/pesquisadores' })
+  @ApiQuery({ name: 'criteria', required: false, enum: ['overall', 'lifeProtection', 'familyValues', 'moralIntegrity', 'socialResponsibility', 'religiousFreedom'], description: 'Critério de ordenação' })
+  async exportCsv(@Query() query: QueryRankingDto, @Res() res: Response) {
+    const politicians = await this.politicians.ranking({ ...query, limit: '200' });
+
+    // Shape real do retorno de ranking(): { politician: {...}, score: {overall, lifeProtection, ...}, position }
+    // (o primeiro rascunho lia p.scores[0] — campo que não existe nesse shape — e sairia zerado)
+    const esc = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const header =
+      'Posição,Nome,Partido,Estado,Casa,Nota Geral,' +
+      'Proteção à Vida,Defesa da Família,Integridade Moral,Responsabilidade Social,Liberdade Religiosa\n';
+
+    const rows = politicians.map((r) => {
+      const sc = r.score ?? {};
+      const fields: Array<string | number> = [
+        r.position,
+        esc(r.politician?.name),
+        esc(r.politician?.currentParty),
+        esc(r.politician?.currentState),
+        r.politician?.currentHouse ?? '',
+        sc.overall ?? 0,
+        sc.lifeProtection ?? 0,
+        sc.familyValues ?? 0,
+        sc.moralIntegrity ?? 0,
+        sc.socialResponsibility ?? 0,
+        sc.religiousFreedom ?? 0,
+      ];
+      return fields.join(',');
+    });
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="bancada-evangelica-ranking.csv"',
+    );
+    // BOM (\uFEFF) para o Excel abrir acentuação corretamente
+    res.status(200).send('\uFEFF' + header + rows.join('\n'));
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Perfil completo: score, votos recentes, análise de gastos' })
   @ApiParam({ name: 'id', description: 'ID do parlamentar' })
@@ -38,41 +84,6 @@ export class PoliticiansController {
    */
   @Get(':id/photo')
   @ApiOperation({ summary: 'Foto do parlamentar servida same-origin (proxy para canvas/compartilhamento)' })
-  @Get('export/csv')
-  @ApiOperation({ summary: 'Exportar ranking CSV — dados abertos da bancada' })
-  @ApiQuery({ name: 'criteria', required: false, enum: ['overall', 'lifeProtection', 'familyValues', 'moralIntegrity', 'socialResponsibility', 'religiousFreedom'], description: 'Critério de ordenação' })
-  async exportCsv(@Query() query: QueryRankingDto, @Res() res: Response) {
-    const politicians = await this.politicians.ranking({
-      ...query,
-      limit: '200',
-    });
-
-    const header = 'ID,Nome,Partido,Estado,Casa,Score Geral,' +
-      'Life Protection,Family Values,Moral Integrity,Social Responsibility,Religious Freedom\n';
-
-    const rows = politicians.map((p, i) => {
-      const s = p.scores?.[0] || {};
-      const fields = [
-        p.id,
-        `"${p.name.replace(/"/, '""')}"`,
-        `"${p.party?.replace(/"/, '""')}"`,
-        `"${p.state?.replace(/"/, '""')}"`,
-        p.current_house ?? '',
-        s.overall_score ?? 0,
-        s.life_protection ?? 0,
-        s.family_values ?? 0,
-        s.moral_integrity ?? 0,
-        s.social_responsibility ?? 0,
-        s.religious_freedom ?? 0,
-      ];
-      return fields.map(f => `"${f}"`).join(',');
-    });
-
-    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-    res.setHeader('Content-Disposition', 'attachment; filename="bancada-evangelica-ranking.csv"');
-    res.status(200).send([header, ...rows].join('\n'));
-  }
-
   async photo(@Param('id', ParseIntPipe) id: number, @Res() res: Response) {
     const url = await this.politicians.photoUrlOf(id);
     if (!url) throw new NotFoundException('Parlamentar sem foto cadastrada');
