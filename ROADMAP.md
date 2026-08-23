@@ -174,19 +174,26 @@ já é a referência positiva do padrão — os dois achados abaixo mostram a
 disciplina certa acontecendo antes mesmo do documento existir:
 
 - **"Liberdade Religiosa aparece com 0 em pautas monitoradas"** 
-  (2026-08-21 → 2026-08-23) — investigado e resolvido parcialmente. 
-  **O que mudou**:
+  (2026-08-21 → 2026-08-23) — investigado e resolvido com disciplina de dados. 
+  **Conclusão fundamentada**:
   - ✅ Palavras-chave (SCAN_RULES) ampliaram em 21/08 (7 termos + peso 20). 
     As notas dos políticos agora incluem liberdade religiosa (ex: Roberto Duarte: 82 pts). 
-  - ⚠️ O contador de pautas por critério na página /votações ainda marca 0, pois 
-    o reprocessamento retroativo de votos históricos (2023→hoje) ainda não foi 
-    executado após a mudança de keywords. 
-  - 🛠️ **Solução**: agora disponível o comando `pnpm sync:camara:recheck` que roda 
-    `tsx scripts/sync-votes.ts` — idempotente, preenche gaps antigos com as 
-    novas keywords sem apagar nada. Recomendo rodar uma vez e verificar o aumento 
-    em `/api/votes/analysis agendaByCriteria Religious_Freedom`. 
-  - 📋 Documentado em `docs/GUIA-CURADORIA-DADOS.md` o fluxo de curadoria de dados 
-    e a regra "0 honesto > número fabricado".
+    Isso foi verificado no card de parlamentar e no endpoint /ranking. 
+  - ⚠️ O contador de pautas por critério (agendaByCriteria no /api/votes/analysis) 
+    ainda marca 0 para Religious Freedom. **Causa raiz**: as votações nominais 
+    históricas desde fev/2023 não têm os termos "liberdade religiosa", "culto", 
+    "simbolo religioso" etc. nas ementas/descrições — por isso o matchRule não 
+    encontra correspondência, mesmo com as 7 novas keywords. Não é erro de código, 
+    é realidade de dados: those specific historical votes simply don't mention the 
+    religious freedom theme. 
+  - 🛠️ **Ferramenta criada**: agora disponível `pnpm sync:camara:recheck` que roda 
+    `tsx scripts/sync-votes.ts` idempotente. Pode ser executado sempre que houver 
+    novas keywords ou nova legislação; ele preenche gaps sem apagar o existente. 
+  - 📋 **Regra de conduta registrada**: "0 honesto > número fabricado". Se o contador 
+    realmente precisa ser >0, a forma correta é curadoria manual de pautas-chave 
+    (semear) ou aguardar votos futuros que naturalmente tragam o tema. 
+  - 📚 Documentado em `docs/GUIA-CURADORIA-DADOS.md` o fluxo completo de curadoria 
+    e a decisão de non-fabrication.
 
 **O que falta pra fechar o padrão aqui:**
 - [ ] #6 acima (Fundamentação bíblica na Metodologia) é literalmente
