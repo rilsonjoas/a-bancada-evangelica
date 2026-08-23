@@ -128,7 +128,9 @@ const RankingPage = () => {
     setCustomWeights(null);
     try {
       localStorage.removeItem('bancada-weights-v1');
-    } catch {}
+    } catch {
+      /* storage indisponível — nada a recuperar */
+    }
   };
 
   const clearFilters = () => {
