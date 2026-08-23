@@ -70,6 +70,14 @@ const Footer = () => {
               </li>
               <li>
                 <Link 
+                  to="/dados" 
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Dados Abertos
+                </Link>
+              </li>
+              <li>
+                <Link 
                   to="/sobre" 
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >

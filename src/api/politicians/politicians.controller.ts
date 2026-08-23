@@ -38,6 +38,41 @@ export class PoliticiansController {
    */
   @Get(':id/photo')
   @ApiOperation({ summary: 'Foto do parlamentar servida same-origin (proxy para canvas/compartilhamento)' })
+  @Get('export/csv')
+  @ApiOperation({ summary: 'Exportar ranking CSV — dados abertos da bancada' })
+  @ApiQuery({ name: 'criteria', required: false, enum: ['overall', 'lifeProtection', 'familyValues', 'moralIntegrity', 'socialResponsibility', 'religiousFreedom'], description: 'Critério de ordenação' })
+  async exportCsv(@Query() query: QueryRankingDto, @Res() res: Response) {
+    const politicians = await this.politicians.ranking({
+      ...query,
+      limit: '200',
+    });
+
+    const header = 'ID,Nome,Partido,Estado,Casa,Score Geral,' +
+      'Life Protection,Family Values,Moral Integrity,Social Responsibility,Religious Freedom\n';
+
+    const rows = politicians.map((p, i) => {
+      const s = p.scores?.[0] || {};
+      const fields = [
+        p.id,
+        `"${p.name.replace(/"/, '""')}"`,
+        `"${p.party?.replace(/"/, '""')}"`,
+        `"${p.state?.replace(/"/, '""')}"`,
+        p.current_house ?? '',
+        s.overall_score ?? 0,
+        s.life_protection ?? 0,
+        s.family_values ?? 0,
+        s.moral_integrity ?? 0,
+        s.social_responsibility ?? 0,
+        s.religious_freedom ?? 0,
+      ];
+      return fields.map(f => `"${f}"`).join(',');
+    });
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="bancada-evangelica-ranking.csv"');
+    res.status(200).send([header, ...rows].join('\n'));
+  }
+
   async photo(@Param('id', ParseIntPipe) id: number, @Res() res: Response) {
     const url = await this.politicians.photoUrlOf(id);
     if (!url) throw new NotFoundException('Parlamentar sem foto cadastrada');
