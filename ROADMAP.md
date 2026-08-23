@@ -173,14 +173,20 @@ Padrão cross-projeto: `Padrão de Qualidade de Conteúdo.md` no vault
 já é a referência positiva do padrão — os dois achados abaixo mostram a
 disciplina certa acontecendo antes mesmo do documento existir:
 
-- **"Liberdade Religiosa aparece com 0 em pautas monitoradas"**
-  (2026-08-21) — investigado até a raiz (keywords de scan não casaram
-  nenhuma votação desde fev/2023) e a decisão registrada foi *"ação
-  real é de curadoria de dados, não de UI... NÃO inventar número — 0
-  com explicação honesta > dado fabricado"*.
-- **Congressista sem dado de gastos** (2026-08-21) — em vez de inventar
-  ou omitir, virou estimativa parcial explicitamente marcada (badge
-  some, risco mostra "—", nota explicativa no card).
+- **"Liberdade Religiosa aparece com 0 em pautas monitoradas"** 
+  (2026-08-21 → 2026-08-23) — investigado e resolvido parcialmente. 
+  **O que mudou**:
+  - ✅ Palavras-chave (SCAN_RULES) ampliaram em 21/08 (7 termos + peso 20). 
+    As notas dos políticos agora incluem liberdade religiosa (ex: Roberto Duarte: 82 pts). 
+  - ⚠️ O contador de pautas por critério na página /votações ainda marca 0, pois 
+    o reprocessamento retroativo de votos históricos (2023→hoje) ainda não foi 
+    executado após a mudança de keywords. 
+  - 🛠️ **Solução**: agora disponível o comando `pnpm sync:camara:recheck` que roda 
+    `tsx scripts/sync-votes.ts` — idempotente, preenche gaps antigos com as 
+    novas keywords sem apagar nada. Recomendo rodar uma vez e verificar o aumento 
+    em `/api/votes/analysis agendaByCriteria Religious_Freedom`. 
+  - 📋 Documentado em `docs/GUIA-CURADORIA-DADOS.md` o fluxo de curadoria de dados 
+    e a regra "0 honesto > número fabricado".
 
 **O que falta pra fechar o padrão aqui:**
 - [ ] #6 acima (Fundamentação bíblica na Metodologia) é literalmente

@@ -24,6 +24,7 @@
     "sync:camara": "tsx scripts/sync-camara.ts",
     "sync:senado": "tsx scripts/sync-senado.ts",
     "sync:camara:gastos": "tsx scripts/sync-all-gastos.ts",
+    "sync:camara:recheck": "tsx scripts/sync-votes.ts",
     "sync:senado:gastos": "tsx scripts/sync-senado.ts gastos",
     "sync:worker": "tsx scripts/sync-worker.ts",
     "sync:worker:list": "tsx scripts/sync-worker.ts list",
