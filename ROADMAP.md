@@ -104,7 +104,7 @@ segurança real que não existia nos outros dois.
       `og:url`) e Twitter Card, `public/robots.txt` presente
 - [x] **`sitemap.xml` — criado (2026-08-22)**. Estático com as 10 rotas públicas fixas; páginas dinâmicas `/politicos/:id` descobertas via links internos do /ranking por enquanto. `robots.txt` ganhou a linha `Sitemap:`. (era: "não existe ainda (site tem só um punhado de rotas,
       baixa prioridade, mas é rápido de gerar)
-- [ ] **Acessibilidade — checagem rápida feita, gap real (2026-08-16)**:
+- [ ] **Acessibilidade — AUDITORIA DE LINHA DE BASE concluída (2026-08-23, docs/A11Y-AUDIT.md)**: contraste AA ✅ em todos os pares core; críticos = 3 imgs sem alt, skip-link ausente, aria-labels zerados nas páginas, icon-buttons sem nome. Correções na ordem do plano do documento. Checagem original (2026-08-16):
       12 usos de `aria-label`/`alt` em 64 componentes (~19% de
       cobertura) — não é auditoria completa (não mediu contraste, foco,
       navegação por teclado), só uma varredura de grep pra dar noção de
