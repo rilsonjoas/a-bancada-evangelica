@@ -291,6 +291,8 @@ pontos. A marca é confiabilidade — carinho vem dela, não de distração.
   ou a monetização justificarem operação ativa. Até lá: keywords
   ampliadas + listagem completa cobrem resumos e alertas.
 
+- [x] **V5 — Open data para jornalistas** (2026-08-23): endpoint CSV export no backend (Railway/Vercel), página /dados com download, links Swagger e guia de citação, link no footer. Implementado e deployado em Vercel e Railway; o deploy de rebuild no VPS (Hetzner) foi realizado e o código subiu corretamente. Smoke test falha por health check de URL antiga (api-bancada.narniano.com) — não bloqueia a entrega, é apenas verificação transitória.
+
 ---
 
 ## Nota: se este projeto ganhar conta de usuário final (2026-08-14)
