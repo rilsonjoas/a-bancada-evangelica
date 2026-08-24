@@ -281,11 +281,21 @@ class SenadoSyncService {
         // Verificar se é o mandato atual
         const isCurrent = currentYear >= startYear && currentYear <= endYear;
 
+        // F10 (2026-08-24): upsert REAL pela chave natural. Antes era
+        // `where: { id: -1 }` — criava duplicata a cada sync.
         await prisma.mandate.upsert({
           where: {
-            id: -1 // Vai sempre criar novo por causa do where impossível
+            politician_id_house_legislature: {
+              politician_id: politicianId,
+              house: 'SENADO',
+              legislature: mandato.CodigoMandato,
+            }
           },
-          update: {},
+          update: {
+            party: senador.SiglaPartidoParlamentar,
+            state: senador.UfParlamentar,
+            is_current: isCurrent,
+          },
           create: {
             politician_id: politicianId,
             house: 'SENADO',

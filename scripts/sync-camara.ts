@@ -228,11 +228,23 @@ class CamaraSyncService {
     deputado: CamaraDeputado, 
     deputadoCompleto: CamaraDeputadoDetalhado
   ): Promise<void> {
+    // F10 (2026-08-24): upsert REAL pela chave natural. Antes era
+    // `where: { id: -1 }` — criava duplicata a cada sync (514 políticos
+    // com 4+ linhas idênticas de mandato).
     await prisma.mandate.upsert({
       where: {
-        id: -1 // Vai sempre criar novo por causa do where impossível
+        politician_id_house_legislature: {
+          politician_id: politicianId,
+          house: 'CAMARA',
+          legislature: deputado.idLegislatura.toString(),
+        }
       },
-      update: {},
+      update: {
+        party: deputado.siglaPartido,
+        state: deputado.siglaUf,
+        is_current: deputadoCompleto.ultimoStatus.situacao === 'Exercício',
+        status: deputadoCompleto.ultimoStatus.situacao === 'Exercício' ? 'ACTIVE' : 'SUSPENDED'
+      },
       create: {
         politician_id: politicianId,
         house: 'CAMARA',

@@ -82,6 +82,9 @@ model Mandate {
   // Relacionamentos
   politician            Politician @relation(fields: [politician_id], references: [id], onDelete: Cascade)
   
+  // Um mandato por político/casa/legislatura — sem isso, cada sync
+  // duplicava todos os mandatos (bug do upsert com id:-1, F10)
+  @@unique([politician_id, house, legislature])
   @@map("mandates")
 }
 

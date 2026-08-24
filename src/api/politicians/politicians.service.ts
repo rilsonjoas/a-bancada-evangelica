@@ -159,7 +159,8 @@ export class PoliticiansService {
         where: { id },
         include: {
           scores: { take: 1, orderBy: { created_at: 'desc' } },
-          mandates: true,
+          // F10: linha do tempo em ordem cronológica inversa (mais recente primeiro)
+          mandates: { orderBy: { start_date: 'desc' } },
           campaignFinance: { where: { election_year: 2022 } },
           votes: {
             include: { key_agenda: true },
