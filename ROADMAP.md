@@ -143,24 +143,53 @@ Conferido issue por issue contra o código, não só pelo título:
       wired no perfil do político via Dialog ("Card pra imagem" ao lado
       de "Compartilhar"), tipo reusa `PoliticianDetail` do hook em vez de
       interface duplicada, 7 testes novos (43/43 no total)
-- [x] #5 Integração TSE — **EXECUTADO EM PRODUÇÃO E MERGEADO
-      (2026-08-23)**: dry-run validado (513/514 por CPF), `prisma db push`
-      criou `PoliticianDisqualification` e o sync real rodou — 513
-      políticos com biografia preenchida do TSE (escolaridade 500→514,
-      ocupação 0→513), 0 cassações (esperado: quem foi desqualificado não
-      teria sido eleito; fica como infra pra próxima eleição/cassação).
-      Contexto preservado:
+- [x] #5 Integração TSE — **COMPLETO E VERIFICADO EM PRODUÇÃO
+      (2026-08-23/24)**: candidatura + receitas rodados no banco REAL da
+      VPS (dentro do container, ver armadilha #6 sobre o "Neon fantasma").
+      **Números reais de produção** (`postgres-shared/bancada_evangelica_db`,
+      514 ativos hoje: 513 deputados + 1 senador): candidatura casou 514
+      parlamentares por CPF e atualizou a biografia de todos; receitas 2022 =
+      505 registros na tabela (501 de parlamentares ativos — 97,7% dos 513
+      deputados; os ausentes em geral não disputaram em 2022, ex.: suplentes
+      assumidos depois), total arrecadado R$ 947,1M em 17.909 lançamentos
+      matched. Card
+      "Financiamento de Campanha (2022)" no perfil verificado ao vivo via
+      CDP (político 55: R$ 3.790.000 · 74 doações · 67 PF/3 PJ · docs
+      mascarados). Endpoint `/api/politicians/:id` retorna `campaignFinance`
+      (null = sem receita declarada). 0 cassações (esperado; fica como infra
+      pra próxima eleição). Contexto preservado:
       - **Escopo (2 usos)**: financiamento de campanha = transparência no
         perfil, NÃO entra no score (doação legal não é crime); ficha-limpa/
         cassação alimenta Integridade Moral.
       - **Infra**: TSE bloqueia IP de nuvem/datacenter — download manual
         periódico via navegador (IP residencial); zips em `data/tse/`
-        (gitignored).
-      - **Restante**: financiamento de campanha (`receitas_candidatos_
-        2022_BRASIL.csv`, 432MB dentro de `prestacao_de_contas_eleitorais_
-        candidatos_2022.zip`) ainda não processado — schema conferido,
-        aguarda sessão dedicada.
+        (gitignored) e upload ao VPS via scp + sync dentro do container.
+      - **Código**: lógica pura testável em `scripts/lib/tse-receitas.ts`
+        (parseMoneyBRL, maskDoc, classifyDonor, accumulateReceita,
+        summarize) + 13 testes novos (56/56 no total); ingestão lê os 54
+        CSVs por estado dentro do zip (não existe o BRASIL.csv único).
 - [x] #6 Fundamentação bíblica na Metodologia — **CONCLUÍDO (2026-08-23)**: glossário dos 5 critérios em PT-BR adicionado à página Metodologia (ver detalhamento na seção 'Qualidade de Conteúdo' abaixo).
+- [ ] **#7 Integração de notícias ("No noticiário")** — PROPOSTA
+      (2026-08-24, pedido Rilson): linkar matérias de veículos relevantes
+      (Folha, Estadão, O Globo, Poder360...) que citam o parlamentar de
+      forma significativa (acusações, casos na Justiça, posicionamentos).
+      **Viável e aprovado pra fila** — regras pra não virar armadilha:
+      - **Só título + fonte + data + link** — nunca reproduzir texto da
+        matéria (direitos autorais); card neutro "veja na fonte",
+        zero editorialização nossa.
+      - **Coleta v1**: Google News RSS por query `"Nome Completo"` (grátis,
+        sem chave, aceita filtro de site/veículo). Upgrade pago só se
+        precisar (NewsAPI/GNews/Google CSE).
+      - **Homônimos são o risco nº 1**: match por nome completo +
+        contexto (partido/UF) e, na dúvida, fila de curadoria manual —
+        mesmo espírito do `GUIA-CURADORIA-DADOS.md`: manchete errada é
+        pior que fila vazia ("zero honesto > número fabricado").
+      - **NÃO entra no score** — igual financiamento: transparência pura,
+        presunção de inocência; notícia é fato jornalístico, não veredito.
+      - **Schema v1**: `news_mentions` (politician_id, source_name,
+        title, url UNIQUE, published_at) + seção no perfil + endpoint.
+      - Estimativa: 1 sessão dedicada. Concorre com resumo semanal (V2)
+        pela próxima janela — decidir ordem na hora.
 
 ## P9 — Documentação
 
@@ -211,9 +240,10 @@ disciplina certa acontecendo antes mesmo do documento existir:
       Contém definições, pesos, bases bíblicas e indicadores dos 5 critérios
       da metodologia, centralizado para consistência entre página, cards e
       relatórios.
-- [ ] Quando o TSE voltar (branch `feature/tse-integration`, pausada):
-      aplicar a mesma disciplina — desqualificação/ficha suja só entra
-      no score com fonte oficial TSE citável, nunca inferência
+- [x] Branch `feature/tse-integration` mergeada (facfae8). Disciplina
+      mantida: desqualificação/ficha suja só entra no score com fonte
+      oficial TSE citável, nunca inferência — hoje é só infra (tabela
+      `politician_disqualifications` vazia, como esperado)
 
 ---
 
@@ -597,10 +627,10 @@ verificação visual headless fica no playbook manual (playbook acima).
 ### Antes de mexer
 1. `git status --porcelain` limpo — nunca misture trabalho novo com
    WIP não relacionado
-2. Linha de base dos testes ANTES da mudança: `pnpm test` (43/43 hoje)
-3. Typecheck REAL do projeto (ver armadilha #1): `npx tsc -p
-   tsconfig.app.json --noEmit` — anote se já há erros pré-existentes
-   (~35 hoje, documentados) pra não atribuir ao seu diff o que é dívida
+2. Linha de base dos testes ANTES da mudança: `pnpm test` (56/56 hoje)
+3. Typecheck REAL do projeto (ver armadilha #1): `pnpm typecheck`
+   (`tsc --noEmit` em app + api) — zero erros desde 4170780, e o CI
+   barra regressão
 
 ### Armadilhas conhecidas deste repo (todas morderam de verdade)
 0. **Deploy verde com código velho (achado 2026-08-24)** — o script de
@@ -627,12 +657,23 @@ verificação visual headless fica no playbook manual (playbook acima).
    componente quebrado no boot = tela branca em TODAS as rotas. Não
    existe falha "só numa página" para erro de módulo.
 5. **Smoke test do deploy só cobre a API** (`/health`) — frontend
-   quebrado passa pelo pipeline inteiro sem alarme.
+    quebrado passa pelo pipeline inteiro sem alarme.
+6. **"Neon fantasma": validar SEMPRE qual banco o `.env` alcança antes
+    de escrever dados (2026-08-24)** — o `.env` local ainda apontava pra
+    cópia congelada do Neon (migração de 08/08); syncs rodaram "em
+    produção" e gravaram num banco morto, com números ligeiramente
+    diferentes dos reais. O banco verdadeiro é o Postgres compartilhado
+    do VPS (`postgres-shared:5432/bancada_evangelica_db`, hostname só
+    resolve DENTRO da rede Docker — inacessível do desktop). Regra:
+    operações de dados em produção rodam dentro do container
+    (`docker exec bancada-api ...`) ou via `ssh narniano@167.233.254.53`
+    (root não tem chave; repo em `/opt/a-bancada-evangelica`, infra em
+    `~/hetzner-infra`). Antes de qualquer sync: `SELECT COUNT(*) FROM
+    politicians WHERE is_active` e compare com o esperado.
 
 ### Depois de mexer (ordem mínima de verificação)
-1. `pnpm test` — 43/43 esperado (ou mais; nunca menos)
-2. `npx tsc -p tsconfig.app.json --noEmit` — zero erros NOVOS vs
-   linha de base (comparar contagem)
+1. `pnpm test` — 56/56 esperado (ou mais; nunca menos)
+2. `pnpm typecheck` — zero erros (app + api)
 3. `pnpm lint` — 0 errors (3 warnings react-refresh são pré-existentes)
 4. `pnpm build` — precisa terminar em "✓ built"
 5. **Verificação visual headless** (pegava tela-branca que tudo acima
