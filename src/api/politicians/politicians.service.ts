@@ -160,6 +160,7 @@ export class PoliticiansService {
         include: {
           scores: { take: 1, orderBy: { created_at: 'desc' } },
           mandates: true,
+          campaignFinance: { where: { election_year: 2022 } },
           votes: {
             include: { key_agenda: true },
             orderBy: { vote_date: 'desc' },
@@ -223,6 +224,25 @@ export class PoliticiansService {
         integrityScore: politician.scores?.[0]?.moral_integrity ?? 0,
         riskLevel: suspiciousPct > 10 ? 'HIGH' : suspiciousPct > 5 ? 'MEDIUM' : 'LOW',
       },
+      // Transparência pura — NÃO entra na pontuação (decisão de escopo:
+      // doação legal não é crime). Ausência = não declarou receita pelo
+      // TSE; o frontend exibe estado vazio honesto.
+      campaignFinance: politician.campaignFinance?.[0]
+        ? {
+            electionYear: politician.campaignFinance[0].election_year,
+            totalReceived: politician.campaignFinance[0].total_received,
+            donationCount: politician.campaignFinance[0].donation_count,
+            largestDonation: politician.campaignFinance[0].largest_donation,
+            donorPfCount: politician.campaignFinance[0].donor_pf_count,
+            donorPjCount: politician.campaignFinance[0].donor_pj_count,
+            topDonors: politician.campaignFinance[0].top_donors as Array<{
+              name: string;
+              doc: string;
+              amount: number;
+              count: number;
+            }>,
+          }
+        : null,
     };
   }
 

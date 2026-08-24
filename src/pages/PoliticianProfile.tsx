@@ -419,6 +419,74 @@ export function PoliticianProfile() {
                 )}
               </CardContent>
             </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Financiamento de Campanha (2022)</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {politician.campaignFinance ? (
+                  <>
+                    <div className="flex justify-between items-baseline">
+                      <span className="text-sm text-muted-foreground">Total arrecadado:</span>
+                      <span className="text-lg font-bold">
+                        R$ {Math.round(politician.campaignFinance.totalReceived).toLocaleString('pt-BR')}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Nº de doações:</span>
+                      <span className="font-semibold">{politician.campaignFinance.donationCount}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Maior doação:</span>
+                      <span className="font-semibold">
+                        R$ {Math.round(politician.campaignFinance.largestDonation).toLocaleString('pt-BR')}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Doadores:</span>
+                      <span className="font-semibold">
+                        {politician.campaignFinance.donorPfCount} pessoa{politician.campaignFinance.donorPfCount === 1 ? '' : 's'} física{politician.campaignFinance.donorPfCount === 1 ? '' : 's'} ·{' '}
+                        {politician.campaignFinance.donorPjCount} jurídica{politician.campaignFinance.donorPjCount === 1 ? '' : 's'}
+                      </span>
+                    </div>
+
+                    {politician.campaignFinance.topDonors.length > 0 && (
+                      <div className="border-t pt-3">
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-2">
+                        Maiores doadores
+                      </p>
+                        <ul className="space-y-1.5">
+                          {politician.campaignFinance.topDonors.slice(0, 5).map((d, i) => (
+                            <li key={i} className="flex justify-between gap-3 text-sm">
+                              <span className="min-w-0 truncate" title={`${d.name} · ${d.doc}`}>
+                                {d.name}
+                                <span className="text-muted-foreground text-xs ml-1.5">{d.doc}</span>
+                              </span>
+                              <span className="font-medium shrink-0 tabular-nums">
+                                R$ {Math.round(d.amount).toLocaleString('pt-BR')}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Decisão de escopo documentada: financiamento é
+                        transparência, não critério — doação legal não é
+                        crime e insinuar o contrário seria injusto. */}
+                    <p className="text-xs text-muted-foreground border-t pt-3 leading-relaxed">
+                      Fonte: TSE, prestação de contas eleitorais 2022. Este dado é
+                      transparência — <strong>não afeta a nota</strong> do parlamentar.
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Sem receitas de campanha declaradas no dataset do TSE 2022.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
 

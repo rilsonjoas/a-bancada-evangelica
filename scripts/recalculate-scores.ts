@@ -10,6 +10,8 @@
  * para ajustar critérios com votações disponíveis (social, família).
  */
 import { PrismaClient } from '@prisma/client';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const prisma = new PrismaClient();
 
@@ -172,7 +174,12 @@ async function recalculate() {
 // aplicada em sync-camara.ts/sync-senado.ts (achado real 2026-08-20):
 // sem isso, importar este módulo de outro lugar recalcularia (e
 // sobrescreveria) todos os scores como efeito colateral.
-if (process.argv[1] && import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL: o guard antigo (`file://${argv[1]}`) falhava SILENCIOSAMENTE
+// em caminhos com espaço/acento (import.meta.url vem percent-encoded) — script
+// não rodava e saía 0. Achado real 2026-08-23 rodando da máquina local.
+const isEntryPoint = Boolean(process.argv[1]) &&
+  import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href;
+if (isEntryPoint) {
   recalculate()
     .catch(console.error)
     .finally(() => prisma.$disconnect());

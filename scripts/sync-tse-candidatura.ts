@@ -21,6 +21,7 @@
  *   pnpm sync:tse:candidatura             # grava de verdade
  */
 import { PrismaClient } from '@prisma/client';
+import { pathToFileURL } from 'node:url';
 import { parse } from 'csv-parse/sync';
 import iconv from 'iconv-lite';
 import unzipper from 'unzipper';
@@ -214,7 +215,12 @@ async function main() {
 
 // Roda só se este arquivo for o entry point de verdade — mesma correção
 // aplicada nos outros scripts de sync (achado real 2026-08-20).
-if (process.argv[1] && import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL: o guard antigo (`file://${argv[1]}`) falhava SILENCIOSAMENTE
+// em caminhos com espaço/acento (import.meta.url vem percent-encoded) — script
+// não rodava e saía 0. Achado real 2026-08-23 rodando da máquina local.
+const isEntryPoint = Boolean(process.argv[1]) &&
+  import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href;
+if (isEntryPoint) {
   main()
     .catch(err => {
       console.error('❌ Erro:', err);

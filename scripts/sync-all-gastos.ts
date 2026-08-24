@@ -9,6 +9,8 @@
  * Tempo estimado: ~40-60 min para 514 deputados × 2 anos × 12 meses
  */
 import { PrismaClient } from '@prisma/client';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const prisma = new PrismaClient();
 const BASE = 'https://dadosabertos.camara.leg.br/api/v2';
@@ -145,7 +147,12 @@ async function main() {
 
 // Roda só se este arquivo for o entry point (achado real 2026-08-20,
 // mesma correção dos outros scripts de sync).
-if (process.argv[1] && import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL: o guard antigo (`file://${argv[1]}`) falhava SILENCIOSAMENTE
+// em caminhos com espaço/acento (import.meta.url vem percent-encoded) — script
+// não rodava e saía 0. Achado real 2026-08-23 rodando da máquina local.
+const isEntryPoint = Boolean(process.argv[1]) &&
+  import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href;
+if (isEntryPoint) {
   main()
     .catch(console.error)
     .finally(() => prisma.$disconnect());

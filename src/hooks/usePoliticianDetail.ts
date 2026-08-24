@@ -53,6 +53,17 @@ export interface PoliticianDetail {
     integrityScore: number;
     riskLevel: string;
   };
+  /** Financiamento de campanha (TSE 2022) — transparência pura,
+   * NÃO afeta a nota. null = sem receita declarada no dataset. */
+  campaignFinance: {
+    electionYear: number;
+    totalReceived: number;
+    donationCount: number;
+    largestDonation: number;
+    donorPfCount: number;
+    donorPjCount: number;
+    topDonors: Array<{ name: string; doc: string; amount: number; count: number }>;
+  } | null;
 }
 
 async function fetchPoliticianDetail(id: number): Promise<PoliticianDetail> {

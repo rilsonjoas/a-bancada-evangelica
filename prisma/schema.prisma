@@ -54,6 +54,7 @@ model Politician {
   scores                PoliticianScore[]
   historical_scores     HistoricalScore[]
   disqualifications     PoliticianDisqualification[]
+  campaignFinance       CampaignFinance[]
   
   @@map("politicians")
 }
@@ -260,6 +261,40 @@ model PoliticianDisqualification {
 
   @@unique([politician_id, process_number])
   @@map("politician_disqualifications")
+}
+
+// ========================================
+// FINANCIAMENTO DE CAMPANHA
+// ========================================
+
+model CampaignFinance {
+  id             String   @id @default(cuid())
+
+  politician_id  Int
+  election_year  Int      @default(2022)
+
+  // Agregados — doações individuais NÃO são armazenadas (volume inviável
+  // e desnecessário pro produto); só o resumo que aparece no perfil.
+  total_received   Float  // soma de VR_RECEITA do candidato
+  donation_count   Int    // nº de lançamentos de receita
+  largest_donation Float  // maior doação individual
+  donor_pf_count   Int    // doadores pessoas físicas distintos
+  donor_pj_count   Int    // doadores pessoas jurídicas distintos
+
+  // Top 10 doadores por valor — [{name, doc (mascarado), amount, count}]
+  // Doc mascarado na gravação (data minimização): é dado público no
+  // portal do TSE, mas não há razão pra republicar documento completo.
+  top_donors Json
+
+  source     SourceType @default(TSE)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  politician Politician @relation(fields: [politician_id], references: [id], onDelete: Cascade)
+
+  @@unique([politician_id, election_year])
+  @@index([election_year])
+  @@map("campaign_finance")
 }
 
 // ========================================
