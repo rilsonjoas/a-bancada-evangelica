@@ -285,6 +285,10 @@ Religiosa acima).
 **Anti-roadmap (decidido NÃO fazer)**: comentários abertos (moderação +
 polarização destroem a neutralidade), quiz doutrinário, gamificação com
 pontos. A marca é confiabilidade — carinho vem dela, não de distração.
+**Botões diretos por plataforma (wa.me/intents) também NÃO** — decisão
+do Rilson 2026-08-23: manter seriedade e sobriedade; o compartilhamento
+fica no Web Share API nativo + Card v2, sem botõezinhos de rede social
+competindo com o conteúdo.
 
 ### 💤 Ideias distantes (estacionadas — decisão Rilson 2026-08-22)
 
