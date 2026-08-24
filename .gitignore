@@ -36,5 +36,7 @@ __pycache__/
 *.py[cod]
 *.pyo
 # Dados brutos do TSE — ~463MB, excede limite de 100MB/arquivo do GitHub
-# (ver data/tse/README.md para fontes oficiais de download)
+# (ver data/tse/README.md para fontes oficiais de download). TSE bloqueia
+# IP de nuvem/datacenter — download manual via navegador, não automatizável.
 data/tse/*.zip
+data/tse/**/*.csv

@@ -143,14 +143,24 @@ Conferido issue por issue contra o código, não só pelo título:
       wired no perfil do político via Dialog ("Card pra imagem" ao lado
       de "Compartilhar"), tipo reusa `PoliticianDetail` do hook em vez de
       interface duplicada, 7 testes novos (43/43 no total)
-- [ ] #5 Integração TSE — **em andamento, pausado em 2026-08-20** na
-      branch `feature/tse-integration` (não mergeada — schema + script
-      validados, dry-run ainda não executado contra produção). Status
-      detalhado, achados reais já confirmados e próximos passos exatos
-      no `ROADMAP.md` dessa branch, não repetidos aqui pra não
-      desatualizar dois lugares
+- [x] #5 Integração TSE — **EXECUTADO EM PRODUÇÃO E MERGEADO
+      (2026-08-23)**: dry-run validado (513/514 por CPF), `prisma db push`
+      criou `PoliticianDisqualification` e o sync real rodou — 513
+      políticos com biografia preenchida do TSE (escolaridade 500→514,
+      ocupação 0→513), 0 cassações (esperado: quem foi desqualificado não
+      teria sido eleito; fica como infra pra próxima eleição/cassação).
+      Contexto preservado:
+      - **Escopo (2 usos)**: financiamento de campanha = transparência no
+        perfil, NÃO entra no score (doação legal não é crime); ficha-limpa/
+        cassação alimenta Integridade Moral.
+      - **Infra**: TSE bloqueia IP de nuvem/datacenter — download manual
+        periódico via navegador (IP residencial); zips em `data/tse/`
+        (gitignored).
+      - **Restante**: financiamento de campanha (`receitas_candidatos_
+        2022_BRASIL.csv`, 432MB dentro de `prestacao_de_contas_eleitorais_
+        candidatos_2022.zip`) ainda não processado — schema conferido,
+        aguarda sessão dedicada.
 - [x] #6 Fundamentação bíblica na Metodologia — **CONCLUÍDO (2026-08-23)**: glossário dos 5 critérios em PT-BR adicionado à página Metodologia (ver detalhamento na seção 'Qualidade de Conteúdo' abaixo).
-      por critério; falta só o glossário de termos técnicos
 
 ## P9 — Documentação
 

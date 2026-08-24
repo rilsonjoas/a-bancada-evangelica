@@ -53,6 +53,7 @@ model Politician {
   expense_analyses      ExpenseAnalysis[]
   scores                PoliticianScore[]
   historical_scores     HistoricalScore[]
+  disqualifications     PoliticianDisqualification[]
   
   @@map("politicians")
 }
@@ -231,6 +232,34 @@ model ExpenseAnalysis {
   
   @@unique([politician_id, year, month, source])
   @@map("expense_analyses")
+}
+
+model PoliticianDisqualification {
+  id              String   @id @default(cuid())
+
+  politician_id   Int
+  election_year   Int
+
+  process_number  String   // NR_PROCESSO (TSE)
+  reason_type     String   // DS_TP_MOTIVO — categoria bruta do TSE
+  reason          String   // DS_MOTIVO — texto completo do motivo
+
+  // Só motivos de conduta pessoal real entram aqui (Ficha Limpa, abuso de
+  // poder, compra de voto, gasto ilícito, conduta vedada) — motivo
+  // administrativo/de partido (indeferimento de coligação, partido
+  // invalidado) NÃO é sobre a pessoa e fica de fora, verificado achado
+  // real 2026-08-20: motivo administrativo é ~70% do dataset bruto do
+  // TSE. Ver scripts/sync-tse-candidatura.ts.
+  is_personal_conduct Boolean @default(true)
+
+  source          SourceType @default(TSE)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  politician      Politician @relation(fields: [politician_id], references: [id], onDelete: Cascade)
+
+  @@unique([politician_id, process_number])
+  @@map("politician_disqualifications")
 }
 
 // ========================================
