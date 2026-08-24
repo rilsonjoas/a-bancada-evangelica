@@ -252,7 +252,7 @@ Nenhum implementado ainda; cada um precisa de sessão própria (ou lote).
       problemas" + bloco de linguagem jurídica cuidadosa (análise de
       dados públicos, sem acusação; revisar com atenção redobrada — risco
       de processo). Talvez validar wording com fonte externa antes do ar.
-- [ ] **F10 — Histórico de mandatos repete "2023-atual"**
+- [x] **F10 — Histórico de mandatos repete "2023-atual"** — FEITO (2026-08-24): causa raiz era upsert falso (`where:{id:-1}`) em sync-camara E sync-senado — 2.669 linhas p/ 647 mandatos reais. Dedupe (mantida a mais recente) + `@@unique([politician_id,house,legislature])` + upsert real nos dois scripts + timeline ordenada na API. Verificado ao vivo
       Perfil mostra várias linhas idênticas de mandato atual — linha do
       tempo não faz sentido. Investigar causa (dupla inserção por sync?
       uma linha por legislatura?), deduplicar/agrupar por legislatura e
