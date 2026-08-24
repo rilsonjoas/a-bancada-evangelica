@@ -191,6 +191,82 @@ Conferido issue por issue contra o código, não só pelo título:
       - Estimativa: 1 sessão dedicada. Concorre com resumo semanal (V2)
         pela próxima janela — decidir ordem na hora.
 
+### Feedback de produto — Rilson (2026-08-24): clareza, transparência e apresentação
+
+Leitura crítica do site inteiro pelo dono do produto. Tema comum:
+**leigo não entende o que os números dizem** — e transparência/claridade
+é objetivo declarado do projeto. Itens F1–F11, em ordem da leitura.
+Nenhum implementado ainda; cada um precisa de sessão própria (ou lote).
+
+- [ ] **F1 — Hero confuso ("208 Avaliados" / "513 Deputados")**
+      `Ranking.tsx:191-205`: "Avaliados" = quem TEM nota calculada
+      (~208), "Deputados" = 513. O leigo lê como contradição. Ação:
+      rótulo explícito ("Com nota calculada") + 1 frase explicando por quê
+      (nota exige voto nominal registrado nas pautas curadas) + deixar
+      claro que há dados de TODOS os deputados pra pesquisa, com foco na
+      bancada. Critério: nenhuma estatística do hero sem legenda que se
+      explica sozinha.
+- [ ] **F2 — Tipografia díspare no app todo + responsividade**
+      Tamanhos de fonte inconsistentes entre páginas/cards (gigante ali,
+      pequeno ali). Ação: escala tipográfica única (tokens Tailwind /
+      variáveis CSS), auditoria componente a componente, breakpoints
+      consistentes. Critério: mesmos elementos visuais (título de card,
+      valor de stat, texto corrido) têm o MESMO tamanho em qualquer página;
+      teste em 360px, 768px, 1350px.
+- [ ] **F3 — Pesos personalizados parecem não funcionar**
+      DIAGNÓSTICO: funciona, mas só com toggle ativo (`weightsEnabled`,
+      Ranking.tsx:113-127); slider sozinho não faz nada, sem botão
+      Aplicar, sem feedback visual de que o ranking mudou. Ação UX:
+      auto-ativar ao mover slider + indicador claro "ranking recalculado
+      com SEUS pesos" + botão Restaurar padrão à mão + nota de que só
+      quem tem nota é reordenado (ver F1). Critério: usuário leigo move
+      slider e PERCEBE o efeito em <5s sem instrução.
+- [ ] **F4 — Home apresenta mal o site (lista bruta de muitos deputados)**
+      Substituir lista longa por ~10 destaques com notas DIVERSAS (não só
+      os melhores) + busca em evidência + blocos de apresentação (o que é,
+      método, fontes). Home deve vender o método, não despejar tabela.
+- [ ] **F5 — Comparação: dois botões redundantes + descrição hermética**
+      "Selecionar políticos" e "Adicionar políticos" ao mesmo tempo
+      (`PoliticianComparison.tsx:222`). Ação: UM fluxo único de seleção
+      (busca + add), remover duplicação; reescrever descrição em linguagem
+      leiga ("Compare as notas e os votos de até N parlamentares lado a
+      lado"). Critério: sem dois CTAs para a mesma ação; copy testada com
+      alguém de fora da área tech.
+- [ ] **F6 — "Total de Votações: 26860 Monitoradas" é ambíguo**
+      `VotingAnalysis.tsx:200`: não diz se são votações ou votos. Real:
+      são registros individuais de voto; pautas curadas são ~86. Ação:
+      rótulos precisos ("Votos nominais analisados", "Pautas classificadas")
+      + ambos visíveis. Critério: número nenhum ambíguo (transparência).
+- [ ] **F7 — Descrições não ocupam/respeitam largura em telas grandes**
+      Texto da página de Grupos (VotingClusters.tsx:179+) e outros não
+      usam a grade direito. Ação: sistema de grid/container com breakpoints
+      claros, aplicado às páginas de conteúdo. Junto com F2 (mesma raiz).
+- [ ] **F8 — Membros vs não-membros da bancada sem tag visível**
+      Todo parlamentar listado precisa de tag clara: "Bancada Evangélica/
+      FPE" ou "Fora da bancada". Transparência sobre escopo do recorte.
+      Depende de flag confiável de membresia FPE no banco (verificar
+      origem do dado antes).
+- [ ] **F9 — Gastos escondidos + disclaimers legais**
+      Apresentar despesas em linguagem leiga (o que é cota, o que é
+      suspeito) + disclaimer explícito: "0 suspeito ≠ ausência de
+      problemas" + bloco de linguagem jurídica cuidadosa (análise de
+      dados públicos, sem acusação; revisar com atenção redobrada — risco
+      de processo). Talvez validar wording com fonte externa antes do ar.
+- [ ] **F10 — Histórico de mandatos repete "2023-atual"**
+      Perfil mostra várias linhas idênticas de mandato atual — linha do
+      tempo não faz sentido. Investigar causa (dupla inserção por sync?
+      uma linha por legislatura?), deduplicar/agrupar por legislatura e
+      renderizar timeline real. Critério: cada mandato aparece UMA vez,
+      ordenado, com início/fim corretos.
+- [ ] **F11 — Guarda-chuva**: varredura final de responsividade +
+      acessibilidade + clareza/transparência quando F2/F7/F10 estiverem
+      feitos — passada completa página a página com checklist próprio.
+
+> Ordem sugerida: F3+F5+F6 (correções rápidas de UX/copy, 1 sessão) →
+> F10 (dado errado, credibilidade) → F1+F4 (home conta a história) →
+> F2+F7+F11 (sistema visual de uma vez) → F8 (depende de dado FPE) →
+> F9 (gastos + jurídico, com calma).
+
 ## P9 — Documentação
 
 - [x] **Corrigir o `README.md`** (2026-08-20) — ainda dizia Railway
