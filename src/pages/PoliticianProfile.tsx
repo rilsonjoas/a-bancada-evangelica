@@ -482,7 +482,9 @@ export function PoliticianProfile() {
                   </>
                 ) : (
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Sem receitas de campanha declaradas no dataset do TSE 2022.
+                    Este parlamentar não tem receitas registradas na prestação de contas do TSE 2022. Em geral isso ocorre porque ele{' '}
+                    <strong>não disputou aquela eleição</strong> — é o caso típico de suplentes que assumiram o mandato depois —{' '}
+                    ou porque nenhuma doação foi declarada.
                   </p>
                 )}
               </CardContent>
