@@ -234,7 +234,7 @@ const RankingPage = () => {
 
                 {/* State Filter */}
                 <Select value={selectedState} onValueChange={setSelectedState}>
-                  <SelectTrigger>
+                  <SelectTrigger aria-label="Filtrar por estado">
                     <SelectValue placeholder="Estado" />
                   </SelectTrigger>
                   <SelectContent>
@@ -247,7 +247,7 @@ const RankingPage = () => {
 
                 {/* Party Filter */}
                 <Select value={selectedParty} onValueChange={setSelectedParty}>
-                  <SelectTrigger>
+                  <SelectTrigger aria-label="Filtrar por partido">
                     <SelectValue placeholder="Partido" />
                   </SelectTrigger>
                   <SelectContent>
@@ -260,7 +260,7 @@ const RankingPage = () => {
 
                 {/* House Filter */}
                 <Select value={selectedHouse} onValueChange={setSelectedHouse}>
-                  <SelectTrigger>
+                  <SelectTrigger aria-label="Filtrar por casa">
                     <SelectValue placeholder="Casa" />
                   </SelectTrigger>
                   <SelectContent>
@@ -320,7 +320,7 @@ const RankingPage = () => {
                   <span>Seus pesos</span>
                 </span>
                 <div className="flex items-center gap-2 pr-1">
-                  <span className="text-sm font-normal text-muted-foreground">Personalizar</span>
+                  <label htmlFor="weights-toggle" className="text-sm font-normal text-muted-foreground cursor-pointer select-none">Personalizar</label>
                   <Switch
                     id="weights-toggle"
                     checked={weightsEnabled}

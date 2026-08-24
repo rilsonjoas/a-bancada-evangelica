@@ -229,7 +229,7 @@ const MetodologiaPage = () => {
                           <td className="py-3 px-4 text-center">
                             <div className="flex flex-col items-center gap-1">
                               <Badge variant="secondary">{c.weight}%</Badge>
-                              <Progress value={c.weight} className="h-1 w-16" />
+                              <Progress value={c.weight} className="h-1 w-16" aria-label={`Peso do critério ${c.name}: ${c.weight}%`} />
                             </div>
                           </td>
                           <td className="py-3 px-4 text-sm text-muted-foreground hidden sm:table-cell">
@@ -268,7 +268,7 @@ const MetodologiaPage = () => {
                           <Icon className={`h-6 w-6 ${pl.iconColor}`} />
                           <div>
                             <div className="font-bold text-base">{pl.label}</div>
-                            <div className="text-xs font-semibold opacity-75">{pl.range}</div>
+                            <div className="text-xs font-semibold">{pl.range}</div>
                           </div>
                         </div>
                         <p className="text-sm leading-relaxed opacity-90">{pl.description}</p>
@@ -321,7 +321,7 @@ const MetodologiaPage = () => {
                     <em> Defesa da Família</em>. Deputados que votaram <strong>SIM</strong> nesta lei receberam
                     <strong className="text-red-600"> -10 pts</strong> em Família, pois o posicionamento evangélico
                     era contrário ao projeto. Deputados que votaram <strong>NÃO</strong> receberam
-                    <strong className="text-green-600"> +10 pts</strong>.
+                    <strong className="text-green-700"> +10 pts</strong>.
                   </p>
                 </div>
                 <div className="p-4 bg-secondary/30 rounded-lg">
@@ -350,15 +350,15 @@ const MetodologiaPage = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
                     <div className="text-2xl font-bold text-green-700">80–100%</div>
-                    <div className="text-xs text-green-600 mt-1">Alta consistência — vota em quase todas as pautas</div>
+                    <div className="text-xs text-green-700 mt-1">Alta consistência — vota em quase todas as pautas</div>
                   </div>
                   <div className="text-center p-4 bg-yellow-50 rounded-lg border border-yellow-200">
                     <div className="text-2xl font-bold text-yellow-700">50–79%</div>
-                    <div className="text-xs text-yellow-600 mt-1">Consistência moderada — ausências frequentes</div>
+                    <div className="text-xs text-yellow-700 mt-1">Consistência moderada — ausências frequentes</div>
                   </div>
                   <div className="text-center p-4 bg-red-50 rounded-lg border border-red-200">
                     <div className="text-2xl font-bold text-red-700">0–49%</div>
-                    <div className="text-xs text-red-600 mt-1">Baixa consistência — muitas abstenções ou ausências</div>
+                    <div className="text-xs text-red-700 mt-1">Baixa consistência — muitas abstenções ou ausências</div>
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground">
@@ -435,7 +435,7 @@ const MetodologiaPage = () => {
                           </div>
                         </div>
                       </div>
-                      <Progress value={criterio.weight} max={35} className="h-3" />
+                      <Progress value={criterio.weight} max={35} className="h-3" aria-label={`Peso do critério ${criterio.name}: ${criterio.weight}% de 35`} />
                     </CardHeader>
                     <CardContent className="space-y-6">
                       <div>

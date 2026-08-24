@@ -54,25 +54,43 @@ referenciando este documento. Meta: WCAG 2.1 AA.
    Recharts com role="img" + descrição) e Votações (busca + selects
    de critério/período rotulados).
 5. focus-visible padronizado nos ui components *(2h)*
-6. **Validação final** — ⚠️ BLOQUEADA POR ACHADO MAIOR (2026-08-23):
-   a validação no navegador desta máquina reproduziu o NO_FCP da
-   sessão anterior — e a investigação mostrou que não era ambiente:
+6. **Validação final — ✅ EXECUTADA (2026-08-23, meta batida)**: a
+   validação no navegador desta máquina reproduziu o NO_FCP da sessão
+   anterior — e a investigação mostrou que não era ambiente:
    **produção estava tela-branca desde o push do commit `b7cf4b1`**
    (rota `/dados` adicionada sem import → `ReferenceError:
    DadosAbertos is not defined` crashava o React inteiro no boot;
    a página em si também usava Chakra UI, nunca instalado). Corrigido:
    import + página reescrita em Tailwind; verificado localmente com
    screenshot headless (home pinta 380KB vs 5.7KB branco antes).
-   Lighthouse ≥90 nas 6 páginas continua como meta — rodar logo após
-   o deploy do hotfix (produção hoje nem carrega pra medir):
+   Deployado e revalidado com Lighthouse (acessibilidade, mobile):
 
+   | Página | Antes | Depois |
+   |---|---|---|
+   | / (home/ranking) | 90 | **100** |
+   | /metodologia | 89 ❌ | **98** |
+   | /politicos/:id | 92 | **98** |
+   | /sobre | 94 | **100** |
+   | /dados | 94 | **98** |
+   | /contato | 95 | **98** |
+
+   Correções que subiram as notas (além dos itens 1–5): logo do Header
+   com aria-label (link sem nome no mobile, afetava todas as páginas),
+   selects de filtro do Ranking rotulados, switch "Personalizar" com
+   `<label htmlFor>`, `CardTitle` global h3→h2 (hierarquia), progressbars
+   da Metodologia nomeadas, verdes/amarelos/vermelhos 600→700 em textos
+   pequenos (contraste AA).
+
+   **Restante documentado (não bloqueia, notas ≥95):**
+   - `heading-order` em Metodologia/Perfil/Dados/Contato — h3/h4
+     "pulando" níveis dentro de componentes (ex.: h4 após h2 do card).
+     Exige revisão de hierarquia componente a componente.
+   - Metodologia ainda pode ganhar pontos com os h4s internos.
+
+   Comando pra revalidar a qualquer momento:
    ```bash
    npx lighthouse https://a-bancada-evangelica.vercel.app/ \
      --only-categories=accessibility --view
-   # repetir em: /metodologia /politicos/<id> /sobre /dados /contato
-   # alternativa visual: extensão axe DevTools
    ```
-
-   Meta ≥90 em todas; resultados colar neste documento.
 
 *Regra da casa: cada item corrigido referencia este doc no commit.*
