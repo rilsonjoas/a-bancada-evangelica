@@ -116,7 +116,9 @@ const RankingPage = () => {
       .map((p) => {
         let custom = 0;
         for (const c of CRITERIA) {
-          const v = (p.scores as Record<string, number> | undefined)?.[c.field];
+          // leitura dinâmica do campo do critério num objeto tipado —
+          // cast duplo deliberado (TS sugere via unknown)
+          const v = (p.scores as unknown as Record<string, number> | undefined)?.[c.field];
           if (typeof v === 'number') custom += v * (effectiveWeights[c.field] / weightTotal);
         }
         return { ...p, overallScore: Math.round(custom * 10) / 10 };

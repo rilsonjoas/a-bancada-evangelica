@@ -38,6 +38,7 @@ export interface PoliticianDetail {
   recentVotes: Array<{
     id: string;
     agendaTitle: string;
+    criteria: string;
     vote: string;
     appliedScore: number;
     voteDate: string;
@@ -45,6 +46,9 @@ export interface PoliticianDetail {
   expenseAnalysis: {
     totalValue: number;
     suspiciousValue: number;
+    suspiciousCount?: number;
+    /** Total de despesas analisadas — 0 = estimativa parcial (party seed) */
+    totalCount?: number;
     suspiciousPercentage: number;
     integrityScore: number;
     riskLevel: string;

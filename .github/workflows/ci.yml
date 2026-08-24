@@ -37,6 +37,12 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      # Fecha a porta do incidente tela-branca de 2026-08-23 (rota sem
+      # import passou por lint/testes/build). tsc simples NÃO serve —
+      # tsconfig solution-style não checa nada; usar -p por projeto.
+      - name: Typecheck (app + api)
+        run: pnpm typecheck
+
       - name: Run Tests
         run: pnpm test
 

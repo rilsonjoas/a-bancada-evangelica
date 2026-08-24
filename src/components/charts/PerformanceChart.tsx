@@ -146,7 +146,7 @@ export function PerformanceChart({ politician }: PerformanceChartProps) {
               />
               <Tooltip
                 formatter={(value: unknown, name: string) => [
-                  `${value.toFixed(1)}`,
+                  `${Number(value).toFixed(1)}`,
                   name === 'score' ? 'Pontuação' : 'Peso'
                 ]}
                 labelFormatter={(label) => `Critério: ${label}`}

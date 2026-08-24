@@ -42,7 +42,16 @@ export class PoliticiansController {
       'Proteção à Vida,Defesa da Família,Integridade Moral,Responsabilidade Social,Liberdade Religiosa\n';
 
     const rows = politicians.map((r) => {
-      const sc = r.score ?? {};
+      // Fallback tipado com o mesmo shape de formatScore() — `{}` nu
+      // derruba a inferência e o tsc reprova cada acesso abaixo
+      const sc = r.score ?? {
+        overall: 0,
+        lifeProtection: 0,
+        familyValues: 0,
+        moralIntegrity: 0,
+        socialResponsibility: 0,
+        religiousFreedom: 0,
+      };
       const fields: Array<string | number> = [
         r.position,
         esc(r.politician?.name),

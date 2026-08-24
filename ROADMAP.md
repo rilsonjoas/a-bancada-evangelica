@@ -564,15 +564,13 @@ páginas** — resultados completos em `docs/A11Y-AUDIT.md` (home 100,
 metodologia 95→98 com contrates corrigidos, perfil 98, sobre 100,
 dados 98, contato 98).
 
-**Prevenção (backlog novo, P0-adjacente):** queimar os ~35 erros de
-tipo do app + os do tsconfig.api.json e aí ligar `tsc -p
-tsconfig.app.json --noEmit` no CI. Nota: `tsc -b` EMITE .js no src/
-(ignore `noEmit`) — usar `-p <projeto> --noEmit`, não `-b`.
-Smoke test do deploy.yml só testa `/health` da API — adicionar
-verificação de que o frontend pintou (ex.: fetch do bundle e grep de
-RuntimeError? avaliar; mínimo: abrir home com headless no CI é caro,
-mas um `curl + grep '<div id="root">'` não pega esse classe de bug —
-o gap real é o typecheck).
+**Prevenção — ✅ EXECUTADA (2026-08-23, mesmo dia):** dívida de tipo
+queimada (34 app + 14 API → 0) e `pnpm typecheck` ligado no ci.yml.
+Detalhe das correções na seção "Dívida conhecida" abaixo. Nota de
+processo: `tsc -b` EMITE .js no src/ (ignora `noEmit`) — usar
+`-p <projeto> --noEmit`, não `-b`. Smoke test do deploy.yml continua
+só-API (`/health`): o typecheck no CI cobre a classe do incidente;
+verificação visual headless fica no playbook manual (playbook acima).
 
 ---
 
@@ -634,10 +632,20 @@ o gap real é o typecheck).
    confirma o deploy real do Vercel, não só o build local
 4. Lighthouse de acessibilidade se tocou em UI
 
-### Dívida conhecida (não é regression sua — anotada 2026-08-23)
-- ~35 erros de tipo no app (charts/recharts `unknown`, `ShareButton`
-  importa `WhatsApp` inexistente no lucide-react — dead code hoje, mas
-  CRASHARÁ se alguém usar; `Ranking.tsx` averageScore etc.) +
-  erros no `tsconfig.api.json`. Queimar antes de ligar typecheck no CI.
-- `heading-order` (h3/h4 pulando níveis) em Metodologia, Perfil,
-  Dados e Contato — revisar hierarquia componente a componente.
+### Dívida conhecida (atualizada 2026-08-23 — dívida de tipo QUEIMADA)
+- ✅ **Type debt zerado e typecheck no CI (2026-08-23)**: 34 erros do
+  app + 14 da API → **0 e 0**. `pnpm typecheck` (tsc -p app + api)
+  virou etapa obrigatória do ci.yml — a porta do incidente está
+  FECHADA. Correções notáveis no caminho: `Bar fill` do
+  ExpenseAnalysisChart era função silenciosamente ignorada pelo
+  Recharts (barras sem as cores pretendidas desde sempre — agora via
+  Cell); tipos de API defasados (averageScore/agendaByCriteria/
+  totalCount/criteria) alinhados com o backend real;
+  `tsconfig.api.json` não inclui mais src/lib (8 erros fantasmas de
+  frontend sob config CommonJS).
+- ✅ **`ShareButton.tsx` DELETADO** (2026-08-23): dead code total
+  (nada importava), importava ícone `WhatsApp` inexistente no
+  lucide-react (crasharia se alguém usasse) e duplicava o
+  compartilhamento vivo (Web Share API no perfil + ShareableCard v2).
+- Pendente: `heading-order` (h3/h4 pulando níveis) em Metodologia,
+  Perfil, Dados e Contato — revisar hierarquia componente a componente.

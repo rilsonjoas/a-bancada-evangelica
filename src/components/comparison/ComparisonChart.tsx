@@ -103,7 +103,7 @@ export function ComparisonChart({ politicians }: ComparisonChartProps) {
                 formatter={(value: unknown, name: string) => {
                   const politicianIndex = parseInt(name.split('_')[1]);
                   const politicianName = politicians[politicianIndex]?.name || 'Desconhecido';
-                  return [`${value.toFixed(1)}`, politicianName];
+                  return [`${Number(value).toFixed(1)}`, politicianName];
                 }}
                 labelFormatter={(label) => `Critério: ${label}`}
                 contentStyle={{

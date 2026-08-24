@@ -84,10 +84,13 @@ export function VotingHistoryChart({ votes }: VotingHistoryChartProps) {
                 tick={{ fontSize: 11, fill: '#666' }}
               />
               <Tooltip
-                formatter={(value: unknown, name: string) => [
-                  `${value > 0 ? '+' : ''}${value}`,
-                  name === 'score' ? 'Impacto' : 'Acumulado'
-                ]}
+                formatter={(value: unknown, name: string) => {
+                  const v = Number(value);
+                  return [
+                    `${v > 0 ? '+' : ''}${v}`,
+                    name === 'score' ? 'Impacto' : 'Acumulado'
+                  ];
+                }}
                 labelFormatter={(label) => `Votação: ${label}`}
                 contentStyle={{
                   backgroundColor: '#f8fafc',

@@ -42,10 +42,10 @@ export const queryKeys = {
   politicians: {
     all: ['politicians'] as const,
     lists: () => [...queryKeys.politicians.all, 'list'] as const,
-    list: (filters: Record<string, unknown>) => [...queryKeys.politicians.lists(), { filters }] as const,
+    list: (filters: object) => [...queryKeys.politicians.lists(), { filters }] as const,
     details: () => [...queryKeys.politicians.all, 'detail'] as const,
     detail: (id: number) => [...queryKeys.politicians.details(), id] as const,
-    ranking: (filters: Record<string, unknown>) => [...queryKeys.politicians.all, 'ranking', { filters }] as const,
+    ranking: (filters: object) => [...queryKeys.politicians.all, 'ranking', { filters }] as const,
   },
   
   // Pontuações
@@ -75,7 +75,7 @@ export const queryKeys = {
   keyAgendas: {
     all: ['keyAgendas'] as const,
     lists: () => [...queryKeys.keyAgendas.all, 'list'] as const,
-    list: (filters: Record<string, unknown>) => [...queryKeys.keyAgendas.lists(), { filters }] as const,
+    list: (filters: object) => [...queryKeys.keyAgendas.lists(), { filters }] as const,
     detail: (id: string) => [...queryKeys.keyAgendas.all, 'detail', id] as const,
   },
   

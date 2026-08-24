@@ -5,6 +5,12 @@ export interface VotingAnalysisData {
   totalVotes: number;
   activePoliticians: number;
   totalAgendas: number;
+  /** Média global dos ativos (votes.service.analysis) — mesma fonte
+   * da home, adicionada no fix 86.3-vs-65.8 de 2026-08-21 */
+  averageScore?: number;
+  /** Pautas monitoradas por critério — 0 honesto quando o sync
+   * nunca identificou votação nominal pro tema (ver ROADMAP) */
+  agendaByCriteria: Record<string, number>;
   averageConsensus: number;
   voteByCriteria: Record<string, number>;
   alignmentStats: {

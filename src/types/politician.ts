@@ -154,6 +154,9 @@ export interface RankingResponse {
 
 export interface StatsResponse {
   totalPoliticians: number;
+  /** Média global dos ativos (stats.service.overview) — fonte única
+   * da "Nota Média" desde o fix 86.3-vs-65.8 de 2026-08-21 */
+  averageScore?: number;
   performanceDistribution: {
     excellent: number;
     good: number;

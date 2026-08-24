@@ -132,25 +132,32 @@ export function ExpenseAnalysisChart({ analysis }: ExpenseAnalysisChartProps) {
                   tick={{ fontSize: 11, fill: '#666' }}
                 />
                 <Tooltip
-                  formatter={(value: unknown) => [formatCurrency(value), 'Valor']}
+                  formatter={(value: unknown) => [formatCurrency(Number(value)), 'Valor']}
                   contentStyle={{
                     backgroundColor: '#f8fafc',
                     border: '1px solid #e2e8f0',
                     borderRadius: '6px',
                   }}
                 />
-                <Bar 
-                  dataKey="value" 
-                  fill={(entry: unknown) => {
-                    switch (entry.type) {
-                      case 'total': return '#3b82f6';
-                      case 'suspicious': return '#ef4444';
-                      case 'clean': return '#10b981';
-                      default: return '#6b7280';
-                    }
-                  }}
+                {/* fill aceita só string no Recharts — cores por categoria
+                    via Cell (antes: função que era silenciosamente ignorada,
+                    todas as barras ficavam na cor default) */}
+                <Bar
+                  dataKey="value"
                   radius={[2, 2, 0, 0]}
-                />
+                >
+                  {valueData.map((entry) => (
+                    <Cell
+                      key={entry.type}
+                      fill={
+                        entry.type === 'total' ? '#3b82f6'
+                          : entry.type === 'suspicious' ? '#ef4444'
+                            : entry.type === 'clean' ? '#10b981'
+                              : '#6b7280'
+                      }
+                    />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -180,7 +187,7 @@ export function ExpenseAnalysisChart({ analysis }: ExpenseAnalysisChartProps) {
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(value: unknown) => [formatCurrency(value), 'Valor']}
+                  formatter={(value: unknown) => [formatCurrency(Number(value)), 'Valor']}
                   contentStyle={{
                     backgroundColor: '#f8fafc',
                     border: '1px solid #e2e8f0',
