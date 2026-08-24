@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -24,12 +24,14 @@ const RankingPage = () => {
   // Evangélica; o usuário leigo deve ver primeiro quem faz parte dela.
   const [fpeFilter, setFpeFilter] = useState(true);
 
-  // ── V1 (2026-08-22): pesos personalizados do usuário ──
-  // Ranking recalculado NO NAVEGADOR sobre os sub-scores que a API já
-  // devolve. Nota oficial e labels de desempenho seguem a metodologia
-  // pública; isto é uma lente pessoal, não uma segunda verdade.
+  // ── V2 (2026-08-24, feedback F3): modelo explícito rascunho → aplicar ──
+  // O usuário edita os pesos (rascunho), clica em "Aplicar" e aí sim o
+  // ranking é recalculado NO NAVEGADOR — com selo visível acima da lista.
+  // Antes o efeito era instantâneo porém imperceptível (sem botão, sem
+  // feedback) e parecia quebrado. Nota oficial e labels seguem a
+  // metodologia pública; isto é uma lente pessoal, não uma segunda verdade.
   const [weightsEnabled, setWeightsEnabled] = useState(false);
-  const [customWeights, setCustomWeights] = useState<Record<string, number> | null>(() => {
+  const [draftWeights, setDraftWeights] = useState<Record<string, number> | null>(() => {
     try {
       const saved = localStorage.getItem('bancada-weights-v1');
       return saved ? JSON.parse(saved) as Record<string, number> : null;
@@ -37,16 +39,18 @@ const RankingPage = () => {
       return null;
     }
   });
+  const [appliedWeights, setAppliedWeights] = useState<Record<string, number> | null>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (customWeights) {
+    if (draftWeights) {
       try {
-        localStorage.setItem('bancada-weights-v1', JSON.stringify(customWeights));
+        localStorage.setItem('bancada-weights-v1', JSON.stringify(draftWeights));
       } catch {
         /* storage indisponível: segue funcionando só em memória */
       }
     }
-  }, [customWeights]);
+  }, [draftWeights]);
 
   // Busca vinda da navbar (?search=) atualiza o campo
   useEffect(() => {
@@ -99,7 +103,7 @@ const RankingPage = () => {
     return { total, avgScore, excellentCount, deputadosCount };
   }, [politiciansData, statsData]);
 
-  // Pesos efetivos + ranking derivado quando o usuário personalizou
+  // Pesos efetivos + ranking derivado — SÓ quando o usuário aplicou
   const DEFAULT_WEIGHTS: Record<string, number> = {
     lifeProtection: 30,
     familyValues: 25,
@@ -107,11 +111,17 @@ const RankingPage = () => {
     socialResponsibility: 15,
     religiousFreedom: 10,
   };
-  const effectiveWeights = customWeights ?? DEFAULT_WEIGHTS;
-  const weightTotal = Object.values(effectiveWeights).reduce((a, b) => a + b, 0);
+  const shownWeights = draftWeights ?? DEFAULT_WEIGHTS;
+  const activeWeights = appliedWeights ?? DEFAULT_WEIGHTS;
+  const activeTotal = Object.values(activeWeights).reduce((a, b) => a + b, 0);
+  const hasCustomWeights = appliedWeights !== null && activeTotal > 0;
+  // Há edição não aplicada? (compara rascunho com o que está em vigor)
+  const draftIsDirty =
+    weightsEnabled &&
+    JSON.stringify(shownWeights) !== JSON.stringify(appliedWeights ?? DEFAULT_WEIGHTS);
 
   const displayPoliticians = useMemo(() => {
-    if (!weightsEnabled || !weightTotal) return politicians;
+    if (!hasCustomWeights || !activeTotal) return politicians;
     return [...politicians]
       .map((p) => {
         let custom = 0;
@@ -119,15 +129,23 @@ const RankingPage = () => {
           // leitura dinâmica do campo do critério num objeto tipado —
           // cast duplo deliberado (TS sugere via unknown)
           const v = (p.scores as unknown as Record<string, number> | undefined)?.[c.field];
-          if (typeof v === 'number') custom += v * (effectiveWeights[c.field] / weightTotal);
+          if (typeof v === 'number') custom += v * (activeWeights[c.field] / activeTotal);
         }
         return { ...p, overallScore: Math.round(custom * 10) / 10 };
       })
       .sort((a, b) => b.overallScore - a.overallScore);
-  }, [politicians, weightsEnabled, weightTotal, effectiveWeights]);
+  }, [politicians, hasCustomWeights, activeTotal, activeWeights]);
+
+  const applyDraft = () => {
+    if (!draftWeights) return;
+    setAppliedWeights({ ...draftWeights });
+    resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   const restoreDefaults = () => {
-    setCustomWeights(null);
+    setDraftWeights(null);
+    setAppliedWeights(null);
+    setWeightsEnabled(false);
     try {
       localStorage.removeItem('bancada-weights-v1');
     } catch {
@@ -334,9 +352,11 @@ const RankingPage = () => {
             {weightsEnabled && (
               <CardContent className="pt-0">
                 <p className="text-sm text-muted-foreground mb-6">
-                  Puxe os critérios que importam mais pra você — o ranking é
-                  recalculado no seu navegador. A nota oficial e os rótulos de
-                  desempenho continuam seguindo a metodologia pública.
+                  Puxe os critérios que importam mais pra você, depois clique em{' '}
+                  <strong>Aplicar</strong> — o ranking é recalculado no seu
+                  navegador. A nota oficial e os rótulos de desempenho seguem a
+                  metodologia pública; parlamentares sem nota calculada não são
+                  reordenados.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-5">
                   {CRITERIA.map((c) => (
@@ -347,27 +367,40 @@ const RankingPage = () => {
                           {c.label}
                         </label>
                         <span className="text-sm font-bold tabular-nums">
-                          {effectiveWeights[c.field]} pts ·{' '}
-                          {weightTotal ? Math.round((effectiveWeights[c.field] / weightTotal) * 100) : 0}%
+                          {shownWeights[c.field]} pts ·{' '}
+                          {(() => {
+                            const total = Object.values(shownWeights).reduce((a, b) => a + b, 0);
+                            return total ? Math.round((shownWeights[c.field] / total) * 100) : 0;
+                          })()}
+                          %
                         </span>
                       </div>
                       <Slider
-                        aria-label={`Peso do critério ${c.label}: ${effectiveWeights[c.field]} pontos`}
+                        aria-label={`Peso do critério ${c.label}: ${shownWeights[c.field]} pontos`}
                         min={0}
                         max={40}
                         step={1}
-                        value={[effectiveWeights[c.field]]}
+                        value={[shownWeights[c.field]]}
                         onValueChange={(v) =>
-                          setCustomWeights({ ...effectiveWeights, [c.field]: v[0] ?? 0 })
+                          setDraftWeights({ ...shownWeights, [c.field]: v[0] ?? 0 })
                         }
                       />
                     </div>
                   ))}
                 </div>
                 <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                  <Button variant="ghost" size="sm" onClick={restoreDefaults}>
-                    Restaurar padrão da metodologia
-                  </Button>
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    <Button size="sm" onClick={applyDraft} disabled={!draftIsDirty}>
+                      {draftIsDirty
+                        ? 'Aplicar meus pesos no ranking'
+                        : appliedWeights
+                          ? 'Pesos aplicados ✓'
+                          : 'Mova um slider para personalizar'}
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={restoreDefaults}>
+                      Restaurar padrão da metodologia
+                    </Button>
+                  </div>
                   <span className="text-xs text-muted-foreground">
                     Padrão oficial: Vida 30 · Família 25 · Moral 20 · Social 15 · Religião 10
                   </span>
@@ -380,7 +413,19 @@ const RankingPage = () => {
 
       {/* Results Section */}
       <section className="py-8">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4" ref={resultsRef}>
+          {hasCustomWeights && (
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 dark:border-yellow-700/50 dark:bg-yellow-950/30">
+              <p className="text-sm text-amber-900 dark:text-yellow-200 leading-relaxed">
+                <strong>Ranking ordenado com seus pesos</strong> — uma lente
+                pessoal calculada no seu navegador. A nota oficial e os rótulos
+                seguem a metodologia pública.
+              </p>
+              <Button variant="outline" size="sm" onClick={restoreDefaults} className="shrink-0">
+                Voltar ao padrão oficial
+              </Button>
+            </div>
+          )}
           <div className="flex items-center justify-between mb-6">
             <h2 className="font-serif text-2xl font-bold text-foreground">
               Parlamentares Avaliados

@@ -195,21 +195,21 @@ export function VotingAnalysis() {
           {/* Statistics Cards */}
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             <VotingStatsCard
-              title="Total de Votações"
+              title="Votos Nominais Registrados"
               value={analysisData?.totalVotes || 0}
-              subtitle="Monitoradas"
+              subtitle="Registros individuais de como cada parlamentar votou"
               icon={<Vote className="w-6 h-6" />}
             />
             <VotingStatsCard
               title="Parlamentares Ativos"
               value={analysisData?.activePoliticians || 0}
-              subtitle="Com votações"
+              subtitle="Com votações registradas"
               icon={<Users className="w-6 h-6" />}
             />
             <VotingStatsCard
               title="Pautas Analisadas"
               value={analysisData?.totalAgendas || 0}
-              subtitle="Diferentes"
+              subtitle="Sessões de votação classificadas nos 5 critérios"
               icon={<Calendar className="w-6 h-6" />}
             />
             <VotingStatsCard

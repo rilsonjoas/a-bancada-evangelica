@@ -90,18 +90,11 @@ export function PoliticianComparison() {
 
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Comparação de Políticos</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Comparar Parlamentares</h1>
             <p className="text-gray-600 mt-2">
-              Compare até 4 políticos lado a lado em todos os critérios
+              Escolha até 4 parlamentares e veja as notas de cada critério lado a lado
             </p>
           </div>
-          
-          {politicianIds.length < 4 && (
-            <Button onClick={() => setIsSelectingPolitician(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Adicionar Político
-            </Button>
-          )}
         </div>
       </div>
 
@@ -109,13 +102,14 @@ export function PoliticianComparison() {
       {politicianIds.length === 0 && (
         <div className="text-center py-16">
           <BarChart3 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Nenhum político selecionado</h2>
-          <p className="text-gray-600 mb-6">
-            Adicione políticos para começar a comparação
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Nenhum parlamentar escolhido ainda</h2>
+          <p className="text-gray-600 mb-6 max-w-md mx-auto">
+            Quer saber quem vota mais alinhado com os critérios que você valoriza?
+            Escolha até 4 parlamentares e compare as notas de cada um, lado a lado.
           </p>
           <Button onClick={() => setIsSelectingPolitician(true)}>
             <Plus className="w-4 h-4 mr-2" />
-            Selecionar Políticos
+            Escolher o primeiro parlamentar
           </Button>
         </div>
       )}
@@ -219,7 +213,7 @@ export function PoliticianComparison() {
                 className="border-dashed border-2 cursor-pointer hover:border-blue-500 transition-colors"
                 role="button"
                 tabIndex={0}
-                aria-label="Adicionar político à comparação"
+                aria-label="Adicionar parlamentar à comparação"
                 onClick={() => setIsSelectingPolitician(true)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
@@ -231,7 +225,7 @@ export function PoliticianComparison() {
                 <CardContent className="flex items-center justify-center h-full min-h-64">
                   <div className="text-center text-gray-500">
                     <Plus className="w-12 h-12 mx-auto mb-4" />
-                    <p className="font-medium">Adicionar Político</p>
+                    <p className="font-medium">Adicionar parlamentar</p>
                     <p className="text-sm">Clique para selecionar</p>
                   </div>
                 </CardContent>
@@ -307,7 +301,7 @@ export function PoliticianComparison() {
                   <CardContent>
                     <div className="space-y-4">
                       <div className="flex justify-between">
-                        <span>Políticos comparados:</span>
+                        <span>Parlamentares comparados:</span>
                         <span className="font-semibold">{comparisonData.length}</span>
                       </div>
                       <div className="flex justify-between">

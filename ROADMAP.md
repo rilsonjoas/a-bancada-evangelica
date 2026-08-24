@@ -213,7 +213,7 @@ Nenhum implementado ainda; cada um precisa de sessão própria (ou lote).
       consistentes. Critério: mesmos elementos visuais (título de card,
       valor de stat, texto corrido) têm o MESMO tamanho em qualquer página;
       teste em 360px, 768px, 1350px.
-- [ ] **F3 — Pesos personalizados parecem não funcionar**
+- [x] **F3 — Pesos personalizados parecem não funcionar** — FEITO (2026-08-24): modelo explícito rascunho→Aplicar com botão contextual, selo "ordenado com seus pesos" + Voltar ao padrão; verificado via CDP
       DIAGNÓSTICO: funciona, mas só com toggle ativo (`weightsEnabled`,
       Ranking.tsx:113-127); slider sozinho não faz nada, sem botão
       Aplicar, sem feedback visual de que o ranking mudou. Ação UX:
@@ -225,14 +225,14 @@ Nenhum implementado ainda; cada um precisa de sessão própria (ou lote).
       Substituir lista longa por ~10 destaques com notas DIVERSAS (não só
       os melhores) + busca em evidência + blocos de apresentação (o que é,
       método, fontes). Home deve vender o método, não despejar tabela.
-- [ ] **F5 — Comparação: dois botões redundantes + descrição hermética**
+- [x] **F5 — Comparação: dois botões redundantes + descrição hermética** — FEITO (2026-08-24): CTA único (card "+"), copy leiga, terminologia unificada em "parlamentar"
       "Selecionar políticos" e "Adicionar políticos" ao mesmo tempo
       (`PoliticianComparison.tsx:222`). Ação: UM fluxo único de seleção
       (busca + add), remover duplicação; reescrever descrição em linguagem
       leiga ("Compare as notas e os votos de até N parlamentares lado a
       lado"). Critério: sem dois CTAs para a mesma ação; copy testada com
       alguém de fora da área tech.
-- [ ] **F6 — "Total de Votações: 26860 Monitoradas" é ambíguo**
+- [x] **F6 — "Total de Votações: 26860 Monitoradas" é ambíguo** — FEITO (2026-08-24): "Votos Nominais Registrados" + "Pautas Analisadas / sessões classificadas nos 5 critérios"
       `VotingAnalysis.tsx:200`: não diz se são votações ou votos. Real:
       são registros individuais de voto; pautas curadas são ~86. Ação:
       rótulos precisos ("Votos nominais analisados", "Pautas classificadas")
