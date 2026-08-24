@@ -15,9 +15,11 @@ const Footer = () => {
                 <img src="/marca-white.png" alt="" aria-hidden="true" className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="font-serif text-lg font-bold text-foreground">
+                {/* p, não heading: marca/logo não é seção — e um h3 aqui
+                    pulava níveis depois de páginas que só têm h1 */}
+                <p className="font-serif text-lg font-bold text-foreground">
                   A Bancada Evangélica
-                </h3>
+                </p>
                 <p className="text-xs text-muted-foreground">
                   MONITORANDO A BANCADA EVANGÉLICA
                 </p>
@@ -50,7 +52,7 @@ const Footer = () => {
 
           {/* Navigation Links */}
           <div>
-            <h4 className="font-serif font-semibold text-foreground mb-4">Navegação</h4>
+            <h2 className="font-serif font-semibold text-foreground mb-4">Navegação</h2>
             <ul className="space-y-2">
               <li>
                 <Link 
@@ -113,7 +115,7 @@ const Footer = () => {
 
           {/* External Links */}
           <div>
-            <h4 className="font-serif font-semibold text-foreground mb-4">Fontes de Dados</h4>
+            <h2 className="font-serif font-semibold text-foreground mb-4">Fontes de Dados</h2>
             <ul className="space-y-2">
               <li>
                 <a 

@@ -207,7 +207,7 @@ const ContatoPage = () => {
                       <Mail className="h-4 w-4 text-primary" />
                     </div>
                     <div>
-                      <h4 className="font-semibold text-foreground">Email Principal</h4>
+                      <h3 className="font-semibold text-foreground">Email Principal</h3>
                       <a
                         href="mailto:abancada@narniano.com"
                         className="text-sm text-muted-foreground hover:text-primary transition-colors"
@@ -225,7 +225,7 @@ const ContatoPage = () => {
                       <Github className="h-4 w-4 text-primary" />
                     </div>
                     <div>
-                      <h4 className="font-semibold text-foreground">GitHub</h4>
+                      <h3 className="font-semibold text-foreground">GitHub</h3>
                       <p className="text-sm text-muted-foreground">github.com/rilsonjoas/a-bancada-evangelica</p>
                       <p className="text-xs text-muted-foreground mt-1">
                         Para colaborações técnicas e issues

@@ -367,9 +367,9 @@ const MetodologiaPage = () => {
                   do partido (65–78%).
                 </p>
                 <div className="mt-6 rounded-lg border border-border bg-background p-5">
-                  <h4 className="font-serif font-semibold text-foreground mb-2">
+                  <h3 className="font-serif font-semibold text-foreground mb-2">
                     Como a nota é calculada — transparência total
-                  </h4>
+                  </h3>
                   <div className="text-sm text-muted-foreground leading-relaxed space-y-2">
                     <p>
                       A nota de cada parlamentar começa na <strong>média histórica do partido dele</strong>
@@ -439,30 +439,30 @@ const MetodologiaPage = () => {
                     </CardHeader>
                     <CardContent className="space-y-6">
                       <div>
-                        <h4 className="font-semibold text-foreground mb-3 flex items-center space-x-2">
+                        <h3 className="font-semibold text-foreground mb-3 flex items-center space-x-2">
                           <Calculator className="h-4 w-4" />
                           <span>O Que Avaliamos</span>
-                        </h4>
+                        </h3>
                         <p className="text-muted-foreground leading-relaxed">
                           {criterio.description}
                         </p>
                       </div>
 
                       <div>
-                        <h4 className="font-semibold text-foreground mb-3 flex items-center space-x-2">
+                        <h3 className="font-semibold text-foreground mb-3 flex items-center space-x-2">
                           <Cross className="h-4 w-4" />
                           <span>Por Que é Importante para o Cristão</span>
-                        </h4>
+                        </h3>
                         <p className="text-muted-foreground leading-relaxed">
                           {criterio.whyImportant}
                         </p>
                       </div>
 
                       <div>
-                        <h4 className="font-semibold text-foreground mb-3 flex items-center space-x-2">
+                        <h3 className="font-semibold text-foreground mb-3 flex items-center space-x-2">
                           <Users className="h-4 w-4" />
                           <span>Como Isso Ajuda na Sua Decisão</span>
-                        </h4>
+                        </h3>
                         <p className="text-muted-foreground leading-relaxed">
                           {criterio.howItHelps}
                         </p>
@@ -470,7 +470,7 @@ const MetodologiaPage = () => {
 
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
                         <div>
-                          <h4 className="font-semibold text-foreground mb-3">Indicadores Avaliados</h4>
+                          <h3 className="font-semibold text-foreground mb-3">Indicadores Avaliados</h3>
                           <div className="space-y-2">
                             {criterio.indicators.map((indicator, idx) => (
                               <div key={idx} className="flex items-center space-x-2 text-sm">
@@ -482,10 +482,10 @@ const MetodologiaPage = () => {
                         </div>
 
                         <div className="bg-secondary/30 rounded-lg p-4">
-                          <h4 className="font-semibold text-foreground mb-3 flex items-center space-x-2">
+                          <h3 className="font-semibold text-foreground mb-3 flex items-center space-x-2">
                             <BookOpen className="h-4 w-4" />
                             <span>Base Bíblica</span>
-                          </h4>
+                          </h3>
                           <p className="text-sm text-muted-foreground italic">
                             {criterio.biblicalBasis}
                           </p>
