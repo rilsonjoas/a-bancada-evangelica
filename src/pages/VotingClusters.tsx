@@ -57,6 +57,7 @@ function ClusterCard({ cluster, color, index }: {
     <div className="border border-border rounded-lg overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
+        aria-expanded={open}
         className="w-full flex items-center justify-between p-4 bg-card hover:bg-accent/50 transition-colors text-left"
       >
         <div className="flex items-center gap-3">
@@ -124,7 +125,11 @@ function PartyAlignmentChart() {
   }));
 
   return (
-    <ResponsiveContainer width="100%" height={Math.max(280, top20.length * 28)}>
+    <div
+      role="img"
+      aria-label="Gráfico de barras: score médio de alinhamento por partido nos 5 critérios; cores indicam nível (verde alta, âmbar moderada, vermelho baixa)"
+    >
+      <ResponsiveContainer width="100%" height={Math.max(280, top20.length * 28)}>
       <BarChart data={top20} layout="vertical" margin={{ left: 8, right: 40, top: 4, bottom: 4 }}>
         <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11 }} />
         <YAxis type="category" dataKey="party" width={60} tick={{ fontSize: 11 }} />
@@ -141,8 +146,9 @@ function PartyAlignmentChart() {
           ))}
           <LabelList dataKey="score" position="right" formatter={(v: number) => v.toFixed(0)} style={{ fontSize: 11 }} />
         </Bar>
-      </BarChart>
-    </ResponsiveContainer>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
   );
 }
 
@@ -266,6 +272,10 @@ export default function VotingClusters() {
               <p className="text-xs text-muted-foreground mb-4">
                 Cada ponto é um parlamentar. Proximidade indica padrão de voto similar.
               </p>
+              <div
+                role="img"
+                aria-label="Gráfico de dispersão: cada ponto é um parlamentar posicionado pelas duas primeiras componentes principais dos votos; pontos próximos indicam padrão de votação similar. A composição completa dos grupos está na lista abaixo."
+              >
               <ResponsiveContainer width="100%" height={420}>
                 <ScatterChart margin={{ top: 10, right: 20, bottom: 10, left: 0 }}>
                   <XAxis dataKey="x" type="number" name="PC1" tick={{ fontSize: 11 }} tickFormatter={v => v.toFixed(1)} />
@@ -289,6 +299,7 @@ export default function VotingClusters() {
                   ))}
                 </ScatterChart>
               </ResponsiveContainer>
+              </div>
 
               {/* Legend */}
               <div className="flex flex-wrap gap-3 mt-4">

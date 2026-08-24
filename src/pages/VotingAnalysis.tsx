@@ -125,6 +125,7 @@ export function VotingAnalysis() {
               <label className="text-sm font-medium mb-2 block">Buscar pauta</label>
               <Input
                 placeholder="Nome da pauta ou projeto..."
+                aria-label="Buscar pauta por nome ou projeto"
                 value={filters.search}
                 onChange={(e) => updateFilter('search', e.target.value)}
               />
@@ -133,7 +134,7 @@ export function VotingAnalysis() {
             <div>
               <label className="text-sm font-medium mb-2 block">Critério</label>
               <Select value={selectValue(filters.criteria)} onValueChange={(value) => updateFilter('criteria', value)}>
-                <SelectTrigger>
+                <SelectTrigger aria-label="Filtrar por critério">
                   <SelectValue placeholder="Todos os critérios" />
                 </SelectTrigger>
                 <SelectContent>
@@ -153,7 +154,7 @@ export function VotingAnalysis() {
             <div>
               <label className="text-sm font-medium mb-2 block">Período</label>
               <Select value={selectValue(filters.dateRange)} onValueChange={(value) => updateFilter('dateRange', value)}>
-                <SelectTrigger>
+                <SelectTrigger aria-label="Filtrar por período">
                   <SelectValue placeholder="Todos os períodos" />
                 </SelectTrigger>
                 <SelectContent>

@@ -132,6 +132,7 @@ export function PoliticianComparison() {
                   className="absolute top-2 right-2 h-6 w-6 p-0"
                   variant="ghost"
                   size="sm"
+                  aria-label={`Remover ${politician.name} da comparação`}
                 >
                   <X className="w-4 h-4" />
                 </Button>
@@ -171,7 +172,11 @@ export function PoliticianComparison() {
                           {politician.currentScore?.lifeProtection?.toFixed(0) || '0'}
                         </span>
                       </div>
-                      <Progress value={politician.currentScore?.lifeProtection || 0} className="h-2" />
+                      <Progress
+                        value={politician.currentScore?.lifeProtection || 0}
+                        className="h-2"
+                        aria-label={`Proteção à Vida: ${politician.currentScore?.lifeProtection?.toFixed(0) || '0'} de 100`}
+                      />
                       
                       <div className="flex justify-between text-xs">
                         <span>👨‍👩‍👧‍👦 Família</span>
@@ -179,7 +184,11 @@ export function PoliticianComparison() {
                           {politician.currentScore?.familyValues?.toFixed(0) || '0'}
                         </span>
                       </div>
-                      <Progress value={politician.currentScore?.familyValues || 0} className="h-2" />
+                      <Progress
+                        value={politician.currentScore?.familyValues || 0}
+                        className="h-2"
+                        aria-label={`Valores Familiares: ${politician.currentScore?.familyValues?.toFixed(0) || '0'} de 100`}
+                      />
                       
                       <div className="flex justify-between text-xs">
                         <span>⚖️ Integridade</span>
@@ -187,7 +196,11 @@ export function PoliticianComparison() {
                           {politician.currentScore?.moralIntegrity?.toFixed(0) || '0'}
                         </span>
                       </div>
-                      <Progress value={politician.currentScore?.moralIntegrity || 0} className="h-2" />
+                      <Progress
+                        value={politician.currentScore?.moralIntegrity || 0}
+                        className="h-2"
+                        aria-label={`Integridade Moral: ${politician.currentScore?.moralIntegrity?.toFixed(0) || '0'} de 100`}
+                      />
                     </div>
 
                     <Link to={`/politicos/${politician.id}`}>
@@ -202,9 +215,18 @@ export function PoliticianComparison() {
             
             {/* Add Politician Card */}
             {politicianIds.length < 4 && (
-              <Card 
+              <Card
                 className="border-dashed border-2 cursor-pointer hover:border-blue-500 transition-colors"
+                role="button"
+                tabIndex={0}
+                aria-label="Adicionar político à comparação"
                 onClick={() => setIsSelectingPolitician(true)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setIsSelectingPolitician(true);
+                  }
+                }}
               >
                 <CardContent className="flex items-center justify-center h-full min-h-64">
                   <div className="text-center text-gray-500">
