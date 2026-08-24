@@ -20,6 +20,7 @@ import NotFound from "./pages/NotFound";
 import Privacidade from "./pages/Privacidade";
 import Termos from "./pages/Termos";
 import { Analytics } from "@/components/Analytics";
+import { DadosAbertos } from "./pages/DadosAbertos";
 
 /** Rola pro topo a cada navegação — sem isso o SPA mantém a altura da
  * página anterior e o usuário "cai" no meio da página seguinte. */
