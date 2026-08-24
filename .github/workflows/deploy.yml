@@ -25,6 +25,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
+            set -e
             # Guarda de disco (incidentes 2026-08-22 e 2026-08-23): se a raiz
             # estiver >=90%, aborta ANTES de piorar tudo com mais um build.
             USO=$(df --output=pcent / | tail -1 | tr -dc '0-9')
@@ -34,6 +35,15 @@ jobs:
             fi
             cd /opt/a-bancada-evangelica
             git pull --ff-only origin main
+            # Achado 2026-08-24: deploys verdes com código VELHO — o git pull
+            # falhava, o erro era engolido (sem set -e), o rebuild subia código
+            # antigo e o smoke test passava (/health serve em qualquer versão).
+            # Agora: pull tem que chegar EXATAMENTE no commit deste push.
+            ATUAL=$(git rev-parse HEAD)
+            if [ "$ATUAL" != "${{ github.sha }}" ]; then
+              echo "❌ VPS em $ATUAL, esperado ${{ github.sha }} — pull não aplicou."
+              exit 1
+            fi
             cd ~/hetzner-infra
             make deploy service=bancada
             # Prevenção de reincidência: o filtro semanal (until=168h) NÃO pegava

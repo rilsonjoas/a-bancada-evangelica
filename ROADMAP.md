@@ -603,6 +603,13 @@ verificação visual headless fica no playbook manual (playbook acima).
    (~35 hoje, documentados) pra não atribuir ao seu diff o que é dívida
 
 ### Armadilhas conhecidas deste repo (todas morderam de verdade)
+0. **Deploy verde com código velho (achado 2026-08-24)** — o script de
+   deploy no VPS não tinha `set -e`: `git pull` falhava, o erro era
+   engolido, o rebuild subia o código antigo e o smoke test passava
+   (`/health` serve em QUALQUER versão). Ficou assim por 3 deploys.
+   Correção no deploy.yml: `set -e` + verificação de que HEAD no VPS ==
+   commit do push (`github.sha`). Lição: pipeline que só verifica VIDA
+   não verifica ENTREGA.
 1. **`tsc --noEmit` simples não checa nada** — tsconfig solution-style
    (`files: []`). Usar `-p tsconfig.app.json`. O `tsc -b` além de não
    respeitar `noEmit`, **emite .js compilado dentro do src/** e quebra
