@@ -198,7 +198,7 @@ Leitura crítica do site inteiro pelo dono do produto. Tema comum:
 é objetivo declarado do projeto. Itens F1–F11, em ordem da leitura.
 Nenhum implementado ainda; cada um precisa de sessão própria (ou lote).
 
-- [ ] **F1 — Hero confuso ("208 Avaliados" / "513 Deputados")**
+- [x] **F1 — Hero confuso ("208 Avaliados" / "513 Deputados")** — FEITO (2026-08-24): cards agora globais e separados (monitorados × com nota calculada × nota média × ótimas) + explicação "por que nem todos têm nota" + frase de foco na bancada com dados abertos pra pesquisa
       `Ranking.tsx:191-205`: "Avaliados" = quem TEM nota calculada
       (~208), "Deputados" = 513. O leigo lê como contradição. Ação:
       rótulo explícito ("Com nota calculada") + 1 frase explicando por quê
@@ -221,7 +221,7 @@ Nenhum implementado ainda; cada um precisa de sessão própria (ou lote).
       com SEUS pesos" + botão Restaurar padrão à mão + nota de que só
       quem tem nota é reordenado (ver F1). Critério: usuário leigo move
       slider e PERCEBE o efeito em <5s sem instrução.
-- [ ] **F4 — Home apresenta mal o site (lista bruta de muitos deputados)**
+- [x] **F4 — Home apresenta mal o site (lista bruta de muitos deputados)** — FEITO (2026-08-24): seção "Panorama da bancada" com 8 perfis (2 de cada faixa: Ótimo/Bom/Médio/Crítico, membros FPE) + âncora pro ranking completo; hero reescrito antes da lista
       Substituir lista longa por ~10 destaques com notas DIVERSAS (não só
       os melhores) + busca em evidência + blocos de apresentação (o que é,
       método, fontes). Home deve vender o método, não despejar tabela.

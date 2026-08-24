@@ -14,6 +14,75 @@ import { APIPolitician } from '@/types/politician';
 import { Slider } from '@/components/ui/slider';
 import { CRITERIA } from '@/lib/criteria';
 
+const CRITERIA_LEVELS: Array<{ key: 'EXCELLENT' | 'GOOD' | 'AVERAGE' | 'POOR'; label: string }> = [
+  { key: 'EXCELLENT', label: 'Ótimo' },
+  { key: 'GOOD', label: 'Bom' },
+  { key: 'AVERAGE', label: 'Médio' },
+  { key: 'POOR', label: 'Crítico' },
+];
+
+// ── F4 (2026-08-24): panorama com amostra de TODOS os níveis ──
+// Antes a home despejava uma lista longa ordenada pela melhor nota.
+// Agora mostra 2 perfis de cada faixa de desempenho (membros da bancada),
+// deixando claro que o método avalia todo o espectro — não só o lado bom.
+const HighlightsSection: React.FC = () => {
+  const excellent = usePoliticians({ performanceLevel: 'EXCELLENT', fpeFilter: true, sortBy: 'score', sortOrder: 'desc', limit: 2 });
+  const good = usePoliticians({ performanceLevel: 'GOOD', fpeFilter: true, sortBy: 'score', sortOrder: 'desc', limit: 2 });
+  const average = usePoliticians({ performanceLevel: 'AVERAGE', fpeFilter: true, sortBy: 'score', sortOrder: 'desc', limit: 2 });
+  const poor = usePoliticians({ performanceLevel: 'POOR', fpeFilter: true, sortBy: 'score', sortOrder: 'desc', limit: 2 });
+
+  const buckets = [
+    { level: CRITERIA_LEVELS[0], query: excellent },
+    { level: CRITERIA_LEVELS[1], query: good },
+    { level: CRITERIA_LEVELS[2], query: average },
+    { level: CRITERIA_LEVELS[3], query: poor },
+  ];
+
+  const isLoading = buckets.some(b => b.query.isLoading);
+  const total = buckets.reduce((acc, b) => acc + (b.query.data?.politicians?.length ?? 0), 0);
+  if (!isLoading && total === 0) return null;
+
+  return (
+    <section className="py-12 bg-background border-b border-border">
+      <div className="container mx-auto px-4">
+        <div className="max-w-3xl mx-auto text-center mb-10">
+          <h2 className="font-serif text-3xl font-bold text-foreground">Panorama da bancada</h2>
+          <p className="text-muted-foreground mt-3 text-sm md:text-base leading-relaxed">
+            Uma amostra fixa de <strong>todos os níveis</strong> de desempenho
+            entre os membros da bancada com nota calculada — as duas notas mais
+            altas de cada faixa. Transparência é mostrar o espectro inteiro,
+            não só o lado bom.
+          </p>
+        </div>
+        {isLoading ? (
+          <div className="text-center text-muted-foreground py-8">Carregando destaques…</div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-5 gap-y-8">
+              {buckets.map(({ level, query }) =>
+                (query.data?.politicians ?? []).map((p) => (
+                  <div key={p.id} className="space-y-1.5">
+                    <span className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground px-1">
+                      Desempenho {level.label}
+                    </span>
+                    <PoliticianCard politician={p} />
+                  </div>
+                ))
+              )}
+            </div>
+            <div className="text-center mt-10">
+              <a href="#ranking-completo" className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline">
+                Ver o ranking completo e buscar qualquer parlamentar
+                <TrendingUp className="h-4 w-4" />
+              </a>
+            </div>
+          </>
+        )}
+      </div>
+    </section>
+  );
+};
+
 const RankingPage = () => {
   const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') ?? '');
@@ -87,21 +156,24 @@ const RankingPage = () => {
     [politiciansData]
   );
 
-  // Calculate statistics — "Média Geral" vem da API (média global real de
-  // todos os parlamentares ativos), NÃO da média do top-100 carregado.
-  // A média client-side (~86) mentia pra cima frente à global (~66).
+  // Calculate statistics — TODAS as métricas do hero são GLOBAIS
+  // (endpoint /stats/overview). F1 (2026-08-24): antes o card "Avaliados"
+  // mostrava o total FILTRADO pela FPE (~208) misturado com contagens
+  // globais (513 deputados) — o leigo lia contradição. Agora separa:
+  // monitorados (todos) × com nota calculada (soma das faixas).
   const stats = useMemo(() => {
-    if (!politiciansData || !statsData) {
-      return { total: 0, avgScore: 0, excellentCount: 0, deputadosCount: 0 };
+    if (!statsData) {
+      return { monitored: 0, scored: 0, avgScore: 0, excellentCount: 0 };
     }
 
-    const total = politiciansData.total;
+    const dist = statsData.performanceDistribution;
+    const monitored = statsData.totalPoliticians ?? 0;
+    const scored = dist.excellent + dist.good + dist.average + dist.poor;
     const avgScore = statsData.averageScore ?? 0;
-    const excellentCount = statsData.performanceDistribution.excellent;
-    const deputadosCount = statsData.houseDistribution.camara;
+    const excellentCount = dist.excellent;
 
-    return { total, avgScore, excellentCount, deputadosCount };
-  }, [politiciansData, statsData]);
+    return { monitored, scored, avgScore, excellentCount };
+  }, [statsData]);
 
   // Pesos efetivos + ranking derivado — SÓ quando o usuário aplicou
   const DEFAULT_WEIGHTS: Record<string, number> = {
@@ -183,6 +255,8 @@ const RankingPage = () => {
               Notas calculadas exclusivamente a partir de{' '}
               <strong>votos nominais públicos</strong> registrados na Câmara e no Senado.
               Sem enquete, sem declaração, sem simpatia — o voto registrado é o único dado.
+              O foco especial é a <strong>Bancada Evangélica</strong>, mas os dados de
+              todos os parlamentares ficam disponíveis para busca e pesquisa.
             </p>
             {/* Três passos do método */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-2xl mx-auto mb-8 text-sm">
@@ -204,27 +278,35 @@ const RankingPage = () => {
               <TrendingUp className="h-4 w-4" />
             </Link>
             <div className="mt-6" />
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
+            <div className="grid grid-cols-3 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
               <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
-                <div className="text-2xl font-bold">{stats.total}</div>
-                <div className="text-sm opacity-90">Avaliados</div>
+                <div className="text-2xl font-bold">{stats.monitored}</div>
+                <div className="text-sm opacity-90">Parlamentares monitorados</div>
+              </div>
+              <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
+                <div className="text-2xl font-bold">{stats.scored}</div>
+                <div className="text-sm opacity-90">Com nota calculada</div>
               </div>
               <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
                 <div className="text-2xl font-bold">{stats.avgScore.toFixed(1)}</div>
-                <div className="text-sm opacity-90">Média Geral</div>
+                <div className="text-sm opacity-90">Nota média (0–100)</div>
               </div>
               <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
                 <div className="text-2xl font-bold">{stats.excellentCount}</div>
-                <div className="text-sm opacity-90">Excelentes</div>
-              </div>
-              <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
-                <div className="text-2xl font-bold">{stats.deputadosCount}</div>
-                <div className="text-sm opacity-90">Deputados</div>
+                <div className="text-sm opacity-90">Notas ótimas</div>
               </div>
             </div>
+            <p className="text-xs text-primary-foreground/70 max-w-2xl mx-auto mt-4 leading-relaxed">
+              Por que nem todos têm nota? A nota exige voto nominal registrado
+              nas pautas classificadas pela metodologia — parlamentar com poucas
+              votações compatíveis ainda não tem amostra suficiente. Quem não tem
+              nota aparece na busca com os dados cadastrais completos.
+            </p>
           </div>
         </div>
       </section>
+
+      <HighlightsSection />
 
       {/* Filters Section */}
       <section className="py-8 bg-background border-b border-border">
@@ -412,7 +494,7 @@ const RankingPage = () => {
       </section>
 
       {/* Results Section */}
-      <section className="py-8">
+      <section id="ranking-completo" className="py-8">
         <div className="container mx-auto px-4" ref={resultsRef}>
           {hasCustomWeights && (
             <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 dark:border-yellow-700/50 dark:bg-yellow-950/30">
