@@ -46,14 +46,25 @@ referenciando este documento. Meta: WCAG 2.1 AA.
 1. alt nas 3 imgs *(15 min)*
 2. Skip-link + `<main id="conteudo">` *(30 min)*
 3. Accessible names em todos os icon-only buttons *(1–2h)*
-4. aria-labels por página — ✅ PARCIAL CONCLUÍDO (2026-08-23): Ranking
-   (busca + sliders de peso com valor anunciado) e Perfil (barras de
-   critério com "X de 100 pontos"). Restam: comparacao, grupos, votacoes.
+4. aria-labels por página — ✅ CONCLUÍDO (2026-08-23): Ranking
+   (busca + sliders de peso) e Perfil (barras de critério) já tinham;
+   fechado agora Comparação (busca? não — remover político nomeado,
+   card "Adicionar" virou botão de verdade com Enter/Espaço, barras
+   com "X de 100"), Grupos (aria-expanded no expandir, gráficos
+   Recharts com role="img" + descrição) e Votações (busca + selects
+   de critério/período rotulados).
 5. focus-visible padronizado nos ui components *(2h)*
-6. **Validação final** — ⚠️ PARCIAL (2026-08-23): estática ✅ completa
-   (contraste, imgs, aria, landmarks). Navegador BLOQUEADA no ambiente de
-   trabalho — Chrome headless sem render (NO_FCP em 4 estratégias; quota
-   PSI esgotada). **Rodar na máquina pessoal:**
+6. **Validação final** — ⚠️ BLOQUEADA POR ACHADO MAIOR (2026-08-23):
+   a validação no navegador desta máquina reproduziu o NO_FCP da
+   sessão anterior — e a investigação mostrou que não era ambiente:
+   **produção estava tela-branca desde o push do commit `b7cf4b1`**
+   (rota `/dados` adicionada sem import → `ReferenceError:
+   DadosAbertos is not defined` crashava o React inteiro no boot;
+   a página em si também usava Chakra UI, nunca instalado). Corrigido:
+   import + página reescrita em Tailwind; verificado localmente com
+   screenshot headless (home pinta 380KB vs 5.7KB branco antes).
+   Lighthouse ≥90 nas 6 páginas continua como meta — rodar logo após
+   o deploy do hotfix (produção hoje nem carrega pra medir):
 
    ```bash
    npx lighthouse https://a-bancada-evangelica.vercel.app/ \

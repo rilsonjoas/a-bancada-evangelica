@@ -531,3 +531,37 @@ Duas recorrências da mesma causa em 24h, segunda com diagnóstico completo:
   3. Percentual de disco reportado no log de cada deploy
 - **Tradeoff aceito**: todo rebuild agora começa sem cache de camada
   (segundos a mais por deploy) em troca de disco estável.
+
+## 🚨 Incidente 2026-08-23 — produção tela-branca desde 22/08 (achado pela validação de a11y)
+
+**Como foi achado:** a pendência "validação Lighthouse no navegador"
+(docs/A11Y-AUDIT.md item 6) reproduziu o NO_FCP desta máquina — e em vez
+de culpar o ambiente, screenshot headless direto mostrou PNG de 5.7KB
+(tela branca). O site inteiro estava fora do ar desde o push de ontem.
+
+**Causa raiz (3 camadas):**
+1. Commit `b7cf4b1` adicionou `<Route path="/dados" element={<DadosAbertos />} />`
+   **sem o import** → `ReferenceError: DadosAbertos is not defined`
+   crashava o React no boot, em TODAS as rotas (SPA morre inteira).
+2. A página `DadosAbertos.tsx` usava **Chakra UI** (nunca instalado;
+   stack é shadcn/Tailwind) e `React.FC` sem import — nunca compilou
+   de verdade; ninguém percebeu porque ninguém importava o arquivo.
+3. **Gap de typecheck**: `tsconfig.json` é solution-style (`files: []`)
+   — `tsc --noEmit` simples não checa NADA, e o build Vite não tipa.
+   O erro era pego por `tsc -p tsconfig.app.json` (36 erros no app,
+   sendo 1 fatal). Nenhuma etapa do pipeline (lint/testes/CI) cobria.
+
+**Correção:** import adicionado; página reescrita em HTML+Tailwind
+(mesmo conteúdo); verificado localmente — build ok, 43/43 testes,
+screenshot headless da home pinta (380KB) e `/dados` renderiza.
+Lighthouse fica pra logo após o deploy (produção hoje nem carrega).
+
+**Prevenção (backlog novo, P0-adjacente):** queimar os ~35 erros de
+tipo do app + os do tsconfig.api.json e aí ligar `tsc -p
+tsconfig.app.json --noEmit` no CI. Nota: `tsc -b` EMITE .js no src/
+(ignore `noEmit`) — usar `-p <projeto> --noEmit`, não `-b`.
+Smoke test do deploy.yml só testa `/health` da API — adicionar
+verificação de que o frontend pintou (ex.: fetch do bundle e grep de
+RuntimeError? avaliar; mínimo: abrir home com headless no CI é caro,
+mas um `curl + grep '<div id="root">'` não pega esse classe de bug —
+o gap real é o typecheck).
