@@ -554,7 +554,15 @@ de culpar o ambiente, screenshot headless direto mostrou PNG de 5.7KB
 **Correção:** import adicionado; página reescrita em HTML+Tailwind
 (mesmo conteúdo); verificado localmente — build ok, 43/43 testes,
 screenshot headless da home pinta (380KB) e `/dados` renderiza.
-Lighthouse fica pra logo após o deploy (produção hoje nem carrega).
+
+**RESOLVIDO EM PRODUÇÃO (2026-08-23, noite):** commits `1e74e2c`
+(hotfix), `9898781` (a11y) e `bb3374b` (docs) → deploy VPS verde
+(2m17s), CI verde, `/health` 200, home e `/dados` pintando em
+produção confirmadas por screenshot headless. Na mesma sessão a
+validação Lighthouse foi executada e a **meta ≥90 batida nas 6
+páginas** — resultados completos em `docs/A11Y-AUDIT.md` (home 100,
+metodologia 95→98 com contrates corrigidos, perfil 98, sobre 100,
+dados 98, contato 98).
 
 **Prevenção (backlog novo, P0-adjacente):** queimar os ~35 erros de
 tipo do app + os do tsconfig.api.json e aí ligar `tsc -p
@@ -565,3 +573,71 @@ verificação de que o frontend pintou (ex.: fetch do bundle e grep de
 RuntimeError? avaliar; mínimo: abrir home com headless no CI é caro,
 mas um `curl + grep '<div id="root">'` não pega esse classe de bug —
 o gap real é o typecheck).
+
+---
+
+## 🧯 Playbook de segurança pra corrigir bugs (lições desta sessão)
+
+> Registrado em 2026-08-23 após o incidente tela-branca. Vale para
+> QUALQUER mudança neste projeto — seguir na ordem. O incidente provou
+> que build verde + testes verdes NÃO significam site funcionando.
+
+### Antes de mexer
+1. `git status --porcelain` limpo — nunca misture trabalho novo com
+   WIP não relacionado
+2. Linha de base dos testes ANTES da mudança: `pnpm test` (43/43 hoje)
+3. Typecheck REAL do projeto (ver armadilha #1): `npx tsc -p
+   tsconfig.app.json --noEmit` — anote se já há erros pré-existentes
+   (~35 hoje, documentados) pra não atribuir ao seu diff o que é dívida
+
+### Armadilhas conhecidas deste repo (todas morderam de verdade)
+1. **`tsc --noEmit` simples não checa nada** — tsconfig solution-style
+   (`files: []`). Usar `-p tsconfig.app.json`. O `tsc -b` além de não
+   respeitar `noEmit`, **emite .js compilado dentro do src/** e quebra
+   o próximo build (`criteria.js` com JSX). Se emitir por acidente:
+   apagar cada `.js` que tenha gêmeo `.ts/.tsx` (36 foram gerados e
+   limpos nesta sessão).
+2. **Build Vite NÃO tipa** — passa import inexistente, tipo errado,
+   tudo. O erro só explode em runtime no browser do usuário.
+3. **Página nova fora do padrão de stack compila "até passar"** —
+   DadosAbertos.tsx veio com Chakra UI + React.FC sem import e ninguém
+   percebeu enquanto ninguém importava. Ao criar página: usar as
+   páginas existentes como molde (container/Tailwind/shadcn), importar
+   no App.tsx NO MESMO commit e conferir o typecheck.
+4. **SPA morre inteira com um ReferenceError qualquer** — um único
+   componente quebrado no boot = tela branca em TODAS as rotas. Não
+   existe falha "só numa página" para erro de módulo.
+5. **Smoke test do deploy só cobre a API** (`/health`) — frontend
+   quebrado passa pelo pipeline inteiro sem alarme.
+
+### Depois de mexer (ordem mínima de verificação)
+1. `pnpm test` — 43/43 esperado (ou mais; nunca menos)
+2. `npx tsc -p tsconfig.app.json --noEmit` — zero erros NOVOS vs
+   linha de base (comparar contagem)
+3. `pnpm lint` — 0 errors (3 warnings react-refresh são pré-existentes)
+4. `pnpm build` — precisa terminar em "✓ built"
+5. **Verificação visual headless** (pegava tela-branca que tudo acima
+   deixava passar):
+   ```bash
+   (pnpm preview --port 4174 &) && sleep 4
+   google-chrome --headless=new --disable-gpu --no-sandbox \
+     --virtual-time-budget=12000 \
+     --screenshot=/tmp/tela.png http://localhost:4174/
+   # PNG >50KB = pintou; ~5KB = tela branca
+   ```
+6. Só então commitar (mensagem referenciando doc/issue) e push
+
+### Depois do push (ritual de deploy + verificação em produção)
+1. `gh run list` — Deploy VPS E CI/CD verdes
+2. `curl https://api-bancada.narniano.com/health` — 200
+3. Screenshot headless de produção (mesmo comando, URL pública) —
+   confirma o deploy real do Vercel, não só o build local
+4. Lighthouse de acessibilidade se tocou em UI
+
+### Dívida conhecida (não é regression sua — anotada 2026-08-23)
+- ~35 erros de tipo no app (charts/recharts `unknown`, `ShareButton`
+  importa `WhatsApp` inexistente no lucide-react — dead code hoje, mas
+  CRASHARÁ se alguém usar; `Ranking.tsx` averageScore etc.) +
+  erros no `tsconfig.api.json`. Queimar antes de ligar typecheck no CI.
+- `heading-order` (h3/h4 pulando níveis) em Metodologia, Perfil,
+  Dados e Contato — revisar hierarquia componente a componente.
