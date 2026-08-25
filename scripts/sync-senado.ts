@@ -270,50 +270,76 @@ const senadorCompleto = {
   private async upsertMandates(
     politicianId: number, 
     senador: SenadoSenador, 
-    senadorCompleto: SenadoSenadorDetalhado
+    _senadorCompleto: SenadoSenadorDetalhado
   ): Promise<void> {
-    // Processar mandatos do senador
-    if (senadorCompleto.Mandatos?.Mandato) {
-      const mandatos = Array.isArray(senadorCompleto.Mandatos.Mandato) 
-        ? senadorCompleto.Mandatos.Mandato 
-        : [senadorCompleto.Mandatos.Mandato];
+    try {
+      const response = await fetch(
+        `https://legis.senado.leg.br/dadosabertos/senador/${senador.CodigoParlamentar}/mandatos?v=5`
+      );
+      if (!response.ok) return;
+
+      const data = await response.json();
+      const mandatoData = data?.MandatoParlamentar?.Parlamentar?.Mandatos?.Mandato;
+      if (!mandatoData) return;
+
+      const mandatos = Array.isArray(mandatoData) ? mandatoData : [mandatoData];
+      const now = new Date();
 
       for (const mandato of mandatos) {
-        const startYear = parseInt(mandato.PrimeiroAnoMandato);
-        const endYear = parseInt(mandato.SegundoAnoMandato);
-        const currentYear = new Date().getFullYear();
-        
-        // Verificar se é o mandato atual
-        const isCurrent = currentYear >= startYear && currentYear <= endYear;
+        const legislaturas = [
+          mandato.PrimeiraLegislaturaDoMandato,
+          mandato.SegundaLegislaturaDoMandato,
+        ].filter(Boolean);
 
-        // F10 (2026-08-24): upsert REAL pela chave natural. Antes era
-        // `where: { id: -1 }` — criava duplicata a cada sync.
-        await prisma.mandate.upsert({
-          where: {
-            politician_id_house_legislature: {
+        const partidos = mandato.Partidos?.Partido ?? [];
+        const partidosList = Array.isArray(partidos) ? partidos : [partidos];
+
+        for (const leg of legislaturas) {
+          const legNum = String(leg.NumeroLegislatura);
+          const startDate = new Date(leg.DataInicio);
+          const endDate = new Date(leg.DataFim);
+          const isCurrent = now >= startDate && now <= endDate;
+
+          // Partido vigente no início da legislatura
+          let party = senador.SiglaPartidoParlamentar;
+          for (const p of partidosList) {
+            const filStart = new Date(p.DataFiliacao);
+            const filEnd = p.DataDesfiliacao ? new Date(p.DataDesfiliacao) : new Date('2099-01-01');
+            if (filStart <= startDate && filEnd > startDate) {
+              party = p.Sigla;
+              break;
+            }
+          }
+
+          await prisma.mandate.upsert({
+            where: {
+              politician_id_house_legislature: {
+                politician_id: politicianId,
+                house: 'SENADO',
+                legislature: legNum,
+              }
+            },
+            update: {
+              party,
+              state: mandato.UfParlamentar ?? senador.UfParlamentar,
+              is_current: isCurrent,
+            },
+            create: {
               politician_id: politicianId,
               house: 'SENADO',
-              legislature: mandato.CodigoMandato,
+              legislature: legNum,
+              start_date: startDate,
+              end_date: endDate,
+              party,
+              state: mandato.UfParlamentar ?? senador.UfParlamentar,
+              is_current: isCurrent,
+              status: 'ACTIVE',
             }
-          },
-          update: {
-            party: senador.SiglaPartidoParlamentar,
-            state: senador.UfParlamentar,
-            is_current: isCurrent,
-          },
-          create: {
-            politician_id: politicianId,
-            house: 'SENADO',
-            party: senador.SiglaPartidoParlamentar,
-            state: senador.UfParlamentar,
-            legislature: mandato.CodigoMandato,
-            start_date: new Date(`${startYear}-02-01`),
-            end_date: new Date(`${endYear}-01-31`),
-            is_current: isCurrent,
-            status: 'ACTIVE'
-          }
-        });
+          });
+        }
       }
+    } catch (error) {
+      console.warn(`⚠️ Mandatos de ${senador.NomeParlamentar} ignorados:`, error);
     }
   }
 
