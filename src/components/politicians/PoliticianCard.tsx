@@ -110,14 +110,23 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
               </div>
             </div>
 
-            {/* Performance Level */}
-            <div className="mb-3">
-              <Badge 
+            {/* Performance Level + Bancada */}
+            <div className="mb-3 flex items-center flex-wrap gap-1.5">
+              <Badge
                 className={cn("text-xs", performanceBadge.color)}
                 variant="outline"
               >
                 {performanceBadge.label}
               </Badge>
+              {politician.isFpeMember && (
+                <Badge
+                  variant="outline"
+                  className="text-xs bg-purple-50 text-purple-800 border-purple-200"
+                  title="Integrante da Frente Parlamentar Evangélica"
+                >
+                  Bancada Evangélica
+                </Badge>
+              )}
             </div>
 
             {/* Score Breakdown */}

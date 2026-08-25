@@ -9,6 +9,7 @@ export interface PoliticianDetail {
   currentState: string;
   currentHouse: string;
   photoUrl: string;
+  isFpeMember?: boolean;
   email?: string;
   birthDate?: string;
   mandates: Array<{

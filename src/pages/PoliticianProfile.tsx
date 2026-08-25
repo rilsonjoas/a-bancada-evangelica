@@ -140,8 +140,20 @@ export function PoliticianProfile() {
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">{politician.name}</h1>
-                <p className="text-xl text-gray-600 mb-4">{politician.fullName}</p>
-                
+                <p className="text-xl text-gray-600 mb-3">{politician.fullName}</p>
+
+                {politician.isFpeMember && (
+                  <div className="mb-4">
+                    <Badge
+                      variant="outline"
+                      className="bg-purple-50 text-purple-800 border-purple-200 text-sm px-3 py-1"
+                      title="Integrante da Frente Parlamentar Evangélica"
+                    >
+                      Bancada Evangélica
+                    </Badge>
+                  </div>
+                )}
+
                 <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                   <div className="flex items-center gap-1">
                     <Building className="w-4 h-4" />

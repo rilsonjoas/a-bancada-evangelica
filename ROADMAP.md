@@ -215,7 +215,7 @@ Nenhum implementado ainda; cada um precisa de sessão própria (ou lote).
       claro que há dados de TODOS os deputados pra pesquisa, com foco na
       bancada. Critério: nenhuma estatística do hero sem legenda que se
       explica sozinha.
-- [ ] **F2 — Tipografia díspare no app todo + responsividade**
+- [x] **F2 — Tipografia díspare no app todo + responsividade** — FEITO (2026-08-24): escala única (h1 hero `font-serif 4xl/5xl`, h1 conteúdo `3xl`, h2 seção `2xl`, stats `2xl`); outliers corrigidos (DadosAbertos h1 2xl→3xl, Ranking sem serif/extrabold→padrão dos heros, h2s 3xl→2xl)
       Tamanhos de fonte inconsistentes entre páginas/cards (gigante ali,
       pequeno ali). Ação: escala tipográfica única (tokens Tailwind /
       variáveis CSS), auditoria componente a componente, breakpoints
@@ -246,7 +246,7 @@ Nenhum implementado ainda; cada um precisa de sessão própria (ou lote).
       são registros individuais de voto; pautas curadas são ~86. Ação:
       rótulos precisos ("Votos nominais analisados", "Pautas classificadas")
       + ambos visíveis. Critério: número nenhum ambíguo (transparência).
-- [ ] **F7 — Descrições não ocupam/respeitam largura em telas grandes**
+- [x] **F7 — Descrições não ocupam/respeitam largura em telas grandes** — FEITO (2026-08-24): causa raiz era `max-w-6xl` no container INTEIRO da página Grupos (única página com cap); removido p/ alinhar com as demais + descrições alargadas p/ `max-w-3xl`. Varredura automatizada: 0px de overflow em 9 rotas × 3 viewports (360/768/1350)
       Texto da página de Grupos (VotingClusters.tsx:179+) e outros não
       usam a grade direito. Ação: sistema de grid/container com breakpoints
       claros, aplicado às páginas de conteúdo. Junto com F2 (mesma raiz).
@@ -267,7 +267,7 @@ Nenhum implementado ainda; cada um precisa de sessão própria (ou lote).
       uma linha por legislatura?), deduplicar/agrupar por legislatura e
       renderizar timeline real. Critério: cada mandato aparece UMA vez,
       ordenado, com início/fim corretos.
-- [ ] **F11 — Guarda-chuva**: varredura final de responsividade +
+- [~] **F11 — Guarda-chuva**: varredura de overflow JÁ AUTOMATIZADA e verde (27 combos, 2026-08-24) — falta o passe visual final página a página depois de F8/F9
       acessibilidade + clareza/transparência quando F2/F7/F10 estiverem
       feitos — passada completa página a página com checklist próprio.
 
@@ -770,7 +770,13 @@ verificação visual headless fica no playbook manual (playbook acima).
      --screenshot=/tmp/tela.png http://localhost:4174/
    # PNG >50KB = pintou; ~5KB = tela branca
    ```
-6. Só então commitar (mensagem referenciando doc/issue) e push
+6. **Varredura de overflow** (se tocou em layout/responsividade) —
+   script CDP que testa 9 rotas × 3 viewports (360/768/1350) e acusa
+   `scrollWidth > innerWidth` + os elementos culpados; 0px esperado
+   em tudo (baseline 2026-08-24). Script salvo em `/tmp/opencode/`
+   durante a sessão — recriar com `Emulation.setDeviceMetricsOverride`
+   + `Page.navigate` por combinação
+7. Só então commitar (mensagem referenciando doc/issue) e push
 
 ### Depois do push (ritual de deploy + verificação em produção)
 1. `gh run list` — Deploy VPS E CI/CD verdes

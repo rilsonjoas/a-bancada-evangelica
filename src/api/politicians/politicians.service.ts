@@ -197,6 +197,7 @@ export class PoliticiansService {
       currentState: politician.current_state,
       currentHouse: politician.current_house,
       photoUrl: politician.photo_url,
+      isFpeMember: politician.is_fpe_member ?? false,
       email: politician.email,
       birthDate: politician.birth_date?.toISOString(),
       mandates: politician.mandates.map(m => ({
