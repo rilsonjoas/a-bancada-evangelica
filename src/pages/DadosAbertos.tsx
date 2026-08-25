@@ -11,7 +11,7 @@ export const DadosAbertos = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">
-      <h1 className="text-3xl font-bold text-foreground mb-8 text-center">
+      <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-8 text-center">
         Dados Abertos — A Bancada Evangélica
       </h1>
 

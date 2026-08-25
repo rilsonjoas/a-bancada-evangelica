@@ -140,7 +140,7 @@ function PartyAlignmentChart() {
       <ResponsiveContainer width="100%" height={Math.max(280, top20.length * 28)}>
       <BarChart data={top20} layout="vertical" margin={{ left: 8, right: 40, top: 4, bottom: 4 }}>
         <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11 }} />
-        <YAxis type="category" dataKey="party" width={110} tick={{ fontSize: 11 }} interval={0} />
+        <YAxis type="category" dataKey="party" width={90} tick={{ fontSize: 11 }} interval={0} />
         <Tooltip
           formatter={(v: number) => [`${fmt(v)} pts`, 'Score médio']}
           labelFormatter={(label) => {
@@ -206,7 +206,7 @@ export default function VotingClusters() {
             <Brain className="w-6 h-6 text-primary" />
             <span className="text-xs font-medium text-primary uppercase tracking-widest">Análise ML</span>
           </div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Grupos de Votação</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">Grupos de Votação</h1>
           <p className="text-muted-foreground max-w-3xl mb-3">
             Quando organizamos os parlamentares pelo jeito que eles votam —
             sem olhar partido nem religião — surgem <strong>grupos naturais</strong>:

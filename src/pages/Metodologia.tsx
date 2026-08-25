@@ -500,6 +500,88 @@ const MetodologiaPage = () => {
         </div>
       </section>
 
+      {/* FPE Membership Section */}
+      <section className="py-16 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="font-serif text-3xl font-bold text-foreground mb-4">
+                Quem é da Bancada Evangélica?
+              </h2>
+              <p className="text-lg text-muted-foreground">
+                Como identificamos os integrantes da Frente Parlamentar Evangélica do Congresso Nacional.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+              <Card className="card-elevated">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Users className="h-5 w-5" />
+                    <span>O que é a FPE?</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground space-y-3">
+                  <p>
+                    A <strong className="text-foreground">Frente Parlamentar Evangélica do Congresso Nacional</strong> é uma frenteparlamentar — não é partido, bancada partidária ou caucus. Qualquer parlamentar pode assiná-la, independentemente de sigla ou religião.
+                  </p>
+                  <p>
+                    A frente reúne deputados e senadores que se declaram aliados ao evangélicismo parlamentar. A filiação é <strong className="text-foreground">declarada pelo próprio parlamentar</strong> e registrada em taquigrafia do Senado ou da Câmara.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="card-elevated">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Shield className="h-5 w-5" />
+                    <span>Nossa fonte</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground space-y-3">
+                  <p>
+                    Usamos <strong className="text-foreground">exclusivamente fontes oficiais</strong>:
+                  </p>
+                  <ul className="space-y-2">
+                    <li className="flex items-start space-x-2">
+                      <span className="text-primary mt-0.5">•</span>
+                      <span><strong className="text-foreground">Câmara:</strong> API de frentes parlamentares (frente 54477)</span>
+                    </li>
+                    <li className="flex items-start space-x-2">
+                      <span className="text-primary mt-0.5">•</span>
+                      <span><strong className="text-foreground">Senado:</strong> composição da frente (codcol 2583)</span>
+                    </li>
+                  </ul>
+                  <p className="text-xs text-muted-foreground">
+                    Não usamos listas de imprensa, redes sociais ou autodeclaração verbal.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card className="card-elevated mb-8">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Info className="h-5 w-5" />
+                  <span>Classificação e contestação</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm text-muted-foreground space-y-3">
+                <p>
+                  Cada perfil exibe um chip <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-purple-100 text-purple-800 border border-purple-200">Bancada Evangélica</span> quando o parlamentar é membro registrado. O chip inclui a data da última auditoria.
+                </p>
+                <p>
+                  <strong className="text-foreground">Dados desatualizados?</strong> Se você sabe que um parlamentar entrou ou saiu da frente, entre em contato conosco. Atualizamos a classificação e registramos a correção na próxima auditoria.
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Última auditoria: 25 de agosto de 2026 — 99,5% de precisão verificada contra a lista oficial (207/208 deputados corretos; 15 senadores em exercício marcados).
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
       {/* Transparency Section */}
       <section className="py-16">
         <div className="container mx-auto px-4">

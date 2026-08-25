@@ -132,7 +132,7 @@ export function ShareableCard({ politician, type = 'summary' }: ShareableCardPro
             Layout dedicado pra imagem final: sem margens negativas, sem
             elementos sobrepostos, paddings explícitos em toda seção e
             rodapé sólido. O que vale é o PNG que sai, não a página. */}
-        <div ref={cardRef} className="w-[420px] mx-auto bg-white shadow-xl">
+        <div ref={cardRef} className="w-[420px] max-w-full mx-auto bg-white shadow-xl">
           {/* Fio dourado de topo */}
           <div className="h-1.5 bg-[#b49a60]" />
 
@@ -273,7 +273,7 @@ export function ShareableCard({ politician, type = 'summary' }: ShareableCardPro
     <div className="space-y-4">
       {shareButtons}
 
-      <div ref={cardRef} className="w-[480px] mx-auto bg-white shadow-xl">
+      <div ref={cardRef} className="w-[480px] max-w-full mx-auto bg-white shadow-xl">
         <div className="h-1.5 bg-[#b49a60]" />
 
         <div

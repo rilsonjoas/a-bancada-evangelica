@@ -140,8 +140,8 @@ export function PoliticianProfile() {
           <div className="flex-1">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">{politician.name}</h1>
-                <p className="text-xl text-gray-600 mb-3">{politician.fullName}</p>
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{politician.name}</h1>
+                <p className="text-lg md:text-xl text-gray-600 mb-3">{politician.fullName}</p>
 
                 {politician.isFpeMember && (
                   <div className="mb-4">
@@ -231,7 +231,7 @@ export function PoliticianProfile() {
 
       {/* Tabs Content */}
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="performance">Performance</TabsTrigger>
           <TabsTrigger value="voting">Votações</TabsTrigger>

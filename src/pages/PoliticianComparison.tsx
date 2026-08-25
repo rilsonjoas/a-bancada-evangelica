@@ -90,7 +90,7 @@ export function PoliticianComparison() {
 
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Comparar Parlamentares</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Comparar Parlamentares</h1>
             <p className="text-gray-600 mt-2">
               Escolha até 4 parlamentares e veja as notas de cada critério lado a lado
             </p>
@@ -222,7 +222,7 @@ export function PoliticianComparison() {
                   }
                 }}
               >
-                <CardContent className="flex items-center justify-center h-full min-h-64">
+                <CardContent className="flex items-center justify-center h-full min-h-40 sm:min-h-64">
                   <div className="text-center text-gray-500">
                     <Plus className="w-12 h-12 mx-auto mb-4" />
                     <p className="font-medium">Adicionar parlamentar</p>
