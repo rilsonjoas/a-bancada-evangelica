@@ -128,33 +128,38 @@ class SenadoSyncService {
           const idDetalhes = detalheParlamentar.IdentificacaoParlamentar?.[0] || {};
           const dadosBasicos = detalheParlamentar.DadosBasicosParlamentar?.[0] || {};
 
-          const senadorCompleto = {
+const senadorCompleto = {
             CodigoParlamentar: idDetalhes.CodigoParlamentar?.[0] || senador.CodigoParlamentar,
             CodigoPublicoNaLegislatura: idDetalhes.CodigoPublicoNaLegAtual?.[0] || '',
             NomeParlamentar: idDetalhes.NomeParlamentar?.[0] || senador.NomeParlamentar,
             NomeCompletoParlamentar: idDetalhes.NomeCompletoParlamentar?.[0] || senador.NomeCompletoParlamentar,
-            CpfParlamentar: dadosBasicos.CpfParlamentar?.[0] || '',
-            DataNascimento: dadosBasicos.DataNascimento?.[0] || '',
-            UfNascimento: dadosBasicos.UfNascimento?.[0] || '',
-            NaturalMunicipio: dadosBasicos.NaturalMunicipio?.[0] || '',
-            Escolaridade: dadosBasicos.Escolaridade?.[0] || '',
+            CpfParlamentar: dadosBasicos.CpfParlamentar?.[0] || null,
+            DataNascimento: dadosBasicos.DataNascimento?.[0] || null,
+            UfNascimento: dadosBasicos.UfNascimento?.[0] || null,
+            NaturalMunicipio: dadosBasicos.NaturalMunicipio?.[0] || null,
+            Escolaridade: dadosBasicos.Escolaridade?.[0] || null,
             FormaTratamento: idDetalhes.FormaTratamento?.[0] || senador.FormaTratamento,
             UrlFotoParlamentar: idDetalhes.UrlFotoParlamentar?.[0] || senador.UrlFotoParlamentar,
             UrlPaginaParlamentar: idDetalhes.UrlPaginaParlamentar?.[0] || senador.UrlPaginaParlamentar,
             EmailParlamentar: idDetalhes.EmailParlamentar?.[0] || senador.EmailParlamentar,
             SiglaPartidoParlamentar: idDetalhes.SiglaPartidoParlamentar?.[0] || senador.SiglaPartidoParlamentar,
             UfParlamentar: idDetalhes.UfParlamentar?.[0] || senador.UfParlamentar,
-            Mandatos: { Mandato: [] as any[] }, // Processar depois se necessário
+            Mandatos: { Mandato: [] as any[] },
           };
 
-          // Verificar se já existe no banco
+          // Verificar se já existe no banco (guarda: só casa SENADO; cpf só se não for null)
+          const whereClause: any = {
+            current_house: 'SENADO',
+            OR: [
+              { legislature_id: senador.CodigoParlamentar }
+            ]
+          };
+          if (senadorCompleto.CpfParlamentar) {
+            whereClause.OR.push({ cpf: senadorCompleto.CpfParlamentar });
+          }
+
           const existing = await prisma.politician.findFirst({
-            where: {
-              OR: [
-                { legislature_id: senador.CodigoParlamentar },
-                { cpf: senadorCompleto.CpfParlamentar }
-              ]
-            }
+            where: whereClause
           });
 
           const politicianData = {
@@ -172,7 +177,7 @@ class SenadoSyncService {
             social_media_urls: senador.UrlPaginaParticular ? 
               { website: senador.UrlPaginaParticular } : null,
             education_level: senadorCompleto.Escolaridade,
-            is_active: true, // Todos os retornados pela API atual estão ativos
+            is_active: true,
           };
 
           let politician;
