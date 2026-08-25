@@ -250,7 +250,7 @@ Nenhum implementado ainda; cada um precisa de sessão própria (ou lote).
       Texto da página de Grupos (VotingClusters.tsx:179+) e outros não
       usam a grade direito. Ação: sistema de grid/container com breakpoints
       claros, aplicado às páginas de conteúdo. Junto com F2 (mesma raiz).
-- [ ] **F8 — Membros vs não-membros da bancada sem tag visível**
+- [x] **F8 — Membros vs não-membros da bancada sem tag visível** — FEITO (2026-08-24): chip roxo "Bancada Evangélica" nos cards (ao lado do nível) e no perfil; API de detalhe passou a expor `isFpeMember` (só a lista expunha). Dado validado no banco: 208 membros + 306 não-membros = 514 ativos. Verificado ao vivo: político 2 com tag, político 4 sem
       Todo parlamentar listado precisa de tag clara: "Bancada Evangélica/
       FPE" ou "Fora da bancada". Transparência sobre escopo do recorte.
       Depende de flag confiável de membresia FPE no banco (verificar
