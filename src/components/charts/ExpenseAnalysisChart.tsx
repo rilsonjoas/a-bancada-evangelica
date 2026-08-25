@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
+import { fmt } from '@/lib/format';
 
 interface ExpenseAnalysisChartProps {
   analysis: {
@@ -122,13 +123,13 @@ export function ExpenseAnalysisChart({ analysis }: ExpenseAnalysisChartProps) {
         </div>
         <div className="bg-yellow-50 p-4 rounded-lg text-center">
           <div className="text-2xl font-bold text-yellow-600">
-            {analysis.suspiciousPercentage.toFixed(1)}%
+            {fmt(analysis.suspiciousPercentage)}%
           </div>
           <div className="text-sm text-gray-600">% fora do padrão</div>
         </div>
         <div className="bg-green-50 p-4 rounded-lg text-center">
           <div className="text-2xl font-bold text-green-600">
-            {analysis.integrityScore.toFixed(0)}
+            {fmt(analysis.integrityScore, 0)}
           </div>
           <div className="text-sm text-gray-600">Score Integridade</div>
         </div>
@@ -140,7 +141,7 @@ export function ExpenseAnalysisChart({ analysis }: ExpenseAnalysisChartProps) {
           <h3 className="text-lg font-semibold mb-4 text-center">
             Análise de Valores
           </h3>
-          <div className="h-64">
+          <div className="h-64" role="img" aria-label="Gráfico de barras comparando o total gasto, o valor fora do padrão e o dentro do padrão">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={valueData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -192,7 +193,7 @@ export function ExpenseAnalysisChart({ analysis }: ExpenseAnalysisChartProps) {
           <h3 className="text-lg font-semibold mb-4 text-center">
             Distribuição de Gastos
           </h3>
-          <div className="h-64">
+          <div className="h-64" role="img" aria-label="Gráfico de pizza com a distribuição entre dentro e fora do padrão">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -201,7 +202,7 @@ export function ExpenseAnalysisChart({ analysis }: ExpenseAnalysisChartProps) {
                   cy="50%"
                   labelLine={false}
                   label={({ name, value, percent }) => 
-                    `${name}: ${formatCurrency(value)} (${(percent * 100).toFixed(1)}%)`
+                    `${name}: ${formatCurrency(value)} (${fmt(percent * 100)}%)`
                   }
                   outerRadius={80}
                   dataKey="value"
@@ -233,7 +234,7 @@ export function ExpenseAnalysisChart({ analysis }: ExpenseAnalysisChartProps) {
           <div className="flex items-center justify-between mb-4">
             <span className="text-sm font-medium text-gray-700">Score de Integridade</span>
             <span className="text-lg font-bold" style={{ color: getRiskColor(analysis.riskLevel) }}>
-              {analysis.integrityScore.toFixed(0)}/100
+              {fmt(analysis.integrityScore, 0)}/100
             </span>
           </div>
           

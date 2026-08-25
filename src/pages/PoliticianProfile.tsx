@@ -15,6 +15,7 @@ import { VotingHistoryChart } from '@/components/charts/VotingHistoryChart';
 import { ExpenseAnalysisChart } from '@/components/charts/ExpenseAnalysisChart';
 import { ShareableCard } from '@/components/social/ShareableCard';
 import { CRITERIA, CRITERIA_BY_KEY } from '@/lib/criteria';
+import { fmt } from '@/lib/format';
 
 export function PoliticianProfile() {
   const { id } = useParams<{ id: string }>();
@@ -97,13 +98,13 @@ export function PoliticianProfile() {
     CRITERIA_BY_KEY[criteria]?.label ?? criteria;
 
   const getPerformanceLevelDescription = (level: string) => {
-    const map: Record<string, { range: string; description: string }> = {
-      EXCELLENT: { range: '80–100 pts', description: 'Alinhamento elevado e consistente com os valores evangélicos' },
-      GOOD:      { range: '65–79 pts', description: 'Bom alinhamento — maioria das votações favoráveis às pautas cristãs' },
-      AVERAGE:   { range: '45–64 pts', description: 'Alinhamento parcial — votações mistas ou dados estimados por partido' },
-      POOR:      { range: '0–44 pts',  description: 'Histórico frequentemente divergente dos valores cristãos' },
+    const map: Record<string, { label: string; range: string; description: string }> = {
+      EXCELLENT: { label: 'Aderência muito alta', range: '80–100 pts', description: 'Votos registrados aderem de forma elevada e consistente aos critérios publicados' },
+      GOOD:      { label: 'Aderência alta', range: '65–79 pts', description: 'Votos registrados aderem à maioria dos critérios publicados' },
+      AVERAGE:   { label: 'Aderência moderada', range: '45–64 pts', description: 'Votos divididos entre os critérios, ou nota estimada pela média do partido' },
+      POOR:      { label: 'Aderência baixa', range: '0–44 pts',  description: 'Votos registrados divergem da maioria dos critérios publicados' },
     };
-    return map[level] ?? { range: '', description: '' };
+    return map[level] ?? { label: 'Sem dados', range: '', description: '' };
   };
 
   const shareProfile = () => {
@@ -181,7 +182,7 @@ export function PoliticianProfile() {
               <div className="flex flex-col items-end gap-3">
                 <div className="text-right">
                   <Badge className={`text-lg px-4 py-2 ${getPerformanceBadge(politician.currentScore?.performanceLevel || 'AVERAGE')}`}>
-                    {politician.currentScore?.performanceLabel || 'Sem dados'}
+                    {getPerformanceLevelDescription(politician.currentScore?.performanceLevel || 'AVERAGE').label}
                   </Badge>
                   {(() => {
                     const lvl = getPerformanceLevelDescription(politician.currentScore?.performanceLevel || 'AVERAGE');
@@ -196,9 +197,9 @@ export function PoliticianProfile() {
 
                 <div className="text-right">
                   <div className={`text-3xl font-bold ${getScoreColor(politician.currentScore?.overall || 0)}`}>
-                    {politician.currentScore?.overall?.toFixed(1) || '0.0'}
+                    {politician.currentScore?.overall != null ? fmt(politician.currentScore.overall) : '0,0'}
                   </div>
-                  <div className="text-sm text-gray-600">Pontuação geral (0–100)</div>
+                  <div className="text-sm text-gray-600">Nota geral (0–100)</div>
                 </div>
 
                 <div className="flex gap-2">
@@ -242,7 +243,7 @@ export function PoliticianProfile() {
           {!politician.currentScore && (
             <div className="p-4 bg-secondary/30 border border-border rounded-lg flex items-start gap-3 text-sm text-muted-foreground mb-2">
               <Info className="h-4 w-4 shrink-0 mt-0.5" />
-              <span>Pontuação ainda não calculada para este parlamentar. Os dados aparecem após o próximo ciclo de sincronização.</span>
+              <span>Nota ainda não calculada para este parlamentar. Os dados aparecem após o próximo ciclo de sincronização.</span>
             </div>
           )}
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
@@ -261,10 +262,10 @@ export function PoliticianProfile() {
                   <CardContent className="pt-0">
                     {score !== null ? (
                       <>
-                        <div className={`text-2xl font-bold ${getScoreColor(score)}`}>{score.toFixed(1)}</div>
+                        <div className={`text-2xl font-bold ${getScoreColor(score)}`}>{fmt(score)}</div>
                         <Progress
                           value={score}
-                          aria-label={`${c.label}: ${score.toFixed(1)} de 100 pontos`}
+                          aria-label={`${c.label}: ${fmt(score)} de 100 pontos`}
                           className="mt-2 h-1.5"
                         />
                       </>
@@ -294,7 +295,7 @@ export function PoliticianProfile() {
                   if (!lvl.description) return null;
                   return (
                     <div className="mt-3 p-3 bg-gray-50 rounded-lg border text-sm text-gray-600">
-                      <span className="font-medium">{politician.currentScore?.performanceLabel}:</span>{' '}
+                      <span className="font-medium">{lvl.label}:</span>{' '}
                       {lvl.description}
                     </div>
                   );
@@ -373,7 +374,7 @@ export function PoliticianProfile() {
                         fórmula antiga do sync-worker preservada no banco). */}
                     {(politician.currentScore?.totalVotes ?? 0) === 0
                       ? '—'
-                      : `${((politician.currentScore?.consistencyScore ?? 0) * 100).toFixed(1)}%`}
+                      : `${fmt((politician.currentScore?.consistencyScore ?? 0) * 100)}%`}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -402,7 +403,7 @@ export function PoliticianProfile() {
                 <div className="flex justify-between">
                   <span>% fora do padrão:</span>
                   <span className="font-semibold">
-                    {politician.expenseAnalysis?.suspiciousPercentage?.toFixed(1) || '0'}%
+                    {politician.expenseAnalysis?.suspiciousPercentage != null ? fmt(politician.expenseAnalysis.suspiciousPercentage) : '0'}%
                   </span>
                 </div>
                 <div className="flex justify-between">

@@ -37,7 +37,7 @@ describe("ShareableCard", () => {
 
   it("renders the overall score", () => {
     render(<ShareableCard politician={mockPolitician} />);
-    expect(screen.getByText("88.5")).toBeInTheDocument();
+    expect(screen.getByText("88,5")).toBeInTheDocument();
   });
 
   // Regressão pro achado real (2026-08-20): o card nunca tinha sido

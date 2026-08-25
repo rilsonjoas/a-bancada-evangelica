@@ -13,6 +13,7 @@ import {
 import { Brain, Users, TrendingUp, BarChart2, ChevronDown, ChevronUp, AlertCircle, Award } from 'lucide-react';
 import { useState } from 'react';
 import { useClusterData, usePartyAlignment, type ClusterMember } from '@/hooks/useClusterData';
+import { fmt } from '@/lib/format';
 
 const CLUSTER_COLORS = [
   '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
@@ -98,6 +99,13 @@ const ALIGNMENT_COLOR: Record<string, string> = {
   sem_dados: '#6b7280',
 };
 
+const LEVEL_LABEL: Record<string, string> = {
+  alta: 'Alta (≥70)',
+  moderada: 'Moderada (50–70)',
+  baixa: 'Baixa (<50)',
+  sem_dados: 'Sem dados',
+};
+
 function PartyAlignmentChart() {
   const { data, isLoading, isError } = usePartyAlignment();
 
@@ -134,7 +142,7 @@ function PartyAlignmentChart() {
         <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11 }} />
         <YAxis type="category" dataKey="party" width={110} tick={{ fontSize: 11 }} interval={0} />
         <Tooltip
-          formatter={(v: number) => [`${v.toFixed(1)} pts`, 'Score médio']}
+          formatter={(v: number) => [`${fmt(v)} pts`, 'Score médio']}
           labelFormatter={(label) => {
             const item = top20.find(p => p.party === label);
             return item ? `${label} (${item.count} parlamentares)` : label;
@@ -144,10 +152,35 @@ function PartyAlignmentChart() {
           {top20.map((entry, i) => (
             <Cell key={i} fill={ALIGNMENT_COLOR[entry.level]} fillOpacity={0.85} />
           ))}
-          <LabelList dataKey="score" position="right" formatter={(v: number) => v.toFixed(0)} style={{ fontSize: 11 }} />
+          <LabelList dataKey="score" position="right" formatter={(v: number) => fmt(v, 0)} style={{ fontSize: 11 }} />
         </Bar>
         </BarChart>
       </ResponsiveContainer>
+      <details className="mt-4">
+        <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground">
+          Ver dados em tabela
+        </summary>
+        <table className="w-full text-xs mt-2">
+          <thead>
+            <tr className="text-left text-muted-foreground">
+              <th className="py-1 font-medium">Partido</th>
+              <th className="py-1 font-medium text-right">Score médio</th>
+              <th className="py-1 font-medium text-right">Parlamentares</th>
+              <th className="py-1 font-medium text-right">Nível</th>
+            </tr>
+          </thead>
+          <tbody>
+            {top20.map(p => (
+              <tr key={p.party} className="border-t border-border">
+                <td className="py-1 font-medium">{p.party}</td>
+                <td className="py-1 text-right">{fmt(p.score)}</td>
+                <td className="py-1 text-right">{p.count}</td>
+                <td className="py-1 text-right">{LEVEL_LABEL[p.level] ?? p.level}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </details>
     </div>
   );
 }
@@ -253,12 +286,12 @@ export default function VotingClusters() {
               />
               <StatCard
                 label="Silhouette score"
-                value={data.silhouette.toFixed(3)}
+                value={fmt(data.silhouette, 3)}
                 sub="0 = aleatório · 1 = perfeito"
               />
               <StatCard
                 label="Variância 2D (PCA)"
-                value={`${(data.pca_variance_2d * 100).toFixed(1)}%`}
+                value={`${fmt(data.pca_variance_2d * 100)}%`}
                 sub="explicada pelos 2 eixos"
               />
             </div>
@@ -276,10 +309,11 @@ export default function VotingClusters() {
                 role="img"
                 aria-label="Gráfico de dispersão: cada ponto é um parlamentar posicionado pelas duas primeiras componentes principais dos votos; pontos próximos indicam padrão de votação similar. A composição completa dos grupos está na lista abaixo."
               >
+              <div aria-hidden="true">
               <ResponsiveContainer width="100%" height={420}>
                 <ScatterChart margin={{ top: 10, right: 20, bottom: 10, left: 0 }}>
-                  <XAxis dataKey="x" type="number" name="PC1" tick={{ fontSize: 11 }} tickFormatter={v => v.toFixed(1)} />
-                  <YAxis dataKey="y" type="number" name="PC2" tick={{ fontSize: 11 }} tickFormatter={v => v.toFixed(1)} />
+                  <XAxis dataKey="x" type="number" name="PC1" tick={{ fontSize: 11 }} tickFormatter={v => fmt(v)} />
+                  <YAxis dataKey="y" type="number" name="PC2" tick={{ fontSize: 11 }} tickFormatter={v => fmt(v)} />
                   <Tooltip content={<ClusterTooltip />} cursor={{ strokeDasharray: '3 3' }} />
                   {data.clusters.map((cluster, ci) => (
                     <Scatter
@@ -299,6 +333,7 @@ export default function VotingClusters() {
                   ))}
                 </ScatterChart>
               </ResponsiveContainer>
+              </div>
               </div>
 
               {/* Legend */}

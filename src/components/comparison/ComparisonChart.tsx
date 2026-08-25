@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import { fmt } from '@/lib/format';
 
 interface ComparisonChartProps {
   politicians: Array<{
@@ -103,7 +104,7 @@ export function ComparisonChart({ politicians }: ComparisonChartProps) {
                 formatter={(value: unknown, name: string) => {
                   const politicianIndex = parseInt(name.split('_')[1]);
                   const politicianName = politicians[politicianIndex]?.name || 'Desconhecido';
-                  return [`${Number(value).toFixed(1)}`, politicianName];
+                  return [fmt(Number(value)), politicianName];
                 }}
                 labelFormatter={(label) => `Critério: ${label}`}
                 contentStyle={{
@@ -121,7 +122,7 @@ export function ComparisonChart({ politicians }: ComparisonChartProps) {
       {/* Bar Chart */}
       <div>
         <h3 className="text-lg font-semibold mb-4 text-center">
-          Pontuação Geral Comparativa
+          Nota geral comparativa
         </h3>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
@@ -137,8 +138,8 @@ export function ComparisonChart({ politicians }: ComparisonChartProps) {
               />
               <Tooltip
                 formatter={(value: unknown) => [
-                  `${(value as number).toFixed(1)}`,
-                  'Pontuação Geral'
+                  fmt(value as number),
+                  'Nota geral'
                 ]}
                 labelFormatter={(label, payload) => {
                   const data = payload?.[0]?.payload;
@@ -172,13 +173,13 @@ export function ComparisonChart({ politicians }: ComparisonChartProps) {
           </div>
           <div>
             <div className="text-2xl font-bold text-green-600">
-              {Math.max(...politicians.map(p => p.currentScore?.overall || 0)).toFixed(1)}
+              {fmt(Math.max(...politicians.map(p => p.currentScore?.overall || 0)))}
             </div>
             <div className="text-sm text-gray-600">Maior Nota</div>
           </div>
           <div>
             <div className="text-2xl font-bold text-red-600">
-              {Math.min(...politicians.map(p => p.currentScore?.overall || 0)).toFixed(1)}
+              {fmt(Math.min(...politicians.map(p => p.currentScore?.overall || 0)))}
             </div>
             <div className="text-sm text-gray-600">Menor Nota</div>
           </div>

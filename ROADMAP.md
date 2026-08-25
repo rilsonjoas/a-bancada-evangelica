@@ -200,6 +200,24 @@ Conferido issue por issue contra o código, não só pelo título:
 > (G1 Sentry + G2 timestamps + C1 analytics) · ③ G3–G5 · ④ F16 tiers da bancada ·
 > ⑤ C2 North Star com analytics na mão.
 
+
+### Série A — linguagem, acessibilidade e números pt-BR (2026-08-25)
+> Gatilho: decisão de produto dos rótulos de nível — os antigos eram julgamentos morais ("Guardião da Fé" × "Precisa Crescer") com risco jurídico real. Nova escala NEUTRA, descritiva da relação voto↔critério: **Aderência muito alta / alta / moderada / baixa** (consistente com o vocabulário já usado em Grupos).
+
+- [x] **A1 · Decimais pt-BR** — util `fmt()` em `src/lib/format.ts`; todos os `toFixed()` de exibição trocados ("67.3" → "67,3") em 10 arquivos (perfil, comparação, gráficos, cards sociais, agendas)
+- [x] **A2 · Rótulos de nível neutros** — card, panorama, hero e perfil unificados em Aderência muito alta/alta/moderada/baixa; legenda do score virou "Nota geral" com `<abbr>` explicativo; descrições da Metodologia reescritas sem julgamento de conduta/pessoa
+- [x] **A3 · "Pontuação" → "Nota"** — unificado em perfil, comparação, gráficos, card de compartilhamento e Metodologia
+- [x] **A4 · Jargão "Testemunho Fiel"** — eliminado dos cards (era hardcoded para TODOS, mas no banco é só o rótulo do nível GOOD!); substituído por "Nota geral" + tooltip
+- [x] **A5 · Gráficos acessíveis** — scatter PCA com `aria-hidden` interno (axe: 504 violações svg-img-alt → 0); barras e pizza de gastos com `role="img"` + `aria-label`
+- [x] **A6 · Links únicos** — "Ver detalhes" ganhou `aria-label` com nome do político
+- [x] **A7 · Contraste do hero** — texto explicativo /70 → /80 de opacidade
+- [x] **A8 · Truncados nomeados** — `title` no nome e partido truncados dos cards
+- [x] **A9 · Teclado verificado** — Tab real via CDP: skip link funcional, foco visível em tudo, nav com aria-labels (nada a corrigir)
+- [x] **A10 · Labels de critério** — decidido MANTER text-[10px] com palavras completas (cabe desde o fix F11; abreviações V/F/M/S/R rejeitadas por clareza leiga)
+- [x] **A11 · Alternativa em tabela** — gráfico de partidos ganhou `<details>` "Ver dados em tabela" (partido/score/parlamentares/nível)
+
+> **Observação de dados pro G3**: 125 políticos com rótulo congelado "Aguardando Análise" (último score de 24/06, nunca recalculado) — o front não exibe mais esses rótulos, mas o sync merece investigação.
+
 ### Onda 2 — responsividade e acessibilidade (2026-08-24)
 > Varredura automatizada: **0px de overflow horizontal** em 9 rotas × 3 viewports (360/768/1350). Base sólida; itens abaixo são refinamentos.
 

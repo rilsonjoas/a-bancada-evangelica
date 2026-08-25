@@ -58,7 +58,7 @@ describe("PoliticianCard", () => {
 
   it("renders performance badge label", () => {
     renderWithRouter(<PoliticianCard politician={mockPolitician} />);
-    expect(screen.getByText("Excelente")).toBeInTheDocument();
+    expect(screen.getByText("Aderência muito alta")).toBeInTheDocument();
   });
 
   it("renders the rank when provided", () => {

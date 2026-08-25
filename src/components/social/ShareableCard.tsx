@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { API_BASE_URL } from '@/lib/apiClient';
 import type { PoliticianDetail } from '@/hooks/usePoliticianDetail';
+import { fmt } from '@/lib/format';
 
 interface ShareableCardProps {
   // Reusa o tipo real do hook em vez de duplicar a forma do currentScore
@@ -192,12 +193,12 @@ export function ShareableCard({ politician, type = 'summary' }: ShareableCardPro
                     isProud ? 'text-emerald-600' : 'text-[#1e3a5f]'
                   }`}
                 >
-                  {(overall ?? 0).toFixed(1)}
+                  {fmt(overall ?? 0)}
                 </span>
                 <span className="text-2xl font-bold text-slate-400 mt-2 ml-1">/100</span>
               </div>
               <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-400">
-                Pontuação geral
+                Nota geral
               </p>
             </div>
 
@@ -213,7 +214,7 @@ export function ShareableCard({ politician, type = 'summary' }: ShareableCardPro
                         <c.Icon className={`h-4 w-4 ${c.iconClass}`} />
                         {c.label}
                       </span>
-                      <span className="font-extrabold text-gray-900">{value.toFixed(0)}</span>
+                      <span className="font-extrabold text-gray-900">{fmt(value, 0)}</span>
                     </div>
                     <div className="h-2.5 w-full rounded-full bg-slate-100">
                       <div
@@ -324,12 +325,12 @@ export function ShareableCard({ politician, type = 'summary' }: ShareableCardPro
                   isProud ? 'text-emerald-600' : 'text-[#1e3a5f]'
                 }`}
               >
-                {(overall ?? 0).toFixed(1)}
+                {fmt(overall ?? 0)}
               </span>
               <span className="text-2xl font-bold text-slate-400 mt-2 ml-1">/100</span>
             </div>
             <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-400">
-              Pontuação geral
+              Nota geral
             </p>
           </div>
 
@@ -340,7 +341,7 @@ export function ShareableCard({ politician, type = 'summary' }: ShareableCardPro
               return (
                 <div key={c.key} className="rounded-xl bg-slate-50 p-4 text-center">
                   <c.Icon className={`mx-auto h-5 w-5 ${c.iconClass}`} />
-                  <div className="mt-1 text-2xl font-extrabold text-gray-900">{value.toFixed(0)}</div>
+                  <div className="mt-1 text-2xl font-extrabold text-gray-900">{fmt(value, 0)}</div>
                   <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
                     {c.label}
                   </div>

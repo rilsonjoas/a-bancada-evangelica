@@ -117,38 +117,38 @@ const MetodologiaPage = () => {
     {
       icon: Star,
       level: 'EXCELLENT',
-      label: 'Guardião da Fé',
+      label: 'Aderência muito alta',
       range: '80 – 100 pontos',
       color: 'bg-green-100 border-green-300 text-green-800',
       iconColor: 'text-green-600',
-      description: 'Alinhamento elevado e consistente com todos os critérios evangélicos. Histórico de votos e conduta que refletem os valores cristãos de forma exemplar.'
+      description: 'Votos registrados aderem de forma elevada e consistente aos critérios publicados na grande maioria das votações avaliadas.'
     },
     {
       icon: Award,
       level: 'GOOD',
-      label: 'Testemunho Fiel',
+      label: 'Aderência alta',
       range: '65 – 79 pontos',
       color: 'bg-blue-100 border-blue-300 text-blue-800',
       iconColor: 'text-blue-600',
-      description: 'Bom alinhamento com os critérios evangélicos. Votações majoritariamente favoráveis às pautas cristãs, com pequenas divergências em critérios secundários.'
+      description: 'Votos registrados aderem à maioria dos critérios publicados, com divergências pontuais em critérios secundários.'
     },
     {
       icon: Target,
       level: 'AVERAGE',
-      label: 'Caminhando',
+      label: 'Aderência moderada',
       range: '45 – 64 pontos',
       color: 'bg-yellow-100 border-yellow-300 text-yellow-800',
       iconColor: 'text-yellow-600',
-      description: 'Alinhamento parcial. O político apresenta votações mistas — ora favorável, ora contrário às pautas evangélicas — ou há dados insuficientes para avaliação completa.'
+      description: 'Votos registrados divididos entre favoráveis e contrários aos critérios, ou amostra de votações ainda insuficiente para classificação mais precisa.'
     },
     {
       icon: Activity,
       level: 'POOR',
-      label: 'Precisa Crescer',
+      label: 'Aderência baixa',
       range: '0 – 44 pontos',
       color: 'bg-red-100 border-red-300 text-red-800',
       iconColor: 'text-red-600',
-      description: 'Histórico de votações frequentemente divergentes dos valores cristãos nas pautas monitoradas. Posicionamento contrário aos critérios evangélicos na maioria das votações avaliadas.'
+      description: 'Votos registrados divergem da maioria dos critérios publicados nas votações avaliadas.'
     }
   ];
 
@@ -196,7 +196,7 @@ const MetodologiaPage = () => {
                     Nossa metodologia foi construída sobre a crença de que a atuação de um parlamentar vai muito além do discurso.
                     Ela se reflete em votos, na integridade pessoal e na defesa ativa dos valores que professa.
                     Por isso, avaliamos os políticos através de <strong>5 critérios fundamentais</strong>, cada um com um peso específico,
-                    que juntos formam a Pontuação Geral (0 a 100 pontos).
+                    que juntos formam a nota geral (0 a 100 pontos). Os rótulos de nível descrevem a aderência dos votos registrados aos critérios publicados — não avaliam a pessoa, seu caráter ou sua fé.
                   </p>
                 </div>
               </CardContent>
@@ -238,7 +238,7 @@ const MetodologiaPage = () => {
                         </tr>
                       ))}
                       <tr className="border-b-2 border-primary bg-primary/5">
-                        <td className="py-3 px-4 font-bold">Pontuação Geral</td>
+                        <td className="py-3 px-4 font-bold">Nota geral</td>
                         <td className="py-3 px-4 text-center font-bold">100%</td>
                         <td className="py-3 px-4 font-bold hidden sm:table-cell">Média ponderada dos 5 critérios (0–100)</td>
                       </tr>
@@ -425,7 +425,7 @@ const MetodologiaPage = () => {
                           <div>
                             <CardTitle className="font-serif text-2xl">{criterio.name}</CardTitle>
                             <Badge variant="secondary" className="mt-2">
-                              Peso: {criterio.weight}% na Pontuação Geral
+                              Peso: {criterio.weight}% na nota geral
                             </Badge>
                           </div>
                         </div>

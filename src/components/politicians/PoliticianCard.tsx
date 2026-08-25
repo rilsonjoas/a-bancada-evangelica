@@ -30,10 +30,10 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
 
   const getPerformanceBadge = (level: string) => {
     const badges = {
-      'EXCELLENT': { variant: 'default', label: 'Excelente', color: 'bg-green-100 text-green-800' },
-      'GOOD': { variant: 'secondary', label: 'Bom', color: 'bg-yellow-100 text-yellow-800' },
-      'AVERAGE': { variant: 'outline', label: 'Médio', color: 'bg-orange-100 text-orange-800' },
-      'POOR': { variant: 'destructive', label: 'Insuficiente', color: 'bg-red-100 text-red-800' },
+      'EXCELLENT': { variant: 'default', label: 'Aderência muito alta', color: 'bg-green-100 text-green-800' },
+      'GOOD': { variant: 'secondary', label: 'Aderência alta', color: 'bg-yellow-100 text-yellow-800' },
+      'AVERAGE': { variant: 'outline', label: 'Aderência moderada', color: 'bg-orange-100 text-orange-800' },
+      'POOR': { variant: 'destructive', label: 'Aderência baixa', color: 'bg-red-100 text-red-800' },
     };
     return badges[level as keyof typeof badges] || badges.AVERAGE;
   };
@@ -80,14 +80,14 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
             {/* Header */}
             <div className="flex items-start justify-between mb-3">
               <div className="min-w-0 flex-1">
-                <h3 className="font-serif text-lg font-bold text-foreground truncate group-hover:text-primary transition-colors">
+                <h3 className="font-serif text-lg font-bold text-foreground truncate group-hover:text-primary transition-colors" title={politician.name}>
                   {politician.name}
                 </h3>
                 
                 <div className="flex items-center space-x-3 mt-1 text-sm text-muted-foreground min-w-0">
                   <div className="flex items-center space-x-1 min-w-0">
                     <Building className="h-3 w-3 flex-shrink-0" />
-                    <span className="font-medium truncate">{politician.currentParty}</span>
+                    <span className="font-medium truncate" title={politician.currentParty}>{politician.currentParty}</span>
                   </div>
                   <div className="flex items-center space-x-1 flex-shrink-0">
                     <MapPin className="h-3 w-3" />
@@ -105,7 +105,7 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
                 {formatScore(politician.scores.overall)}
               </Badge>
                 <p className="text-xs text-muted-foreground mt-1 max-w-[76px] leading-tight ml-auto">
-                  Testemunho Fiel
+                  <abbr title="Nota de 0 a 100: o quanto os votos nominais registrados aderem aos 5 critérios publicados na metodologia. Não avalia a pessoa.">Nota geral</abbr>
                 </p>
               </div>
             </div>
@@ -189,7 +189,7 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
                 {politician.currentHouse === 'CAMARA' ? 'Deputado(a)' : 'Senador(a)'}
               </Badge>
               
-              <Link to={`/politicos/${politician.id}`}>
+              <Link to={`/politicos/${politician.id}`} aria-label={`Ver detalhes de ${politician.name}`}>
                 <Button variant="ghost" size="sm" className="text-primary hover:text-primary-hover">
                   Ver detalhes
                   <ExternalLink className="h-3 w-3 ml-1" />

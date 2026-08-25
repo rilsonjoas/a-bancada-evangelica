@@ -4,6 +4,7 @@ import { CriteriaLabel, CRITERIA_BY_KEY } from '@/lib/criteria';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { fmt } from '@/lib/format';
 
 interface KeyAgendaCardProps {
   agenda: {
@@ -71,7 +72,7 @@ export function KeyAgendaCard({ agenda }: KeyAgendaCardProps) {
           </div>
           <div className="text-right">
             <div className={`text-2xl font-bold ${consensus.color}`}>
-              {agenda.consensusScore.toFixed(1)}%
+              {fmt(agenda.consensusScore)}%
             </div>
             <div className="text-sm text-gray-600">{consensus.label}</div>
           </div>
@@ -112,7 +113,7 @@ export function KeyAgendaCard({ agenda }: KeyAgendaCardProps) {
               <div className="text-right">
                 <span className="font-bold text-green-600">{agenda.favorableVotes}</span>
                 <span className="text-sm text-gray-500 ml-1">
-                  ({favorablePercentage.toFixed(1)}%)
+                  ({fmt(favorablePercentage)}%)
                 </span>
               </div>
             </div>
@@ -126,7 +127,7 @@ export function KeyAgendaCard({ agenda }: KeyAgendaCardProps) {
               <div className="text-right">
                 <span className="font-bold text-red-600">{agenda.contraryVotes}</span>
                 <span className="text-sm text-gray-500 ml-1">
-                  ({contraryPercentage.toFixed(1)}%)
+                  ({fmt(contraryPercentage)}%)
                 </span>
               </div>
             </div>
@@ -140,7 +141,7 @@ export function KeyAgendaCard({ agenda }: KeyAgendaCardProps) {
               <div className="text-right">
                 <span className="font-bold text-yellow-600">{agenda.abstentions}</span>
                 <span className="text-sm text-gray-500 ml-1">
-                  ({abstentionPercentage.toFixed(1)}%)
+                  ({fmt(abstentionPercentage)}%)
                 </span>
               </div>
             </div>

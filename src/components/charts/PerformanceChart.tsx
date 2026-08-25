@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
+import { fmt } from '@/lib/format';
 
 interface PerformanceChartProps {
   politician: {
@@ -111,7 +112,7 @@ export function PerformanceChart({ politician }: PerformanceChartProps) {
                 dot={{ r: 4, fill: '#3b82f6' }}
               />
               <Tooltip
-                formatter={(value: unknown) => [`${(value as number).toFixed(1)}`, 'Pontuação']}
+                formatter={(value: unknown) => [fmt(value as number), 'Nota']}
                 labelFormatter={(label) => `Critério: ${label}`}
                 contentStyle={{
                   backgroundColor: '#f8fafc',
@@ -127,7 +128,7 @@ export function PerformanceChart({ politician }: PerformanceChartProps) {
       {/* Bar Chart */}
       <div>
         <h3 className="text-lg font-semibold mb-4 text-center">
-          Pontuação por Critério (com pesos)
+          Nota por critério (com pesos)
         </h3>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
@@ -147,7 +148,7 @@ export function PerformanceChart({ politician }: PerformanceChartProps) {
               <Tooltip
                 formatter={(value: unknown, name: string) => [
                   `${Number(value).toFixed(1)}`,
-                  name === 'score' ? 'Pontuação' : 'Peso'
+                  name === 'score' ? 'Nota' : 'Peso'
                 ]}
                 labelFormatter={(label) => `Critério: ${label}`}
                 contentStyle={{
@@ -160,7 +161,7 @@ export function PerformanceChart({ politician }: PerformanceChartProps) {
               <Bar 
                 dataKey="score" 
                 fill="#3b82f6" 
-                name="Pontuação"
+                name="Nota"
                 radius={[2, 2, 0, 0]}
               />
               <Bar 
@@ -180,7 +181,7 @@ export function PerformanceChart({ politician }: PerformanceChartProps) {
           <div className="text-3xl font-bold text-blue-600 mb-2">
             {politician.currentScore.overall.toFixed(1)}
           </div>
-          <div className="text-lg text-gray-700 mb-4">Pontuação Geral Ponderada</div>
+          <div className="text-lg text-gray-700 mb-4">Nota geral ponderada</div>
           <div className="text-sm text-gray-600">
             Calculada com base nos pesos de cada critério conforme nossa metodologia
           </div>

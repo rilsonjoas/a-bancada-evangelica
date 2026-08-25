@@ -13,12 +13,13 @@ import { Link } from 'react-router-dom';
 import { APIPolitician } from '@/types/politician';
 import { Slider } from '@/components/ui/slider';
 import { CRITERIA } from '@/lib/criteria';
+import { fmt } from '@/lib/format';
 
 const CRITERIA_LEVELS: Array<{ key: 'EXCELLENT' | 'GOOD' | 'AVERAGE' | 'POOR'; label: string }> = [
-  { key: 'EXCELLENT', label: 'Ótimo' },
-  { key: 'GOOD', label: 'Bom' },
-  { key: 'AVERAGE', label: 'Médio' },
-  { key: 'POOR', label: 'Crítico' },
+  { key: 'EXCELLENT', label: 'Aderência muito alta' },
+  { key: 'GOOD', label: 'Aderência alta' },
+  { key: 'AVERAGE', label: 'Aderência moderada' },
+  { key: 'POOR', label: 'Aderência baixa' },
 ];
 
 // ── F4 (2026-08-24): panorama com amostra de TODOS os níveis ──
@@ -48,7 +49,7 @@ const HighlightsSection: React.FC = () => {
         <div className="max-w-3xl mx-auto text-center mb-10">
           <h2 className="font-serif text-2xl font-bold text-foreground">Panorama da bancada</h2>
           <p className="text-muted-foreground mt-3 text-sm md:text-base leading-relaxed">
-            Uma amostra fixa de <strong>todos os níveis</strong> de desempenho
+            Uma amostra fixa de <strong>todos os graus de aderência</strong>
             entre os membros da bancada com nota calculada — as duas notas mais
             altas de cada faixa. Transparência é mostrar o espectro inteiro,
             não só o lado bom.
@@ -288,15 +289,15 @@ const RankingPage = () => {
                 <div className="text-sm opacity-90">Com nota por votos próprios</div>
               </div>
               <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
-                <div className="text-2xl font-bold">{stats.avgScore.toFixed(1)}</div>
+                <div className="text-2xl font-bold">{fmt(stats.avgScore)}</div>
                 <div className="text-sm opacity-90">Nota média (0–100)</div>
               </div>
               <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
                 <div className="text-2xl font-bold">{stats.excellentCount}</div>
-                <div className="text-sm opacity-90">Notas ótimas</div>
+                <div className="text-sm opacity-90">Aderência muito alta</div>
               </div>
             </div>
-            <p className="text-xs text-primary-foreground/70 max-w-2xl mx-auto mt-4 leading-relaxed">
+            <p className="text-xs text-primary-foreground/80 max-w-2xl mx-auto mt-4 leading-relaxed">
               Todos os parlamentares monitorados recebem nota — mas nem todos
               por votos próprios: quem tem poucas votações compatíveis com as
               pautas classificadas recebe nota <strong>estimada pela média

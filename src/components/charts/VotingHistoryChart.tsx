@@ -70,7 +70,7 @@ export function VotingHistoryChart({ votes }: VotingHistoryChartProps) {
       {/* Gráfico de linha - Impacto ao longo do tempo */}
       <div>
         <h3 className="text-lg font-semibold mb-4 text-center">
-          Evolução da Pontuação por Votação
+          Evolução da nota por votação
         </h3>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
@@ -114,7 +114,7 @@ export function VotingHistoryChart({ votes }: VotingHistoryChartProps) {
                 strokeWidth={2}
                 strokeDasharray="5 5"
                 dot={{ r: 3, fill: '#10b981' }}
-                name="Pontuação Acumulada"
+                name="Nota acumulada"
               />
             </LineChart>
           </ResponsiveContainer>

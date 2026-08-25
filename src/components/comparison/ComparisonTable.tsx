@@ -3,6 +3,7 @@ import { TrendingUp, TrendingDown, Minus, Award } from 'lucide-react';
 import { CRITERIA, CriteriaLabel } from '@/lib/criteria';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { fmt } from '@/lib/format';
 
 interface ComparisonTableProps {
   politicians: Array<{
@@ -82,7 +83,7 @@ export function ComparisonTable({ politicians }: ComparisonTableProps) {
           <tr className="border-b bg-blue-50">
             <td className="p-4 font-semibold">
               <div className="flex items-center gap-2">
-                <span className="flex items-center gap-1.5"><Award className="h-4 w-4 text-yellow-500" /> Pontuação Geral</span>
+                <span className="flex items-center gap-1.5"><Award className="h-4 w-4 text-yellow-500" /> Nota geral</span>
                 <Badge variant="secondary" className="text-xs">100%</Badge>
               </div>
             </td>
@@ -90,7 +91,7 @@ export function ComparisonTable({ politicians }: ComparisonTableProps) {
               <td key={politician.id} className="text-center p-4">
                 <div className="flex flex-col items-center gap-1">
                   <div className={`text-lg ${getScoreColor(politician.currentScore?.overall || 0)}`}>
-                    {politician.currentScore?.overall?.toFixed(1) || '0.0'}
+                    {politician.currentScore?.overall != null ? fmt(politician.currentScore.overall) : '0,0'}
                   </div>
                   <Badge variant="outline" className="text-xs">
                     {politician.currentScore?.performanceLabel || 'Sem dados'}
@@ -114,7 +115,7 @@ export function ComparisonTable({ politicians }: ComparisonTableProps) {
                 <td key={politician.id} className="text-center p-4">
                   <div className="flex flex-col items-center gap-1">
                     <div className={`text-lg ${getScoreColor(getFieldScore(politician, criterion.field))}`}>
-                      {getFieldScore(politician, criterion.field).toFixed(1)}
+                      {fmt(getFieldScore(politician, criterion.field))}
                     </div>
                     {getRankIcon(politician, criterion.field)}
                   </div>
@@ -140,7 +141,7 @@ export function ComparisonTable({ politicians }: ComparisonTableProps) {
             {politicians.map(politician => (
               <td key={politician.id} className="text-center p-4">
                 <div className="text-lg font-medium">
-                  {((politician.currentScore?.consistencyScore || 0) * 100).toFixed(0)}%
+                  {fmt((politician.currentScore?.consistencyScore || 0) * 100, 0)}%
                 </div>
               </td>
             ))}
@@ -162,7 +163,7 @@ export function ComparisonTable({ politicians }: ComparisonTableProps) {
           </div>
           <div className="flex items-center gap-2">
             <Minus className="w-4 h-4 text-gray-400" />
-            <span>Pontuação intermediária</span>
+            <span>Nota intermediária</span>
           </div>
         </div>
         <div className="mt-3 text-xs text-gray-600">
