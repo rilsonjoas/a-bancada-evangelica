@@ -281,47 +281,44 @@ const senadorCompleto = {
 
         for (const g of gastos) {
           try {
-            await prisma.expense.upsert({
+            // Verificar duplicata antes de criar (schema não tem @@unique na Expense)
+            const existing = await prisma.expense.findFirst({
               where: {
-                politician_id_year_month_document_number_source: {
-                  politician_id: politician.id,
-                  year: g.ano,
-                  month: g.mes,
-                  document_number: g.documento || 'SEM_NUMERO',
-                  source: 'SENADO',
-                }
-              },
-              update: {
-                gross_value: g.valorReembolsado,
-                net_value: g.valorReembolsado,
-                refund_value: 0,
-                supplier_name: g.fornecedor,
-                supplier_document: g.cpfCnpj,
-                category: g.tipoDespesa,
-                description: g.detalhamento,
-                is_suspicious: g.valorReembolsado > 100000,
-                suspicion_reasons: g.valorReembolsado > 100000
-                  ? ['Valor muito alto para despesa mensal'] : [],
-              },
-              create: {
                 politician_id: politician.id,
                 year: g.ano,
                 month: g.mes,
                 document_number: g.documento || 'SEM_NUMERO',
                 source: 'SENADO',
-                gross_value: g.valorReembolsado,
-                net_value: g.valorReembolsado,
-                refund_value: 0,
-                supplier_name: g.fornecedor,
-                supplier_document: g.cpfCnpj,
-                category: g.tipoDespesa,
-                description: g.detalhamento,
-                is_suspicious: g.valorReembolsado > 100000,
-                suspicion_reasons: g.valorReembolsado > 100000
-                  ? ['Valor muito alto para despesa mensal'] : [],
               }
             });
-            inserted++; // upsert counts as inserted for simplicity
+
+            const expenseData = {
+              politician_id: politician.id,
+              year: g.ano,
+              month: g.mes,
+              document_number: g.documento || 'SEM_NUMERO',
+              source: 'SENADO' as const,
+              gross_value: g.valorReembolsado,
+              net_value: g.valorReembolsado,
+              refund_value: 0,
+              supplier_name: g.fornecedor,
+              supplier_document: g.cpfCnpj,
+              expense_type: g.tipoDespesa,
+              is_suspicious: g.valorReembolsado > 100000,
+              suspicion_reasons: g.valorReembolsado > 100000
+                ? ['Valor muito alto para despesa mensal'] : [],
+            };
+
+            if (existing) {
+              await prisma.expense.update({
+                where: { id: existing.id },
+                data: expenseData
+              });
+              updated++;
+            } else {
+              await prisma.expense.create({ data: expenseData });
+              inserted++;
+            }
           } catch {
             skipped++;
           }
