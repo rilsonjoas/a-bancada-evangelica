@@ -132,7 +132,7 @@ function PartyAlignmentChart() {
       <ResponsiveContainer width="100%" height={Math.max(280, top20.length * 28)}>
       <BarChart data={top20} layout="vertical" margin={{ left: 8, right: 40, top: 4, bottom: 4 }}>
         <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11 }} />
-        <YAxis type="category" dataKey="party" width={110} tick={{ fontSize: 11 }} />
+        <YAxis type="category" dataKey="party" width={110} tick={{ fontSize: 11 }} interval={0} />
         <Tooltip
           formatter={(v: number) => [`${v.toFixed(1)} pts`, 'Score médio']}
           labelFormatter={(label) => {

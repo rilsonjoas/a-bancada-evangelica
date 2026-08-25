@@ -84,12 +84,12 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
                   {politician.name}
                 </h3>
                 
-                <div className="flex items-center space-x-3 mt-1 text-sm text-muted-foreground">
-                  <div className="flex items-center space-x-1">
-                    <Building className="h-3 w-3" />
-                    <span className="font-medium">{politician.currentParty}</span>
+                <div className="flex items-center space-x-3 mt-1 text-sm text-muted-foreground min-w-0">
+                  <div className="flex items-center space-x-1 min-w-0">
+                    <Building className="h-3 w-3 flex-shrink-0" />
+                    <span className="font-medium truncate">{politician.currentParty}</span>
                   </div>
-                  <div className="flex items-center space-x-1">
+                  <div className="flex items-center space-x-1 flex-shrink-0">
                     <MapPin className="h-3 w-3" />
                     <span>{politician.currentState}</span>
                   </div>
