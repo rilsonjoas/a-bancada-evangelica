@@ -227,12 +227,13 @@ const senadorCompleto = {
     }
   }
 
-  async syncGastos(senadorCodigo: string, year: number = new Date().getFullYear()): Promise<void> {
-    console.log(`💰 Sincronizando gastos do senador ${senadorCodigo} para o ano ${year}...`);
+  async syncGastos(year: number = new Date().getFullYear()): Promise<void> {
+    console.log(`💰 Sincronizando gastos CEAP do Senado para ${year}...`);
 
     try {
       const response = await fetch(
-        `https://legis.senado.leg.br/dadosabertos/senador/${senadorCodigo}/gastos/${year}`
+        `https://adm.senado.gov.br/adm-dadosabertos/api/v1/senadores/despesas_ceaps/${year}`,
+        { headers: { Accept: 'application/json' } }
       );
 
       if (!response.ok) {
@@ -240,29 +241,98 @@ const senadorCompleto = {
         return;
       }
 
-      const data = await response.json() as {
-        GastosParlamentar: {
-          Gastos: {
-            Gasto: SenadoGasto[]
-          }
-        }
-      };
+      const data = await response.json() as Array<{
+        codSenador: string;
+        nomeSenador: string;
+        tipoDespesa: string;
+        cpfCnpj: string;
+        fornecedor: string;
+        documento: string;
+        mes: number;
+        ano: number;
+        data: string;
+        detalhamento: string;
+        valorReembolsado: number;
+      }>;
 
-      if (!data.GastosParlamentar?.Gastos?.Gasto) {
-        console.log(`ℹ️ Nenhum gasto encontrado para o senador ${senadorCodigo} em ${year}`);
+      if (!data || !Array.isArray(data)) {
+        console.log(`ℹ️ Nenhum gasto encontrado para ${year}`);
         return;
       }
 
-      const gastos = Array.isArray(data.GastosParlamentar.Gastos.Gasto) 
-        ? data.GastosParlamentar.Gastos.Gasto 
-        : [data.GastosParlamentar.Gastos.Gasto];
-      
-      for (const gasto of gastos) {
-        await this.processExpense(senadorCodigo, gasto);
+      console.log(`📋 ${data.length} registros encontrados`);
+
+      // Agrupar por codSenador pra eficiência
+      const bySenator = new Map<string, typeof data>();
+      for (const g of data) {
+        const cod = String(g.codSenador);
+        if (!bySenator.has(cod)) bySenator.set(cod, []);
+        bySenator.get(cod)!.push(g);
       }
 
+      let inserted = 0, updated = 0, skipped = 0;
+
+      for (const [cod, gastos] of bySenator) {
+        // Buscar político pelo legislature_id (= codSenador)
+        const politician = await prisma.politician.findFirst({
+          where: { legislature_id: cod, current_house: 'SENADO' }
+        });
+        if (!politician) { skipped += gastos.length; continue; }
+
+        for (const g of gastos) {
+          try {
+            await prisma.expense.upsert({
+              where: {
+                politician_id_year_month_document_number_source: {
+                  politician_id: politician.id,
+                  year: g.ano,
+                  month: g.mes,
+                  document_number: g.documento || 'SEM_NUMERO',
+                  source: 'SENADO',
+                }
+              },
+              update: {
+                gross_value: g.valorReembolsado,
+                net_value: g.valorReembolsado,
+                refund_value: 0,
+                supplier_name: g.fornecedor,
+                supplier_document: g.cpfCnpj,
+                category: g.tipoDespesa,
+                description: g.detalhamento,
+                is_suspicious: g.valorReembolsado > 100000,
+                suspicion_reasons: g.valorReembolsado > 100000
+                  ? ['Valor muito alto para despesa mensal'] : [],
+              },
+              create: {
+                politician_id: politician.id,
+                year: g.ano,
+                month: g.mes,
+                document_number: g.documento || 'SEM_NUMERO',
+                source: 'SENADO',
+                gross_value: g.valorReembolsado,
+                net_value: g.valorReembolsado,
+                refund_value: 0,
+                supplier_name: g.fornecedor,
+                supplier_document: g.cpfCnpj,
+                category: g.tipoDespesa,
+                description: g.detalhamento,
+                is_suspicious: g.valorReembolsado > 100000,
+                suspicion_reasons: g.valorReembolsado > 100000
+                  ? ['Valor muito alto para despesa mensal'] : [],
+              }
+            });
+            inserted++; // upsert counts as inserted for simplicity
+          } catch {
+            skipped++;
+          }
+        }
+
+        await new Promise(r => setTimeout(r, 50)); // rate limit
+      }
+
+      console.log(`💰 Gastos processados: ${inserted} inseridos/atualizados, ${skipped} ignorados`);
     } catch (error) {
-      console.error(`❌ Erro ao sincronizar gastos do senador ${senadorCodigo}:`, error);
+      console.error(`❌ Erro ao sincronizar gastos do Senado:`, error);
       throw error;
     }
   }
@@ -492,15 +562,15 @@ async function syncSenado() {
   }
 }
 
-// Função para sincronizar gastos de um senador específico
-async function syncGastosSenador(senadorCodigo: string, year?: number) {
+// Função para sincronizar gastos de TODOS os senadores (bulk, API administrativa)
+async function syncGastosTodos(year?: number) {
   const service = new SenadoSyncService();
   
   try {
-    await service.syncGastos(senadorCodigo, year);
-    console.log(`✅ Sincronização de gastos do senador ${senadorCodigo} concluída!`);
+    await service.syncGastos(year);
+    console.log(`✅ Sincronização de gastos do Senado concluída!`);
   } catch (error) {
-    console.error(`❌ Erro na sincronização de gastos do senador ${senadorCodigo}:`, error);
+    console.error(`❌ Erro na sincronização de gastos do Senado:`, error);
     throw error;
   } finally {
     await prisma.$disconnect();
@@ -511,10 +581,9 @@ async function syncGastosSenador(senadorCodigo: string, year?: number) {
 async function main() {
   const args = process.argv.slice(2);
   
-  if (args[0] === 'gastos' && args[1]) {
-    const senadorCodigo = args[1];
-    const year = args[2] ? parseInt(args[2]) : undefined;
-    await syncGastosSenador(senadorCodigo, year);
+  if (args[0] === 'gastos') {
+    const year = args[1] ? parseInt(args[1]) : undefined;
+    await syncGastosTodos(year);
   } else {
     await syncSenado();
   }
@@ -534,4 +603,4 @@ if (isEntryPoint) {
   });
 }
 
-export { syncSenado, syncGastosSenador, SenadoSyncService };
+export { syncSenado, syncGastosTodos, SenadoSyncService };
