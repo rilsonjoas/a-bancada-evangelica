@@ -274,7 +274,8 @@ const senadorCompleto = {
   ): Promise<void> {
     try {
       const response = await fetch(
-        `https://legis.senado.leg.br/dadosabertos/senador/${senador.CodigoParlamentar}/mandatos?v=5`
+        `https://legis.senado.leg.br/dadosabertos/senador/${senador.CodigoParlamentar}/mandatos?v=5`,
+        { headers: { Accept: 'application/json' } }
       );
       if (!response.ok) return;
 
