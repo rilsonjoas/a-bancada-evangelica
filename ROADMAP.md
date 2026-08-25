@@ -274,7 +274,7 @@ Nenhum implementado ainda; cada um precisa de sessão própria (ou lote).
       uma linha por legislatura?), deduplicar/agrupar por legislatura e
       renderizar timeline real. Critério: cada mandato aparece UMA vez,
       ordenado, com início/fim corretos.
-- [~] **F11 — Guarda-chuva**: varredura de overflow JÁ AUTOMATIZADA e verde (27 combos, 2026-08-24) — falta o passe visual final página a página depois de F8/F9
+- [x] **F11 — Guarda-chuva**: FEITO (2026-08-25) — varredura de overflow (27 combos, 0px) + passe visual com screenshots reais de produção lidos um a um. 6 achados corrigidos: stats impossíveis (648 notas p/ 514 políticos — distribuição contava linhas históricas/inativas; agora último score por ativo + métrica honesta "504 com nota por votos próprios" que bate com os 504 da página Grupos), overlap "Testemunho Fiel" × partido (legenda com max-w + partido trunca), labels de critério colados (text-[10px]), h2 dos Grupos gigantes herdam estilo global (fixados em 2xl serif), eixo Y de partidos truncado e pulando rótulos (width 110 + interval 0). Regra de verificação em runtime registrada no AGENTS.md a pedido do Rilson
       acessibilidade + clareza/transparência quando F2/F7/F10 estiverem
       feitos — passada completa página a página com checklist próprio.
 
