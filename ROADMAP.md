@@ -193,6 +193,13 @@ Conferido issue por issue contra o código, não só pelo título:
 
 ### Feedback de produto — Rilson (2026-08-24): clareza, transparência e apresentação
 
+> **📌 Estado ao fim da sessão de 2026-08-24 (pausa)**: F1–F10 ENTREGUES e no ar
+> (pipelines verdes, verificados via CDP/produção; commits `8f64534`, `821ca78`,
+> `7eb2d13`, `4b6c8be`). F11 parcial (varredura overflow verde; falta passe visual).
+> Quando retomar: ① fechar F11 (passe visual pós-F8/F9) · ② Onda A numa manhã
+> (G1 Sentry + G2 timestamps + C1 analytics) · ③ G3–G5 · ④ F16 tiers da bancada ·
+> ⑤ C2 North Star com analytics na mão.
+
 ### Onda 2 — responsividade e acessibilidade (2026-08-24)
 > Varredura automatizada: **0px de overflow horizontal** em 9 rotas × 3 viewports (360/768/1350). Base sólida; itens abaixo são refinamentos.
 
