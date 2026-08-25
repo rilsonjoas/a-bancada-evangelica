@@ -501,6 +501,35 @@ Google" não é viável em iOS de qualquer forma.
 
 ---
 
+## Visão de produto — ondas futuras (2026-08-24)
+> Princípio acordado com Rilson: **o que decide adoção é a MANUTENÇÃO CONTÍNUA, não o custo de construir**. Projeto mantido por 1 pessoa — cada feature nova é uma obrigação permanente. Legenda: 🟢 manutenção ~zero · 🟡 atenção ocasional · 🔴 obrigação recorrente (pensar 2x).
+
+### Onda A — confiabilidade (adotar primeiro: barato de manter, protege tudo)
+- [ ] **G1 · Sentry + uptime monitor** 🟢 — front e API. Hoje estamos cegos (tela-branca viveu dias sem ninguém saber). Build: 1 sessão. Manter: só olhar alerta.
+- [ ] **G2 · Timestamps de dados na UI** 🟢 — "dados atualizados em DD/MM HH:MM" no rodapé do perfil e da home. Build: horas. Manutenção: zero.
+- [ ] **G3 · Data quality checks pós-sync** 🟢 — validações no sync-worker (ativos não variam >5%, todo mandato tem voto/justificativa, scores 0–100) + log de alerta. Build: 1–2 sessões. Manter: roda sozinho; só investiga quando acusa.
+- [ ] **G4 · Cron de syncs** 🟡 — diário fora do horário de voto. Build: baixo. Manter: falha ocasional pede olhada (o G3 avisa).
+- [ ] **G5 · Backup com restore TESTADO** 🟡 — dump diário automático + drill de restauração trimestral no VPS. Build: baixo. Manter: 30 min/trimestre.
+- [ ] **G6 · E2E mínimo (Playwright)** 🟡 — ranking→perfil→comparação 1×/dia contra produção. Build: médio. Manter: MÉDIO — testes quebram quando UI muda; rodar semanal ou pré-release, não a cada commit.
+
+### Onda B — credibilidade do dado "Bancada" (F16, o coração jurídico do projeto)
+- [ ] **F16 · Bancada em tiers com fonte datada** 🟢→🟡 — substituir `is_fpe_member` binário por 3 níveis: `Registrado na frente` (lista oficial de frentes da Câmara) > `Autodeclarado` > `Imprensa`. Chip mostra tier + fonte clicável + data da captura + canal de contestação ("dado desatualizado? fale conosco"). Build: médio (schema + coleta manual inicial + UI). Manter: BAIXO se re-validação for MANUAL/trimestral; 🔴 se prometer re-sync automático — frente muda e não há API oficial.
+- [ ] **F16b · Página pública "Como definimos quem é da bancada"** 🟢 — metodologia da classificação em linguagem leiga. Build: baixo. Manter: só quando mudar critério.
+
+### Onda C — instrumentar antes de crescer
+- [ ] **C1 · Analytics de privacidade (Plausible ou similar)** 🟢 — saber o que o visitante faz HOJE antes de construir mais qualquer coisa. Build: horas. Manter: zero.
+- [ ] **C2 · Definir North Star metric** 🟢 — proposta inicial: "% de visitas que chegam a um perfil completo". Decisão, não código.
+
+### Fase 2 — crescimento (escolher COM dados do C1; competem entre si)
+- [ ] **M1 · Match Eleitor** 🟡 — cidadão responde as mesmas questões dos 5 critérios → vê parlamentares alinhados consigo. Maior potencial viral do produto. Build: ALTO (quiz + matching + UX). Manter: baixo depois de pronto (conteúdo estático). Só fazer se C1 mostrar engajamento com perfis.
+- [ ] **M2 · Páginas por tema** 🟡 — "como votaram sobre saúde/impostos/educação" com key votes existentes + 1 parágrafo de contexto leigo + SEO. Build: médio. Manter: BAIXO-MÉDIO (contexto envelhece devagar; revisão semestral).
+- [ ] **M3 · Digest semanal** 🔴 ARMADILHA — página/newsletter "votações da semana". Build: médio. Manter: ALTO — vira obrigação editorial SEMANAL; semana vazia = página vazia. Só com curadoria semi-automática comprovada.
+- [ ] **M4 · Alertas por e-mail** 🔴 ARMADILHA — notificar sobre pautas grandes. Build: alto. Manter: ALTO — deliverability, LGPD, unsubscribe, infra de env. Deixar para quando houver base de usuários recorrentes.
+- [ ] **M5 · Impacto leigo por key vote** 🔴 se manual — "na prática, isso significa…" em toda pauta nova exige escrita contínua. Versão viável: só nas ~10 pautas maiores do ano, curadas à mão.
+
+### Ordem sugerida
+G1+G2+C1 numa sessão (manhã de trabalho) → G3+G4+G5 → F16 (coleta manual das fontes) → C2 decisão → F9/F11 fecham a onda atual → Fase 2 decide-se com analytics na mão.
+
 ## Plano de Valor — fases de produção (2026-08-21)
 
 > Mapa de navegação do que resta. Ordenado por valor pro eleitor ÷ esforço.
