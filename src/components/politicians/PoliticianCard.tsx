@@ -104,7 +104,7 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
               >
                 {formatScore(politician.scores.overall)}
               </Badge>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-muted-foreground mt-1 max-w-[76px] leading-tight ml-auto">
                   Testemunho Fiel
                 </p>
               </div>
@@ -135,31 +135,31 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
                 <div className="text-sm font-bold text-foreground">
                   {formatScore(politician.scores.lifeProtection)}
                 </div>
-                <div className="text-xs text-muted-foreground">Vida</div>
+                <div className="text-[10px] leading-tight text-muted-foreground">Vida</div>
               </div>
               <div className="text-center">
                 <div className="text-sm font-bold text-foreground">
                   {formatScore(politician.scores.familyValues)}
                 </div>
-                <div className="text-xs text-muted-foreground">Família</div>
+                <div className="text-[10px] leading-tight text-muted-foreground">Família</div>
               </div>
               <div className="text-center">
                 <div className="text-sm font-bold text-foreground">
                   {formatScore(politician.scores.moralIntegrity)}
                 </div>
-                <div className="text-xs text-muted-foreground">Moral</div>
+                <div className="text-[10px] leading-tight text-muted-foreground">Moral</div>
               </div>
               <div className="text-center">
                 <div className="text-sm font-bold text-foreground">
                   {formatScore(politician.scores.socialResponsibility)}
                 </div>
-                <div className="text-xs text-muted-foreground">Social</div>
+                <div className="text-[10px] leading-tight text-muted-foreground">Social</div>
               </div>
               <div className="text-center">
                 <div className="text-sm font-bold text-foreground">
                   {formatScore(politician.scores.religiousFreedom)}
                 </div>
-                <div className="text-xs text-muted-foreground">Religião</div>
+                <div className="text-[10px] leading-tight text-muted-foreground">Religião</div>
               </div>
             </div>
 

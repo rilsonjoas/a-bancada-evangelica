@@ -132,7 +132,7 @@ function PartyAlignmentChart() {
       <ResponsiveContainer width="100%" height={Math.max(280, top20.length * 28)}>
       <BarChart data={top20} layout="vertical" margin={{ left: 8, right: 40, top: 4, bottom: 4 }}>
         <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11 }} />
-        <YAxis type="category" dataKey="party" width={60} tick={{ fontSize: 11 }} />
+        <YAxis type="category" dataKey="party" width={110} tick={{ fontSize: 11 }} />
         <Tooltip
           formatter={(v: number) => [`${v.toFixed(1)} pts`, 'Score médio']}
           labelFormatter={(label) => {
@@ -207,7 +207,7 @@ export default function VotingClusters() {
         <div className="bg-card border border-border rounded-lg p-6 mb-8">
           <div className="flex items-center gap-2 mb-1">
             <Award className="w-4 h-4 text-muted-foreground" />
-            <h2 className="font-semibold text-foreground">Alinhamento por partido</h2>
+            <h2 className="font-serif text-2xl font-bold text-foreground">Alinhamento por partido</h2>
           </div>
           <p className="text-xs text-muted-foreground mb-4">
             Score médio nos 5 critérios evangélicos.{' '}
@@ -267,7 +267,7 @@ export default function VotingClusters() {
             <div className="bg-card border border-border rounded-lg p-6 mb-8">
               <div className="flex items-center gap-2 mb-1">
                 <BarChart2 className="w-4 h-4 text-muted-foreground" />
-                <h2 className="font-semibold text-foreground">Visualização 2D (PCA)</h2>
+                <h2 className="font-serif text-2xl font-bold text-foreground">Visualização 2D (PCA)</h2>
               </div>
               <p className="text-xs text-muted-foreground mb-4">
                 Cada ponto é um parlamentar. Proximidade indica padrão de voto similar.
@@ -316,7 +316,7 @@ export default function VotingClusters() {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <Users className="w-4 h-4 text-muted-foreground" />
-                <h2 className="font-semibold text-foreground">Composição dos grupos</h2>
+                <h2 className="font-serif text-2xl font-bold text-foreground">Composição dos grupos</h2>
                 <TrendingUp className="w-3 h-3 text-muted-foreground ml-auto" />
                 <span className="text-xs text-muted-foreground">clique para expandir</span>
               </div>
