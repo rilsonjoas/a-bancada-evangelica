@@ -24,7 +24,7 @@ export class StatsService {
           scores: {
             take: 1,
             orderBy: { created_at: 'desc' },
-            select: { performance_level: true, overall_score: true },
+            select: { performance_level: true, overall_score: true, total_votes: true },
           },
         },
       }),
@@ -33,11 +33,13 @@ export class StatsService {
     const withScore = actives.filter(a => a.scores.length > 0);
     const distribution = { excellent: 0, good: 0, average: 0, poor: 0 };
     let scoreSum = 0;
+    let withOwnVotes = 0;
     for (const a of withScore) {
       const s = a.scores[0];
       const key = s.performance_level.toLowerCase() as keyof typeof distribution;
       if (key in distribution) distribution[key] += 1;
       scoreSum += s.overall_score ?? 0;
+      if (s.total_votes > 0) withOwnVotes += 1;
     }
     const averageScore = withScore.length > 0
       ? Math.round((scoreSum / withScore.length) * 10) / 10
@@ -45,6 +47,7 @@ export class StatsService {
 
     return {
       totalPoliticians,
+      withOwnVotes,
       averageScore,
       performanceDistribution: distribution,
       houseDistribution: {

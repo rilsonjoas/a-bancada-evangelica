@@ -160,19 +160,19 @@ const RankingPage = () => {
   // (endpoint /stats/overview). F1 (2026-08-24): antes o card "Avaliados"
   // mostrava o total FILTRADO pela FPE (~208) misturado com contagens
   // globais (513 deputados) — o leigo lia contradição. Agora separa:
-  // monitorados (todos) × com nota calculada (soma das faixas).
+  // monitorados (todos) × com nota por votos próprios (último score de cada ativo).
   const stats = useMemo(() => {
     if (!statsData) {
-      return { monitored: 0, scored: 0, avgScore: 0, excellentCount: 0 };
+      return { monitored: 0, withOwnVotes: 0, avgScore: 0, excellentCount: 0 };
     }
 
     const dist = statsData.performanceDistribution;
     const monitored = statsData.totalPoliticians ?? 0;
-    const scored = dist.excellent + dist.good + dist.average + dist.poor;
+    const withOwnVotes = statsData.withOwnVotes ?? 0;
     const avgScore = statsData.averageScore ?? 0;
     const excellentCount = dist.excellent;
 
-    return { monitored, scored, avgScore, excellentCount };
+    return { monitored, withOwnVotes, avgScore, excellentCount };
   }, [statsData]);
 
   // Pesos efetivos + ranking derivado — SÓ quando o usuário aplicou
@@ -284,8 +284,8 @@ const RankingPage = () => {
                 <div className="text-sm opacity-90">Parlamentares monitorados</div>
               </div>
               <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
-                <div className="text-2xl font-bold">{stats.scored}</div>
-                <div className="text-sm opacity-90">Com nota calculada</div>
+                <div className="text-2xl font-bold">{stats.withOwnVotes}</div>
+                <div className="text-sm opacity-90">Com nota por votos próprios</div>
               </div>
               <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
                 <div className="text-2xl font-bold">{stats.avgScore.toFixed(1)}</div>
@@ -297,10 +297,11 @@ const RankingPage = () => {
               </div>
             </div>
             <p className="text-xs text-primary-foreground/70 max-w-2xl mx-auto mt-4 leading-relaxed">
-              Por que nem todos têm nota? A nota exige voto nominal registrado
-              nas pautas classificadas pela metodologia — parlamentar com poucas
-              votações compatíveis ainda não tem amostra suficiente. Quem não tem
-              nota aparece na busca com os dados cadastrais completos.
+              Todos os parlamentares monitorados recebem nota — mas nem todos
+              por votos próprios: quem tem poucas votações compatíveis com as
+              pautas classificadas recebe nota <strong>estimada pela média
+              histórica do partido</strong> (marcada como estimativa no perfil).
+              A nota por votos próprios é a medição direta, o voto registrado.
             </p>
           </div>
         </div>
