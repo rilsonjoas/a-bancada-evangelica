@@ -193,6 +193,15 @@ Conferido issue por issue contra o código, não só pelo título:
 
 ### Feedback de produto — Rilson (2026-08-24): clareza, transparência e apresentação
 
+### Onda 2 — responsividade e acessibilidade (2026-08-24)
+> Varredura automatizada: **0px de overflow horizontal** em 9 rotas × 3 viewports (360/768/1350). Base sólida; itens abaixo são refinamentos.
+
+- [ ] **F12 — Alvos de toque ≥44px**: auditar chips de filtro, paginação e links do menu no mobile (WCAG 2.5.8 / Apple HIG).
+- [ ] **F13 — Comparação no mobile**: grid `xl:grid-cols-4` empilha 4 cards inteiros antes de mostrar qualquer dado; trocar por scroll-snap horizontal ou coluna fixa.
+- [ ] **F14 — Gráficos legíveis em telas pequenas**: ScatterChart (PCA) e barras com altura mínima explícita + menos ticks nos eixos em <768px.
+- [ ] **F15 — prefers-reduced-motion**: respeitar usuários com movimento reduzido (`motion-reduce:` nas animações/fade-ins).
+- [x] **Hero stats mobile** — FEITO junto com F1: `grid-cols-2 md:grid-cols-4` (antes quebrava 4 cards em 3+1).
+
 Leitura crítica do site inteiro pelo dono do produto. Tema comum:
 **leigo não entende o que os números dizem** — e transparência/claridade
 é objetivo declarado do projeto. Itens F1–F11, em ordem da leitura.

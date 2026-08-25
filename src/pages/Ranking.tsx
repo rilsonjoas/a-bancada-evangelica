@@ -46,7 +46,7 @@ const HighlightsSection: React.FC = () => {
     <section className="py-12 bg-background border-b border-border">
       <div className="container mx-auto px-4">
         <div className="max-w-3xl mx-auto text-center mb-10">
-          <h2 className="font-serif text-3xl font-bold text-foreground">Panorama da bancada</h2>
+          <h2 className="font-serif text-2xl font-bold text-foreground">Panorama da bancada</h2>
           <p className="text-muted-foreground mt-3 text-sm md:text-base leading-relaxed">
             Uma amostra fixa de <strong>todos os níveis</strong> de desempenho
             entre os membros da bancada com nota calculada — as duas notas mais
@@ -248,7 +248,7 @@ const RankingPage = () => {
             {/* Lente watchdog (2026-08-22): o método vem ANTES do ranking.
                 O leigo precisa entender que a nota não é "simpatia política":
                 é voto nominal registrado, verificável por qualquer pessoa. */}
-            <h1 className="text-4xl md:text-5xl font-extrabold mb-4 text-white tracking-tight">
+            <h1 className="font-serif text-4xl md:text-5xl font-bold mb-4 text-white tracking-tight">
               Como a Bancada Evangélica vota
             </h1>
             <p className="text-lg md:text-xl text-primary-foreground/90 leading-relaxed max-w-2xl mx-auto mb-6">
@@ -278,7 +278,7 @@ const RankingPage = () => {
               <TrendingUp className="h-4 w-4" />
             </Link>
             <div className="mt-6" />
-            <div className="grid grid-cols-3 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
               <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
                 <div className="text-2xl font-bold">{stats.monitored}</div>
                 <div className="text-sm opacity-90">Parlamentares monitorados</div>
@@ -582,7 +582,7 @@ const RankingPage = () => {
         <div className="container mx-auto px-4 text-center">
           <div className="max-w-3xl mx-auto">
             <Award className="h-12 w-12 text-primary mx-auto mb-6" />
-            <h2 className="font-serif text-3xl font-bold text-foreground mb-4">
+            <h2 className="font-serif text-2xl md:text-3xl font-bold text-foreground mb-4">
               Fortaleça a Democracia Brasileira
             </h2>
             <p className="text-lg text-muted-foreground leading-relaxed mb-8">

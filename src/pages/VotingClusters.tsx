@@ -165,7 +165,7 @@ export default function VotingClusters() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <div className="container mx-auto px-4 py-8">
 
         {/* Hero */}
         <div className="mb-8">
@@ -174,14 +174,14 @@ export default function VotingClusters() {
             <span className="text-xs font-medium text-primary uppercase tracking-widest">Análise ML</span>
           </div>
           <h1 className="text-3xl font-bold text-foreground mb-2">Grupos de Votação</h1>
-          <p className="text-muted-foreground max-w-2xl mb-3">
+          <p className="text-muted-foreground max-w-3xl mb-3">
             Quando organizamos os parlamentares pelo jeito que eles votam —
             sem olhar partido nem religião — surgem <strong>grupos naturais</strong>:
             deputados e senadores que votam juntos, tema a tema. É uma radiografia
             do comportamento real de voto, além dos rótulos de campanha.
           </p>
           {/* Nota técnica para quem quiser profundidade */}
-          <details className="max-w-2xl text-sm text-muted-foreground">
+          <details className="max-w-3xl text-sm text-muted-foreground">
             <summary className="cursor-pointer select-none font-medium text-foreground hover:text-primary transition-colors">
               Como essa análise é feita (para quem gosta de detalhes)
             </summary>
