@@ -227,7 +227,7 @@ const SobrePage = () => {
                 {[
                   { pct: '30%', title: 'Proteção à Vida', desc: 'Votações sobre aborto, eutanásia, pena de morte' },
                   { pct: '25%', title: 'Valores Familiares', desc: 'Conceito de família, adoção, liberdade de educação' },
-                  { pct: '20%', title: 'Integridade Moral', desc: 'Despesas parlamentares suspeitas + votações de ética' },
+                  { pct: '20%', title: 'Integridade Moral', desc: 'Despesas fora do padrão estatístico + votações de ética' },
                   { pct: '15%', title: 'Responsabilidade Social', desc: 'Projetos para populações vulneráveis, saúde pública' },
                   { pct: '10%', title: 'Liberdade Religiosa', desc: 'Proteção ao culto, expressão de fé, patrimônio religioso' },
                 ].map(c => (

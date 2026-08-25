@@ -15,17 +15,17 @@ export function ExpenseAnalysisChart({ analysis }: ExpenseAnalysisChartProps) {
   // Dados para gráfico de barras - Comparação de valores
   const valueData = [
     {
-      category: 'Total Gasto',
+      category: 'Total gasto',
       value: analysis.totalValue,
       type: 'total'
     },
     {
-      category: 'Valor Suspeito',
+      category: 'Fora do padrão',
       value: analysis.suspiciousValue,
       type: 'suspicious'
     },
     {
-      category: 'Valor Íntegro',
+      category: 'Dentro do padrão',
       value: analysis.totalValue - analysis.suspiciousValue,
       type: 'clean'
     }
@@ -34,12 +34,12 @@ export function ExpenseAnalysisChart({ analysis }: ExpenseAnalysisChartProps) {
   // Dados para gráfico de pizza - Distribuição de gastos
   const distributionData = [
     {
-      name: 'Gastos Íntegros',
+      name: 'Dentro do padrão',
       value: analysis.totalValue - analysis.suspiciousValue,
       fill: '#10b981'
     },
     {
-      name: 'Gastos Suspeitos',
+      name: 'Fora do padrão',
       value: analysis.suspiciousValue,
       fill: '#ef4444'
     }
@@ -63,10 +63,10 @@ export function ExpenseAnalysisChart({ analysis }: ExpenseAnalysisChartProps) {
 
   const getRiskLabel = (level: string) => {
     switch (level) {
-      case 'LOW': return 'Baixo';
-      case 'MEDIUM': return 'Médio';
-      case 'HIGH': return 'Alto';
-      case 'CRITICAL': return 'Crítico';
+      case 'LOW': return 'Regular';
+      case 'MEDIUM': return 'Atenção';
+      case 'HIGH': return 'Atípico';
+      case 'CRITICAL': return 'Muito atípico';
       default: return 'Indefinido';
     }
   };
@@ -82,6 +82,30 @@ export function ExpenseAnalysisChart({ analysis }: ExpenseAnalysisChartProps) {
 
   return (
     <div className="space-y-8">
+      {/* F9: contexto leigo antes dos números — o que é a cota */}
+      <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 text-sm text-gray-700 leading-relaxed">
+        <strong>O que você está vendo:</strong> deputados federais recebem a{' '}
+        <strong>Cota para o Exercício da Atividade Parlamentar</strong> (verba
+        indenizatória) para custear o mandato — passagens, alimentação,
+        consultorias, material de trabalho. O uso é público e publicado pela
+        Câmara dos Deputados. Aqui nós apenas organizamos esses dados e os
+        comparamos com o padrão estatístico do conjunto.
+        <details className="mt-2">
+          <summary className="cursor-pointer select-none font-medium text-gray-900 hover:text-primary">
+            Como a análise identifica despesas fora do padrão
+          </summary>
+          <p className="mt-2 leading-relaxed">
+            Comparamos cada despesa com a referência estatística do conjunto
+            analisado (tipo de gasto × valores típicos). Despesas com valor,
+            tipo ou fornecedor que destoam da referência são marcadas como
+            <strong> &ldquo;fora do padrão&rdquo;</strong>. É um sinal
+            <strong> estatístico para olhar com atenção</strong> — não uma
+            constatação de irregularidade. Os critérios completos estão na{' '}
+            <a href="/metodologia" className="text-primary hover:underline">metodologia</a>.
+          </p>
+        </details>
+      </div>
+
       {/* Cards de resumo */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-blue-50 p-4 rounded-lg text-center">
@@ -94,13 +118,13 @@ export function ExpenseAnalysisChart({ analysis }: ExpenseAnalysisChartProps) {
           <div className="text-2xl font-bold text-red-600">
             {formatCurrency(analysis.suspiciousValue)}
           </div>
-          <div className="text-sm text-gray-600">Valor Suspeito</div>
+          <div className="text-sm text-gray-600">Fora do padrão</div>
         </div>
         <div className="bg-yellow-50 p-4 rounded-lg text-center">
           <div className="text-2xl font-bold text-yellow-600">
             {analysis.suspiciousPercentage.toFixed(1)}%
           </div>
-          <div className="text-sm text-gray-600">% Suspeito</div>
+          <div className="text-sm text-gray-600">% fora do padrão</div>
         </div>
         <div className="bg-green-50 p-4 rounded-lg text-center">
           <div className="text-2xl font-bold text-green-600">
@@ -237,35 +261,67 @@ export function ExpenseAnalysisChart({ analysis }: ExpenseAnalysisChartProps) {
                 color: getRiskColor(analysis.riskLevel)
               }}
             >
-              Nível de Risco: {getRiskLabel(analysis.riskLevel)}
+              Padrão geral dos gastos: {getRiskLabel(analysis.riskLevel)}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Interpretação dos resultados */}
+      {/* F9: interpretação reescrita — estatística, não acusação */}
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg">
-        <h3 className="text-lg font-semibold mb-4">Interpretação dos Resultados</h3>
+        <h3 className="text-lg font-semibold mb-4">Como ler estes números</h3>
         <div className="space-y-3 text-sm">
           <div className="flex items-start gap-2">
             <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
             <div>
-              <strong>Score de Integridade:</strong> Pontuação de 0-100 baseada na análise de padrões suspeitos nos gastos parlamentares.
+              <strong>Score de Integridade:</strong> nota de 0–100 que resume o quanto as
+              despesas deste parlamentar seguem o padrão estatístico do conjunto analisado.
             </div>
           </div>
           <div className="flex items-start gap-2">
             <div className="w-2 h-2 bg-red-500 rounded-full mt-2"></div>
             <div>
-              <strong>Gastos Suspeitos:</strong> Despesas que apresentam características questionáveis como valores altos, fornecedores não identificados ou padrões atípicos.
+              <strong>Fora do padrão:</strong> despesas cujo valor, tipo ou fornecedor destoa
+              da referência estatística (ex.: valores muito acima do típico para a mesma categoria).
+              É um alerta para investigação — <strong>não prova nada</strong> e pode refletir
+              desde erro de digitação do próprio órgão até particularidades legítimas do mandato.
             </div>
           </div>
           <div className="flex items-start gap-2">
             <div className="w-2 h-2 bg-yellow-500 rounded-full mt-2"></div>
             <div>
-              <strong>Nível de Risco:</strong> Classificação geral baseada no conjunto de indicadores analisados.
+              <strong>Padrão geral dos gastos:</strong> classificação derivada dos indicadores
+              acima (Regular / Atenção / Atípico).
+            </div>
+          </div>
+          <div className="flex items-start gap-2">
+            <div className="w-2 h-2 bg-gray-400 rounded-full mt-2"></div>
+            <div>
+              <strong>Atenção ao zero:</strong> nenhuma despesa marcada significa apenas que
+              nada destoou dos critérios automáticos — <strong>não garante ausência de problemas</strong>.
             </div>
           </div>
         </div>
+      </div>
+
+      {/* F9: bloco jurídico — transparência sem acusação */}
+      <div className="border border-border rounded-lg p-5 bg-muted/30 text-xs text-muted-foreground leading-relaxed space-y-2">
+        <p className="font-semibold text-foreground text-sm">Sobre esta análise</p>
+        <p>
+          Processamento automatizado de dados públicos publicados pela Câmara dos
+          Deputados, por critérios estatísticos descritos na{' '}
+          <a href="/metodologia" className="text-primary hover:underline">metodologia aberta</a> deste projeto.
+        </p>
+        <p>
+          Os marcadores exibidos são <strong>diferenças estatísticas, não acusações</strong>.
+          Qualquer pessoa mencionada tem direito à presunção de inocência, e nada aqui
+          afirma, sugere ou configura irregularidade, ilícito ou má conduta. Despesas
+          fora do padrão podem ter explicações legítimas ou decorrer de falhas nos próprios dados oficiais.
+        </p>
+        <p>
+          Encontrou um dado incorreto ou desatualizado?{' '}
+          <a href="/contato" className="text-primary hover:underline">Fale conosco</a> — corrigimos com prioridade.
+        </p>
       </div>
     </div>
   );

@@ -255,7 +255,7 @@ Nenhum implementado ainda; cada um precisa de sessão própria (ou lote).
       FPE" ou "Fora da bancada". Transparência sobre escopo do recorte.
       Depende de flag confiável de membresia FPE no banco (verificar
       origem do dado antes).
-- [ ] **F9 — Gastos escondidos + disclaimers legais**
+- [x] **F9 — Gastos escondidos + disclaimers legais** — FEITO (2026-08-24): vocabulário estatístico substitui o acusatório ("suspeito"/"Nível de Risco" → "fora do padrão"/"Padrão geral: Regular/Atenção/Atípico") em perfil, aba Gastos, Metodologia e Sobre; explicação leiga da cota parlamentar + como ler os números; disclaimer explícito "zero marcadores ≠ ausência de problemas"; bloco jurídico (dados públicos, presunção de inocência, não-acusação, canal de contestação). Verificado via CDP: 0 ocorrências de "Suspeit"/"Nível de Risco" na página
       Apresentar despesas em linguagem leiga (o que é cota, o que é
       suspeito) + disclaimer explícito: "0 suspeito ≠ ausência de
       problemas" + bloco de linguagem jurídica cuidadosa (análise de

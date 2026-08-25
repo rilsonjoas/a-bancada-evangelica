@@ -67,7 +67,7 @@ const MetodologiaPage = () => {
       icon: Scale,
       weight: 20,
       name: 'Integridade Moral',
-      description: 'Analisamos o caráter do político: histórico de processos judiciais, investigações por corrupção ou improbidade, e o uso da cota parlamentar. Despesas excessivas ou suspeitas penalizam esta pontuação. A presunção de inocência é respeitada — a nota começa em 80.',
+      description: 'Analisamos o caráter do político: histórico de processos judiciais, investigações por corrupção ou improbidade, e o uso da cota parlamentar. Despesas que destoam do padrão estatístico do conjunto penalizam esta pontuação (diferença estatística, não acusação). A presunção de inocência é respeitada — a nota começa em 80.',
       whyImportant: '"O justo anda na sua integridade; bem-aventurados serão os seus filhos depois dele" (Provérbios 20:7). Um líder cristão deve ser "irrepreensível" (1 Timóteo 3:2) e um bom administrador dos recursos que lhe foram confiados.',
       howItHelps: 'Esta análise ajuda a ir além do "rouba, mas faz". Avalie o caráter do político e sua conduta ética, escolhendo representantes que honrem a confiança pública.',
       indicators: [
@@ -375,7 +375,7 @@ const MetodologiaPage = () => {
                       A nota de cada parlamentar começa na <strong>média histórica do partido dele</strong>
                       {' '}em cada critério e é ajustada por <strong>cada voto nominal registrado</strong>:
                       votos alinhados sobem a nota daquele critério, votos contrários descem. Integridade
-                      Moral também considera despesas públicas suspeitas (penalidade proporcional).
+                      Moral também considera despesas públicas fora do padrão estatístico (penalidade proporcional).
                     </p>
                     <p>
                       Consequência honesta: enquanto um parlamentar tem poucos votos registrados ou

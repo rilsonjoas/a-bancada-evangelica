@@ -394,28 +394,28 @@ export function PoliticianProfile() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
-                  <span>Gastos Suspeitos:</span>
+                  <span>Gastos fora do padrão:</span>
                   <span className="font-semibold text-red-600">
                     R$ {politician.expenseAnalysis?.suspiciousValue?.toLocaleString('pt-BR') || '0'}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>% Suspeitos:</span>
+                  <span>% fora do padrão:</span>
                   <span className="font-semibold">
                     {politician.expenseAnalysis?.suspiciousPercentage?.toFixed(1) || '0'}%
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Nível de Risco:</span>
+                  <span>Padrão geral dos gastos:</span>
                   {(politician.expenseAnalysis?.totalCount ?? 0) === 0 ? (
                     <span className="font-semibold text-muted-foreground">—</span>
                   ) : (
                     <Badge variant={politician.expenseAnalysis?.riskLevel === 'HIGH' ? 'destructive' : politician.expenseAnalysis?.riskLevel === 'MEDIUM' ? 'default' : 'secondary'}>
                       {politician.expenseAnalysis?.riskLevel === 'HIGH'
-                        ? 'Alto'
+                        ? 'Atípico'
                         : politician.expenseAnalysis?.riskLevel === 'MEDIUM'
-                          ? 'Médio'
-                          : 'Baixo'}
+                          ? 'Atenção'
+                          : 'Regular'}
                     </Badge>
                   )}
                 </div>
@@ -429,6 +429,12 @@ export function PoliticianProfile() {
                     híbrida) — trate-a como <strong>estimativa parcial</strong>.
                   </p>
                 )}
+                <p className="text-xs text-muted-foreground border-t pt-3 leading-relaxed">
+                  Marcadores são <strong>diferenças estatísticas</strong> em dados
+                  públicos da Câmara — não acusações. Zero marcadores não garante
+                  ausência de problemas.{' '}
+                  <a href="/metodologia" className="text-primary hover:underline">Critérios na metodologia</a>.
+                </p>
               </CardContent>
             </Card>
 
