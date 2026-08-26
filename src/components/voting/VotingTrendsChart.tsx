@@ -1,6 +1,7 @@
 import React from 'react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, AreaChart, Area } from 'recharts';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface VotingTrendsChartProps {
   data: Array<{
@@ -13,6 +14,7 @@ interface VotingTrendsChartProps {
 
 export function VotingTrendsChart({ data }: VotingTrendsChartProps) {
   const reducedMotion = useReducedMotion();
+  const isMobile = useIsMobile();
 
   if (!data || data.length === 0) {
     return (
@@ -44,7 +46,8 @@ export function VotingTrendsChart({ data }: VotingTrendsChartProps) {
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis 
                 dataKey="month" 
-                tick={{ fontSize: 11, fill: '#666' }}
+                tick={{ fontSize: isMobile ? 10 : 11, fill: '#666' }}
+                minTickGap={isMobile ? 40 : 20}
               />
               <YAxis 
                 tick={{ fontSize: 11, fill: '#666' }}
@@ -107,7 +110,8 @@ export function VotingTrendsChart({ data }: VotingTrendsChartProps) {
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis 
                 dataKey="month" 
-                tick={{ fontSize: 11, fill: '#666' }}
+                tick={{ fontSize: isMobile ? 10 : 11, fill: '#666' }}
+                minTickGap={isMobile ? 40 : 20}
               />
               <YAxis 
                 tick={{ fontSize: 11, fill: '#666' }}

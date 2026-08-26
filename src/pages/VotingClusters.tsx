@@ -14,6 +14,7 @@ import { Brain, Users, TrendingUp, BarChart2, ChevronDown, ChevronUp, AlertCircl
 import { useState } from 'react';
 import { useClusterData, usePartyAlignment, type ClusterMember } from '@/hooks/useClusterData';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { fmt } from '@/lib/format';
 
 const CLUSTER_COLORS = [
@@ -189,6 +190,7 @@ function PartyAlignmentChart() {
 export default function VotingClusters() {
   const { data, isLoading, isError } = useClusterData();
   const reducedMotion = useReducedMotion();
+  const isMobile = useIsMobile();
 
   const scatterData = data?.clusters.flatMap((cluster, ci) =>
     cluster.members.map(m => ({
@@ -312,10 +314,10 @@ export default function VotingClusters() {
                 aria-label="Gráfico de dispersão: cada ponto é um parlamentar posicionado pelas duas primeiras componentes principais dos votos; pontos próximos indicam padrão de votação similar. A composição completa dos grupos está na lista abaixo."
               >
               <div aria-hidden="true">
-              <ResponsiveContainer width="100%" height={420}>
+              <ResponsiveContainer width="100%" height={isMobile ? 320 : 420}>
                 <ScatterChart margin={{ top: 10, right: 20, bottom: 10, left: 0 }}>
-                  <XAxis dataKey="x" type="number" name="PC1" tick={{ fontSize: 11 }} tickFormatter={v => fmt(v)} />
-                  <YAxis dataKey="y" type="number" name="PC2" tick={{ fontSize: 11 }} tickFormatter={v => fmt(v)} />
+                  <XAxis dataKey="x" type="number" name="PC1" tick={{ fontSize: isMobile ? 10 : 11 }} tickFormatter={v => fmt(v)} minTickGap={isMobile ? 40 : 20} />
+                  <YAxis dataKey="y" type="number" name="PC2" tick={{ fontSize: isMobile ? 10 : 11 }} tickFormatter={v => fmt(v)} minTickGap={isMobile ? 40 : 20} />
                   <Tooltip content={<ClusterTooltip />} cursor={{ strokeDasharray: '3 3' }} />
                   {data.clusters.map((cluster, ci) => (
                     <Scatter

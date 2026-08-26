@@ -1,6 +1,7 @@
 import React from 'react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { fmt } from '@/lib/format';
 
 interface PerformanceChartProps {
@@ -19,6 +20,7 @@ interface PerformanceChartProps {
 
 export function PerformanceChart({ politician }: PerformanceChartProps) {
   const reducedMotion = useReducedMotion();
+  const isMobile = useIsMobile();
 
   if (!politician.currentScore) {
     return (
@@ -140,7 +142,8 @@ export function PerformanceChart({ politician }: PerformanceChartProps) {
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis 
                 dataKey="name" 
-                tick={{ fontSize: 11, fill: '#666' }}
+                tick={{ fontSize: isMobile ? 10 : 11, fill: '#666' }}
+                minTickGap={isMobile ? 40 : 20}
                 angle={-45}
                 textAnchor="end"
                 height={80}

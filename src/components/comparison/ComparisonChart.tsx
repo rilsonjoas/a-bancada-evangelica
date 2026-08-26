@@ -1,6 +1,7 @@
 import React from 'react';
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { fmt } from '@/lib/format';
 
 interface ComparisonChartProps {
@@ -20,6 +21,7 @@ interface ComparisonChartProps {
 
 export function ComparisonChart({ politicians }: ComparisonChartProps) {
   const reducedMotion = useReducedMotion();
+  const isMobile = useIsMobile();
 
   // Preparar dados para o gráfico radar
   const radarData = [
@@ -134,7 +136,8 @@ export function ComparisonChart({ politicians }: ComparisonChartProps) {
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis 
                 dataKey="name" 
-                tick={{ fontSize: 11, fill: '#666' }}
+                tick={{ fontSize: isMobile ? 10 : 11, fill: '#666' }}
+                minTickGap={isMobile ? 40 : 20}
               />
               <YAxis 
                 domain={[0, 100]}
