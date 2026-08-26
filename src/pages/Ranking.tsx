@@ -13,6 +13,7 @@ import { Link } from 'react-router-dom';
 import { APIPolitician } from '@/types/politician';
 import { Slider } from '@/components/ui/slider';
 import { CRITERIA } from '@/lib/criteria';
+import { LastSyncBadge } from '@/components/LastSyncBadge';
 import { fmt } from '@/lib/format';
 
 const CRITERIA_LEVELS: Array<{ key: 'EXCELLENT' | 'GOOD' | 'AVERAGE' | 'POOR'; label: string }> = [
@@ -608,6 +609,10 @@ const RankingPage = () => {
           </div>
         </div>
       </section>
+
+      <div className="container mx-auto px-4 py-6">
+        <LastSyncBadge />
+      </div>
     </div>
   );
 };

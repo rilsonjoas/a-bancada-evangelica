@@ -16,6 +16,7 @@ import { ExpenseAnalysisChart } from '@/components/charts/ExpenseAnalysisChart';
 import { ShareableCard } from '@/components/social/ShareableCard';
 import { CRITERIA, CRITERIA_BY_KEY } from '@/lib/criteria';
 import { fmt } from '@/lib/format';
+import { LastSyncBadge } from '@/components/LastSyncBadge';
 
 export function PoliticianProfile() {
   const { id } = useParams<{ id: string }>();
@@ -621,6 +622,10 @@ export function PoliticianProfile() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <div className="mt-8">
+        <LastSyncBadge />
+      </div>
     </div>
   );
 }

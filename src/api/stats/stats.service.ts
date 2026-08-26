@@ -56,4 +56,17 @@ export class StatsService {
       },
     };
   }
+
+  async lastSync() {
+    const last = await this.prisma.syncLog.findFirst({
+      where: { status: 'SUCCESS' },
+      orderBy: { end_time: 'desc' },
+      select: { end_time: true, sync_type: true, source: true },
+    });
+    return {
+      lastSync: last?.end_time ?? null,
+      syncType: last?.sync_type ?? null,
+      source: last?.source ?? null,
+    };
+  }
 }

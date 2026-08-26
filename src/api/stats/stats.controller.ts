@@ -12,4 +12,10 @@ export class StatsController {
   overview() {
     return this.stats.overview();
   }
+
+  @Get('last-sync')
+  @ApiOperation({ summary: 'Data/hora da última sincronização bem-sucedida' })
+  lastSync() {
+    return this.stats.lastSync();
+  }
 }
