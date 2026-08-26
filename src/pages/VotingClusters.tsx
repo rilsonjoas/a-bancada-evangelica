@@ -110,6 +110,7 @@ const LEVEL_LABEL: Record<string, string> = {
 
 function PartyAlignmentChart() {
   const { data, isLoading, isError } = usePartyAlignment();
+  const reducedMotion = useReducedMotion();
 
   if (isLoading) return (
     <div className="flex items-center justify-center h-48">
