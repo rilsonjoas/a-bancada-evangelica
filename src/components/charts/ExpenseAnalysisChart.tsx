@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
+import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import { fmt } from '@/lib/format';
 
 interface ExpenseAnalysisChartProps {
@@ -13,6 +14,8 @@ interface ExpenseAnalysisChartProps {
 }
 
 export function ExpenseAnalysisChart({ analysis }: ExpenseAnalysisChartProps) {
+  const reducedMotion = useReducedMotion();
+
   // Dados para gráfico de barras - Comparação de valores
   const valueData = [
     {
@@ -170,6 +173,7 @@ export function ExpenseAnalysisChart({ analysis }: ExpenseAnalysisChartProps) {
                 <Bar
                   dataKey="value"
                   radius={[2, 2, 0, 0]}
+                  isAnimationActive={!reducedMotion}
                 >
                   {valueData.map((entry) => (
                     <Cell
@@ -201,11 +205,12 @@ export function ExpenseAnalysisChart({ analysis }: ExpenseAnalysisChartProps) {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, value, percent }) => 
+                  label={({ name, value, percent }) =>
                     `${name}: ${formatCurrency(value)} (${fmt(percent * 100)}%)`
                   }
                   outerRadius={80}
                   dataKey="value"
+                  isAnimationActive={!reducedMotion}
                 >
                   {distributionData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.fill} />

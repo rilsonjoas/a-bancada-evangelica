@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, AreaChart, Area } from 'recharts';
+import { useReducedMotion } from '@/hooks/use-reduced-motion';
 
 interface VotingTrendsChartProps {
   data: Array<{
@@ -11,6 +12,8 @@ interface VotingTrendsChartProps {
 }
 
 export function VotingTrendsChart({ data }: VotingTrendsChartProps) {
+  const reducedMotion = useReducedMotion();
+
   if (!data || data.length === 0) {
     return (
       <div className="flex items-center justify-center h-64 text-gray-500">
@@ -60,30 +63,33 @@ export function VotingTrendsChart({ data }: VotingTrendsChartProps) {
                 }}
               />
               <Legend />
-              <Line 
-                type="monotone" 
-                dataKey="favorableVotes" 
-                stroke="#10b981" 
+              <Line
+                type="monotone"
+                dataKey="favorableVotes"
+                stroke="#10b981"
                 strokeWidth={3}
                 dot={{ r: 4, fill: '#10b981' }}
                 name="Votos Favoráveis"
+                isAnimationActive={!reducedMotion}
               />
-              <Line 
-                type="monotone" 
-                dataKey="contraryVotes" 
-                stroke="#ef4444" 
+              <Line
+                type="monotone"
+                dataKey="contraryVotes"
+                stroke="#ef4444"
                 strokeWidth={3}
                 dot={{ r: 4, fill: '#ef4444' }}
                 name="Votos Contrários"
+                isAnimationActive={!reducedMotion}
               />
-              <Line 
-                type="monotone" 
-                dataKey="abstentions" 
-                stroke="#f59e0b" 
+              <Line
+                type="monotone"
+                dataKey="abstentions"
+                stroke="#f59e0b"
                 strokeWidth={2}
                 strokeDasharray="5 5"
                 dot={{ r: 3, fill: '#f59e0b' }}
                 name="Abstenções"
+                isAnimationActive={!reducedMotion}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -126,6 +132,7 @@ export function VotingTrendsChart({ data }: VotingTrendsChartProps) {
                 stroke="#10b981"
                 fill="#10b981"
                 fillOpacity={0.7}
+                isAnimationActive={!reducedMotion}
               />
               <Area
                 type="monotone"
@@ -134,6 +141,7 @@ export function VotingTrendsChart({ data }: VotingTrendsChartProps) {
                 stroke="#ef4444"
                 fill="#ef4444"
                 fillOpacity={0.7}
+                isAnimationActive={!reducedMotion}
               />
               <Area
                 type="monotone"
@@ -142,6 +150,7 @@ export function VotingTrendsChart({ data }: VotingTrendsChartProps) {
                 stroke="#f59e0b"
                 fill="#f59e0b"
                 fillOpacity={0.7}
+                isAnimationActive={!reducedMotion}
               />
             </AreaChart>
           </ResponsiveContainer>

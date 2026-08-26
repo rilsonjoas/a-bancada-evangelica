@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell } from 'recharts';
+import { useReducedMotion } from '@/hooks/use-reduced-motion';
 
 interface Vote {
   id: string;
@@ -14,6 +15,8 @@ interface VotingHistoryChartProps {
 }
 
 export function VotingHistoryChart({ votes }: VotingHistoryChartProps) {
+  const reducedMotion = useReducedMotion();
+
   if (!votes || votes.length === 0) {
     return (
       <div className="flex items-center justify-center h-64 text-gray-500">
@@ -99,22 +102,24 @@ export function VotingHistoryChart({ votes }: VotingHistoryChartProps) {
                 }}
               />
               <Legend />
-              <Line 
-                type="monotone" 
-                dataKey="score" 
-                stroke="#3b82f6" 
+              <Line
+                type="monotone"
+                dataKey="score"
+                stroke="#3b82f6"
                 strokeWidth={2}
                 dot={{ r: 4, fill: '#3b82f6' }}
                 name="Impacto da Votação"
+                isAnimationActive={!reducedMotion}
               />
-              <Line 
-                type="monotone" 
-                dataKey="cumulative" 
-                stroke="#10b981" 
+              <Line
+                type="monotone"
+                dataKey="cumulative"
+                stroke="#10b981"
                 strokeWidth={2}
                 strokeDasharray="5 5"
                 dot={{ r: 3, fill: '#10b981' }}
                 name="Nota acumulada"
+                isAnimationActive={!reducedMotion}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -135,12 +140,13 @@ export function VotingHistoryChart({ votes }: VotingHistoryChartProps) {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, value, percent }) => 
+                  label={({ name, value, percent }) =>
                     `${name}: ${value} (${(percent * 100).toFixed(0)}%)`
                   }
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
+                  isAnimationActive={!reducedMotion}
                 >
                   {pieData.map((entry, index) => (
                     <Cell 
@@ -175,12 +181,13 @@ export function VotingHistoryChart({ votes }: VotingHistoryChartProps) {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, value, percent }) => 
+                  label={({ name, value, percent }) =>
                     `${name}: ${value} (${(percent * 100).toFixed(0)}%)`
                   }
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
+                  isAnimationActive={!reducedMotion}
                 >
                   {impactData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.fill} />

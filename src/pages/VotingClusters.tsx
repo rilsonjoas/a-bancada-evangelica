@@ -13,6 +13,7 @@ import {
 import { Brain, Users, TrendingUp, BarChart2, ChevronDown, ChevronUp, AlertCircle, Award } from 'lucide-react';
 import { useState } from 'react';
 import { useClusterData, usePartyAlignment, type ClusterMember } from '@/hooks/useClusterData';
+import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import { fmt } from '@/lib/format';
 
 const CLUSTER_COLORS = [
@@ -148,7 +149,7 @@ function PartyAlignmentChart() {
             return item ? `${label} (${item.count} parlamentares)` : label;
           }}
         />
-        <Bar dataKey="score" radius={[0, 4, 4, 0]}>
+        <Bar dataKey="score" radius={[0, 4, 4, 0]} isAnimationActive={!reducedMotion}>
           {top20.map((entry, i) => (
             <Cell key={i} fill={ALIGNMENT_COLOR[entry.level]} fillOpacity={0.85} />
           ))}
@@ -187,6 +188,7 @@ function PartyAlignmentChart() {
 
 export default function VotingClusters() {
   const { data, isLoading, isError } = useClusterData();
+  const reducedMotion = useReducedMotion();
 
   const scatterData = data?.clusters.flatMap((cluster, ci) =>
     cluster.members.map(m => ({
@@ -321,6 +323,7 @@ export default function VotingClusters() {
                       name={cluster.label}
                       data={cluster.members.map(m => ({ ...m, clusterLabel: cluster.label }))}
                       fill={CLUSTER_COLORS[ci % CLUSTER_COLORS.length]}
+                      isAnimationActive={!reducedMotion}
                     >
                       {cluster.members.map((_, mi) => (
                         <Cell

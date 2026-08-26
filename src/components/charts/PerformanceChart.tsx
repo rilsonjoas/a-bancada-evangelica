@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
+import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import { fmt } from '@/lib/format';
 
 interface PerformanceChartProps {
@@ -17,6 +18,8 @@ interface PerformanceChartProps {
 }
 
 export function PerformanceChart({ politician }: PerformanceChartProps) {
+  const reducedMotion = useReducedMotion();
+
   if (!politician.currentScore) {
     return (
       <div className="flex items-center justify-center h-64 text-gray-500">
@@ -110,6 +113,7 @@ export function PerformanceChart({ politician }: PerformanceChartProps) {
                 fillOpacity={0.1}
                 strokeWidth={2}
                 dot={{ r: 4, fill: '#3b82f6' }}
+                isAnimationActive={!reducedMotion}
               />
               <Tooltip
                 formatter={(value: unknown) => [fmt(value as number), 'Nota']}
@@ -158,17 +162,19 @@ export function PerformanceChart({ politician }: PerformanceChartProps) {
                 }}
               />
               <Legend />
-              <Bar 
-                dataKey="score" 
-                fill="#3b82f6" 
+              <Bar
+                dataKey="score"
+                fill="#3b82f6"
                 name="Nota"
                 radius={[2, 2, 0, 0]}
+                isAnimationActive={!reducedMotion}
               />
-              <Bar 
-                dataKey="weight" 
-                fill="#64748b" 
+              <Bar
+                dataKey="weight"
+                fill="#64748b"
                 name="Peso (%)"
                 radius={[2, 2, 0, 0]}
+                isAnimationActive={!reducedMotion}
               />
             </BarChart>
           </ResponsiveContainer>
