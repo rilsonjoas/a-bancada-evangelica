@@ -221,10 +221,10 @@ Conferido issue por issue contra o código, não só pelo título:
 ### Onda 2 — responsividade e acessibilidade (2026-08-24)
 > Varredura automatizada: **0px de overflow horizontal** em 9 rotas × 3 viewports (360/768/1350). Base sólida; itens abaixo são refinamentos.
 
-- [x] **F12 — Responsividade mobile** ✅ PARCIAL (25/08/2026): deletado boilerplate Vite `App.css` (`#root` com padding 64px desperdiçado), ShareableCard `max-w-full`, tabs perfil `grid-cols-2 sm:grid-cols-4`, headings responsivos (P0+P1), VotingClusters YAxis 110→90, add-card min-h responsivo. Falta: toque ≥44px (F12 original), scroll-snap comparação (F13), gráficos mobile (F14), reduced-motion (F15) — registrados abaixo.
-- [ ] **F13 — Comparação no mobile**: grid `xl:grid-cols-4` empilha 4 cards inteiros antes de mostrar qualquer dado; trocar por scroll-snap horizontal ou coluna fixa.
-- [ ] **F14 — Gráficos legíveis em telas pequenas**: ScatterChart (PCA) e barras com altura mínima explícita + menos ticks nos eixos em <768px.
-- [ ] **F15 — prefers-reduced-motion**: respeitar usuários com movimento reduzido (`motion-reduce:` nas animações/fade-ins).
+- [x] **F12 — Responsividade mobile** ✅ COMPLETA (25/08/2026): deletado boilerplate Vite `App.css` (`#root` com padding 64px desperdiçado), ShareableCard `max-w-full`, tabs perfil `grid-cols-2 sm:grid-cols-4`, headings responsivos (P0+P1), VotingClusters YAxis 110→90, add-card min-h responsivo, headings h1-h6 com `clamp()`.
+- [x] **F13 — Comparação no mobile** ✅ (25/08/2026): scroll-snap horizontal `snap-x snap-mandatory`, cada card 85vw no mobile, md+ mantém grid.
+- [x] **F14 — Gráficos legíveis em telas pequenas** ✅ (25/08/2026): PCA ScatterChart 420→320px no mobile, `minTickGap` dinâmico em todos os eixos, `useIsMobile` em 4 componentes de gráfico.
+- [x] **F15 — prefers-reduced-motion** ✅ (25/08/2026): regra global CSS `animation-duration: 0.01ms` + hook `useReducedMotion` em 18 elementos Recharts (Bar/Line/Area/Pie/Scatter/Radar).
 - [x] **Hero stats mobile** — FEITO junto com F1: `grid-cols-2 md:grid-cols-4` (antes quebrava 4 cards em 3+1).
 
 Leitura crítica do site inteiro pelo dono do produto. Tema comum:
