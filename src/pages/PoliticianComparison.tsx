@@ -118,9 +118,9 @@ export function PoliticianComparison() {
       {comparisonData && comparisonData.length > 0 && (
         <div className="space-y-8">
           {/* Politicians Overview Cards */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 overflow-x-auto snap-x snap-mandatory pb-4 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0">
             {comparisonData.map((politician, index) => (
-              <Card key={politician.id} className="relative">
+              <Card key={politician.id} className="relative snap-center min-w-[85vw] md:min-w-0 shrink-0 md:shrink">
                 <Button
                   onClick={() => removePolitician(politician.id)}
                   className="absolute top-2 right-2 h-6 w-6 p-0"
@@ -210,7 +210,7 @@ export function PoliticianComparison() {
             {/* Add Politician Card */}
             {politicianIds.length < 4 && (
               <Card
-                className="border-dashed border-2 cursor-pointer hover:border-blue-500 transition-colors"
+                className="border-dashed border-2 cursor-pointer hover:border-blue-500 transition-colors snap-center min-w-[85vw] md:min-w-0 shrink-0 md:shrink"
                 role="button"
                 tabIndex={0}
                 aria-label="Adicionar parlamentar à comparação"
