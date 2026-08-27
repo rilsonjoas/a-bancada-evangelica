@@ -673,9 +673,9 @@ const MetodologiaPage = () => {
                   <p>
                     O sistema analisa a descrição e ementa de cada votação nominal buscando termos como <em>aborto, eutanásia, liberdade religiosa, família, casamento, adoção, corrupção, improbidade, saúde pública</em> e outros — organizados por critério (Proteção à Vida, Valores Familiares, Integridade Moral, Responsabilidade Social, Liberdade Religiosa).
                   </p>
-                  <p><strong className="text-foreground">2. Cada votação detectada vira Key Agenda</strong></p>
+                  <p><strong className="text-foreground">2. Cada votação detectada vira uma pauta-chave</strong></p>
                   <p>
-                    Quando uma votação casa com uma palavra-chave, ela vira uma <em>Key Agenda</em> (pauta-chave) vinculada ao critério correspondente. O voto individual do político nessa votação recebe uma pontuação positiva ou negativa conforme o alinhamento com valores evangélicos.
+                    Quando uma votação casa com uma palavra-chave, ela vira uma <em>pauta-chave</em> vinculada ao critério correspondente. O voto individual do político nessa votação recebe uma pontuação positiva ou negativa conforme o alinhamento com valores evangélicos.
                   </p>
                   <p><strong className="text-foreground">3. Votos sem match não entram na nota</strong></p>
                   <p>
