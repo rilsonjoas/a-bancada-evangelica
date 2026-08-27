@@ -4,6 +4,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { syncCamara, CamaraSyncService } from './sync-camara';
 import { syncSenado, SenadoSyncService } from './sync-senado';
+import { runQualityChecks } from './quality-check';
 
 const execFileAsync = promisify(execFile);
 const prisma = new PrismaClient();
@@ -149,6 +150,9 @@ class SyncWorkerService {
       
       console.log('📥 Sincronizando dados do Senado...');
       await syncSenado();
+      
+      console.log('🔍 Rodando data quality checks...');
+      await runQualityChecks();
       
       console.log('✅ Sincronização de políticos concluída');
     } catch (error) {
