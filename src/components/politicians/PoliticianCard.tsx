@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { User, MapPin, Building, ExternalLink, Award } from 'lucide-react';
 import { APIPolitician } from '@/types/politician';
 import { cn } from '@/lib/utils';
+import { FpeTierChip } from '@/components/politicians/FpeTierChip';
 
 interface PoliticianCardProps {
   politician: APIPolitician;
@@ -119,13 +120,12 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
                 {performanceBadge.label}
               </Badge>
               {politician.isFpeMember && (
-                <Badge
-                  variant="outline"
-                  className="text-xs bg-purple-50 text-purple-800 border-purple-200"
-                  title="Integrante da Frente Parlamentar Evangélica"
-                >
-                  Bancada Evangélica
-                </Badge>
+                <FpeTierChip
+                  tier={politician.fpe?.tier}
+                  source={politician.fpe?.source}
+                  sourceUrl={politician.fpe?.sourceUrl}
+                  capturedAt={politician.fpe?.capturedAt}
+                />
               )}
             </div>
 

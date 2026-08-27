@@ -14,6 +14,7 @@ import { PerformanceChart } from '@/components/charts/PerformanceChart';
 import { VotingHistoryChart } from '@/components/charts/VotingHistoryChart';
 import { ExpenseAnalysisChart } from '@/components/charts/ExpenseAnalysisChart';
 import { ShareableCard } from '@/components/social/ShareableCard';
+import { FpeTierChip } from '@/components/politicians/FpeTierChip';
 import { CRITERIA, CRITERIA_BY_KEY } from '@/lib/criteria';
 import { fmt } from '@/lib/format';
 import { LastSyncBadge } from '@/components/LastSyncBadge';
@@ -146,13 +147,12 @@ export function PoliticianProfile() {
 
                 {politician.isFpeMember && (
                   <div className="mb-4">
-                    <Badge
-                      variant="outline"
-                      className="bg-purple-50 text-purple-800 border-purple-200 text-sm px-3 py-1"
-                      title="Integrante da Frente Parlamentar Evangélica"
-                    >
-                      Bancada Evangélica
-                    </Badge>
+                    <FpeTierChip
+                      tier={politician.fpe?.tier}
+                      source={politician.fpe?.source}
+                      sourceUrl={politician.fpe?.sourceUrl}
+                      capturedAt={politician.fpe?.capturedAt}
+                    />
                   </div>
                 )}
 

@@ -30,6 +30,10 @@ model Politician {
   current_house         HouseType
   legislature_id        String?  // ID na legislatura atual
   is_fpe_member         Boolean  @default(false)  // Membro da Frente Parlamentar Evangélica
+  fpe_tier              FpeTier? @default(REGISTRADO) // Confiabilidade da filiação (F16)
+  fpe_source            String?  // Fonte legível da filiação (ex.: "Lista oficial da Frente 54477")
+  fpe_source_url        String?  // URL verificável da fonte
+  fpe_captured_at       DateTime? // Data da captura/auditoria da filiação
   
   // Dados eleitorais (TSE)
   voter_title           String?  @unique
@@ -475,6 +479,13 @@ model SystemConfig {
 enum HouseType {
   CAMARA      // Câmara dos Deputados
   SENADO      // Senado Federal
+}
+
+// Tier de confiabilidade da filiação à Frente Parlamentar Evangélica (F16)
+enum FpeTier {
+  REGISTRADO    // Lista oficial da frente (Câmara frente 54477 / Senado codcol 2583)
+  AUTODECLARADO // O próprio parlamentar se declara integrante
+  IMPRENSA      // Atribuído por veículos de imprensa, sem confirmação oficial
 }
 
 enum MandateStatus {

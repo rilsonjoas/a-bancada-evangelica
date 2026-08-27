@@ -9,6 +9,12 @@ export interface APIPolitician {
   currentHouse: 'CAMARA' | 'SENADO';
   photoUrl?: string;
   isFpeMember?: boolean;
+  fpe?: {
+    tier: 'REGISTRADO' | 'AUTODECLARADO' | 'IMPRENSA';
+    source?: string | null;
+    sourceUrl?: string | null;
+    capturedAt?: string | null;
+  };
   scores: {
     lifeProtection: number;
     familyValues: number;

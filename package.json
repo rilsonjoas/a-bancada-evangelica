@@ -40,6 +40,7 @@
     "sync:fpe": "tsx scripts/sync-fpe-members.ts",
     "sync:tse:candidatura": "tsx scripts/sync-tse-candidatura.ts",
     "sync:tse:receitas": "tsx scripts/sync-tse-receitas.ts",
+    "seed:fpe:tiers": "tsx scripts/seed-fpe-tiers.ts",
     "sync:all": "pnpm sync:camara && pnpm sync:senado && pnpm sync:fpe && pnpm sync:votes && pnpm scores:recalculate"
   },
   "dependencies": {

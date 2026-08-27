@@ -10,6 +10,12 @@ export interface PoliticianDetail {
   currentHouse: string;
   photoUrl: string;
   isFpeMember?: boolean;
+  fpe?: {
+    tier?: 'REGISTRADO' | 'AUTODECLARADO' | 'IMPRENSA' | null;
+    source?: string | null;
+    sourceUrl?: string | null;
+    capturedAt?: string | null;
+  };
   email?: string;
   birthDate?: string;
   mandates: Array<{

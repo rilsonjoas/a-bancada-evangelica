@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, PoliticianScore } from '@prisma/client';
+import { Prisma, PoliticianScore, Politician } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { QueryPoliticiansDto } from './dto/query-politicians.dto';
 import { QueryRankingDto } from './dto/query-ranking.dto';
@@ -33,6 +33,17 @@ export class PoliticiansService {
       totalVotes: score.total_votes ?? 0,
       consistencyScore: score.consistency_score ?? 0,
       lastCalculation: score.last_calculation?.toISOString() ?? new Date().toISOString(),
+    };
+  }
+
+  // F16: expõe o tier de filiação à FPE + fonte verificável + data de captura
+  private formatFpe(p: Pick<Politician, 'is_fpe_member' | 'fpe_tier' | 'fpe_source' | 'fpe_source_url' | 'fpe_captured_at'>) {
+    if (!p.is_fpe_member) return null;
+    return {
+      tier: p.fpe_tier ?? 'REGISTRADO',
+      source: p.fpe_source ?? null,
+      sourceUrl: p.fpe_source_url ?? null,
+      capturedAt: p.fpe_captured_at?.toISOString() ?? null,
     };
   }
 
@@ -102,6 +113,7 @@ export class PoliticiansService {
         currentParty: p.current_party, currentState: p.current_state,
         currentHouse: p.current_house, photoUrl: p.photo_url,
         isFpeMember: p.is_fpe_member ?? false,
+        fpe: this.formatFpe(p),
         scores: this.formatScore(p.scores?.[0]),
       })),
       total,
@@ -147,6 +159,7 @@ export class PoliticiansService {
           currentParty: p.current_party, currentState: p.current_state,
           currentHouse: p.current_house, photoUrl: p.photo_url,
           isFpeMember: p.is_fpe_member ?? false,
+          fpe: this.formatFpe(p),
         },
         score: this.formatScore(p.scores[0]),
         position: i + 1,
@@ -198,6 +211,7 @@ export class PoliticiansService {
       currentHouse: politician.current_house,
       photoUrl: politician.photo_url,
       isFpeMember: politician.is_fpe_member ?? false,
+      fpe: this.formatFpe(politician),
       email: politician.email,
       birthDate: politician.birth_date?.toISOString(),
       mandates: politician.mandates.map(m => ({
