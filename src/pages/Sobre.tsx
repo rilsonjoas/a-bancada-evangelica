@@ -132,11 +132,11 @@ const SobrePage = () => {
               <CardContent>
                 <div className="space-y-3">
                   {[
-                    { label: 'Parlamentares com scores', value: fmt(statsData?.totalPoliticians), note: 'Câmara e Senado, mandatos ativos' },
+                    { label: 'Parlamentares com notas', value: fmt(statsData?.totalPoliticians), note: 'Câmara e Senado, mandatos ativos' },
                     { label: 'Votos reais registrados', value: fmt(votingData?.totalVotes), note: 'Votações nominais do Plenário' },
                     { label: 'Pautas monitoradas', value: fmt(votingData?.totalAgendas), note: 'Classificadas nos 5 critérios' },
                     { label: 'Partidos no ranking', value: '19+', note: 'Com ≥ 3 deputados ativos' },
-                    { label: 'Clusters de votação (ML)', value: '2', note: 'KMeans · silhouette 0.27' },
+                    { label: 'Grupos de votação', value: '2', note: 'KMeans · silhouette 0.27' },
                   ].map(item => (
                     <div key={item.label} className="flex items-center justify-between py-2 border-b border-border last:border-0">
                       <div>
@@ -165,7 +165,7 @@ const SobrePage = () => {
               Arquitetura do Projeto
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Stack moderna com deploy em produção, dados reais e análise ML.
+              Tecnologia moderna com implantação em produção, dados reais e análise por aprendizado de máquina.
             </p>
           </div>
 
@@ -174,22 +174,22 @@ const SobrePage = () => {
               {
                 icon: <Code2 className="h-6 w-6" />,
                 title: 'Frontend',
-                items: ['React 18 + TypeScript', 'Vite + Tailwind CSS', 'shadcn/ui + Recharts', 'TanStack Query', 'Deploy: Vercel'],
+                items: ['React 18 + TypeScript', 'Vite + Tailwind CSS', 'shadcn/ui + Recharts', 'TanStack Query', 'Implantação: Vercel'],
               },
               {
                 icon: <Database className="h-6 w-6" />,
                 title: 'API + Banco',
-                items: ['NestJS 11 + Prisma ORM', 'PostgreSQL (VPS)', 'Deploy: Docker + Traefik (Hetzner)', 'Sync automático via worker', 'APIs da Câmara V2'],
+                items: ['NestJS 11 + Prisma ORM', 'PostgreSQL (VPS)', 'Implantação: Docker + Traefik (Hetzner)', 'Sincronização automática em segundo plano', 'APIs da Câmara V2'],
               },
               {
                 icon: <Brain className="h-6 w-6" />,
                 title: 'Análise ML',
-                items: ['Python 3.12 + FastAPI', 'scikit-learn KMeans', 'PCA + StandardScaler', 'Silhouette score', 'Serviço dedicado'],
+                items: ['Python 3.12 + FastAPI', 'scikit-learn KMeans', 'PCA + StandardScaler', 'Índice de silhueta', 'Serviço dedicado'],
               },
               {
                 icon: <Shield className="h-6 w-6" />,
                 title: 'Dados',
-                items: ['API Câmara V2 (REST)', 'Sincronização automática', 'Scoring determinístico', 'Metodologia auditável', 'Código aberto (MIT)'],
+                items: ['API Câmara V2 (REST)', 'Sincronização automática', 'Cálculo de notas determinístico', 'Metodologia auditável', 'Código aberto (MIT)'],
               },
             ].map(col => (
               <Card key={col.title} className="card-elevated">
@@ -263,7 +263,7 @@ const SobrePage = () => {
                 Código aberto e auditável
               </h2>
               <p className="text-muted-foreground mb-6">
-                Todo o código-fonte, scripts de sincronização e a metodologia de scoring
+                Todo o código-fonte, scripts de sincronização e a metodologia de cálculo de notas
                 estão disponíveis no GitHub. Qualquer pessoa pode verificar, reproduzir
                 ou contribuir.
               </p>

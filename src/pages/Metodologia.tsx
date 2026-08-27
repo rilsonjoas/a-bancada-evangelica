@@ -252,7 +252,7 @@ const MetodologiaPage = () => {
             <Card className="card-elevated mb-16">
               <CardHeader>
                 <CardTitle className="font-serif text-2xl text-center">
-                  O que cada nível de performance significa
+                  O que cada nível de desempenho significa
                 </CardTitle>
                 <p className="text-center text-sm text-muted-foreground mt-2">
                   A pontuação geral determina o rótulo exibido no perfil de cada político
@@ -385,7 +385,7 @@ const MetodologiaPage = () => {
                     </p>
                     <p className="text-xs">
                       Fórmula final: soma ponderada dos 5 critérios nos pesos 30/25/20/15/10, limitada a
-                      0–100. O motor completo é open source:{' '}
+                      0–100. O motor completo é código aberto:{' '}
                       <code className="text-xs bg-secondary px-1 py-0.5 rounded">scripts/recalculate-scores.ts</code>.
                     </p>
                   </div>
@@ -644,7 +644,7 @@ const MetodologiaPage = () => {
                     </li>
                     <li className="flex items-start space-x-2">
                       <CheckCircle className="h-4 w-4 mt-0.5 text-green-600" />
-                      <span>Presunção de inocência aplicada (Moral Integrity começa em 80/100)</span>
+                      <span>Presunção de inocência aplicada (Integridade Moral começa em 80/100)</span>
                     </li>
                     <li className="flex items-start space-x-2">
                       <CheckCircle className="h-4 w-4 mt-0.5 text-green-600" />
@@ -677,7 +677,7 @@ const MetodologiaPage = () => {
                   <p>
                     Quando uma votação casa com uma palavra-chave, ela vira uma <em>pauta-chave</em> vinculada ao critério correspondente. O voto individual do político nessa votação recebe uma pontuação positiva ou negativa conforme o alinhamento com valores evangélicos.
                   </p>
-                  <p><strong className="text-foreground">3. Votos sem match não entram na nota</strong></p>
+                  <p><strong className="text-foreground">3. Votos sem correspondência não entram na nota</strong></p>
                   <p>
                     Votações sobre pautas que não são evangelicalmente relevantes (reforma tributária, orçamento, indicações de cargos, etc.) <strong className="text-foreground">não são contabilizadas</strong>. Isso é intencional: a nota reflete posicionamento em pautas que importam para a comunidade cristã, não performance legislativa geral.
                   </p>
@@ -695,7 +695,7 @@ const MetodologiaPage = () => {
                     Isso <strong className="text-foreground">não significa que os senadores não votaram sobre essas pautas</strong>. A maioria dessas votações ocorre em <strong className="text-foreground">comissões com poder conclusivo</strong> (CCP, CI, CAD, etc.), cujos dados individuais de voto <strong className="text-foreground">não são disponibilizados pela API pública do Senado</strong>.
                   </p>
                   <p>
-                    <strong className="text-foreground">Resultado:</strong> a nota de senadores é estimada com base no histórico de alinhamento do partido ao longo das legislaturas. Assim que a API do Senado disponibilizar votos individuais de comissões, o scoring será atualizado automaticamente.
+                    <strong className="text-foreground">Resultado:</strong> a nota de senadores é estimada com base no histórico de alinhamento do partido ao longo das legislaturas. Assim que a API do Senado disponibilizar votos individuais de comissões, o cálculo de notas será atualizado automaticamente.
                   </p>
                   <p className="text-xs text-muted-foreground">
                     <strong>Fonte:</strong> dados coletados de <code>legis.senado.leg.br/dadosabertos/votacao</code> em 26/08/2026. O endpoint antigo por senador (<code>/senador/[id]/votacoes</code>) foi descontinuado em fevereiro de 2026.

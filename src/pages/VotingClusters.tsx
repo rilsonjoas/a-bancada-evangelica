@@ -123,7 +123,7 @@ function PartyAlignmentChart() {
       <p className="text-sm text-muted-foreground">
         {isError
           ? 'Serviço indisponível'
-          : 'Dados de pontuação ainda não calculados. Rode os scripts de sync primeiro.'}
+          : 'Dados de pontuação ainda não calculados. Execute os scripts de sincronização primeiro.'}
       </p>
     </div>
   );
@@ -145,7 +145,7 @@ function PartyAlignmentChart() {
         <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11 }} />
         <YAxis type="category" dataKey="party" width={90} tick={{ fontSize: 11 }} interval={0} />
         <Tooltip
-          formatter={(v: number) => [`${fmt(v)} pts`, 'Score médio']}
+          formatter={(v: number) => [`${fmt(v)} pts`, 'Nota média']}
           labelFormatter={(label) => {
             const item = top20.find(p => p.party === label);
             return item ? `${label} (${item.count} parlamentares)` : label;
@@ -167,7 +167,7 @@ function PartyAlignmentChart() {
           <thead>
             <tr className="text-left text-muted-foreground">
               <th className="py-1 font-medium">Partido</th>
-              <th className="py-1 font-medium text-right">Score médio</th>
+              <th className="py-1 font-medium text-right">Nota média</th>
               <th className="py-1 font-medium text-right">Parlamentares</th>
               <th className="py-1 font-medium text-right">Nível</th>
             </tr>
@@ -209,7 +209,7 @@ export default function VotingClusters() {
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-2">
             <Brain className="w-6 h-6 text-primary" />
-            <span className="text-xs font-medium text-primary uppercase tracking-widest">Análise ML</span>
+            <span className="text-xs font-medium text-primary uppercase tracking-widest">Análise</span>
           </div>
           <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">Grupos de Votação</h1>
           <p className="text-muted-foreground max-w-3xl mb-3">
@@ -237,7 +237,7 @@ export default function VotingClusters() {
         {isLoading && (
           <div className="flex flex-col items-center justify-center py-24 gap-4">
             <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            <p className="text-muted-foreground text-sm">Calculando clusters…</p>
+            <p className="text-muted-foreground text-sm">Calculando grupos…</p>
           </div>
         )}
 
@@ -248,7 +248,7 @@ export default function VotingClusters() {
             <h2 className="font-serif text-2xl font-bold text-foreground">Alinhamento por partido</h2>
           </div>
           <p className="text-xs text-muted-foreground mb-4">
-            Score médio nos 5 critérios evangélicos.{' '}
+            Nota média nos 5 critérios evangélicos.{' '}
             <span className="inline-flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> alta (≥70)
             </span>{' · '}
@@ -266,7 +266,7 @@ export default function VotingClusters() {
         {isError && (
           <div className="flex flex-col items-center justify-center py-16 gap-3 text-center border border-border rounded-lg bg-card">
             <AlertCircle className="w-8 h-8 text-muted-foreground" />
-            <p className="font-semibold text-foreground">Agrupamento ML indisponível</p>
+            <p className="font-semibold text-foreground">Agrupamento indisponível</p>
             <p className="text-sm text-muted-foreground max-w-sm">
               A análise de clusters KMeans requer um serviço Python separado que ainda está sendo implantado.
               Os dados de alinhamento por partido acima estão disponíveis normalmente.
@@ -287,15 +287,15 @@ export default function VotingClusters() {
               <StatCard
                 label="Grupos encontrados"
                 value={String(data.k_used)}
-                sub="k ótimo por silhouette"
+                sub="k ideal por silhueta"
               />
               <StatCard
-                label="Silhouette score"
+                label="Índice de silhueta"
                 value={fmt(data.silhouette, 3)}
                 sub="0 = aleatório · 1 = perfeito"
               />
               <StatCard
-                label="Variância 2D (PCA)"
+                label="Variância 2D (ACP)"
                 value={`${fmt(data.pca_variance_2d * 100)}%`}
                 sub="explicada pelos 2 eixos"
               />
@@ -305,7 +305,7 @@ export default function VotingClusters() {
             <div className="bg-card border border-border rounded-lg p-6 mb-8">
               <div className="flex items-center gap-2 mb-1">
                 <BarChart2 className="w-4 h-4 text-muted-foreground" />
-                <h2 className="font-serif text-2xl font-bold text-foreground">Visualização 2D (PCA)</h2>
+                <h2 className="font-serif text-2xl font-bold text-foreground">Visualização 2D (ACP)</h2>
               </div>
               <p className="text-xs text-muted-foreground mb-4">
                 Cada ponto é um parlamentar. Proximidade indica padrão de voto similar.

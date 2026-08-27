@@ -234,7 +234,7 @@ export function PoliticianProfile() {
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-          <TabsTrigger value="performance">Performance</TabsTrigger>
+          <TabsTrigger value="performance">Desempenho</TabsTrigger>
           <TabsTrigger value="voting">Votações</TabsTrigger>
           <TabsTrigger value="expenses">Gastos</TabsTrigger>
         </TabsList>
@@ -284,7 +284,7 @@ export function PoliticianProfile() {
           <div className="grid md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Descrição da Performance</CardTitle>
+                <CardTitle>Descrição do Desempenho</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700">
@@ -349,7 +349,7 @@ export function PoliticianProfile() {
         <TabsContent value="performance" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Análise de Performance por Critério</CardTitle>
+              <CardTitle>Análise de Desempenho por Critério</CardTitle>
             </CardHeader>
             <CardContent>
               <PerformanceChart politician={politician} />
@@ -367,7 +367,7 @@ export function PoliticianProfile() {
                   <span className="font-semibold">{politician.currentScore?.totalVotes || 0}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Score de Consistência:</span>
+                  <span>Nota de Consistência:</span>
                   <span className="font-semibold">
                     {/* Sem votações registradas não existe consistência a
                         medir — exibir "—" em vez do número (linhas antigas

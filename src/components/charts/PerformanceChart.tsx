@@ -25,7 +25,7 @@ export function PerformanceChart({ politician }: PerformanceChartProps) {
   if (!politician.currentScore) {
     return (
       <div className="flex items-center justify-center h-64 text-gray-500">
-        Dados de performance não disponíveis
+        Dados de desempenho não disponíveis
       </div>
     );
   }
@@ -91,7 +91,7 @@ export function PerformanceChart({ politician }: PerformanceChartProps) {
       {/* Radar Chart */}
       <div>
         <h3 className="text-lg font-semibold mb-4 text-center">
-          Radar de Performance - {politician.name}
+          Radar de Desempenho - {politician.name}
         </h3>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">

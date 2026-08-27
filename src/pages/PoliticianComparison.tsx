@@ -260,7 +260,7 @@ export function PoliticianComparison() {
               <div className="grid md:grid-cols-2 gap-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Melhor Performance por Critério</CardTitle>
+                    <CardTitle>Melhor Desempenho por Critério</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">

@@ -228,7 +228,7 @@ const ContatoPage = () => {
                       <h3 className="font-semibold text-foreground">GitHub</h3>
                       <p className="text-sm text-muted-foreground">github.com/rilsonjoas/a-bancada-evangelica</p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Para colaborações técnicas e issues
+                        Para colaborações técnicas e problemas
                       </p>
                     </div>
                   </div>

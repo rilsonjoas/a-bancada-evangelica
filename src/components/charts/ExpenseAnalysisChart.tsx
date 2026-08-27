@@ -51,7 +51,7 @@ export function ExpenseAnalysisChart({ analysis }: ExpenseAnalysisChartProps) {
 
   // Dados para medidor de integridade
   const integrityData = [
-    { name: 'Score de Integridade', value: analysis.integrityScore, max: 100 }
+    { name: 'Nota de Integridade', value: analysis.integrityScore, max: 100 }
   ];
 
   // Cores baseadas no nível de risco
@@ -134,7 +134,7 @@ export function ExpenseAnalysisChart({ analysis }: ExpenseAnalysisChartProps) {
           <div className="text-2xl font-bold text-green-600">
             {fmt(analysis.integrityScore, 0)}
           </div>
-          <div className="text-sm text-gray-600">Score Integridade</div>
+          <div className="text-sm text-gray-600">Nota de Integridade</div>
         </div>
       </div>
 
@@ -237,7 +237,7 @@ export function ExpenseAnalysisChart({ analysis }: ExpenseAnalysisChartProps) {
         </h3>
         <div className="bg-gray-50 p-6 rounded-lg">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-sm font-medium text-gray-700">Score de Integridade</span>
+            <span className="text-sm font-medium text-gray-700">Nota de Integridade</span>
             <span className="text-lg font-bold" style={{ color: getRiskColor(analysis.riskLevel) }}>
               {fmt(analysis.integrityScore, 0)}/100
             </span>
@@ -280,7 +280,7 @@ export function ExpenseAnalysisChart({ analysis }: ExpenseAnalysisChartProps) {
           <div className="flex items-start gap-2">
             <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
             <div>
-              <strong>Score de Integridade:</strong> nota de 0–100 que resume o quanto as
+              <strong>Nota de Integridade:</strong> nota de 0–100 que resume o quanto as
               despesas deste parlamentar seguem o padrão estatístico do conjunto analisado.
             </div>
           </div>
