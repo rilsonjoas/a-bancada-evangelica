@@ -548,7 +548,7 @@ Google" não é viável em iOS de qualquer forma.
 - [x] **F16b · Seção "Quem é da bancada" na /metodologia** ✅ RESOLVIDO (25/08/2026): seção adicionada com: o que é a FPE (frente, não partido), fontes oficiais (Câmara frente 54477 + Senado codcol 2583), como contestar, data da última auditoria. Renderiza com Cards e ícones já existentes.
 
 ### Onda C — instrumentar antes de crescer
-- [ ] **C1 · Analytics de privacidade (Plausible ou similar)** 🟢 — saber o que o visitante faz HOJE antes de construir mais qualquer coisa. Build: horas. Manter: zero.
+- [x] **C1 · Analytics de privacidade (Umami)** ✅ (2026-08-27) — Umami auto-hospedado no VPS (`umami.narniano.com`), modo COOKIELESS (sem banner LGPD). Website ID `234ec96c-669c-4292-9de9-5c44d64cc1d6`. Vars `VITE_UMAMI_SRC`/`VITE_UMAMI_ID` no build da Vercel. Validado em produção: `script.js` carrega, `api/send` dispara, `window.umami` disponível. Os dados ficam 100% no cluster (sem terceiros).
 - [ ] **C2 · Definir North Star metric** 🟢 — proposta inicial: "% de visitas que chegam a um perfil completo". Decisão, não código.
 
 ### Fase 2 — crescimento (escolher COM dados do C1; competem entre si)
