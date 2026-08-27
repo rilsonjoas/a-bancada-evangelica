@@ -57,9 +57,9 @@ const Header = () => {
               {/* Marca unificada (2026-08-22): favicon.svg branco em vez do ícone lucide genérico */}
               <img src="/marca-white.png" alt="" aria-hidden="true" className="h-5 w-5" />
             </div>
-            <div className="hidden sm:block leading-tight">
-              <p className="font-serif text-base font-bold text-foreground leading-none">A Bancada Evangélica</p>
-              <p className="text-[10px] font-medium tracking-widest text-muted-foreground uppercase mt-0.5">
+            <div className="leading-tight block min-w-0">
+              <p className="font-serif text-[15px] sm:text-base font-bold text-foreground leading-none truncate">A Bancada Evangélica</p>
+              <p className="text-[9px] sm:text-[10px] font-medium tracking-widest text-muted-foreground uppercase mt-0.5 truncate hidden sm:block">
                 Transparência Parlamentar
               </p>
             </div>
