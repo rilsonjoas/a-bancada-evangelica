@@ -655,6 +655,55 @@ const MetodologiaPage = () => {
               </Card>
             </div>
 
+            {/* Seção: Como os votos são selecionados */}
+            <Card className="card-elevated mb-8">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Database className="h-5 w-5" />
+                  <span>Como os votos são selecionados para a nota</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4 text-sm text-muted-foreground">
+                <p>
+                  Nem todas as votações da Câmara e do Senado entram na nota de um político. Apenas <strong className="text-foreground">votações nominais que tratam de pautas evangelicamente relevantes</strong> são contabilizadas. A seleção funciona assim:
+                </p>
+
+                <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                  <p><strong className="text-foreground">1. Busca automática por palavras-chave</strong></p>
+                  <p>
+                    O sistema analisa a descrição e ementa de cada votação nominal buscando termos como <em>aborto, eutanásia, liberdade religiosa, família, casamento, adoção, corrupção, improbidade, saúde pública</em> e outros — organizados por critério (Proteção à Vida, Valores Familiares, Integridade Moral, Responsabilidade Social, Liberdade Religiosa).
+                  </p>
+                  <p><strong className="text-foreground">2. Cada votação detectada vira Key Agenda</strong></p>
+                  <p>
+                    Quando uma votação casa com uma palavra-chave, ela vira uma <em>Key Agenda</em> (pauta-chave) vinculada ao critério correspondente. O voto individual do político nessa votação recebe uma pontuação positiva ou negativa conforme o alinhamento com valores evangélicos.
+                  </p>
+                  <p><strong className="text-foreground">3. Votos sem match não entram na nota</strong></p>
+                  <p>
+                    Votações sobre pautas que não são evangelicalmente relevantes (reforma tributária, orçamento, indicações de cargos, etc.) <strong className="text-foreground">não são contabilizadas</strong>. Isso é intencional: a nota reflete posicionamento em pautas que importam para a comunidade cristã, não performance legislativa geral.
+                  </p>
+                </div>
+
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-2 dark:bg-amber-950/30 dark:border-amber-800">
+                  <p className="flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4 text-amber-600 shrink-0" />
+                    <strong className="text-foreground">Senadores: nota atualmente baseada em partido</strong>
+                  </p>
+                  <p>
+                    A API de dados abertos do Senado Federal expõe apenas <strong className="text-foreground">355 votações nominais plenárias</strong> entre 2023 e 2026 — a grande maioria sobre reforma tributária, indicações de cargos e questões orçamentárias. Nenhuma delas tratou de temas como aborto, família, liberdade religiosa ou integridade moral.
+                  </p>
+                  <p>
+                    Isso <strong className="text-foreground">não significa que os senadores não votaram sobre essas pautas</strong>. A maioria dessas votações ocorre em <strong className="text-foreground">comissões com poder conclusivo</strong> (CCP, CI, CAD, etc.), cujos dados individuais de voto <strong className="text-foreground">não são disponibilizados pela API pública do Senado</strong>.
+                  </p>
+                  <p>
+                    <strong className="text-foreground">Resultado:</strong> a nota de senadores é estimada com base no histórico de alinhamento do partido ao longo das legislaturas. Assim que a API do Senado disponibilizar votos individuais de comissões, o scoring será atualizado automaticamente.
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    <strong>Fonte:</strong> dados coletados de <code>legis.senado.leg.br/dadosabertos/votacao</code> em 26/08/2026. O endpoint antigo por senador (<code>/senador/[id]/votacoes</code>) foi descontinuado em fevereiro de 2026.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
             <Card className="card-elevated">
               <CardContent className="py-8 text-center">
                 <Database className="h-12 w-12 text-primary mx-auto mb-4" />
