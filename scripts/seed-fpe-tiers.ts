@@ -14,7 +14,7 @@ const SOURCE_CAMARA = 'Lista oficial da Frente Parlamentar Evangélica — Câma
 const SOURCE_URL_CAMARA = 'https://dadosabertos.camara.leg.br/api/v2/frentes/54477/membros';
 const SOURCE_SENADO = 'Composição da bancada evangélica no Senado (codcol 2583)';
 const SOURCE_URL_SENADO = 'https://legis.senado.leg.br/dadosabertos/comissao/2583';
-const CAPTURED_AT = new Date('2026-08-25T00:00:00Z');
+const CAPTURED_AT = new Date('2026-08-25T12:00:00Z');
 
 async function main() {
   const members = await prisma.politician.findMany({
