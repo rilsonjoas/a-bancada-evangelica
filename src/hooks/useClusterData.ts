@@ -32,7 +32,6 @@ export interface ClustersResponse {
 
 export interface PartyAlignment {
   party: string;
-  house: string;
   politician_count: number;
   avg_score: number | null;
   alignment_level: 'alta' | 'moderada' | 'baixa' | 'sem_dados';

@@ -21,6 +21,7 @@ import Privacidade from "./pages/Privacidade";
 import Termos from "./pages/Termos";
 import { Analytics } from "@/components/Analytics";
 import { DadosAbertos } from "./pages/DadosAbertos";
+import Errata from "./pages/Errata";
 
 /** Rola pro topo a cada navegação — sem isso o SPA mantém a altura da
  * página anterior e o usuário "cai" no meio da página seguinte. */
@@ -61,6 +62,7 @@ const App = () => (
               <Route path="/sobre" element={<SobrePage />} />
               <Route path="/metodologia" element={<MetodologiaPage />} />
               <Route path="/dados" element={<DadosAbertos />} />
+              <Route path="/errata" element={<Errata />} />
               <Route path="/contato" element={<ContatoPage />} />
               <Route path="/privacidade" element={<Privacidade />} />
               <Route path="/termos" element={<Termos />} />

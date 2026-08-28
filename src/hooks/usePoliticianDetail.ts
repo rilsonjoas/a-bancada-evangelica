@@ -49,6 +49,10 @@ export interface PoliticianDetail {
     vote: string;
     appliedScore: number;
     voteDate: string;
+    description?: string;
+    source?: string;
+    sourceVoteId?: string | null;
+    sourcePropositionId?: string | null;
   }>;
   expenseAnalysis: {
     totalValue: number;
@@ -60,6 +64,8 @@ export interface PoliticianDetail {
     integrityScore: number;
     riskLevel: string;
   };
+  // H2 (2026-08-27): votos por critério
+  votesPerCriteria?: Record<string, { count: number; totalImpact: number }>;
   /** Financiamento de campanha (TSE 2022) — transparência pura,
    * NÃO afeta a nota. null = sem receita declarada no dataset. */
   campaignFinance: {

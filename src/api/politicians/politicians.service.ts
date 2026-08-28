@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, PoliticianScore, Politician } from '@prisma/client';
+import { Prisma, PoliticianScore, Politician, CriteriaType } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { QueryPoliticiansDto } from './dto/query-politicians.dto';
 import { QueryRankingDto } from './dto/query-ranking.dto';
@@ -167,7 +167,7 @@ export class PoliticiansService {
   }
 
   async findOne(id: number) {
-    const [politician, expenseAgg] = await Promise.all([
+    const [politician, expenseAgg, votesPerCriteria] = await Promise.all([
       this.prisma.politician.findUnique({
         where: { id },
         include: {
@@ -193,6 +193,28 @@ export class PoliticiansService {
           _count: { id: true },
         });
         return { agg, suspicious };
+      }),
+      // H2 (2026-08-27): votos por critério para transparência de base de cálculo
+      this.prisma.vote.groupBy({
+        by: ['key_agenda_id'],
+        where: { politician_id: id },
+        _count: { id: true },
+        _sum: { applied_score: true },
+      }).then(groups => {
+        // Mapear key_agenda_id -> criteria via key_agenda
+        // Para simplificar, buscar as agendas envolvidas
+        const agendaIds = groups.map(g => g.key_agenda_id);
+        return this.prisma.keyAgenda.findMany({
+          where: { id: { in: agendaIds } },
+          select: { id: true, criteria: true },
+        }).then(agendas => {
+          const map = new Map(agendas.map(a => [a.id, a.criteria]));
+          return groups.reduce((acc, g) => {
+            const criteria = map.get(g.key_agenda_id);
+            if (criteria) acc[criteria] = { count: g._count.id, totalImpact: g._sum.applied_score ?? 0 };
+            return acc;
+          }, {} as Record<string, { count: number; totalImpact: number }>);
+        });
       }),
     ]);
 
@@ -230,6 +252,11 @@ export class PoliticiansService {
         appliedScore: v.applied_score,
         voteDate: v.vote_date.toISOString(),
         description: v.voting_description ?? v.key_agenda.description ?? '',
+        // Proveniência (H1, 2026-08-27): expor a identidade da votação na
+        // fonte oficial (Câmara/Senado) para o usuário auditar a nota.
+        source: v.source,
+        sourceVoteId: v.source_vote_id,
+        sourcePropositionId: v.source_proposition_id,
       })),
       expenseAnalysis: {
         totalValue,
@@ -259,7 +286,97 @@ export class PoliticiansService {
             }>,
           }
         : null,
+      // H2 (2026-08-27): votos por critério — base do cálculo da nota,
+      // permite aviso de confiança quando a base é pequena.
+      votesPerCriteria,
     };
+  }
+
+  /**
+   * H4 (2026-08-27): Export de votações individuais — auditoria total.
+   * Lista todos os votos nominais com pauta, critério, voto, impacto e
+   * identidade na fonte oficial (para montar o link público).
+   */
+  async exportVotes(params: {
+    politicianId?: number;
+    criteria?: string;
+    limit: number;
+  }): Promise<
+    Array<{
+      id: string;
+      politicianId: number;
+      politicianName: string;
+      politicianParty: string | null;
+      politicianState: string | null;
+      politicianHouse: string | null;
+      voteDate: Date;
+      agendaTitle: string;
+      criteria: string;
+      voteType: string;
+      appliedScore: number;
+      source: string;
+      sourceVoteId: string;
+      sourcePropositionId: string | null;
+    }>
+  > {
+    const { politicianId, criteria, limit } = params;
+    // Aceita o rótulo camelCase da API pública (lifeProtection) e também o
+    // enum Prisma cru (LIFE_PROTECTION) — ver @ApiQuery do exportVotesCsv.
+    const CRITERIA_ALIAS: Record<string, CriteriaType> = {
+      lifeProtection: CriteriaType.LIFE_PROTECTION,
+      familyValues: CriteriaType.FAMILY_VALUES,
+      moralIntegrity: CriteriaType.MORAL_INTEGRITY,
+      socialResponsibility: CriteriaType.SOCIAL_RESPONSIBILITY,
+      religiousFreedom: CriteriaType.RELIGIOUS_FREEDOM,
+    };
+    const criteriaFilter = criteria
+      ? (CRITERIA_ALIAS[criteria] ??
+        ((Object.values(CriteriaType) as string[]).includes(criteria) ? (criteria as CriteriaType) : undefined))
+      : undefined;
+    const rows = await this.prisma.vote.findMany({
+      where: {
+        ...(politicianId ? { politician_id: politicianId } : {}),
+        ...(criteriaFilter ? { key_agenda: { criteria: criteriaFilter } } : {}),
+      },
+      take: limit,
+      select: {
+        id: true,
+        politician_id: true,
+        vote_type: true,
+        applied_score: true,
+        vote_date: true,
+        source: true,
+        source_vote_id: true,
+        source_proposition_id: true,
+        key_agenda: { select: { title: true, criteria: true } },
+        politician: {
+          select: {
+            name: true,
+            current_party: true,
+            current_state: true,
+            current_house: true,
+          },
+        },
+      },
+      orderBy: { vote_date: 'desc' },
+    });
+
+    return rows.map((r) => ({
+      id: r.id,
+      politicianId: r.politician_id,
+      politicianName: r.politician.name,
+      politicianParty: r.politician.current_party,
+      politicianState: r.politician.current_state,
+      politicianHouse: r.politician.current_house,
+      voteDate: r.vote_date,
+      agendaTitle: r.key_agenda.title,
+      criteria: r.key_agenda.criteria,
+      voteType: r.vote_type,
+      appliedScore: r.applied_score,
+      source: r.source,
+      sourceVoteId: r.source_vote_id,
+      sourcePropositionId: r.source_proposition_id,
+    }));
   }
 
   /**

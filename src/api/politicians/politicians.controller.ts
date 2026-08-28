@@ -77,6 +77,76 @@ export class PoliticiansController {
     res.status(200).send('\uFEFF' + header + rows.join('\n'));
   }
 
+  /**
+   * H4 (2026-08-27): Export de votações individuais + checksum SHA256.
+   * Permite auditoria completa: cada linha = 1 voto de 1 parlamentar,
+   * com pauta, critério, voto, impacto, data e link da fonte oficial.
+   * O hash é publicado junto (header X-Content-SHA256) para verificação
+   * de integridade do arquivo baixado.
+   */
+  @Get('export/votes/csv')
+  @ApiOperation({ summary: 'Exportar votações individuais em CSV — auditoria total das notas' })
+  @ApiQuery({ name: 'politicianId', required: false, type: Number, description: 'Filtrar por parlamentar (opcional)' })
+  @ApiQuery({ name: 'criteria', required: false, enum: ['lifeProtection', 'familyValues', 'moralIntegrity', 'socialResponsibility', 'religiousFreedom'], description: 'Filtrar por critério (opcional)' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Limite de linhas (padrão 50000, máx 100000)' })
+  async exportVotesCsv(
+    @Query('politicianId') politicianId?: string,
+    @Query('criteria') criteria?: string,
+    @Query('limit') limit?: string,
+    @Res() res?: Response,
+  ) {
+    const lim = Math.min(parseInt(limit ?? '50000', 10), 100000);
+    const votes = await this.politicians.exportVotes({
+      politicianId: politicianId ? parseInt(politicianId, 10) : undefined,
+      criteria,
+      limit: lim,
+    });
+
+    const esc = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const header =
+      'ID_Voto,ID_Parlamentar,Nome,Partido,Estado,Casa,Data_Votacao,Pauta,Critério,Voto,Impacto_Pontos,' +
+      'Fonte,ID_Voto_Fonte,ID_Proposicao_Fonte,Link_Fonte_Oficial\n';
+
+    const rows = votes.map((v) => {
+      const sourceLink = v.source === 'CAMARA' && v.sourcePropositionId
+        ? `https://www.camara.leg.br/proposicoesWeb/fichadetramitacao?idProposicao=${v.sourcePropositionId}`
+        : v.source === 'SENADO' && v.sourcePropositionId
+          ? `https://www25.senado.leg.br/web/atividade/materias/-/materia/${v.sourcePropositionId}`
+          : '';
+      const fields: Array<string | number> = [
+        v.id,
+        v.politicianId,
+        esc(v.politicianName),
+        esc(v.politicianParty),
+        esc(v.politicianState),
+        esc(v.politicianHouse),
+        new Date(v.voteDate).toISOString().split('T')[0],
+        esc(v.agendaTitle),
+        esc(v.criteria),
+        esc(v.voteType),
+        v.appliedScore,
+        esc(v.source),
+        esc(v.sourceVoteId),
+        esc(v.sourcePropositionId),
+        esc(sourceLink),
+      ];
+      return fields.join(',');
+    });
+
+    const csvContent = '\uFEFF' + header + rows.join('\n');
+
+    // Gera SHA256 do conteúdo CSV para verificação de integridade
+    const crypto = await import('crypto');
+    const hash = crypto.createHash('sha256').update(csvContent, 'utf8').digest('hex');
+
+    res?.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res?.setHeader('Content-Disposition', 'attachment; filename="bancada-evangelica-votacoes.csv"');
+    res?.setHeader('X-Content-SHA256', hash);
+    if (res) res.status(200).send(csvContent);
+
+    return { hash, rows: votes.length };
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Perfil completo: score, votos recentes, análise de gastos' })
   @ApiParam({ name: 'id', description: 'ID do parlamentar' })

@@ -3,7 +3,6 @@ import { PrismaService } from '../prisma/prisma.service';
 
 type PartyRow = {
   party: string;
-  house: string;
   politician_count: bigint;
   avg_score: string | null;
   avg_life: string | null;
@@ -21,7 +20,6 @@ export class PartiesService {
     const rows = await this.prisma.$queryRaw<PartyRow[]>`
       SELECT
         p.current_party                                    AS party,
-        p.current_house                                    AS house,
         COUNT(*)                                           AS politician_count,
         ROUND(AVG(ps.overall_score)::numeric, 1)          AS avg_score,
         ROUND(AVG(ps.life_protection)::numeric, 1)        AS avg_life,
@@ -34,7 +32,7 @@ export class PartiesService {
       WHERE p.is_active = true
         AND p.current_party IS NOT NULL
         AND p.current_party != ''
-      GROUP BY p.current_party, p.current_house
+      GROUP BY p.current_party
       HAVING COUNT(*) >= 3
       ORDER BY AVG(ps.overall_score) DESC NULLS LAST
     `;
@@ -49,7 +47,6 @@ export class PartiesService {
 
     const parties = rows.map(r => ({
       party: r.party,
-      house: r.house,
       politician_count: Number(r.politician_count),
       avg_score: r.avg_score ? parseFloat(r.avg_score) : null,
       alignment_level: level(r.avg_score),

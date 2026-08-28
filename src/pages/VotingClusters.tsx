@@ -137,6 +137,7 @@ function PartyAlignmentChart() {
 
   return (
     <div
+      className="overflow-hidden"
       role="img"
       aria-label="Gráfico de barras: score médio de alinhamento por partido nos 5 critérios; cores indicam nível (verde alta, âmbar moderada, vermelho baixa)"
     >
@@ -311,6 +312,7 @@ export default function VotingClusters() {
                 Cada ponto é um parlamentar. Proximidade indica padrão de voto similar.
               </p>
               <div
+                className="overflow-hidden"
                 role="img"
                 aria-label="Gráfico de dispersão: cada ponto é um parlamentar posicionado pelas duas primeiras componentes principais dos votos; pontos próximos indicam padrão de votação similar. A composição completa dos grupos está na lista abaixo."
               >

@@ -52,7 +52,7 @@ const Footer = () => {
 
           {/* Navigation Links */}
           <div>
-            <h2 className="font-serif font-semibold text-foreground mb-4">Navegação</h2>
+            <h2 className="font-serif font-semibold text-foreground text-sm md:text-lg mb-4 tracking-tight">Navegação</h2>
             <ul className="space-y-2">
               <li>
                 <Link 
@@ -76,6 +76,14 @@ const Footer = () => {
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
                   Dados Abertos
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/errata" 
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Errata pública
                 </Link>
               </li>
               <li>
@@ -115,7 +123,7 @@ const Footer = () => {
 
           {/* External Links */}
           <div>
-            <h2 className="font-serif font-semibold text-foreground mb-4">Fontes de Dados</h2>
+            <h2 className="font-serif font-semibold text-foreground text-sm md:text-lg mb-4 tracking-tight">Fontes de Dados</h2>
             <ul className="space-y-2">
               <li>
                 <a 

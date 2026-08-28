@@ -184,7 +184,7 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
             </div>
 
             {/* Actions */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
               <Badge variant="outline" className="text-xs">
                 {politician.currentHouse === 'CAMARA' ? 'Deputado(a)' : 'Senador(a)'}
               </Badge>

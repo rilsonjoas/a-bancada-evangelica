@@ -12,6 +12,7 @@ import {
   Info,
   ExternalLink,
   Download,
+  FileText,
   Shield,
   Heart,
   Scale,
@@ -573,6 +574,10 @@ const MetodologiaPage = () => {
                 <p>
                   <strong className="text-foreground">Dados desatualizados?</strong> Se você sabe que um parlamentar entrou ou saiu da frente, entre em contato conosco. Atualizamos a classificação e registramos a correção na próxima auditoria.
                 </p>
+                <p>
+                  Correções aplicadas são anunciadas publicamente na{' '}
+                  <a href="/errata" className="underline hover:text-primary transition-colors">Errata pública</a>.
+                </p>
                 <p className="text-xs text-muted-foreground">
                   Última auditoria: 25 de agosto de 2026 — 99,5% de precisão verificada contra a lista oficial (207/208 deputados corretos; 15 senadores em exercício marcados).
                 </p>
@@ -698,9 +703,46 @@ const MetodologiaPage = () => {
                     <strong className="text-foreground">Resultado:</strong> a nota de senadores é estimada com base no histórico de alinhamento do partido ao longo das legislaturas. Assim que a API do Senado disponibilizar votos individuais de comissões, o cálculo de notas será atualizado automaticamente.
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    <strong>Fonte:</strong> dados coletados de <code>legis.senado.leg.br/dadosabertos/votacao</code> em 26/08/2026. O endpoint antigo por senador (<code>/senador/[id]/votacoes</code>) foi descontinuado em fevereiro de 2026.
+                    <strong>Fonte:</strong> dados coletados de <code className="break-all">legis.senado.leg.br/dadosabertos/votacao</code> em 26/08/2026. O endpoint antigo por senador (<code className="break-all">/senador/[id]/votacoes</code>) foi descontinuado em fevereiro de 2026.
                   </p>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* H3 (2026-08-27): Guia de Reprodutibilidade */}
+            <Card className="card-elevated">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Reprodutibilidade — Como recalcular as notas do zero
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-muted-foreground leading-relaxed">
+                  Qualquer pessoa pode reproduzir exatamente as notas publicadas neste site,
+                  a partir dos dados brutos oficiais, sem depender da nossa infraestrutura.
+                  Publicamos o <strong>guia passo a passo completo</strong> com fontes,
+                  fórmulas, scripts e hashes de verificação.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button variant="outline" asChild>
+                    <a href="/docs/REPRODUCIBILITY.md" target="_blank" rel="noopener noreferrer">
+                      <FileText className="h-4 w-4 mr-2" />
+                      Ler guia de reprodutibilidade
+                    </a>
+                  </Button>
+                  <Button variant="secondary" asChild>
+                    <a href="/api/politicians/export/csv" download>
+                      <Download className="h-4 w-4 mr-2" />
+                      Baixar CSV do ranking
+                    </a>
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground border-t pt-3">
+                  O guia inclui: APIs oficiais usadas, palavras-chave por critério, fórmula
+                  de scoring, scripts determinísticos (recalculate-scores.ts), validações de
+                  qualidade, e hashes SHA256 dos CSVs publicados para auditoria de integridade.
+                </p>
               </CardContent>
             </Card>
 

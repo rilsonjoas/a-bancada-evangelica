@@ -69,4 +69,31 @@ export class StatsService {
       source: last?.source ?? null,
     };
   }
+
+  /**
+   * H6 (2026-08-27): histórico de auditoria das sincronizações.
+   * Expões os últimos SyncLogs com o diff das notas (SCORES) incl.
+   * Endpoint público — precedente igual ao exportCsv (dados abertos).
+   */
+  async syncHistory(limit = 50) {
+    const logs = await this.prisma.syncLog.findMany({
+      orderBy: { end_time: 'desc' },
+      take: Math.min(limit, 200),
+      select: {
+        id: true,
+        sync_type: true,
+        source: true,
+        status: true,
+        start_time: true,
+        end_time: true,
+        records_processed: true,
+        records_inserted: true,
+        records_updated: true,
+        records_failed: true,
+        error_message: true,
+        details: true,
+      },
+    });
+    return logs;
+  }
 }

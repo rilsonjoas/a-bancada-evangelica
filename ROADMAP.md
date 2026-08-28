@@ -104,16 +104,16 @@ segurança real que não existia nos outros dois.
       `og:url`) e Twitter Card, `public/robots.txt` presente
 - [x] **`sitemap.xml` — criado (2026-08-22)**. Estático com as 10 rotas públicas fixas; páginas dinâmicas `/politicos/:id` descobertas via links internos do /ranking por enquanto. `robots.txt` ganhou a linha `Sitemap:`. (era: "não existe ainda (site tem só um punhado de rotas,
       baixa prioridade, mas é rápido de gerar)
-- [ ] **Acessibilidade — 5 de 6 passos executados (2026-08-23, docs/A11Y-AUDIT.md)**: skip-link ✓ · nomes acessíveis ✓ · foco global ✓ · Ranking+Perfil rotulados ✓ · validação navegador ⏳ (comandos prontos no doc). Auditoria original: contraste AA ✅ em todos os pares core; críticos = 3 imgs sem alt, skip-link ausente, aria-labels zerados nas páginas, icon-buttons sem nome. Correções na ordem do plano do documento. Checagem original (2026-08-16):
-      12 usos de `aria-label`/`alt` em 64 componentes (~19% de
-      cobertura) — não é auditoria completa (não mediu contraste, foco,
-      navegação por teclado), só uma varredura de grep pra dar noção de
-      escala. Cobertura baixa o bastante pra valer uma auditoria de
-      verdade — mesmo processo que já funcionou no `lecionario`
-      (contraste calculado de verdade, não só olhar).
+- [x] **Acessibilidade — CONCLUÍDO (2026-08-27, docs/A11Y-AUDIT.md)**: 6/6 passos. skip-link ✓ · nomes acessíveis ✓ · foco global ✓ · Ranking+Perfil rotulados ✓ · validação navegador ✓ (comandos prontos no doc). Rodada 2026-08-27 (bloco "auditoria tipográfica + responsividade fina") fechou o passo 6 e o item: Lighthouse **100/100 em 10/10 rotas**; **0 elementos interativos sem accessible name** (2 candidatos no Ranking são falso positivo — switches com `label[for]`); **0 overflow** em 10 rotas × (390/320px) após corrigir grid `md:grid-cols-*` sem `grid-cols-1` no `/votacoes` e `<code>` de URL longa no `/metodologia`; rodapé com h2 gigante (47px > h1) corrigido para 18px; contraste `Tendência de Alinhamento` 600→700 (/votacoes 97→100). Métrica "~19% aria-label" do 2026-08-16 está **defasada** — não repetir. Auditoria original: contraste AA ✅ em todos os pares core; críticos = 3 imgs sem alt, skip-link ausente, aria-labels zerados nas páginas, icon-buttons sem nome. Correções na ordem do plano do documento. Checagem original (2026-08-16):
+     12 usos de `aria-label`/`alt` em 64 componentes (~19% de
+     cobertura) — não é auditoria completa (não mediu contraste, foco,
+     navegação por teclado), só uma varredura de grep pra dar noção de
+     escala. Cobertura baixa o bastante pra valer uma auditoria de
+     verdade — mesmo processo que já funcionou no `lecionario`
+     (contraste calculado de verdade, não só olhar).
 - Responsividade não auditada — stack usa shadcn/ui + Tailwind
   (mesma base dos outros projetos web), provavelmente responsivo por
-  padrão, mas não confirmado
+  padrão, mas não confirmado.
 
 ## P8 — Funcionalidades / entrega de valor
 
@@ -240,7 +240,7 @@ Nenhum implementado ainda; cada um precisa de sessão própria (ou lote).
       claro que há dados de TODOS os deputados pra pesquisa, com foco na
       bancada. Critério: nenhuma estatística do hero sem legenda que se
       explica sozinha.
-- [x] **F2 — Tipografia díspare no app todo + responsividade** — FEITO (2026-08-24): escala única (h1 hero `font-serif 4xl/5xl`, h1 conteúdo `3xl`, h2 seção `2xl`, stats `2xl`); outliers corrigidos (DadosAbertos h1 2xl→3xl, Ranking sem serif/extrabold→padrão dos heros, h2s 3xl→2xl)
+- [x] **F2 — Tipografia díspare no app todo + responsividade** — FEITO (2026-08-24): escala única (h1 hero `font-serif 4xl/5xl`, h1 conteúdo `3xl`, h2 seção `2xl`, stats `2xl`); outliers corrigidos (DadosAbertos h1 2xl→3xl, Ranking sem serif/extrabold→padrão dos heros, h2s 3xl→2xl). Complemento 2026-08-27: rodapé usava `h2` (herdava clamp até 47px, maior que o h1 de 30px da página) → `text-sm md:text-lg tracking-tight` (18px no desktop), verificado 10/10 rotas.
       Tamanhos de fonte inconsistentes entre páginas/cards (gigante ali,
       pequeno ali). Ação: escala tipográfica única (tokens Tailwind /
       variáveis CSS), auditoria componente a componente, breakpoints
@@ -514,7 +514,7 @@ Google" não é viável em iOS de qualquer forma.
   - OG Logo.png REGENERADA: livro azul da identidade velha → marca roxa sobre navy #0f172a (1200×630, gerada do logo-master via ImageMagick)
   - Heróis de Metodologia e Contato: BookOpen genérico → marca-white.png (Ranking/Sobre já estavam certos)
   - Mantidos de propósito: ícones lucide semânticos (nav do Header, botões, arrays de dados) — não são marca
-- [ ] **Acessibilidade + responsividade fina** — 12 de 64 componentes têm `aria-label` (~19%). Auditoria completa de contraste, foco, teclado e viewports 375/390/430 nas páginas de dados (tabelas, cards, filtros).
+- [x] **Acessibilidade + responsividade fina** — CONCLUÍDO (2026-08-27, docs/A11Y-AUDIT.md; a entrada na linha ~107 deste roadmap já registrava o item com as mesmas evidências: Lighthouse 100/100 em 10 rotas, 0 elementos sem nome acessível, 0 overflow em 10 rotas × 390/320px, contraste/Tendência de Alinhamento 600→700).
 - [ ] **Auditoria tipográfica e de espaçamento (pedido direto do Rilson, 2026-08-22)** — dor sentida também no Lecionário e Bíblia na Arte: "textos grandes quando não deveriam, espaçamento sem cuidado, leiturabilidade comprometida por coisas pequenas". Escopo mínimo:
   - Hierarquia honesta: título grande SÓ no herói da página; corpo de leitura ≥14px em páginas de dados; labels uppercase pequenos reservados a rótulos (nunca parágrafos)
   - Ritmo vertical numa escala única (4/8px) e respiro consistente entre seções
@@ -542,6 +542,15 @@ Google" não é viável em iOS de qualquer forma.
   - [x] **G7d · FPE dos senadores assinantes** ✅ RESOLVIDO (25/08/2026): fonte oficial do Senado (`codcol=2583`). **15 senadores em exercício** marcados como FPE (3 assinantes saíram do Senado: Eduardo Girão, Jorge Seif, Mécias de Jesus). Filtro FPE e chip "Bancada Evangélica" agora incluem senadores.
 - [x] **G6 · E2E mínimo (Playwright)** ✅ (2026-08-26) — 6 testes críticos: home, perfil, comparação, metodologia, senadores, lastSyncBadge. Config: chromium, baseURL produção, reporter=list. `pnpm test:e2e`.
 
+### Onda A2 — auditabilidade pública (decidido 2026-08-27, prioridade Rilson: confiabilidade de dados)
+> Diretriz do Rilson (2026-08-27): "dar a maior confiabilidade possível ao público"; cada item abaixo eleva o quanto UM TERCEIRO consegue auditar cada nota. Ordenados por impacto na prestação de contas.
+- [x] **H1 · Proveniência por votação no perfil** 🟢 — o ápice da auditabilidade. Cada nota por critério (ex.: "Proteção à Vida 82") precisa se desdobrar nos VOTOS que a compõem — data, pauta, impacto e **link para a fonte oficial** (Câmara/Senado). Hoje o perfil já lista votos recentes, mas sem link oficial. IMPLEMENTADO 2026-08-27 (LOCAL): backend `recentVotes` expõe `source`/`sourceVoteId`/`sourcePropositionId`; helper `src/lib/sources.ts` (`buildVoteSourceLink`, Câmara/Senado); types alinhados (politician.ts + usePoliticianDetail); perfil renderiza "Ver na Câmara dos Deputados"/"Ver no Senado Federal" por voto. Ativo em produção após deploy.
+- [x] **H2 · Nº de votos base + aviso de confiança** 🟢 — nota com 3 votos ≠ nota com 40. Mostrar "com base em X votações" e destacar quando X é pequeno (advertência transparente de incerteza). IMPLEMENTADO 2026-08-27: backend agrega votos por critério (`votesPerCriteria`), front mostra card "Base de Cálculo por Critério" com badge "Base frágil (< 5 votos)" + texto explicativo.
+- [x] **H3 · Guia de reprodutibilidade** 🟢 — caderno passo a passo de COMO recalcular cada nota do zero (scripts + ordem + fontes), pra terceiros conferirem sem depender de nós. IMPLEMENTADO 2026-08-27: `docs/REPRODUCIBILITY.md` (pipeline em 4 etapas, tabela de fontes oficiais, palavras-chave/pesos por critério, fórmula de scoring, execução local `pnpm sync:all`, validações, hashes); card "Reprodutibilidade" na /metodologia com link ao guia + botão "Baixar CSV do ranking".
+- [x] **H4 · Export de votações + checksum** 🟡 — além do CSV do ranking, dump aberto das votações individuais (data, pauta, impacto, link oficial) com hash publicado pra auditoria externa da integridade. IMPLEMENTADO 2026-08-27: endpoint `GET /api/politicians/export/votes/csv` (filtros opcionais por parlamentar/critério/limite, linha por voto com Fonte/ID_Voto_Fonte/ID_Proposicao_Fonte/Link_Fonte_Oficial, header `X-Content-SHA256` de integridade), método `exportVotes` no service, botão + tutorial de `sha256sum` na /dados. Validado: tsc limpo, build OK, /dados renderiza sem erros. Ficou: verificação do hash na prática após deploy (header não visível no preview estático).
+- [x] **H5 · Errata pública** 🟢 — onde anunciar qualquer correção de dados quando ela existir (hoje não existe; sem errata, uma correção silenciosa parece manipulação da verdade). IMPLEMENTADO 2026-08-27: página `/errata` com o processo de correção pública (confirmar na fonte → registrar antes → publicar → atualizar reprodutibilidade), estado atual (nenhuma pendência, auditoria 25/08), histórico real (AJ Albuquerque/PP-CE removido 25/08), canal de reporte (/contato + issues no GitHub). Link no rodapé + /dados + /metodologia. Validado: tsc limpo, build OK, /errata renderiza sem erro console nem overflow em 320/390/768px, headings H1→H2 sem salto.
+- [x] **H6 · Diff de sincronização** 🟡 — cada sync registrar O QUE mudou nas notas (histórico de auditoria interna das transformações). IMPLEMENTADO 2026-08-27: `recalculate-scores.ts` agora captura o score antigo antes do upsert e grava um `SyncLog` tipo `SCORES` com diff — quantas notas mudaram, delta médio por critério e top 10 movimentações (nome, de → para). Exposição pública: endpoint `GET /api/stats/sync-history` (lista os últimos SyncLogs com `details`) + link na /dados. Schema: enum `SyncType` ganhou `SCORES` (requer `db push` no deploy). Validado: typecheck limpo, 56 testes OK, build OK. Achado extra: removido bloco duplicado de 27 linhas no `findOne` (resquício da edição do H2) e restaurado corpo do `photoUrlOf`. Onda A2 CONCLUÍDA (2026-08-27).
+
 ### Onda B — credibilidade do dado "Bancada" (F16, o coração jurídico do projeto)
 - [x] **F16 · Bancada em tiers com fonte datada** ✅ (2026-08-26) — 3 níveis: `REGISTRADO` (lista oficial Câmara 54477 / Senado codcol 2583) > `AUTODECLARADO` > `IMPRENSA`. Schema: enum `FpeTier` + `fpe_tier`/`fpe_source`/`fpe_source_url`/`fpe_captured_at` no Politician. Seed `fpe:tiers`: 247 membros (225 ativos: 210 Câmara + 15 Senado; 22 inativos) marcados REGISTRADO com fonte oficial datada 25/08/2026. UI: `FpeTierChip` no card e no perfil com tooltip (descrição do tier + fonte clicável + data de captura). Filtro `isFpeMember` mantido. Validado em produção: chip renderiza, tooltip com fonte/URL/data, `fpe` no API. Re-validação trimestral manual pendente (anotada).
   - **✅ AUDITORIA REALIZADA (2026-08-25)** — gatilho: desconfiança do Rilson ("não acho que todos esses são da bancada"). Método: cruzamento nome-a-nome com a lista OFICIAL da frente 54477 (API da Câmara, `/frentes/54477/membros`). Resultado: **207/208 flags corretos (99,5%)**; 1 falso positivo removido (AJ Albuquerque/PP-CE, não assinou); 4 membros ativos ausentes marcados (incluindo **Silas Câmara, presidente da frente**!); 21 membros oficiais inativos (suplência/vacância/licença) também marcados — flag é filiação, não exercício. **Total agora: 232 = exatamente o da lista oficial; 210 entre os ativos.** O `is_active` do banco saiu VALIDADO de graça: 513 ativos = exatamente os "Exercício" de hoje; os 134 inativos são reais (14 licença, 107 suplência, 22 vacância — Bolsonaro, Dallagnol e Ramagem entre as vacâncias). Fonte registrada pela 1ª vez: frente 54477, capturado em 25/08/2026. Falta: tier UI + data no chip + re-validação trimestral manual.
@@ -560,6 +569,12 @@ Google" não é viável em iOS de qualquer forma.
 
 ### Ordem sugerida
 G1+G2+C1 numa sessão (manhã de trabalho) → G3+G4+G5 → F16 (coleta manual das fontes) → C2 decisão → F9/F11 fecham a onda atual → Fase 2 decide-se com analytics na mão.
+>
+> Atlas 2026-08-28: Onda A ✅ (G1/G2/G3… exceto Sentry pausado), Onda B ✅ (F16),
+> Onda A2 ✅ (H1–H6, toda a auditabilidade pública, implementado em código —
+> **falta deploy para ativar em produção**), Onda C (C1 ✅, **C2 espera ~1 semana
+> de dados do Umami para decidir**), Fase 2 (M1–M5 aguardam a decisão do C2/dados).
+> Próximo passo natural: **deploy da Onda A2 no VPS/Vercel** (autorização do Rilson).
 
 ## Plano de Valor — fases de produção (2026-08-21)
 

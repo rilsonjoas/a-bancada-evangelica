@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, MapPin, Building, Calendar, Mail, TrendingUp, TrendingDown, Minus, Share2, Image as ImageIcon, Info } from 'lucide-react';
+import { ArrowLeft, MapPin, Building, Calendar, Mail, TrendingUp, TrendingDown, Minus, Share2, Image as ImageIcon, Info, ExternalLink } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,7 @@ import { ShareableCard } from '@/components/social/ShareableCard';
 import { FpeTierChip } from '@/components/politicians/FpeTierChip';
 import { CRITERIA, CRITERIA_BY_KEY } from '@/lib/criteria';
 import { fmt } from '@/lib/format';
+import { buildVoteSourceLink } from '@/lib/sources';
 import { LastSyncBadge } from '@/components/LastSyncBadge';
 
 export function PoliticianProfile() {
@@ -356,6 +357,61 @@ export function PoliticianProfile() {
             </CardContent>
           </Card>
 
+          {/* H2 (2026-08-27): Base de cálculo por critério — transparência
+              sobre quantos votos sustentam cada nota, com aviso quando a
+              base é pequena (confiança baixa). */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Base de Cálculo por Critério</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {politician.votesPerCriteria && Object.keys(politician.votesPerCriteria).length > 0 ? (
+                <div className="space-y-3">
+                  {[
+                    'lifeProtection',
+                    'familyValues',
+                    'moralIntegrity',
+                    'socialResponsibility',
+                    'religiousFreedom',
+                  ].map((criteriaKey) => {
+                    const label = criteriaKey === 'lifeProtection' ? 'Proteção à Vida'
+                      : criteriaKey === 'familyValues' ? 'Valores Familiares'
+                      : criteriaKey === 'moralIntegrity' ? 'Integridade Moral'
+                      : criteriaKey === 'socialResponsibility' ? 'Responsabilidade Social'
+                      : 'Liberdade Religiosa';
+                    const vp = politician.votesPerCriteria?.[criteriaKey];
+                    const count = vp?.count ?? 0;
+                    const lowConfidence = count < 5; // abaixo de 5 votos = base frágil
+                    return (
+                      <div key={criteriaKey} className={`flex items-center justify-between p-3 rounded-lg ${lowConfidence ? 'bg-yellow-50 border border-yellow-200' : 'bg-white border border-gray-100'}`}>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-sm">{label}</span>
+                          {lowConfidence && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs text-yellow-700 bg-yellow-100 rounded-full">
+                              <span className="w-1.5 h-1.5 rounded-full bg-yellow-500" aria-hidden="true" />
+                              Base frágil ({count} voto{count !== 1 ? 's' : ''})
+                            </span>
+                          )}
+                        </div>
+                        <span className="font-mono text-lg font-semibold text-gray-900">
+                          {count} votaç{count !== 1 ? 'ões' : 'ão'}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-center py-8">Dados de base de cálculo não disponíveis.</p>
+              )}
+              <p className="text-xs text-muted-foreground border-t pt-3 leading-relaxed">
+                <strong>Como ler:</strong> cada nota por critério é calculada a partir das
+                votações nominais que se encaixam naquele tema. Acima de 5 votações, a
+                base é considerada sólida; abaixo disso, a nota reflete uma amostra
+                pequena e deve ser interpretada com cautela. <a href="/metodologia" className="text-primary hover:underline">Ver metodologia</a>.
+              </p>
+            </CardContent>
+          </Card>
+
           <div className="grid md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
@@ -524,6 +580,9 @@ export function PoliticianProfile() {
                   const isPositive = vote.appliedScore > 0;
                   const isNegative = vote.appliedScore < 0;
                   const borderColor = isPositive ? 'border-l-green-500' : isNegative ? 'border-l-red-500' : 'border-l-gray-300';
+                  // Link da fonte oficial (H1, 2026-08-27): transparência total — cada voto
+                  // vira auditable, com link para a Câmara ou Senado.
+                  const sourceLink = buildVoteSourceLink(vote as { source?: string; sourceVoteId?: string | null; sourcePropositionId?: string | null });
                   return (
                     <div key={index} className={`p-4 border rounded-lg border-l-4 ${borderColor} bg-white`}>
                       <div className="flex items-start justify-between gap-3">
@@ -536,6 +595,17 @@ export function PoliticianProfile() {
                             <span className="text-xs px-2 py-0.5 bg-secondary/50 rounded-full text-muted-foreground">
                               {getCriteriaLabel(vote.criteria)}
                             </span>
+                            {sourceLink.url && (
+                              <a
+                                href={sourceLink.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-0.5 text-xs text-primary hover:underline"
+                              >
+                                {sourceLink.label}
+                                <ExternalLink className="h-3 w-3" />
+                              </a>
+                            )}
                           </div>
                         </div>
 

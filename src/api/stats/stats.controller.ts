@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { StatsService } from './stats.service';
 
@@ -17,5 +17,11 @@ export class StatsController {
   @ApiOperation({ summary: 'Data/hora da última sincronização bem-sucedida' })
   lastSync() {
     return this.stats.lastSync();
+  }
+
+  @Get('sync-history')
+  @ApiOperation({ summary: 'Histórico de auditoria das sincronizações — inclui diff das notas por recálculo (H6)' })
+  syncHistory(@Query('limit') limit?: string) {
+    return this.stats.syncHistory(limit ? parseInt(limit, 10) : 50);
   }
 }

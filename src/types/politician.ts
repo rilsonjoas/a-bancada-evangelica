@@ -55,6 +55,9 @@ export interface APIPoliticianDetails extends APIPolitician {
     appliedScore: number;
     voteDate: string;
     description: string;
+    source?: string;
+    sourceVoteId?: string | null;
+    sourcePropositionId?: string | null;
   }>;
   expenseAnalysis: {
     totalValue: number;
@@ -63,6 +66,8 @@ export interface APIPoliticianDetails extends APIPolitician {
     integrityScore: number;
     riskLevel: string;
   };
+  // H2 (2026-08-27): votos por critério — base do cálculo
+  votesPerCriteria?: Record<string, { count: number; totalImpact: number }>;
 }
 
 // Interface legada (mantida para compatibilidade)

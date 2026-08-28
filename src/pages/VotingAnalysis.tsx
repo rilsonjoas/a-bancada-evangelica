@@ -64,7 +64,7 @@ export function VotingAnalysis() {
       <div className="container mx-auto px-4 py-8">
         <div className="animate-pulse space-y-6">
           <div className="h-8 bg-gray-200 rounded w-64"></div>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[1, 2, 3].map(i => (
               <div key={i} className="h-64 bg-gray-200 rounded"></div>
             ))}
@@ -120,7 +120,7 @@ export function VotingAnalysis() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="text-sm font-medium mb-2 block">Buscar pauta</label>
               <Input
@@ -193,7 +193,7 @@ export function VotingAnalysis() {
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
           {/* Statistics Cards */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <VotingStatsCard
               title="Votos Nominais Registrados"
               value={analysisData?.totalVotes || 0}
@@ -221,7 +221,7 @@ export function VotingAnalysis() {
           </div>
 
           {/* Summary Charts */}
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
                 <CardTitle>Pautas Monitoradas por Critério</CardTitle>
@@ -233,11 +233,11 @@ export function VotingAnalysis() {
                       const count = analysisData.agendaByCriteria[c.key] ?? 0;
                       const total = analysisData.totalAgendas || 1;
                       return (
-                        <div key={c.key} className="flex items-center justify-between gap-3">
+                        <div key={c.key} className="flex items-center justify-between gap-3 min-w-0">
                           <span className="text-sm flex flex-col min-w-0 flex-1">
-                            <span className="flex items-center gap-1.5">
+                            <span className="flex items-center gap-1.5 min-w-0">
                               <c.Icon className={`h-3.5 w-3.5 shrink-0 ${c.iconClass}`} />
-                              <span className="truncate">{c.label}</span>
+                              <span className="truncate min-w-0">{c.label}</span>
                             </span>
                             {/* Honestidade > número nu: quando o sync nunca
                                 identificou votação nominal pra esse critério,
@@ -280,19 +280,19 @@ export function VotingAnalysis() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Alto Alinhamento (≥80%)</span>
-                    <span className="text-green-600 font-bold">
+                    <span className="text-green-700 font-bold">
                       {analysisData?.alignmentStats?.high || 0} políticos
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Médio Alinhamento (60-79%)</span>
-                    <span className="text-blue-600 font-bold">
+                    <span className="text-blue-700 font-bold">
                       {analysisData?.alignmentStats?.medium || 0} políticos
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Baixo Alinhamento (&lt;60%)</span>
-                    <span className="text-red-600 font-bold">
+                    <span className="text-red-700 font-bold">
                       {analysisData?.alignmentStats?.low || 0} políticos
                     </span>
                   </div>

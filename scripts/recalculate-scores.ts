@@ -75,6 +75,21 @@ async function recalculate() {
   let updated = 0;
   let hybridUpdated = 0;
 
+  // H6 (2026-08-27): diff de auditoria das transformações. Cada recálculo
+  // registra no SyncLog O QUE mudou nas notas: critérios e nº de políticos
+  // impactados. Sem isso, uma mudança de nota é invisível (parece correção
+  // arbitrária); com histórico, é processo auditável.
+  let changedCount = 0;
+  let unchangedCount = 0;
+  const criteriaDeltas: Record<string, { changed: number; totalDelta: number }> = {
+    LIFE_PROTECTION: { changed: 0, totalDelta: 0 },
+    FAMILY_VALUES: { changed: 0, totalDelta: 0 },
+    MORAL_INTEGRITY: { changed: 0, totalDelta: 0 },
+    SOCIAL_RESPONSIBILITY: { changed: 0, totalDelta: 0 },
+    RELIGIOUS_FREEDOM: { changed: 0, totalDelta: 0 },
+  };
+  const biggestMovers: Array<{ name: string; from: number; to: number; delta: number }> = [];
+
   for (const politician of politicians) {
     const existing = politician.scores[0];
 
@@ -137,6 +152,35 @@ async function recalculate() {
 
     if (politician.votes.length > 0) hybridUpdated++;
 
+    // H6: capturar diff antes/depois (overall_score) para o histórico.
+    const prevOverall = existing?.overall_score ?? null;
+    if (prevOverall !== null) {
+      const absDelta = Math.abs(overall - prevOverall);
+      if (absDelta > 1e-9) {
+        changedCount++;
+        biggestMovers.push({ name: politician.name, from: prevOverall, to: overall, delta: overall - prevOverall });
+      } else {
+        unchangedCount++;
+      }
+    }
+    // Deltas por critério (só onde a nota mudou de fato)
+    const prevCrits: Array<[string, number | null]> = [
+      ['LIFE_PROTECTION', existing?.life_protection ?? null],
+      ['FAMILY_VALUES', existing?.family_values ?? null],
+      ['MORAL_INTEGRITY', existing?.moral_integrity ?? null],
+      ['SOCIAL_RESPONSIBILITY', existing?.social_responsibility ?? null],
+      ['RELIGIOUS_FREEDOM', existing?.religious_freedom ?? null],
+    ];
+    for (const [key, prev] of prevCrits) {
+      const next = { life: life, family: family, moral: moral, social: social, religious: religious }[
+        key === 'LIFE_PROTECTION' ? 'life' : key === 'FAMILY_VALUES' ? 'family' : key === 'MORAL_INTEGRITY' ? 'moral' : key === 'SOCIAL_RESPONSIBILITY' ? 'social' : 'religious'
+      ];
+      if (prev !== null && Math.abs(next - prev) > 1e-9) {
+        criteriaDeltas[key].changed++;
+        criteriaDeltas[key].totalDelta += next - prev;
+      }
+    }
+
     await prisma.politicianScore.upsert({
       where: { politician_id: politician.id },
       create: {
@@ -168,6 +212,42 @@ async function recalculate() {
   console.log(`   🔄 ${updated} políticos atualizados`);
   console.log(`   🗳️  ${hybridUpdated} ajustados com votos reais (híbrido)`);
   console.log(`   📊 ${updated - hybridUpdated} mantiveram score de partido`);
+
+  // H6 (2026-08-27): registrar diff no SyncLog para auditoria pública.
+  const avgDelta = (k: string) =>
+    criteriaDeltas[k].changed > 0 ? criteriaDeltas[k].totalDelta / criteriaDeltas[k].changed : 0;
+
+  const details = {
+    totalRevised: updated,
+    changedCount,
+    unchangedCount,
+    hybridUpdated,
+    criteriaDelta: Object.fromEntries(
+      Object.entries(criteriaDeltas).map(([k, v]) => [k, { changed: v.changed, avgDelta: Number(avgDelta(k).toFixed(2)) }])
+    ),
+    biggestMovers: biggestMovers
+      .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
+      .slice(0, 10)
+      .map(m => ({ ...m, delta: Number(m.delta.toFixed(2)) })),
+    timestamp: new Date().toISOString(),
+  };
+
+  await prisma.syncLog.create({
+    data: {
+      sync_type: 'SCORES',
+      source: 'MANUAL',
+      status: 'SUCCESS',
+      start_time: new Date(),
+      end_time: new Date(),
+      records_processed: updated,
+      records_inserted: changedCount,
+      records_updated: updated,
+      records_failed: 0,
+      details,
+    },
+  });
+
+  console.log(`   📝 Diff registrado no SyncLog (${changedCount} notas alteradas de ${updated})`);
 }
 
 // Roda só se este arquivo for o entry point de verdade — mesma correção
