@@ -4,6 +4,7 @@ import {
   splitTitleSource,
   buildNewsQuery,
   googleNewsFeedUrl,
+  isLikelyAbout,
   type NewsItem,
 } from '../lib/google-news';
 
@@ -108,5 +109,26 @@ describe('buildNewsQuery / googleNewsFeedUrl', () => {
     expect(url).toContain('news.google.com/rss/search');
     expect(url).toContain(encodeURIComponent('"João da Silva" PL SP'));
     expect(url).toContain('hl=pt-BR&gl=BR&ceid=BR:pt-419');
+  });
+});
+
+describe('isLikelyAbout — filtro anti-ruído', () => {
+  const query = { name: 'João da Silva', party: 'PL', state: 'SP' };
+
+  it('aceita título com o nome completo', () => {
+    expect(isLikelyAbout(query, 'João da Silva critica reforma tributária')).toBe(true);
+  });
+
+  it('aceita com variações de caixa e acento', () => {
+    expect(isLikelyAbout(query, 'joão da silva critica reforma')).toBe(true);
+    expect(isLikelyAbout({ ...query, name: 'José de Paula' }, 'JOSE DE PAULA responde')).toBe(true);
+  });
+
+  it('rejeita título que só cita sobrenome (potencial homônimo)', () => {
+    expect(isLikelyAbout(query, 'Silva vence prêmio de xadrez')).toBe(false);
+  });
+
+  it('rejeita pesquisa eleitoral que só menciona o nome no corpo', () => {
+    expect(isLikelyAbout(query, 'Quaest para governador: placar das eleições')).toBe(false);
   });
 });

@@ -19,7 +19,7 @@
 import { PrismaClient } from '@prisma/client';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { searchGoogleNews } from './lib/google-news';
+import { searchGoogleNews, isLikelyAbout } from './lib/google-news';
 
 const prisma = new PrismaClient();
 
@@ -29,8 +29,9 @@ const stateIdx = args.indexOf('--state');
 const LIMIT = limitIdx !== -1 ? Number(args[limitIdx + 1]) : undefined;
 const STATE = stateIdx !== -1 ? args[stateIdx + 1] : undefined;
 
-const BATCH = 50;    // log a cada N processados
+const BATCH = 50;     // log a cada N processados
 const DELAY_MS = 300; // sleep entre requests — Google News sem key não tolera rajada
+const MAX_PER_POLITICIAN = 30; // teto por parlamentar para a fila não explodir
 
 async function main() {
   const where = {
@@ -54,11 +55,17 @@ async function main() {
   for (let i = 0; i < politicians.length; i++) {
     const p = politicians[i];
     try {
-      const items = await searchGoogleNews({
+      const query = {
         name: p.name,
         party: p.current_party,
         state: p.current_state,
-      });
+      };
+      const items = (await searchGoogleNews(query))
+        // Filtro anti-ruído: nome completo precisa estar no título
+        .filter((item) => isLikelyAbout(query, item.title))
+        // Google News ordena por relevância; priorizar os mais recentes
+        .sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime())
+        .slice(0, MAX_PER_POLITICIAN);
       found += items.length;
 
       for (const item of items) {
@@ -78,6 +85,9 @@ async function main() {
           },
         });
         inserted++;
+      }
+      if (items.length === 0) {
+        console.log(`   – ${p.name}: nenhuma menção relevante`);
       }
 
       if ((i + 1) % BATCH === 0) {

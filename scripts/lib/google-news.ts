@@ -92,6 +92,24 @@ export function buildNewsQuery({ name, party, state }: NewsQuery): string {
   return parts.join(' ');
 }
 
+/**
+ * Filtro anti-ruído/homônimo: exige que o nome do parlamentar apareça no
+ * título. A busca do Google News é frouxa (retorna pesquisas eleitorais e
+ * matérias correlatas que só citam o nome no corpo) — sem este filtro a fila
+ * de curadoria entope. Ainda assim 100% vai para PENDING; homônimos reais
+ * seguem dependendo da decisão humana.
+ */
+export function isLikelyAbout(query: NewsQuery, itemTitle: string): boolean {
+  const norm = (s: string) =>
+    s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const title = norm(itemTitle);
+  const name = norm(query.name);
+
+  // Nome completo (ex.: "joao da silva") no título — o caso comum.
+  if (title.includes(name)) return true;
+  return false;
+}
+
 /** Endpoint público do Google News RSS (pt-BR). */
 export function googleNewsFeedUrl(query: string): string {
   return (
