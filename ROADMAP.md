@@ -77,7 +77,7 @@ segurança real que não existia nos outros dois.
       ativos, com alerta configurado em **Telegram e e-mail** (não é só
       painel visual). Este item estava marcado como pendente/não
       confirmado antes — checagem cruzada mostrou que já estava resolvido.
-- [ ] ~~Sem Sentry~~ — **PAUSADO por decisão do Rilson (2026-08-23)**: volta como ideia de futuro, não é backlog ativo. Motivo original: sem visibilidade de erro em runtime (front Vercel + API).
+- [ ] ~~Sem Sentry~~ — **PAUSADO por decisão do Rilson (2026-08-23), decisão MANTIDA (2026-08-28)**: volta como ideia de futuro, não é backlog ativo. Motivo original: sem visibilidade de erro em runtime (front Vercel + API). Disponibilidade do site já é coberta pelo Uptime Kuma ativo; Sentry em si segue congelado.
 - [x] **Rotação de log — AUDITADA (2026-08-22)**. API e worker rodam em
       Docker com driver `json-file` limitado (`max-size: 10m`, `max-file: 3`)
       direto no compose do hetzner-infra — NestJS loga em stdout, rotação é
@@ -169,7 +169,7 @@ Conferido issue por issue contra o código, não só pelo título:
         summarize) + 13 testes novos (56/56 no total); ingestão lê os 54
         CSVs por estado dentro do zip (não existe o BRASIL.csv único).
 - [x] #6 Fundamentação bíblica na Metodologia — **CONCLUÍDO (2026-08-23)**: glossário dos 5 critérios em PT-BR adicionado à página Metodologia (ver detalhamento na seção 'Qualidade de Conteúdo' abaixo).
-- [ ] **#7 Integração de notícias ("No noticiário")** — PROPOSTA
+- [ ] **#7 Integração de notícias ("No noticiário")** 🟡 Nº 2 na fila ativa (2026-08-28) — PROPOSTA APROVADA
       (2026-08-24, pedido Rilson): linkar matérias de veículos relevantes
       (Folha, Estadão, O Globo, Poder360...) que citam o parlamentar de
       forma significativa (acusações, casos na Justiça, posicionamentos).
@@ -515,7 +515,7 @@ Google" não é viável em iOS de qualquer forma.
   - Heróis de Metodologia e Contato: BookOpen genérico → marca-white.png (Ranking/Sobre já estavam certos)
   - Mantidos de propósito: ícones lucide semânticos (nav do Header, botões, arrays de dados) — não são marca
 - [x] **Acessibilidade + responsividade fina** — CONCLUÍDO (2026-08-27, docs/A11Y-AUDIT.md; a entrada na linha ~107 deste roadmap já registrava o item com as mesmas evidências: Lighthouse 100/100 em 10 rotas, 0 elementos sem nome acessível, 0 overflow em 10 rotas × 390/320px, contraste/Tendência de Alinhamento 600→700).
-- [ ] **Auditoria tipográfica e de espaçamento (pedido direto do Rilson, 2026-08-22)** — dor sentida também no Lecionário e Bíblia na Arte: "textos grandes quando não deveriam, espaçamento sem cuidado, leiturabilidade comprometida por coisas pequenas". Escopo mínimo:
+- [ ] **Auditoria tipográfica e de espaçamento** 🟡 Nº 4 na fila ativa (2026-08-28) — pedido direto do Rilson (2026-08-22) — dor sentida também no Lecionário e Bíblia na Arte: "textos grandes quando não deveriam, espaçamento sem cuidado, leiturabilidade comprometida por coisas pequenas". Escopo mínimo:
   - Hierarquia honesta: título grande SÓ no herói da página; corpo de leitura ≥14px em páginas de dados; labels uppercase pequenos reservados a rótulos (nunca parágrafos)
   - Ritmo vertical numa escala única (4/8px) e respiro consistente entre seções
   - line-height ≥1.5 em qualquer parágrafo de leitura
@@ -530,7 +530,7 @@ Google" não é viável em iOS de qualquer forma.
 > Princípio acordado com Rilson: **o que decide adoção é a MANUTENÇÃO CONTÍNUA, não o custo de construir**. Projeto mantido por 1 pessoa — cada feature nova é uma obrigação permanente. Legenda: 🟢 manutenção ~zero · 🟡 atenção ocasional · 🔴 obrigação recorrente (pensar 2x).
 
 ### Onda A — confiabilidade (adotar primeiro: barato de manter, protege tudo)
-- [ ] **G1 · Sentry + uptime monitor** 🟢 — front e API. Hoje estamos cegos (tela-branca viveu dias sem ninguém saber). Build: 1 sessão. Manter: só olhar alerta.
+- [ ] ~~**G1 · Sentry + uptime monitor**~~ 🟢 — **PAUSADO (decisão Rilson 2026-08-23, mantida 2026-08-28)**: front e API. Hoje estaríamos cegos a erro de runtime (tela-branca viveu dias sem ninguém saber). Build: 1 sessão. Manter: só olhar alerta. Uptime Kuma já cobre a disponibilidade (alerta real ativo); Sentry em si segue congelado.
 - [x] **G2 · Timestamps de dados na UI** ✅ (25/08/2026) — endpoint `GET /api/stats/last-sync`, componente `LastSyncBadge` no rodapé da home e do perfil.
 - [x] **G3 · Data quality checks pós-sync** ✅ (25/08/2026) — 5 validações (estabilidade ativos ≤5%, scores 0–100, scores obrigatórios, despesas órfãs, consistência FPE), log em sync_logs, `pnpm quality:check`.
 - [x] **G4 · Cron de syncs** ✅ (25/08/2026) — `bancada-sync-worker` rodando com 5 crons (diário 03:00, semanal dom 04:00, score 05:00, análise seg 06:00, limpeza mensal 02:00). Quality checks integrados ao sync de políticos.
@@ -558,23 +558,28 @@ Google" não é viável em iOS de qualquer forma.
 
 ### Onda C — instrumentar antes de crescer
 - [x] **C1 · Analytics de privacidade (Umami)** ✅ (2026-08-27) — Umami auto-hospedado no VPS (`umami.narniano.com`), modo COOKIELESS (sem banner LGPD). Website ID `234ec96c-669c-4292-9de9-5c44d64cc1d6`. Vars `VITE_UMAMI_SRC`/`VITE_UMAMI_ID` no build da Vercel. Validado em produção: `script.js` carrega, `api/send` dispara, `window.umami` disponível. Os dados ficam 100% no cluster (sem terceiros).
-- [ ] **C2 · Definir North Star metric** 🟢 — proposta inicial: "% de visitas que chegam a um perfil completo". Decisão, não código.
+- [ ] ~~**C2 · Definir North Star metric**~~ 🟢 — **PAUSADO (decisão Rilson 2026-08-28)** — proposta inicial: "% de visitas que chegam a um perfil completo". Decisão, não código; congelado até o C1 acumular dados suficientes para basear a escolha.
 
 ### Fase 2 — crescimento (escolher COM dados do C1; competem entre si)
-- [ ] **M1 · Match Eleitor** 🟡 — cidadão responde as mesmas questões dos 5 critérios → vê parlamentares alinhados consigo. Maior potencial viral do produto. Build: ALTO (quiz + matching + UX). Manter: baixo depois de pronto (conteúdo estático). Só fazer se C1 mostrar engajamento com perfis.
-- [ ] **M2 · Páginas por tema** 🟡 — "como votaram sobre saúde/impostos/educação" com key votes existentes + 1 parágrafo de contexto leigo + SEO. Build: médio. Manter: BAIXO-MÉDIO (contexto envelhece devagar; revisão semestral).
-- [ ] **M3 · Digest semanal** 🔴 ARMADILHA — página/newsletter "votações da semana". Build: médio. Manter: ALTO — vira obrigação editorial SEMANAL; semana vazia = página vazia. Só com curadoria semi-automática comprovada.
-- [ ] **M4 · Alertas por e-mail** 🔴 ARMADILHA — notificar sobre pautas grandes. Build: alto. Manter: ALTO — deliverability, LGPD, unsubscribe, infra de env. Deixar para quando houver base de usuários recorrentes.
-- [ ] **M5 · Impacto leigo por key vote** 🔴 se manual — "na prática, isso significa…" em toda pauta nova exige escrita contínua. Versão viável: só nas ~10 pautas maiores do ano, curadas à mão.
+- [ ] **M1 · Match Eleitor** 🟡 Nº 5 na fila ativa (2026-08-28) — cidadão responde as mesmas questões dos 5 critérios → vê parlamentares alinhados consigo. Maior potencial viral do produto. Build: ALTO (quiz + matching + UX). Manter: baixo depois de pronto (conteúdo estático). Só fazer se C1 mostrar engajamento com perfis.
+- [ ] **M2 · Páginas por tema** 🟡 Nº 3 na fila ativa (2026-08-28) — "como votaram sobre saúde/impostos/educação" com key votes existentes + 1 parágrafo de contexto leigo + SEO. Build: médio. Manter: BAIXO-MÉDIO (contexto envelhece devagar; revisão semestral).
+- [ ] ~~**M3 · Digest semanal**~~ 🔴 ARMADILHA — **PAUSADO (decisão Rilson 2026-08-28: não manter sem certeza de sucesso)** — página/newsletter "votações da semana". Build: médio. Manter: ALTO — vira obrigação editorial SEMANAL; semana vazia = página vazia. Só voltaria com curadoria semi-automática comprovada.
+- [ ] ~~**M4 · Alertas por e-mail**~~ 🔴 ARMADILHA — **PAUSADO (decisão Rilson 2026-08-28: não manter sem certeza de sucesso)** — notificar sobre pautas grandes. Build: alto. Manter: ALTO — deliverability, LGPD, unsubscribe, infra de env. Deixar para quando houver base de usuários recorrentes.
+- [ ] **M5 · Impacto leigo por key vote** 🟢 Nº 1 na fila ativa (2026-08-28) — "na prática, isso significa…" só nas ~10 pautas maiores do ano, curadas à mão. Build: BAIXO (conteúdo em key votes existentes). Manter: BAIXO (revisão pontual anual).
 
 ### Ordem sugerida
 G1+G2+C1 numa sessão (manhã de trabalho) → G3+G4+G5 → F16 (coleta manual das fontes) → C2 decisão → F9/F11 fecham a onda atual → Fase 2 decide-se com analytics na mão.
 >
-> Atlas 2026-08-28: Onda A ✅ (G1/G2/G3… exceto Sentry pausado), Onda B ✅ (F16),
-> Onda A2 ✅ (H1–H6, toda a auditabilidade pública, implementado em código —
-> **falta deploy para ativar em produção**), Onda C (C1 ✅, **C2 espera ~1 semana
-> de dados do Umami para decidir**), Fase 2 (M1–M5 aguardam a decisão do C2/dados).
-> Próximo passo natural: **deploy da Onda A2 no VPS/Vercel** (autorização do Rilson).
+> Atlas 2026-08-28: Onda A ✅ (G1/G2/G3… exceto Sentry **pausado**), Onda B ✅ (F16),
+> Onda A2 ✅ **DEPLOYADO em produção** (VPS + Vercel: export votações CSV com checksum,
+> sync-history, /errata, proveniência, base de cálculo — validado: checksum sha256 bate,
+> E2E 6/6, Lighthouse acessibilidade 100/100 em /errata e /dados), Onda C (C1 ✅,
+> **C2 North Star pausado** — sem decisão, aguardando dados do Umami). Fase 2
+> **reordenada 2026-08-28 (Rilson), da mais fácil à mais difícil — fila ativa**:
+> ① M5·Impacto leigo (~10 pautas) → ② #7·No noticiário → ③ M2·Páginas por tema →
+> ④ Auditoria tipográfica/espaçamento → ⑤ M1·Match Eleitor. **M3/Digest e M4/Alertas-e-mail
+> PAUSADOS por decisão do Rilson (2026-08-28): não mantém sem certeza de sucesso.**
+> Sentry (G1) permanece pausado — Uptime Kuma já cobre a disponibilidade.
 
 ## Plano de Valor — fases de produção (2026-08-21)
 
