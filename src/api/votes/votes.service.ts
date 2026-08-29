@@ -136,6 +136,7 @@ export class VotesService {
             id: a.id,
             title: a.title,
             description: a.description ?? '',
+            practicalImpact: a.practical_impact ?? null,
             criteria: a.criteria,
             totalVotes: total,
             favorableVotes: votes.YES,

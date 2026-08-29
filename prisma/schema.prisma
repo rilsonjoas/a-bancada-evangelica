@@ -108,6 +108,11 @@ model KeyAgenda {
   positive_weight       Float    @default(10)
   negative_weight       Float    @default(-10)
   
+  // M5 — impacto leigo ("na prática, isso significa…"): texto curado
+  // à mão para o eleitor entender o efeito concreto da matéria, escrito
+  // em linguagem leiga e neutra. Não afeta o score — é só contexto.
+  practical_impact      String?
+
   // Origem da proposição
   source                SourceType
   source_id             String   // ID na API de origem

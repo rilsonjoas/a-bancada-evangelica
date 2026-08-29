@@ -11,6 +11,7 @@ interface KeyAgendaCardProps {
     id: string;
     title: string;
     description: string;
+    practicalImpact?: string | null;
     criteria: string;
     totalVotes: number;
     favorableVotes: number;
@@ -88,6 +89,15 @@ export function KeyAgendaCard({ agenda }: KeyAgendaCardProps) {
             <div className="text-sm">
               <p className="font-medium text-foreground mb-0.5">Por que esta pauta está neste critério?</p>
               <p className="text-muted-foreground leading-relaxed">{rationale}</p>
+            </div>
+          </div>
+        )}
+        {agenda.practicalImpact && (
+          <div className="mb-4 flex items-start gap-2.5 rounded-lg bg-primary/5 p-3 border border-primary/10">
+            <Info className="h-4 w-4 shrink-0 text-primary mt-0.5" />
+            <div className="text-sm">
+              <p className="font-medium text-foreground mb-0.5">Na prática, isso significa…</p>
+              <p className="text-muted-foreground leading-relaxed">{agenda.practicalImpact}</p>
             </div>
           </div>
         )}
