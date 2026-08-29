@@ -10,6 +10,7 @@ import { MethodologyModule } from './methodology/methodology.module';
 import { HealthModule } from './health/health.module';
 import { VotesModule } from './votes/votes.module';
 import { ContactModule } from './contact/contact.module';
+import { NewsModule } from './news/news.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { ContactModule } from './contact/contact.module';
     HealthModule,
     VotesModule,
     ContactModule,
+    NewsModule,
   ],
   providers: [
     {

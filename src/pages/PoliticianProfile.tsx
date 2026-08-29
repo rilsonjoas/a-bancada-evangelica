@@ -19,6 +19,7 @@ import { CRITERIA, CRITERIA_BY_KEY } from '@/lib/criteria';
 import { fmt } from '@/lib/format';
 import { buildVoteSourceLink } from '@/lib/sources';
 import { LastSyncBadge } from '@/components/LastSyncBadge';
+import { NewsSection } from '@/components/news/NewsSection';
 
 export function PoliticianProfile() {
   const { id } = useParams<{ id: string }>();
@@ -344,6 +345,10 @@ export function PoliticianProfile() {
               </CardContent>
             </Card>
           </div>
+
+          {/* #7 (2026-08-28): menções na imprensa com curadoria —
+              só APPROVED chegam ao perfil. Não entra na nota. */}
+          <NewsSection politicianId={politician.id} />
         </TabsContent>
 
         {/* Performance Tab */}

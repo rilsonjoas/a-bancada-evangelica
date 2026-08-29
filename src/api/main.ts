@@ -44,6 +44,7 @@ async function bootstrap() {
     .addTag('methodology', 'Pilares e critérios de avaliação')
     .addTag('health',      'Healthcheck')
     .addTag('contact',     'Formulário de contato')
+    .addTag('news',        'Menções na imprensa (#7) e fila de curadoria')
     .build();
 
   const document = SwaggerModule.createDocument(app, doc);

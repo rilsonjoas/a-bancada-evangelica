@@ -59,6 +59,7 @@ model Politician {
   historical_scores     HistoricalScore[]
   disqualifications     PoliticianDisqualification[]
   campaignFinance       CampaignFinance[]
+  newsMentions          NewsMention[]
   
   @@map("politicians")
 }
@@ -537,6 +538,30 @@ enum SupplierType {
   GOVERNMENT  // Órgão público
 }
 
+// ========================================
+// MENÇÕES NA IMPRENSA (#7 — No noticiário)
+// ========================================
+// Só exposta no perfil quando APPROVED. Tudo nasce PENDING na coleta
+// automática (Google News RSS); curadoria carimba APPROVED ou REJECTED.
+// NÃO entra em score — é contexto, não métrica (GUIA-CURADORIA-DADOS).
+model NewsMention {
+  id            Int        @id @default(autoincrement())
+  politician_id Int
+  title         String
+  url           String     @unique // URL canônica — 1 menção, sem re-coletas
+  source_name   String
+  published_at  DateTime
+  status        NewsStatus @default(PENDING)
+  reviewed_at   DateTime?  // Curadoria carimbada
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @updatedAt
+
+  politician Politician @relation(fields: [politician_id], references: [id], onDelete: Cascade)
+
+  @@index([politician_id, status])
+  @@map("news_mentions")
+}
+
 enum RiskLevel {
   LOW         // Baixo risco
   MEDIUM      // Médio risco  
@@ -557,6 +582,13 @@ enum SyncType {
   EXPENSES    // Sincronização de despesas
   TSE_DATA    // Sincronização dados TSE
   SCORES      // Recálculo de notas (H6 — diff de auditoria)
+  NEWS        // Coleta de menções na imprensa (#7)
+}
+
+enum NewsStatus {
+  PENDING   // Aguardando curadoria (homônimos e relevância)
+  APPROVED  // Publicado no perfil do parlamentar
+  REJECTED  // Descartado na curadoria (fraude de homônimo, irrelevante, duplicada manual)
 }
 
 enum SyncStatus {

@@ -5,7 +5,16 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
   const response = await fetch(`${API_BASE_URL}${path}`, init);
 
   if (!response.ok) {
-    throw new Error(`API error ${response.status}: ${path}`);
+    // Extrai a mensagem real do erro (ex.: guard de curadoria retorna
+    // { error, statusCode }) — fallback genérico mantendo compatibilidade.
+    let detail = `API error ${response.status}`;
+    try {
+      const body = (await response.json()) as { error?: string };
+      if (body?.error) detail = body.error;
+    } catch {
+      // corpo não-JSON: mantém o fallback
+    }
+    throw new Error(detail);
   }
 
   return response.json();
