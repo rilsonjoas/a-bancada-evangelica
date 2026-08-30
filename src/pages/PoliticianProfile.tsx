@@ -364,7 +364,6 @@ export function PoliticianProfile() {
               <CardTitle>Base de Cálculo por Critério</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {true ? (
                 <div className="space-y-3">
                   {[
                     'lifeProtection',
@@ -391,7 +390,7 @@ export function PoliticianProfile() {
                       }
 
                       if (count === 0) {
-                        const totalVotes = politician.currentScore?.totalVotes ?? (politician as any).voting?.totalVotes ?? 0;
+                        const totalVotes = politician.currentScore?.totalVotes ?? (politician as unknown as { voting?: { totalVotes?: number } }).voting?.totalVotes ?? 0;
                         if (totalVotes > 0) {
                           const weights: Record<string, number> = {
                             lifeProtection: 0.30,
@@ -401,7 +400,7 @@ export function PoliticianProfile() {
                             religiousFreedom: 0.10,
                           };
                           count = Math.max(Math.round(totalVotes * (weights[criteriaKey] || 0.2)), 1);
-                        } else if ((politician as any).overallScore) {
+                        } else if ((politician as unknown as { overallScore?: number }).overallScore) {
                           const defaults: Record<string, number> = {
                             lifeProtection: 14,
                             familyValues: 12,
@@ -432,9 +431,6 @@ export function PoliticianProfile() {
                     );
                   })}
                 </div>
-              ) : (
-                <p className="text-gray-500 text-center py-8">Dados de base de cálculo não disponíveis.</p>
-              )}
               <p className="text-sm text-muted-foreground border-t pt-3 leading-relaxed">
                 <strong>Como ler:</strong> cada nota por critério é calculada a partir das
                 votações nominais que se encaixam naquele tema. Acima de 5 votações, a

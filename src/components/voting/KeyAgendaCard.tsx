@@ -74,8 +74,8 @@ export function KeyAgendaCard({ agenda }: KeyAgendaCardProps) {
       v.politician.currentParty.toLowerCase().includes(searchQuery.toLowerCase()) ||
       v.politician.currentState.toLowerCase().includes(searchQuery.toLowerCase());
 
-    if (voteFilter === "YES") return matchesSearch && (v.voteType === "YES" || v.voteType === "SIM" as any);
-    if (voteFilter === "NO") return matchesSearch && (v.voteType === "NO" || v.voteType === "NAO" as any);
+    if (voteFilter === "YES") return matchesSearch && (v.voteType === "YES" || (v.voteType as string) === "SIM");
+    if (voteFilter === "NO") return matchesSearch && (v.voteType === "NO" || (v.voteType as string) === "NAO");
     if (voteFilter === "ABSTENTION") return matchesSearch && (v.voteType === "ABSTENTION" || v.voteType === "ABSENT");
 
     return matchesSearch;
@@ -251,8 +251,8 @@ export function KeyAgendaCard({ agenda }: KeyAgendaCardProps) {
                     </div>
                     <div className="max-h-96 overflow-y-auto space-y-2 pr-1.5 scrollbar-thin">
                     {filteredVotes.map((v) => {
-                      const isSim = v.voteType === "YES" || v.voteType === "SIM" as any;
-                      const isNao = v.voteType === "NO" || v.voteType === "NAO" as any;
+                      const isSim = v.voteType === "YES" || (v.voteType as string) === "SIM";
+                      const isNao = v.voteType === "NO" || (v.voteType as string) === "NAO";
 
                       return (
                         <div
