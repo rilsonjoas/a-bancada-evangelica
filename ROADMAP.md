@@ -169,27 +169,36 @@ Conferido issue por issue contra o código, não só pelo título:
         summarize) + 13 testes novos (56/56 no total); ingestão lê os 54
         CSVs por estado dentro do zip (não existe o BRASIL.csv único).
 - [x] #6 Fundamentação bíblica na Metodologia — **CONCLUÍDO (2026-08-23)**: glossário dos 5 critérios em PT-BR adicionado à página Metodologia (ver detalhamento na seção 'Qualidade de Conteúdo' abaixo).
-- [ ] **#7 Integração de notícias ("No noticiário")** 🟡 Nº 2 na fila ativa (2026-08-28) — PROPOSTA APROVADA
+- [x] **#7 Integração de notícias ("No noticiário")** ✅ (2026-08-29) — PROPOSTA APROVADA
       (2026-08-24, pedido Rilson): linkar matérias de veículos relevantes
       (Folha, Estadão, O Globo, Poder360...) que citam o parlamentar de
       forma significativa (acusações, casos na Justiça, posicionamentos).
-      **Viável e aprovado pra fila** — regras pra não virar armadilha:
-      - **Só título + fonte + data + link** — nunca reproduzir texto da
-        matéria (direitos autorais); card neutro "veja na fonte",
-        zero editorialização nossa.
-      - **Coleta v1**: Google News RSS por query `"Nome Completo"` (grátis,
-        sem chave, aceita filtro de site/veículo). Upgrade pago só se
-        precisar (NewsAPI/GNews/Google CSE).
-      - **Homônimos são o risco nº 1**: match por nome completo +
-        contexto (partido/UF) e, na dúvida, fila de curadoria manual —
-        mesmo espírito do `GUIA-CURADORIA-DADOS.md`: manchete errada é
-        pior que fila vazia ("zero honesto > número fabricado").
-      - **NÃO entra no score** — igual financiamento: transparência pura,
-        presunção de inocência; notícia é fato jornalístico, não veredito.
-      - **Schema v1**: `news_mentions` (politician_id, source_name,
-        title, url UNIQUE, published_at) + seção no perfil + endpoint.
-      - Estimativa: 1 sessão dedicada. Concorre com resumo semanal (V2)
-        pela próxima janela — decidir ordem na hora.
+      **CONCLUÍDO** — o que foi entregue (validado em produção):
+      - Schema `NewsMention` (news_mentions): politician_id, title, url
+        UNIQUE (dedupe idempotente), source_name, published_at, status
+        PENDING/APPROVED/REJECTED, reviewed_at; `@@index([politician_id, status])`.
+      - Coleta v1 via Google News RSS (`scripts/sync-news.ts`, `pnpm sync:news`),
+        tudo nasce **PENDING** — nada é publicado sem decisão humana.
+        Filtros: nome completo no título (anti-homônimo/ruído), janela de
+        24 meses (descarta balanço histórico), teto **10 menções/parlamentar**
+        (fila de curadoria viável em lotes de 100). Estado inicial: 4.835
+        pendentes / 585 políticos (≤10 cada; ano eleitoral infla).
+        Rodadas seguintes: **idempotente** — re-run só adiciona o que é novo.
+      - API: `GET /api/news/politicians/:id` (público, só APPROVED, até 20),
+        `GET /api/news/admin/pending` + `POST /api/news/admin/:id/review`
+        (fila + aprovar/rejeitar, protegidos por `x-admin-token` vs env
+        `ADMIN_TOKEN` — fail-closed 503 sem o env, timing-safe).
+      - UI: seção **"No noticiário"** no perfil (título+fonte+data+link,
+        `NewsSection`, só aprovadas; NÃO entra no score — transparência pura)
+        e **`/admin/noticias`** (área de curadoria com token via sessionStorage,
+        fila com contexto do parlamentar + botões Aprovar/Rejeitar + link original).
+      - **Tarefa contínua de curadoria (Rilson)**: revisar pendentes em
+        `/admin/noticias` — na dúvida de homônimo, REJEITAR. Só o aprovado
+        aparece no perfil.
+      - Validado: typecheck/lint/build limpos, 74 front + 18 api + 18 parser
+        testes verdes, E2E 9/9 (3 novos: acesso admin, fila com token, seção
+        no perfil do Claudio Cajado com 3 aprovadas), Lighthouse a11y 100/100
+        na área admin, `db push` aplicado no VPS + `ADMIN_TOKEN` configurado.
 
 ### Feedback de produto — Rilson (2026-08-24): clareza, transparência e apresentação
 
@@ -570,13 +579,16 @@ Google" não é viável em iOS de qualquer forma.
 ### Ordem sugerida
 G1+G2+C1 numa sessão (manhã de trabalho) → G3+G4+G5 → F16 (coleta manual das fontes) → C2 decisão → F9/F11 fecham a onda atual → Fase 2 decide-se com analytics na mão.
 >
-> Atlas 2026-08-28: Onda A ✅ (G1/G2/G3… exceto Sentry **pausado**), Onda B ✅ (F16),
+> Atlas 2026-08-29: Onda A ✅ (G1/G2/G3… exceto Sentry **pausado**), Onda B ✅ (F16),
 > Onda A2 ✅ **DEPLOYADO em produção** (VPS + Vercel: export votações CSV com checksum,
 > sync-history, /errata, proveniência, base de cálculo — validado: checksum sha256 bate,
 > E2E 6/6, Lighthouse acessibilidade 100/100 em /errata e /dados), Onda C (C1 ✅,
 > **C2 North Star pausado** — sem decisão, aguardando dados do Umami). Fase 2
 > **reordenada 2026-08-28 (Rilson), da mais fácil à mais difícil — fila ativa**:
-> ① M5·Impacto leigo (~10 pautas) → ② #7·No noticiário → ③ M2·Páginas por tema →
+> ① M5·Impacto leigo ✅ **DEPLOYADO (2026-08-29**, 10 proposições/51 agendas) →
+> ② #7·No noticiário ✅ **DEPLOYADO (2026-08-29**, fila de curadoria no ar,
+> 4.835 pendentes aguardando aprovação humana em /admin/noticias) →
+> ③ M2·Páginas por tema →
 > ④ Auditoria tipográfica/espaçamento → ⑤ M1·Match Eleitor. **M3/Digest e M4/Alertas-e-mail
 > PAUSADOS por decisão do Rilson (2026-08-28): não mantém sem certeza de sucesso.**
 > Sentry (G1) permanece pausado — Uptime Kuma já cobre a disponibilidade.
