@@ -1,3 +1,5 @@
+import { vi } from 'vitest';
+vi.mock('@/hooks/useVotes', () => ({ useAgendaVotes: () => ({ data: undefined, isLoading: false }) }));
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { KeyAgendaCard } from "../KeyAgendaCard";

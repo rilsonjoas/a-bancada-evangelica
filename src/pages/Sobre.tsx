@@ -1,3 +1,4 @@
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -7,6 +8,8 @@ import { usePoliticiansStats } from '@/hooks/usePoliticians';
 import { useVotingAnalysisData } from '@/hooks/useVotingAnalysisData';
 
 const SobrePage = () => {
+  usePageMeta("Sobre o Projeto | A Bancada Evangélica", "Saiba mais sobre nossa missão, metodologia de cálculo e transparência de dados abertos.");
+
   // Números vivos da API — antes eram hardcode ("1.679+", "5") que já
   // divergia do README e da página de Votações. Mesma fonte pra todo o site.
   const { data: statsData } = usePoliticiansStats();
@@ -19,7 +22,7 @@ const SobrePage = () => {
       {/* Hero */}
       <section className="bg-gradient-primary text-primary-foreground py-16">
         <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center">
+          <div className="max-w-4xl mx-auto text-center">
             <div className="flex justify-center mb-6">
               <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-sm">
                 <img src="/marca-white.png" alt="" aria-hidden="true" className="h-12 w-12" />
@@ -48,7 +51,7 @@ const SobrePage = () => {
                     <Target className="h-6 w-6 text-accent-foreground" />
                   </div>
                 </div>
-                <CardTitle className="font-serif text-xl">Missão</CardTitle>
+                <CardTitle className="font-serif text-lg font-bold">Missão</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground leading-relaxed">
@@ -66,7 +69,7 @@ const SobrePage = () => {
                     <Eye className="h-6 w-6 text-accent-foreground" />
                   </div>
                 </div>
-                <CardTitle className="font-serif text-xl">Escopo</CardTitle>
+                <CardTitle className="font-serif text-lg font-bold">Escopo</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground leading-relaxed">
@@ -84,7 +87,7 @@ const SobrePage = () => {
                     <Shield className="h-6 w-6 text-accent-foreground" />
                   </div>
                 </div>
-                <CardTitle className="font-serif text-xl">Princípio</CardTitle>
+                <CardTitle className="font-serif text-lg font-bold">Princípio</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground leading-relaxed">
@@ -196,7 +199,7 @@ const SobrePage = () => {
                 <CardHeader className="pb-3">
                   <div className="flex items-center gap-2">
                     <div className="text-primary">{col.icon}</div>
-                    <CardTitle className="font-serif text-lg">{col.title}</CardTitle>
+                    <CardTitle className="font-serif text-lg font-bold">{col.title}</CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -217,7 +220,7 @@ const SobrePage = () => {
 
       {/* Critérios */}
       <section className="py-16">
-        <div className="container mx-auto px-4 max-w-3xl">
+        <div className="container mx-auto px-4 max-w-4xl">
           <h2 className="font-serif text-3xl font-bold text-foreground mb-8 text-center">
             Critérios de Avaliação
           </h2>
@@ -256,7 +259,7 @@ const SobrePage = () => {
       {/* CTA */}
       <section className="py-16 bg-secondary/30">
         <div className="container mx-auto px-4">
-          <Card className="card-elevated max-w-2xl mx-auto">
+          <Card className="card-elevated max-w-4xl mx-auto">
             <CardContent className="py-10 text-center">
               <Github className="h-10 w-10 text-primary mx-auto mb-4" />
               <h2 className="font-serif text-2xl font-bold text-foreground mb-3">

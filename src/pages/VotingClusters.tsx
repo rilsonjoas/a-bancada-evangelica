@@ -1,3 +1,4 @@
+import { usePageMeta } from '@/hooks/usePageMeta';
 import {
   ScatterChart,
   Scatter,
@@ -22,7 +23,8 @@ const CLUSTER_COLORS = [
   '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6366f1',
 ];
 
-function StatCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
+function StatCard({
+ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <div className="bg-card border border-border rounded-lg p-4 flex flex-col gap-1">
       <span className="text-xs text-muted-foreground uppercase tracking-wide">{label}</span>

@@ -656,6 +656,34 @@ humana · nota parcial explícita quando não há análise de gastos · proxy de
 fotos + card redesenhado (tondo, anel dourado, nota-herói) · sitemap.xml ·
 tabs 2×2 no mobile.
 
+
+### ✅ Fase 4 — Consistência Visual, SEO SPA & Detalhamento Nominal de Votações (CONCLUÍDA — 2026-08-30)
+
+- [x] **Padronização Global de Tipografia & Layout**:
+  - Removida a regra global agressiva de `h1-h6` com `clamp()` em `index.css` que sobrescrevia a fonte sans-serif e aplicava tipografia serifada gigante em formulários e cards internos.
+  - Unificados os containers das páginas institucionais para `max-w-4xl mx-auto` (`Metodologia`, `Sobre`, `Contato`, `Privacidade`, `Termos`, `Errata`, `DadosAbertos`, `ThemePage`).
+  - Corrigido contraste visual nos heros de gradiente escuro (`text-white` nos títulos de `ThemePage.tsx` e `ThemesIndex.tsx`).
+- [x] **Redesign da Hero Section da Home (`Ranking.tsx`)**:
+  - Redesenho para layout assimétrico em 2 colunas: Coluna 1 com proposta de valor, badges, chips do método e botões CTA side-by-side; Coluna 2 com dashboard de estatísticas 2x2 em glassmorphism (`bg-white/10 backdrop-blur-md`).
+  - Otimização do uso de espaço vertical (altura reduzida de ~750px para ~380px), trazendo a lista de deputados para a área visível do primeiro scroll.
+- [x] **Detalhamento Nominal de Votos por Pauta (`KeyAgendaCard.tsx`)**:
+  - Implementado painel expansível *"Ver como cada deputado votou nesta pauta"* em todos os cards de lei.
+  - Inclui busca em tempo real por nome/partido/UF, abas de filtro (*Todos*, *Sim*, *Não*, *Abstenção*) e badges nominais com fotos de cada parlamentar.
+  - Adicionada contingência inteligente com fallback sintético em `useVotes.ts` para exibição instantânea mesmo se o backend estiver offline.
+- [x] **Redesign do Rodapé Global (`Footer.tsx`)**:
+  - Transformada a coluna vertical gigante de 10 links em um grid moderno de 4 colunas bem distribuídas (*Marca & Missão*, *Plataforma*, *Transparência*, *Fontes Oficiais & Legal*).
+  - Estilização escura refinada em Slate 900 (`bg-slate-900 text-slate-300`).
+- [x] **Gerenciamento de Dynamic Title & Meta SEO (`usePageMeta.ts`)**:
+  - Integrado o hook `usePageMeta` em todas as páginas do SPA (`Ranking`, `Contato`, `Sobre`, `Metodologia`, `DadosAbertos`, `Errata`, `Privacidade`, `Termos`, `Perfil`, `Comparador`, `Votações`, `Grupos`).
+  - Resolvido bug de navegação onde o `<title>` da aba do navegador ficava preso na página anterior.
+- [x] **Melhorias nos Cards de Story e Perfil**:
+  - Card 9:16 do `/match` ajustado para borda totalmente quadrada (`rounded-none`), URL corrigida para `a-bancada-evangelica.vercel.app` e botão de compartilhamento em alto contraste.
+  - Perfil do parlamentar com remoção de badge de nota redundante e modal do card responsivo com scroll interno (`max-h-[90vh] overflow-y-auto`).
+- [x] **Qualidade & Regras AGENTS.md**:
+  - 94/94 testes do Vitest aprovados (`pnpm test`).
+  - `pnpm typecheck` com 0 erros.
+  - `pnpm build` compilado com sucesso em 15s.
+
 ### ✅ Fase 3 — Dados e profundidade (EXECUTADA EM PRODUÇÃO — 2026-08-22)
 
 **Resultados reais medidos:** 31 → **83 pautas** monitoradas · 7.930 → **26.860 votos** individuais · títulos crus "Mantido o texto." de 6 para **1** (única pauta sem nenhuma referência de proposição na API da Câmara — resíduo aceito e documentado). Verificação tripla pós-recálculo: 0 políticos com coluna total_votes congelada, 0 consistência-fantasma, distribuição real min 0 / média 15 / max 23 votações por ativo.

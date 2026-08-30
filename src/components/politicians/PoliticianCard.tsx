@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { User, MapPin, Building, ExternalLink, Award } from 'lucide-react';
+import { User, MapPin, Building, ExternalLink, Award, Lightbulb } from 'lucide-react';
 import { APIPolitician } from '@/types/politician';
 import { cn } from '@/lib/utils';
+import { PoliticalTooltip, POLITICAL_GLOSSARY } from '@/components/common/PoliticalTooltip';
 import { FpeTierChip } from '@/components/politicians/FpeTierChip';
 
 interface PoliticianCardProps {
@@ -46,7 +47,7 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
 
   return (
     <Card className="card-elevated hover:shadow-elevated transition-all duration-300 group">
-      <CardContent className="p-6">
+      <CardContent className="p-5 md:p-6">
         <div className="flex items-start space-x-4">
           {/* Rank Badge */}
           {rank && (
@@ -79,35 +80,35 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
           {/* Content */}
           <div className="flex-1 min-w-0">
             {/* Header */}
-            <div className="flex items-start justify-between mb-3">
+            <div className="flex items-start justify-between gap-3 mb-3">
               <div className="min-w-0 flex-1">
                 <h3 className="font-serif text-lg font-bold text-foreground truncate group-hover:text-primary transition-colors" title={politician.name}>
                   {politician.name}
                 </h3>
                 
-                <div className="flex items-center space-x-3 mt-1 text-sm text-muted-foreground min-w-0">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-sm text-muted-foreground min-w-0">
                   <div className="flex items-center space-x-1 min-w-0">
-                    <Building className="h-3 w-3 flex-shrink-0" />
+                    <Building className="h-3.5 w-3.5 flex-shrink-0" />
                     <span className="font-medium truncate" title={politician.currentParty}>{politician.currentParty}</span>
                   </div>
                   <div className="flex items-center space-x-1 flex-shrink-0">
-                    <MapPin className="h-3 w-3" />
+                    <MapPin className="h-3.5 w-3.5" />
                     <span>{politician.currentState}</span>
                   </div>
                 </div>
               </div>
 
               {/* Overall Score */}
-              <div className="flex-shrink-0 text-right">
-              <Badge 
-                variant={getScoreBadgeVariant(politician.scores.overall)}
-                className="font-semibold text-sm"
-              >
-                {formatScore(politician.scores.overall)}
-              </Badge>
-                <span className="text-xs text-muted-foreground mt-1 max-w-[76px] ml-auto block">
-                  <abbr title="Nota de 0 a 100: o quanto os votos nominais registrados aderem aos 5 critérios publicados na metodologia. Não avalia a pessoa.">Nota geral</abbr>
-                </span>
+              <div className="flex-shrink-0 text-right pl-3 border-l border-border/40">
+                <Badge 
+                  variant={getScoreBadgeVariant(politician.scores.overall)}
+                  className="font-semibold text-sm px-2.5 py-0.5"
+                >
+                  {formatScore(politician.scores.overall)}
+                </Badge>
+                <div className="text-[11px] text-muted-foreground mt-1 block whitespace-nowrap">
+                  <PoliticalTooltip term="Nota geral" explanation={POLITICAL_GLOSSARY.notaGeral} />
+                </div>
               </div>
             </div>
 
@@ -130,38 +131,45 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
             </div>
 
             {/* Score Breakdown */}
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-4">
-              <div className="text-center">
-                <div className="text-sm font-bold text-foreground">
+            <div className="grid grid-cols-5 gap-1 sm:gap-2 mb-3 p-1.5 sm:p-2 bg-muted/30 rounded-lg border border-border/30">
+              <div className="text-center" title="Proteção à vida desde a concepção (0 a 100 pts)">
+                <div className="text-xs sm:text-sm font-bold text-foreground">
                   {formatScore(politician.scores.lifeProtection)}
                 </div>
-                <div className="text-[10px] leading-tight text-muted-foreground">Vida</div>
+                <div className="text-[10px] font-medium leading-tight text-muted-foreground">Vida</div>
               </div>
-              <div className="text-center">
-                <div className="text-sm font-bold text-foreground">
+              <div className="text-center" title="Fortalecimento da família e infância (0 a 100 pts)">
+                <div className="text-xs sm:text-sm font-bold text-foreground">
                   {formatScore(politician.scores.familyValues)}
                 </div>
-                <div className="text-[10px] leading-tight text-muted-foreground">Família</div>
+                <div className="text-[10px] font-medium leading-tight text-muted-foreground">Família</div>
               </div>
-              <div className="text-center">
-                <div className="text-sm font-bold text-foreground">
+              <div className="text-center" title="Combate à corrupção e integridade pública (0 a 100 pts)">
+                <div className="text-xs sm:text-sm font-bold text-foreground">
                   {formatScore(politician.scores.moralIntegrity)}
                 </div>
-                <div className="text-[10px] leading-tight text-muted-foreground">Moral</div>
+                <div className="text-[10px] font-medium leading-tight text-muted-foreground">Moral</div>
               </div>
-              <div className="text-center">
-                <div className="text-sm font-bold text-foreground">
+              <div className="text-center" title="Dignidade humana e justiça social (0 a 100 pts)">
+                <div className="text-xs sm:text-sm font-bold text-foreground">
                   {formatScore(politician.scores.socialResponsibility)}
                 </div>
-                <div className="text-[10px] leading-tight text-muted-foreground">Social</div>
+                <div className="text-[10px] font-medium leading-tight text-muted-foreground">Social</div>
               </div>
-              <div className="text-center">
-                <div className="text-sm font-bold text-foreground">
+              <div className="text-center" title="Proteção à liberdade de culto e expressão (0 a 100 pts)">
+                <div className="text-xs sm:text-sm font-bold text-foreground">
                   {formatScore(politician.scores.religiousFreedom)}
                 </div>
-                <div className="text-[10px] leading-tight text-muted-foreground">Religião</div>
+                <div className="text-[10px] font-medium leading-tight text-muted-foreground">Religião</div>
               </div>
             </div>
+
+            {/* Aviso Didático se a nota for estimativa */}
+            {politician.scores.totalVotes === 0 && (
+              <div className="mb-3 text-[11px] bg-amber-500/10 text-amber-800 dark:text-amber-300 px-2.5 py-1.5 rounded border border-amber-500/20 leading-tight">
+                <Lightbulb className="w-3.5 h-3.5 text-amber-600 inline mr-1 shrink-0" /> <PoliticalTooltip term="Nota estimada" explanation={POLITICAL_GLOSSARY.notaEstimada} /> pela média partidária devido à falta de votações presenciais registradas.
+              </div>
+            )}
 
             {/* Statistics */}
             <div className="flex items-center justify-between text-xs text-muted-foreground mb-4">

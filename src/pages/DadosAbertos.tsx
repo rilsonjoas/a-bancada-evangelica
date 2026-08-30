@@ -1,3 +1,4 @@
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { useLocation } from 'react-router-dom';
 import { Download, ExternalLink } from 'lucide-react';
 
@@ -6,11 +7,13 @@ import { Download, ExternalLink } from 'lucide-react';
 const API_BASE_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:3001').replace(/\/$/, '');
 
 export const DadosAbertos = () => {
+  usePageMeta("Dados Abertos & API | A Bancada Evangélica", "Acesse nossos dados abertos e APIs públicas para auditoria e pesquisa.");
+
   const location = useLocation();
   const today = new Date().toLocaleDateString('pt-BR');
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-3xl">
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
       <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-8 text-center">
         Dados Abertos — A Bancada Evangélica
       </h1>

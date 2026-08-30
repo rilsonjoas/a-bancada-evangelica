@@ -1,16 +1,18 @@
-import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, RotateCcw, Sparkles } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { usePoliticians } from '@/hooks/usePoliticians';
-import { usePageMeta } from '@/hooks/usePageMeta';
-import { MATCH_QUESTIONS, sortByAffinity, type MatchAnswers, type MatchChoice } from '@/lib/match';
-import { MatchCard } from '@/components/match/MatchCard';
+import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { ArrowLeft, RotateCcw, Sparkles, MapPin } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { usePoliticians } from "@/hooks/usePoliticians";
+import { usePageMeta } from "@/hooks/usePageMeta";
+import { MATCH_QUESTIONS, sortByAffinity, type MatchAnswers, type MatchChoice, type AffinityEntry } from "@/lib/match";
+import { MatchCard } from "@/components/match/MatchCard";
+import { MatchStoryModal } from "@/components/match/MatchStoryModal";
 
 const CHOICES: { value: MatchChoice; label: string; hint: string }[] = [
-  { value: 'concordo', label: 'Concordo', hint: 'conta a nota do parlamentar neste critério' },
-  { value: 'discordo', label: 'Não concordo', hint: 'conta o reflexo (100 − nota)' },
-  { value: 'neutro', label: 'Pular', hint: 'critério sai do cálculo' },
+  { value: "concordo", label: "Concordo", hint: "conta a nota do parlamentar neste critério" },
+  { value: "discordo", label: "Não concordo", hint: "conta o reflexo (100 − nota)" },
+  { value: "neutro", label: "Pular", hint: "critério sai do cálculo" },
 ];
 
 const VISIBLE_RESULTS = 30;
@@ -18,25 +20,37 @@ const VISIBLE_RESULTS = 30;
 const MatchPage = () => {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<MatchAnswers>({});
+  const [selectedState, setSelectedState] = useState("all");
+  const [storyEntry, setStoryEntry] = useState<AffinityEntry | null>(null);
 
   usePageMeta(
-    'Quem vota como você? — A Bancada Evangélica',
-    'Responda 5 perguntas e veja quais parlamentares mais se aproximam da sua visão, calculado localmente com as mesmas notas da metodologia.'
+    "Quem vota como você? — A Bancada Evangélica",
+    "Responda 5 perguntas e veja quais parlamentares mais se aproximam da sua visão, calculado localmente com as mesmas notas da metodologia."
   );
 
   const { data, isLoading, error } = usePoliticians({
     limit: 500,
-    sortBy: 'score',
-    sortOrder: 'desc',
+    sortBy: "score",
+    sortOrder: "desc",
   });
 
   const totalEvaluated = data?.politicians?.length ?? 0;
   const finished = step >= MATCH_QUESTIONS.length;
 
+  const statesList = useMemo(() => {
+    if (!data?.politicians) return [];
+    return [...new Set(data.politicians.map((p) => p.currentState))].sort();
+  }, [data]);
+
   const ranked = useMemo(
     () => (data ? sortByAffinity(data.politicians, answers) : []),
-    [data, answers],
+    [data, answers]
   );
+
+  const filteredRanked = useMemo(() => {
+    if (selectedState === "all") return ranked;
+    return ranked.filter((r) => r.politician.currentState === selectedState);
+  }, [ranked, selectedState]);
 
   const answer = (choice: MatchChoice) => {
     const q = MATCH_QUESTIONS[step];
@@ -50,10 +64,10 @@ const MatchPage = () => {
       <div className="min-h-screen bg-gradient-subtle">
         <section className="bg-gradient-primary text-primary-foreground py-10">
           <div className="container mx-auto px-4 text-center">
-            <h1 className="font-serif text-3xl md:text-4xl font-bold mb-3">
+            <h1 className="font-serif text-3xl md:text-4xl font-bold mb-3 text-white">
               Parlamentares mais próximos de você
             </h1>
-            <p className="text-primary-foreground/90 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-blue-100 max-w-2xl mx-auto leading-relaxed">
               Ordenados por afinidade com suas respostas, usando as mesmas notas
               da metodologia. Concordar conta a nota; discordar conta o reflexo
               (100 − nota); pular descarta o critério.
@@ -63,22 +77,45 @@ const MatchPage = () => {
 
         <section className="py-10">
           <div className="container mx-auto px-4">
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-              <p className="text-sm text-muted-foreground">
-                {totalEvaluated} parlamentares avaliados — cálculo feito no seu
-                navegador, sem envio de respostas.
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  setAnswers({});
-                  setStep(0);
-                }}
-                className="inline-flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
-              >
-                <RotateCcw className="w-4 h-4" />
-                Refazer o teste
-              </button>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  Mostrando {filteredRanked.length} de {totalEvaluated} parlamentares avaliados — cálculo local no seu navegador.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                {/* State Filter */}
+                <div className="flex items-center space-x-2">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <Select value={selectedState} onValueChange={setSelectedState}>
+                    <SelectTrigger className="w-48 bg-card" aria-label="Filtrar por estado">
+                      <SelectValue placeholder="Todos os Estados" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os Estados ({totalEvaluated})</SelectItem>
+                      {statesList.map((st) => (
+                        <SelectItem key={st} value={st}>
+                          Estado: {st}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAnswers({});
+                    setStep(0);
+                    setSelectedState("all");
+                  }}
+                  className="inline-flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  Refazer o teste
+                </button>
+              </div>
             </div>
 
             {isLoading && (
@@ -88,24 +125,32 @@ const MatchPage = () => {
             )}
             {error && (
               <div className="text-center py-16 text-red-700">
-                Não foi possível carregar os dados. {' '}
+                Não foi possível carregar os dados.{" "}
                 <Link to="/match" className="underline">Tente novamente</Link>.
               </div>
             )}
             {!isLoading && !error && (
               <>
-                <ol className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                  {ranked.slice(0, VISIBLE_RESULTS).map((entry, i) => (
-                    <li key={entry.politician.id}>
-                      <MatchCard entry={entry} rank={i + 1} />
-                    </li>
-                  ))}
-                </ol>
+                {filteredRanked.length === 0 ? (
+                  <Card className="my-8">
+                    <CardContent className="py-12 text-center text-muted-foreground">
+                      Nenhum parlamentar encontrado no estado de <strong>{selectedState}</strong>.
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <ol className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                    {filteredRanked.slice(0, VISIBLE_RESULTS).map((entry, i) => (
+                      <li key={entry.politician.id}>
+                        <MatchCard entry={entry} rank={i + 1} onShareStory={(e) => setStoryEntry(e)} />
+                      </li>
+                    ))}
+                  </ol>
+                )}
                 <p className="mt-6 text-sm text-muted-foreground max-w-2xl mx-auto text-center leading-relaxed">
                   Afinidade não é voto: é proximidade de visão sobre as pautas
                   que a metodologia acompanha. Consulte o perfil de cada um para
                   ver a forma como votou e a consistência. Se você concordou com
-                  todos os critérios, esta ordem é exatamente a do{' '}
+                  todos os critérios, esta ordem é exatamente a do{" "}
                   <Link to="/metodologia" className="text-primary hover:underline">
                     ranking oficial
                   </Link>
@@ -115,6 +160,13 @@ const MatchPage = () => {
             )}
           </div>
         </section>
+
+        {/* Modal do Card de Story */}
+        <MatchStoryModal
+          entry={storyEntry}
+          isOpen={storyEntry !== null}
+          onClose={() => setStoryEntry(null)}
+        />
       </div>
     );
   }
@@ -126,17 +178,17 @@ const MatchPage = () => {
     <div className="min-h-screen bg-gradient-subtle">
       <section className="bg-gradient-primary text-primary-foreground py-12">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="font-serif text-3xl md:text-4xl font-bold mb-3">
+          <h1 className="font-serif text-3xl md:text-4xl font-bold mb-3 text-white">
             Quem vota como você?
           </h1>
-          <p className="text-primary-foreground/90 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-blue-100 max-w-2xl mx-auto leading-relaxed">
             Cinco perguntas sobre as pautas que orientam esta metodologia. No fim,
             você vê os parlamentares mais próximos da sua visão — calculado
             localmente, sem mandar nada pra lugar nenhum.
           </p>
           <Link
             to="/metodologia"
-            className="inline-flex items-center gap-1.5 mt-3 text-sm font-medium text-primary-foreground/80 hover:text-primary-foreground transition-colors"
+            className="inline-flex items-center gap-1.5 mt-3 text-sm font-medium text-blue-100 hover:text-white transition-colors"
           >
             Ver a metodologia completa
           </Link>

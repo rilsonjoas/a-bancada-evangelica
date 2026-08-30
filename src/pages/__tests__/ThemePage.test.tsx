@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import ThemePage from '../ThemePage';
+vi.mock('@/hooks/useVotes', () => ({ useAgendaVotes: () => ({ data: undefined, isLoading: false }) }));
 
 const { MOCK_DATA } = vi.hoisted(() => ({
   MOCK_DATA: {

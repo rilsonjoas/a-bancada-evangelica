@@ -1,207 +1,183 @@
-import { Link } from 'react-router-dom';
-import { Mail, Github, ExternalLink } from 'lucide-react';
+import React from "react";
+import { Link } from "react-router-dom";
+import { Mail, Github, ExternalLink, ShieldCheck, Database, FileText } from "lucide-react";
 
-const Footer = () => {
+const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-secondary/30 border-t border-border mt-20">
+    <footer className="bg-slate-900 text-slate-300 border-t border-slate-800 mt-20 font-sans">
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Brand Section */}
-          <div className="md:col-span-2">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="bg-gradient-primary p-2 rounded-lg shadow-card">
-                <img src="/marca-white.png" alt="" aria-hidden="true" className="h-5 w-5" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-12">
+          
+          {/* Brand & Mission — 4 cols */}
+          <div className="col-span-1 sm:col-span-2 lg:col-span-4 space-y-4">
+            <div className="flex items-center space-x-3">
+              <div className="bg-gradient-to-tr from-amber-500 to-blue-600 p-2 rounded-xl shadow-md">
+                <img src="/marca-white.png" alt="" aria-hidden="true" className="h-6 w-6" />
               </div>
               <div>
-                {/* p, não heading: marca/logo não é seção — e um h3 aqui
-                    pulava níveis depois de páginas que só têm h1 */}
-                <p className="font-serif text-lg font-bold text-foreground">
+                <p className="font-serif text-lg font-bold text-white tracking-tight">
                   A Bancada Evangélica
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  MONITORANDO A BANCADA EVANGÉLICA
+                <p className="text-[10px] font-bold text-amber-400 uppercase tracking-widest">
+                  TRANSPARÊNCIA PARLAMENTAR
                 </p>
               </div>
             </div>
-            <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-              Monitorando se os membros da Frente Parlamentar Evangélica votam em
-              consonância com os valores cristãos que declaram representar.
-              Dados públicos, metodologia aberta.
+
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Monitorando o posicionamento dos parlamentares brasileiros através de dados públicos e votos nominais registrados na Câmara e no Senado.
             </p>
-            <div className="flex items-center space-x-4">
-              <a 
+
+            <div className="flex items-center space-x-3 pt-1">
+              <a
                 href="mailto:abancada@narniano.com"
-                className="text-muted-foreground hover:text-primary transition-colors"
-                title="Email"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 transition-colors border border-slate-700/60"
+                title="Contato por Email"
               >
-                <Mail className="h-4 w-4" />
+                <Mail className="h-3.5 w-3.5 text-amber-400" />
+                <span>Contato</span>
               </a>
-              <a 
+              <a
                 href="https://github.com/rilsonjoas/a-bancada-evangelica"
-                className="text-muted-foreground hover:text-primary transition-colors"
                 target="_blank"
                 rel="noopener noreferrer"
-                title="GitHub"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 transition-colors border border-slate-700/60"
+                title="Código-fonte no GitHub"
               >
-                <Github className="h-4 w-4" />
+                <Github className="h-3.5 w-3.5 text-amber-400" />
+                <span>GitHub</span>
               </a>
             </div>
           </div>
 
-          {/* Navigation Links */}
-          <div>
-            <h2 className="font-serif font-semibold text-foreground text-sm md:text-lg mb-4 tracking-tight">Navegação</h2>
-            <ul className="space-y-2">
+          {/* Col 2: Plataforma — 2 cols */}
+          <div className="lg:col-span-3 space-y-3">
+            <p className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>Plataforma</span>
+            </p>
+            <ul className="space-y-2 text-xs">
               <li>
-                <Link 
-                  to="/" 
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
+                <Link to="/" className="text-slate-300 hover:text-white transition-colors">
                   Ranking de Parlamentares
                 </Link>
               </li>
               <li>
-                <Link 
-                  to="/metodologia" 
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
+                <Link to="/match" className="text-slate-300 hover:text-white transition-colors">
+                  Match Eleitor (Quiz)
+                </Link>
+              </li>
+              <li>
+                <Link to="/comparacao" className="text-slate-300 hover:text-white transition-colors">
+                  Comparador de Votações
+                </Link>
+              </li>
+              <li>
+                <Link to="/temas" className="text-slate-300 hover:text-white transition-colors">
+                  Votações por Tema
+                </Link>
+              </li>
+              <li>
+                <Link to="/grupos" className="text-slate-300 hover:text-white transition-colors">
+                  Grupos de Votação (KMeans)
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Col 3: Metodologia & Transparência — 2 cols */}
+          <div className="lg:col-span-2 space-y-3">
+            <p className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+              <FileText className="w-3.5 h-3.5" />
+              <span>Transparência</span>
+            </p>
+            <ul className="space-y-2 text-xs">
+              <li>
+                <Link to="/metodologia" className="text-slate-300 hover:text-white transition-colors">
                   Metodologia
                 </Link>
               </li>
               <li>
-                <Link 
-                  to="/match" 
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Quem vota como você?
+                <Link to="/dados" className="text-slate-300 hover:text-white transition-colors">
+                  Dados Abertos (API)
                 </Link>
               </li>
               <li>
-                <Link 
-                  to="/dados" 
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Dados Abertos
+                <Link to="/errata" className="text-slate-300 hover:text-white transition-colors">
+                  Errata Pública
                 </Link>
               </li>
               <li>
-                <Link
-                  to="/temas"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Votações por tema
-                </Link>
-              </li>
-              <li>
-                <Link 
-                  to="/errata" 
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Errata pública
-                </Link>
-              </li>
-              <li>
-                <Link 
-                  to="/sobre" 
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
+                <Link to="/sobre" className="text-slate-300 hover:text-white transition-colors">
                   Sobre o Projeto
                 </Link>
               </li>
               <li>
-                <Link 
-                  to="/contato" 
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Contato
-                </Link>
-              </li>
-              <li>
-                <Link 
-                  to="/privacidade" 
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Política de Privacidade
-                </Link>
-              </li>
-              <li>
-                <Link 
-                  to="/termos" 
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Termos de Uso
+                <Link to="/contato" className="text-slate-300 hover:text-white transition-colors">
+                  Fale Conosco
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* External Links */}
-          <div>
-            <h2 className="font-serif font-semibold text-foreground text-sm md:text-lg mb-4 tracking-tight">Fontes de Dados</h2>
-            <ul className="space-y-2">
+          {/* Col 4: Fontes & Legal — 3 cols */}
+          <div className="lg:col-span-3 space-y-3">
+            <p className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+              <Database className="w-3.5 h-3.5" />
+              <span>Fontes Oficiais</span>
+            </p>
+            <ul className="space-y-2 text-xs">
               <li>
-                <a 
-                  href="https://dadosabertos.camara.leg.br/"
+                <a
+                  href="https://www.camara.leg.br"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center space-x-1"
+                  className="text-slate-300 hover:text-white transition-colors inline-flex items-center gap-1"
                 >
-                  <span>Câmara dos Deputados</span>
-                  <ExternalLink className="h-3 w-3" />
+                  Câmara dos Deputados <ExternalLink className="h-3 w-3 text-slate-500" />
                 </a>
               </li>
               <li>
-                <a 
-                  href="https://legis.senado.leg.br/dadosabertos/"
+                <a
+                  href="https://www12.senado.leg.br"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center space-x-1"
+                  className="text-slate-300 hover:text-white transition-colors inline-flex items-center gap-1"
                 >
-                  <span>Senado Federal</span>
-                  <ExternalLink className="h-3 w-3" />
+                  Senado Federal <ExternalLink className="h-3 w-3 text-slate-500" />
                 </a>
               </li>
               <li>
-                <a 
-                  href="https://www.tse.jus.br/"
+                <a
+                  href="https://divulgacandcontas.tse.jus.br"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center space-x-1"
+                  className="text-slate-300 hover:text-white transition-colors inline-flex items-center gap-1"
                 >
-                  <span>TSE</span>
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              </li>
-              <li>
-                <a 
-                  href="https://portaldatransparencia.gov.br/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center space-x-1"
-                >
-                  <span>Portal da Transparência</span>
-                  <ExternalLink className="h-3 w-3" />
+                  TSE Receitas <ExternalLink className="h-3 w-3 text-slate-500" />
                 </a>
               </li>
             </ul>
+
+            <div className="pt-2 border-t border-slate-800 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-slate-400">
+              <Link to="/privacidade" className="hover:text-amber-400 transition-colors">
+                Privacidade
+              </Link>
+              <span>·</span>
+              <Link to="/termos" className="hover:text-amber-400 transition-colors">
+                Termos de Uso
+              </Link>
+            </div>
           </div>
+
         </div>
 
-        {/* Bottom Section */}
-        <div className="border-t border-border mt-8 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <div className="text-center md:text-left">
-              <p className="text-sm text-muted-foreground">
-                © {currentYear} A Bancada Evangélica. Projeto independente de transparência democrática.
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Licenciado sob MIT. 
-              </p>
-            </div>
-            
-          </div>
+        {/* Bottom Bar */}
+        <div className="mt-10 pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-3">
+          <p>© {currentYear} A Bancada Evangélica. Projeto independente de transparência pública.</p>
+          <p className="text-[11px]">Licenciado sob MIT · Dados públicos abertos.</p>
         </div>
       </div>
     </footer>

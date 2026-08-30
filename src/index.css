@@ -191,21 +191,13 @@
   .font-serif { font-family: var(--font-serif); }
   .font-sans { font-family: var(--font-sans); }
   
-  /* Headings - Display font para autoridade */
+  /* Headings - Padrão limpo sem sobreposição de fontes em cards */
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-display);
-    font-weight: 600;
+    font-family: var(--font-sans);
     line-height: 1.25;
-    letter-spacing: -0.025em;
+    letter-spacing: -0.015em;
     color: hsl(var(--foreground));
   }
-  
-  h1 { font-size: clamp(1.875rem, 4vw, 3.75rem); font-weight: 700; } /* 30px–60px */
-  h2 { font-size: clamp(1.5rem, 3.5vw, 3rem); }     /* 24px–48px */
-  h3 { font-size: clamp(1.25rem, 3vw, 2.25rem); }    /* 20px–36px */
-  h4 { font-size: clamp(1.125rem, 2.5vw, 1.875rem); } /* 18px–30px */
-  h5 { font-size: clamp(1rem, 2vw, 1.5rem); }        /* 16px–24px */
-  h6 { font-size: clamp(0.875rem, 1.5vw, 1.25rem); } /* 14px–20px */
   
   /* Body text - Sans para legibilidade */
   p, span, div, .label-tech, .score-label, .data-label {

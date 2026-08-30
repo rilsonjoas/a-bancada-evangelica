@@ -1,3 +1,4 @@
+import { usePageMeta } from '@/hooks/usePageMeta';
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Calendar, TrendingUp, TrendingDown, Users, Vote, Search } from 'lucide-react';
@@ -15,6 +16,7 @@ import { THEMES, countAgendasByTheme } from '@/lib/themes';
 
 export function VotingAnalysis() {
   const [filters, setFilters] = useState({
+
     criteria: '',
     dateRange: '',
     search: ''

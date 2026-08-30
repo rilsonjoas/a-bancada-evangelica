@@ -1,3 +1,4 @@
+import { usePageMeta } from '@/hooks/usePageMeta';
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
@@ -8,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import PoliticianCard from '@/components/politicians/PoliticianCard';
 import { usePoliticians, usePoliticiansStats } from '@/hooks/usePoliticians';
-import { Search, Filter, TrendingUp, Users, Award, BookOpen, BarChart3, Loader2, Church, SlidersHorizontal } from 'lucide-react';
+import { Search, Filter, TrendingUp, Users, Award, BookOpen, BarChart3, Loader2, Church, SlidersHorizontal, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { APIPolitician } from '@/types/politician';
 import { Slider } from '@/components/ui/slider';
@@ -47,11 +48,10 @@ const HighlightsSection: React.FC = () => {
   return (
     <section className="py-12 bg-background border-b border-border">
       <div className="container mx-auto px-4">
-        <div className="max-w-3xl mx-auto text-center mb-10">
+        <div className="max-w-4xl mx-auto text-center mb-10">
           <h2 className="font-serif text-2xl font-bold text-foreground">Panorama da bancada</h2>
           <p className="text-muted-foreground mt-3 text-sm md:text-base leading-relaxed">
-            Uma amostra fixa de <strong>todos os graus de aderência</strong>
-            entre os membros da bancada com nota calculada — as duas notas mais
+            Uma amostra fixa de <strong>todos os graus de aderência</strong> {' '}entre os membros da bancada com nota calculada — as duas notas mais
             altas de cada faixa. Transparência é mostrar o espectro inteiro,
             não só o lado bom.
           </p>
@@ -86,6 +86,7 @@ const HighlightsSection: React.FC = () => {
 };
 
 const RankingPage = () => {
+  usePageMeta("Ranking de Parlamentares | A Bancada Evangélica", "Acompanhe a pontuação e os votos nominais de todos os parlamentares na Câmara e no Senado.");
   const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') ?? '');
   const [selectedState, setSelectedState] = useState('all');
@@ -94,6 +95,12 @@ const RankingPage = () => {
   // FPE ativa por padrão — o recorte do projeto É a Frente Parlamentar
   // Evangélica; o usuário leigo deve ver primeiro quem faz parte dela.
   const [fpeFilter, setFpeFilter] = useState(true);
+  const [visibleLimit, setVisibleLimit] = useState(20);
+
+  // Reset do limite visível ao alterar filtros de busca
+  useEffect(() => {
+    setVisibleLimit(20);
+  }, [searchTerm, selectedState, selectedParty, selectedHouse, fpeFilter]);
 
   // ── V2 (2026-08-24, feedback F3): modelo explícito rascunho → aplicar ──
   // O usuário edita os pesos (rascunho), clica em "Aplicar" e aí sim o
@@ -137,7 +144,7 @@ const RankingPage = () => {
     fpeFilter: fpeFilter || undefined,
     sortBy: 'score',
     sortOrder: 'desc',
-    limit: 100
+    limit: visibleLimit
   });
   
   const { data: statsData, isLoading: isLoadingStats } = usePoliticiansStats();
@@ -237,79 +244,88 @@ const RankingPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
-      {/* Hero Section */}
-      <section className="bg-gradient-primary text-primary-foreground py-16">
+            {/* Hero Section — Layout 2-Colunas Moderno & Eficiente */}
+      <section className="bg-gradient-primary text-primary-foreground py-10 md:py-14 border-b border-blue-900/30">
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="flex justify-center mb-6">
-              <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-sm">
-                {/* Marca real (2026-08-22): logo do projeto no lugar do ícone genérico */}
-                <img src="/marca-white.png" alt="" aria-hidden="true" className="h-12 w-12" />
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+            
+            {/* Coluna Esquerda: Proposta de Valor e Ações */}
+            <div className="lg:col-span-7 space-y-5 text-left">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-amber-400 text-xs font-bold uppercase tracking-wider border border-white/15">
+                <img src="/marca-white.png" alt="" className="h-4 w-4" />
+                <span>TRANSPARÊNCIA PARLAMENTAR</span>
+              </div>
+
+              <h1 className="font-serif text-2xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight leading-tight">
+                Como a Bancada Evangélica vota
+              </h1>
+
+              <p className="text-base sm:text-lg text-primary-foreground/90 leading-relaxed max-w-xl">
+                Notas calculadas exclusivamente a partir de <strong>votos nominais públicos</strong> na Câmara e no Senado. Sem simpatia — o voto registrado é o único dado.
+              </p>
+
+              {/* Três passos compactos */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+                {[
+                  "1. Voto nominal em ata",
+                  "2. 5 Critérios objetivos",
+                  "3. Dados 100% públicos",
+                ].map((passo, i) => (
+                  <div key={i} className="bg-white/10 rounded-lg px-3 py-2 text-xs font-medium text-white/90 border border-white/10 flex items-center gap-2">
+                    <span className="shrink-0 h-4 w-4 rounded-full bg-[#b49a60] text-[#0f172a] text-[10px] font-bold flex items-center justify-center">
+                      {i + 1}
+                    </span>
+                    <span>{passo}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Botões de Ação */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
+                <Link to="/match" className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#b49a60] px-6 py-3 text-[#0f172a] font-bold hover:bg-amber-300 transition-colors shadow-md text-sm">
+                  Descubra quem vota como você
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+                <Link to="/metodologia" className="inline-flex items-center justify-center gap-2 rounded-lg bg-white/10 hover:bg-white/20 text-white font-semibold px-5 py-3 transition-colors text-sm border border-white/15">
+                  Ler metodologia completa
+                  <TrendingUp className="h-4 w-4 text-amber-400" />
+                </Link>
               </div>
             </div>
-            {/* Lente watchdog (2026-08-22): o método vem ANTES do ranking.
-                O leigo precisa entender que a nota não é "simpatia política":
-                é voto nominal registrado, verificável por qualquer pessoa. */}
-            <h1 className="font-serif text-4xl md:text-5xl font-bold mb-4 text-white tracking-tight">
-              Como a Bancada Evangélica vota
-            </h1>
-            <p className="text-lg md:text-xl text-primary-foreground/90 max-w-2xl mx-auto mb-6">
-              Notas calculadas exclusivamente a partir de{' '}
-              <strong>votos nominais públicos</strong> registrados na Câmara e no Senado.
-              Sem enquete, sem declaração, sem simpatia — o voto registrado é o único dado.
-              O foco especial é a <strong>Bancada Evangélica</strong>, mas os dados de
-              todos os parlamentares ficam disponíveis para busca e pesquisa.
-            </p>
-            {/* Três passos do método */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-2xl mx-auto mb-8 text-sm">
-              {[
-                'Votação nominal acontece na Câmara ou no Senado',
-                'Cruzamos cada voto com os 5 critérios da metodologia',
-                'Nota pública, aberta e verificável por qualquer pessoa',
-              ].map((passo, i) => (
-                <div key={i} className="bg-white/10 rounded-lg px-4 py-3 backdrop-blur-sm flex items-start gap-2 text-left">
-                  <span className="shrink-0 h-5 w-5 rounded-full bg-[#b49a60] text-[#0f172a] text-[11px] font-bold flex items-center justify-center mt-0.5">
-                    {i + 1}
-                  </span>
-                  <span className="opacity-95 leading-relaxed">{passo}</span>
+
+            {/* Coluna Direita: Painel de Métricas 2x2 */}
+            <div className="lg:col-span-5">
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/15 shadow-2xl space-y-4">
+                <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                  <span className="text-xs font-bold uppercase tracking-wider text-amber-400">PAINEL AO VIVO</span>
+                  <span className="text-[11px] text-white/70">Congresso Nacional</span>
                 </div>
-              ))}
-            </div>
-            <div className="flex flex-wrap items-center justify-center gap-6">
-              <Link to="/match" className="inline-flex items-center gap-2 rounded-lg bg-[#b49a60] px-5 py-2.5 text-[#0f172a] font-bold hover:bg-amber-300 transition-colors">
-                Descubra quem vota como você
-              </Link>
-              <Link to="/metodologia" className="inline-flex items-center gap-2 text-[#b49a60] hover:text-amber-300 font-semibold transition-colors">
-                Ler a metodologia completa
-                <TrendingUp className="h-4 w-4" />
-              </Link>
-            </div>
-            <div className="mt-6" />
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
-              <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
-                <div className="text-2xl font-bold">{stats.monitored}</div>
-                <div className="text-sm opacity-90">Parlamentares monitorados</div>
-              </div>
-              <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
-                <div className="text-2xl font-bold">{stats.withOwnVotes}</div>
-                <div className="text-sm opacity-90">Com nota por votos próprios</div>
-              </div>
-              <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
-                <div className="text-2xl font-bold">{fmt(stats.avgScore)}</div>
-                <div className="text-sm opacity-90">Nota média (0–100)</div>
-              </div>
-              <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
-                <div className="text-2xl font-bold">{stats.excellentCount}</div>
-                <div className="text-sm opacity-90">Aderência muito alta</div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-slate-950/40 rounded-xl p-3.5 border border-white/10">
+                    <div className="text-2xl font-bold font-serif text-white">{stats.monitored}</div>
+                    <div className="text-xs text-white/80 font-medium">Parlamentares monitorados</div>
+                  </div>
+                  <div className="bg-slate-950/40 rounded-xl p-3.5 border border-white/10">
+                    <div className="text-2xl font-bold font-serif text-amber-400">{stats.withOwnVotes}</div>
+                    <div className="text-xs text-white/80 font-medium">Com votos próprios</div>
+                  </div>
+                  <div className="bg-slate-950/40 rounded-xl p-3.5 border border-white/10">
+                    <div className="text-2xl font-bold font-serif text-white">{fmt(stats.avgScore)}</div>
+                    <div className="text-xs text-white/80 font-medium">Nota média (0–100)</div>
+                  </div>
+                  <div className="bg-slate-950/40 rounded-xl p-3.5 border border-white/10">
+                    <div className="text-2xl font-bold font-serif text-emerald-400">{stats.excellentCount}</div>
+                    <div className="text-xs text-white/80 font-medium">Aderência muito alta</div>
+                  </div>
+                </div>
+
+                <p className="text-[11px] text-white/75 leading-relaxed pt-1">
+                  Notas baseadas em votações plenárias gravadas. Perfis sem votos suficientes usam a estimativa histórica do partido.
+                </p>
               </div>
             </div>
-            <p className="text-sm text-primary-foreground/80 max-w-2xl mx-auto mt-4 leading-relaxed">
-              Todos os parlamentares monitorados recebem nota — mas nem todos
-              por votos próprios: quem tem poucas votações compatíveis com as
-              pautas classificadas recebe nota <strong>estimada pela média
-              histórica do partido</strong> (marcada como estimativa no perfil).
-              A nota por votos próprios é a medição direta, o voto registrado.
-            </p>
+
           </div>
         </div>
       </section>
@@ -317,7 +333,7 @@ const RankingPage = () => {
       <HighlightsSection />
 
       {/* Filters Section */}
-      <section className="py-8 bg-background border-b border-border">
+      <section className="py-6 bg-background border-b border-border">
         <div className="container mx-auto px-4">
           <Card>
             <CardHeader>
@@ -381,7 +397,7 @@ const RankingPage = () => {
                 </Select>
 
                 {/* FPE Filter */}
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-3 p-2.5 sm:p-0 rounded-lg bg-secondary/30 sm:bg-transparent border border-border/40 sm:border-0">
                   <Church className="h-4 w-4 text-muted-foreground" />
                   <div className="flex items-center space-x-2">
                     <Switch
@@ -420,13 +436,13 @@ const RankingPage = () => {
       </section>
 
       {/* Pesos personalizados — V1 (2026-08-22) */}
-      <section className="py-6 bg-background border-b border-border">
+      <section className="py-4 bg-background border-b border-border">
         <div className="container mx-auto px-4">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center justify-between">
+          <Card className="transition-all">
+            <CardHeader className={weightsEnabled ? "p-6 pb-3" : "p-4 sm:p-5"}>
+              <CardTitle className="flex items-center justify-between text-base sm:text-lg">
                 <span className="flex items-center space-x-2">
-                  <SlidersHorizontal className="h-5 w-5" />
+                  <SlidersHorizontal className="h-5 w-5 text-primary" />
                   <span>Seus pesos</span>
                 </span>
                 <div className="flex items-center gap-2 pr-1">
@@ -580,6 +596,20 @@ const RankingPage = () => {
                   rank={index + 1}
                 />
               ))}
+
+              {/* Botão de Paginação / Carregar Mais */}
+              {(politiciansData?.total ?? 0) > displayPoliticians.length && (
+                <div className="text-center pt-8 pb-4">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => setVisibleLimit((prev) => prev + 20)}
+                    className="font-semibold px-8 border-primary/30 hover:bg-primary/5 hover:text-primary transition-all shadow-sm"
+                  >
+                    Carregar mais parlamentares ({displayPoliticians.length} de {politiciansData?.total || 0})
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -588,7 +618,7 @@ const RankingPage = () => {
       {/* Call to Action */}
       <section className="py-16 bg-secondary/30">
         <div className="container mx-auto px-4 text-center">
-          <div className="max-w-3xl mx-auto">
+          <div className="max-w-4xl mx-auto">
             <Award className="h-12 w-12 text-primary mx-auto mb-6" />
             <h2 className="font-serif text-2xl md:text-3xl font-bold text-foreground mb-4">
               Fortaleça a Democracia Brasileira

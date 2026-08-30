@@ -1,25 +1,27 @@
-import { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from '@/components/ui/sheet';
-import { BookOpen, BarChart3, Vote, Network, BookMarked, Info, Mail, Search, Menu } from 'lucide-react';
-import { cn } from '@/lib/utils';
+} from "@/components/ui/sheet";
+import { BookOpen, BarChart3, Vote, Network, BookMarked, Info, Mail, Search, Menu, UserCircle2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { usePoliticians } from "@/hooks/usePoliticians";
 
 const navigation = [
-  { name: 'Ranking',     href: '/ranking',    icon: BookOpen },
-  { name: 'Comparação',  href: '/comparacao', icon: BarChart3 },
-  { name: 'Votações',    href: '/votacoes',   icon: Vote },
-  { name: 'Grupos',      href: '/grupos',     icon: Network },
-  { name: 'Metodologia', href: '/metodologia', icon: BookMarked },
-  { name: 'Sobre',       href: '/sobre',      icon: Info },
-  { name: 'Contato',     href: '/contato',    icon: Mail },
+  { name: "Ranking",     href: "/ranking",    icon: BookOpen },
+  { name: "Comparação",  href: "/comparacao", icon: BarChart3 },
+  { name: "Votações",    href: "/votacoes",   icon: Vote },
+  { name: "Grupos",      href: "/grupos",     icon: Network },
+  { name: "Metodologia", href: "/metodologia", icon: BookMarked },
+  { name: "Sobre",       href: "/sobre",      icon: Info },
+  { name: "Contato",     href: "/contato",    icon: Mail },
 ];
 
 const Header = () => {
@@ -27,34 +29,43 @@ const Header = () => {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
 
   const isActive = (href: string) =>
-    href === '/ranking'
-      ? location.pathname === '/' || location.pathname === '/ranking'
+    href === "/ranking"
+      ? location.pathname === "/" || location.pathname === "/ranking"
       : location.pathname.startsWith(href);
 
-  // A busca da navbar leva pro ranking com o termo na URL — o Ranking
-  // lê ?search= no estado inicial e o usuário já cai na lista filtrada.
+  // Autocomplete ao vivo na navbar
+  const querySearch = searchTerm.trim().length >= 2 ? searchTerm.trim() : undefined;
+  const { data: searchData } = usePoliticians({
+    search: querySearch,
+    limit: 5,
+  });
+
+  const searchResults = searchData?.politicians ?? [];
+
   const submitSearch = (e?: React.FormEvent) => {
     e?.preventDefault();
     const q = searchTerm.trim();
     if (!q) return;
-    navigate(`/ranking?search=${encodeURIComponent(q)}`);
-    setSearchTerm('');
+    navigate(`/ranking?search=${encodeURIComponent(q)}#ranking-completo`);
+    setSearchTerm("");
     setSearchOpen(false);
     setMenuOpen(false);
+    setTimeout(() => {
+      const el = document.getElementById("ranking-completo");
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 150);
   };
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-sm">
       <div className="container mx-auto px-4">
         <div className="flex h-14 items-center gap-6">
-
           {/* Brand */}
           <Link to="/" aria-label="A Bancada Evangélica — página inicial" className="flex shrink-0 items-center gap-2.5 group">
             <div className="bg-gradient-primary p-1.5 rounded-lg shadow-card group-hover:shadow-elevated transition-shadow">
-              {/* Marca unificada (2026-08-22): favicon.svg branco em vez do ícone lucide genérico */}
               <img src="/marca-white.png" alt="" aria-hidden="true" className="h-5 w-5" />
             </div>
             <div className="leading-tight block min-w-0">
@@ -65,17 +76,17 @@ const Header = () => {
             </div>
           </Link>
 
-          {/* Desktop nav — texto apenas, sem ícones */}
+          {/* Desktop nav */}
           <nav className="hidden lg:flex items-center gap-1 flex-1">
-            {navigation.map(item => (
+            {navigation.map((item) => (
               <Link
                 key={item.name}
                 to={item.href}
                 className={cn(
-                  'whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+                  "whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
                   isActive(item.href)
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                 )}
               >
                 {item.name}
@@ -83,21 +94,71 @@ const Header = () => {
             ))}
           </nav>
 
-          {/* Search — desktop: abre input inline */}
-          <div className="hidden md:flex items-center ml-auto gap-2">
+          {/* Search — desktop */}
+          <div className="hidden md:flex items-center ml-auto gap-2 relative">
             {searchOpen ? (
-              <form onSubmit={submitSearch} className="flex items-center gap-2">
+              <form onSubmit={submitSearch} className="flex items-center gap-2 relative">
                 <Input
                   autoFocus
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Buscar parlamentar..."
-                  className="h-8 w-48 lg:w-56"
+                  className="h-9 w-56 lg:w-64"
                   aria-label="Buscar parlamentar"
                 />
                 <Button type="submit" size="sm" variant="ghost" aria-label="Confirmar busca">
                   <Search className="h-4 w-4" />
                 </Button>
+
+                {/* Autocomplete Dropdown ao vivo */}
+                {searchTerm.trim().length >= 2 && (
+                  <div className="absolute top-full right-0 mt-2 w-72 lg:w-80 bg-popover border border-border shadow-2xl rounded-xl overflow-hidden z-50 p-2 space-y-1">
+                    <div className="text-[11px] font-semibold text-muted-foreground px-2 py-1 uppercase tracking-wider border-b border-border/50 pb-1 mb-1">
+                      Sugestões de busca
+                    </div>
+                    {searchResults.length === 0 ? (
+                      <div className="text-xs text-muted-foreground p-3 text-center">
+                        Nenhum parlamentar encontrado para "{searchTerm}"
+                      </div>
+                    ) : (
+                      searchResults.map((p) => (
+                        <Link
+                          key={p.id}
+                          to={`/politicos/${p.id}`}
+                          onClick={() => {
+                            setSearchOpen(false);
+                            setSearchTerm("");
+                          }}
+                          className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent transition-colors text-left"
+                        >
+                          {p.photoUrl ? (
+                            <img
+                              src={p.photoUrl}
+                              alt={p.name}
+                              className="w-8 h-8 rounded-full object-cover bg-secondary flex-shrink-0"
+                            />
+                          ) : (
+                            <UserCircle2 className="w-8 h-8 text-muted-foreground flex-shrink-0" />
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-bold text-foreground truncate">{p.name}</p>
+                            <p className="text-[11px] text-muted-foreground truncate">{p.currentParty} · {p.currentState}</p>
+                          </div>
+                          <Badge variant="secondary" className="text-xs font-bold shrink-0">
+                            {p.scores.overall.toFixed(0)}
+                          </Badge>
+                        </Link>
+                      ))
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => submitSearch()}
+                      className="w-full text-center text-xs font-semibold text-primary hover:underline py-2 border-t border-border mt-1 block"
+                    >
+                      Ver todos os resultados no ranking →
+                    </button>
+                  </div>
+                )}
               </form>
             ) : (
               <Button
@@ -113,14 +174,14 @@ const Header = () => {
             )}
           </div>
 
-          {/* Mobile: hamburger funcional (Sheet com navegação + busca) */}
+          {/* Mobile hamburger */}
           <div className="lg:hidden ml-auto flex items-center gap-1">
             <Button
               variant="ghost"
               size="sm"
               className="md:hidden"
               onClick={() => setSearchOpen((v) => !v)}
-              aria-label={searchOpen ? 'Fechar busca' : 'Abrir busca'}
+              aria-label={searchOpen ? "Fechar busca" : "Abrir busca"}
             >
               <Search className="h-5 w-5" />
             </Button>
@@ -139,80 +200,37 @@ const Header = () => {
                   <Input
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Buscar parlamentar..."
-                    aria-label="Buscar parlamentar"
+                    placeholder="Buscar..."
+                    className="h-9"
+                    aria-label="Buscar parlamentar no menu"
                   />
-                  <Button type="submit" size="icon" variant="secondary" aria-label="Buscar">
+                  <Button type="submit" size="sm" aria-label="Confirmar busca">
                     <Search className="h-4 w-4" />
                   </Button>
                 </form>
+
                 <nav className="flex flex-col gap-1">
-                  {navigation.map(item => {
-                    const Icon = item.icon;
-                    return (
-                      <Link
-                        key={item.name}
-                        to={item.href}
-                        onClick={() => setMenuOpen(false)}
-                        className={cn(
-                          'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-                          isActive(item.href)
-                            ? 'bg-primary text-primary-foreground'
-                            : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
-                        )}
-                      >
-                        <Icon className="h-4 w-4 shrink-0" />
-                        {item.name}
-                      </Link>
-                    );
-                  })}
+                  {navigation.map((item) => (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      onClick={() => setMenuOpen(false)}
+                      className={cn(
+                        "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                        isActive(item.href)
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                      )}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      {item.name}
+                    </Link>
+                  ))}
                 </nav>
               </SheetContent>
             </Sheet>
           </div>
         </div>
-
-        {/* Busca mobile aberta */}
-        {searchOpen && (
-          <form onSubmit={submitSearch} className="md:hidden pb-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                autoFocus
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Buscar por nome ou partido..."
-                className="pl-10"
-                aria-label="Buscar por nome ou partido"
-              />
-            </div>
-          </form>
-        )}
-
-        {/* Mobile nav horizontal — só em telas ≥sm (entre mobile puro e lg),
-            onde cabe; abaixo disso o hamburger resolve */}
-        <nav className="hidden sm:flex lg:hidden border-t border-border py-2">
-          <div className="flex items-center justify-around overflow-x-auto gap-1 w-full">
-            {navigation.map(item => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={cn(
-                    'flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-xs font-medium transition-colors shrink-0',
-                    isActive(item.href)
-                      ? 'text-primary bg-primary/10'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span>{item.name}</span>
-                </Link>
-              );
-            })}
-          </div>
-        </nav>
       </div>
     </header>
   );

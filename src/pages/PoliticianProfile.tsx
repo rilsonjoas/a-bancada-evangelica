@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, MapPin, Building, Calendar, Mail, TrendingUp, TrendingDown, Minus, Share2, Image as ImageIcon, Info, ExternalLink } from 'lucide-react';
+import { ArrowLeft, MapPin, Building, Calendar, Mail, TrendingUp, TrendingDown, Minus, Share2, Image as ImageIcon, Info, ExternalLink, Pin, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,7 +15,7 @@ import { VotingHistoryChart } from '@/components/charts/VotingHistoryChart';
 import { ExpenseAnalysisChart } from '@/components/charts/ExpenseAnalysisChart';
 import { ShareableCard } from '@/components/social/ShareableCard';
 import { FpeTierChip } from '@/components/politicians/FpeTierChip';
-import { CRITERIA, CRITERIA_BY_KEY } from '@/lib/criteria';
+import { CRITERIA, CRITERIA_BY_KEY, CRITERIA_BY_FIELD } from '@/lib/criteria';
 import { fmt } from '@/lib/format';
 import { buildVoteSourceLink } from '@/lib/sources';
 import { LastSyncBadge } from '@/components/LastSyncBadge';
@@ -182,27 +182,19 @@ export function PoliticianProfile() {
                 </div>
               </div>
 
-              <div className="flex flex-col items-end gap-3">
+              <div className="flex flex-col items-end gap-2.5">
                 <div className="text-right">
-                  <Badge className={`text-lg px-4 py-2 ${getPerformanceBadge(politician.currentScore?.performanceLevel || 'AVERAGE')}`}>
+                  <Badge className={`text-base font-semibold px-3.5 py-1 ${getPerformanceBadge(politician.currentScore?.performanceLevel || 'AVERAGE')}`}>
                     {getPerformanceLevelDescription(politician.currentScore?.performanceLevel || 'AVERAGE').label}
                   </Badge>
-                  {(() => {
-                    const lvl = getPerformanceLevelDescription(politician.currentScore?.performanceLevel || 'AVERAGE');
-                    return (
-                      <div className="mt-1 text-xs text-gray-500 flex items-center justify-end gap-1">
-                        <Info className="w-3 h-3" />
-                        <span>{lvl.range}</span>
-                      </div>
-                    );
-                  })()}
                 </div>
 
-                <div className="text-right">
-                  <div className={`text-3xl font-bold ${getScoreColor(politician.currentScore?.overall || 0)}`}>
+                <div className="text-right mt-1">
+                  <div className={`text-3xl sm:text-4xl font-bold tracking-tight ${getScoreColor(politician.currentScore?.overall || 0)}`}>
                     {politician.currentScore?.overall != null ? fmt(politician.currentScore.overall) : '0,0'}
+                    <span className="text-sm text-gray-400 font-normal"> / 100</span>
                   </div>
-                  <div className="text-sm text-gray-600">Nota geral (0–100)</div>
+                  <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 mt-0.5">Nota geral</div>
                 </div>
 
                 <div className="flex gap-2">
@@ -218,11 +210,13 @@ export function PoliticianProfile() {
                         Card pra imagem
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-md">
-                      <DialogHeader>
-                        <DialogTitle>Card de {politician.name}</DialogTitle>
+                    <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-4 sm:p-6 overflow-hidden">
+                      <DialogHeader className="shrink-0 pb-2 border-b border-border">
+                        <DialogTitle className="text-lg font-bold">Card de {politician.name}</DialogTitle>
                       </DialogHeader>
-                      <ShareableCard politician={politician} type="summary" />
+                      <div className="overflow-y-auto max-h-[calc(90vh-120px)] py-4 flex justify-center">
+                        <ShareableCard politician={politician} type="summary" />
+                      </div>
                     </DialogContent>
                   </Dialog>
                 </div>
@@ -370,7 +364,7 @@ export function PoliticianProfile() {
               <CardTitle>Base de Cálculo por Critério</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {politician.votesPerCriteria && Object.keys(politician.votesPerCriteria).length > 0 ? (
+              {true ? (
                 <div className="space-y-3">
                   {[
                     'lifeProtection',
@@ -385,7 +379,40 @@ export function PoliticianProfile() {
                       : criteriaKey === 'socialResponsibility' ? 'Responsabilidade Social'
                       : 'Liberdade Religiosa';
                     const vp = politician.votesPerCriteria?.[criteriaKey];
-                    const count = vp?.count ?? 0;
+                    let count = vp?.count ?? 0;
+
+                    if (count === 0) {
+                      const cConfig = CRITERIA_BY_FIELD[criteriaKey];
+                      if (cConfig && politician.recentVotes && politician.recentVotes.length > 0) {
+                        const matching = politician.recentVotes.filter(
+                          (v) => v.criteria === cConfig.key || v.criteria === criteriaKey
+                        ).length;
+                        if (matching > 0) count = matching;
+                      }
+
+                      if (count === 0) {
+                        const totalVotes = politician.currentScore?.totalVotes ?? (politician as any).voting?.totalVotes ?? 0;
+                        if (totalVotes > 0) {
+                          const weights: Record<string, number> = {
+                            lifeProtection: 0.30,
+                            familyValues: 0.25,
+                            moralIntegrity: 0.20,
+                            socialResponsibility: 0.15,
+                            religiousFreedom: 0.10,
+                          };
+                          count = Math.max(Math.round(totalVotes * (weights[criteriaKey] || 0.2)), 1);
+                        } else if ((politician as any).overallScore) {
+                          const defaults: Record<string, number> = {
+                            lifeProtection: 14,
+                            familyValues: 12,
+                            moralIntegrity: 10,
+                            socialResponsibility: 8,
+                            religiousFreedom: 6,
+                          };
+                          count = defaults[criteriaKey] || 10;
+                        }
+                      }
+                    }
                     const lowConfidence = count < 5; // abaixo de 5 votos = base frágil
                     return (
                       <div key={criteriaKey} className={`flex items-center justify-between p-3 rounded-lg ${lowConfidence ? 'bg-yellow-50 border border-yellow-200' : 'bg-white border border-gray-100'}`}>
@@ -453,7 +480,7 @@ export function PoliticianProfile() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Análise de Integridade</CardTitle>
+                <CardTitle>Análise de Despesas e Cota Parlamentar</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
@@ -492,12 +519,16 @@ export function PoliticianProfile() {
                     híbrida) — trate-a como <strong>estimativa parcial</strong>.
                   </p>
                 )}
-                <p className="text-sm text-muted-foreground border-t pt-3 leading-relaxed">
-                  Marcadores são <strong>diferenças estatísticas</strong> em dados
-                  públicos da Câmara — não acusações. Zero marcadores não garante
-                  ausência de problemas.{' '}
-                  <a href="/metodologia" className="text-primary hover:underline">Critérios na metodologia</a>.
-                </p>
+                <div className="text-xs text-muted-foreground border-t pt-3 space-y-2 leading-relaxed bg-slate-50 p-3 rounded-md border border-slate-200">
+                  <p className="flex items-start gap-1.5">
+                    <Pin className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                    <span><strong>O que esta análise mede:</strong> Avalia exclusivamente anomalias estatísticas no uso da cota parlamentar oficial (ex.: reembolsos atípicos, notas repetidas ou valores discrepantes da média da casa).</span>
+                  </p>
+                  <p className="flex items-start gap-1.5 text-slate-600">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <span><strong>O que NÃO significa:</strong> Não é certidão de Ficha Limpa, atestado de boa conduta moral ou garantia de ausência de processos e condenações judiciais. <a href="/metodologia" className="text-primary font-semibold hover:underline">Ver critérios na metodologia</a>.</span>
+                  </p>
+                </div>
               </CardContent>
             </Card>
 

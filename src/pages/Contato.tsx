@@ -1,3 +1,4 @@
+import { usePageMeta } from '@/hooks/usePageMeta';
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,8 @@ import { useToast } from '@/hooks/use-toast';
 import { apiFetch } from '@/lib/apiClient';
 
 const ContatoPage = () => {
+  usePageMeta("Contato | A Bancada Evangélica", "Tire suas dúvidas, faça sugestões ou colabore com a transparência parlamentar.");
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -108,7 +111,7 @@ const ContatoPage = () => {
             {/* Contact Form */}
             <Card className="card-elevated">
               <CardHeader>
-                <CardTitle className="font-serif text-2xl flex items-center space-x-2">
+                <CardTitle className="font-serif text-xl font-bold flex items-center space-x-2">
                   <Send className="h-6 w-6" />
                   <span>Envie sua Mensagem</span>
                 </CardTitle>
@@ -196,7 +199,7 @@ const ContatoPage = () => {
             <div className="space-y-8">
               <Card className="card-elevated">
                 <CardHeader>
-                  <CardTitle className="font-serif text-xl flex items-center space-x-2">
+                  <CardTitle className="font-serif text-xl font-bold flex items-center space-x-2">
                     <MessageCircle className="h-5 w-5" />
                     <span>Informações de Contato</span>
                   </CardTitle>
@@ -207,7 +210,7 @@ const ContatoPage = () => {
                       <Mail className="h-4 w-4 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-foreground">Email Principal</h3>
+                      <h4 className="font-sans text-sm font-bold text-foreground">Email Principal</h4>
                       <a
                         href="mailto:abancada@narniano.com"
                         className="text-sm text-muted-foreground hover:text-primary transition-colors"
@@ -225,7 +228,7 @@ const ContatoPage = () => {
                       <Github className="h-4 w-4 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-foreground">GitHub</h3>
+                      <h4 className="font-sans text-sm font-bold text-foreground">GitHub</h4>
                       <p className="text-sm text-muted-foreground">github.com/rilsonjoas/a-bancada-evangelica</p>
                       <p className="text-xs text-muted-foreground mt-1">
                         Para colaborações técnicas e problemas
@@ -288,7 +291,7 @@ const ContatoPage = () => {
       {/* CTA Section */}
       <section className="py-16">
         <div className="container mx-auto px-4 text-center">
-          <div className="max-w-3xl mx-auto">
+          <div className="max-w-4xl mx-auto">
             <BookOpen className="h-12 w-12 text-primary mx-auto mb-6" />
             <h2 className="font-serif text-3xl font-bold text-foreground mb-4">
               Fortaleça este Ministério

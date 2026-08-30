@@ -1,3 +1,4 @@
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, CheckCircle, FileWarning, Mail, History, Scale } from 'lucide-react';
@@ -10,12 +11,14 @@ import { Link } from 'react-router-dom';
  * qualquer correção futura auditable.
  */
 export function Errata() {
+    usePageMeta("Errata Pública | A Bancada Evangélica", "Registro transparente de correções, auditorias e atualizações da base de dados.");
+
   return (
     <div className="min-h-screen bg-gradient-subtle">
       {/* Hero */}
       <section className="bg-gradient-primary text-primary-foreground py-12">
         <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center">
+          <div className="max-w-4xl mx-auto text-center">
             <div className="flex justify-center mb-4">
               <div className="bg-white/10 p-3 rounded-xl backdrop-blur-sm">
                 <FileWarning className="h-8 w-8 text-white" />
@@ -33,7 +36,7 @@ export function Errata() {
       </section>
 
       <section className="py-12">
-        <div className="container mx-auto px-4 max-w-3xl space-y-6">
+        <div className="container mx-auto px-4 max-w-4xl space-y-6">
 
           <Card className="card-elevated">
             <CardContent className="pt-6">

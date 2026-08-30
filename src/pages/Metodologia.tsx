@@ -1,3 +1,4 @@
+import { usePageMeta } from '@/hooks/usePageMeta';
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -29,6 +30,8 @@ import {
 } from 'lucide-react';
 
 const MetodologiaPage = () => {
+  usePageMeta("Metodologia Oficial | A Bancada Evangélica", "Entenda em detalhes como é calculado o score dos 5 critérios baseados em votos nominais públicos.");
+
   // 5 critérios reais com pesos do código (recalculate-scores.ts)
   const criteriosData = [
     {
@@ -400,12 +403,12 @@ const MetodologiaPage = () => {
       {/* Detailed Criteria */}
       <section className="py-16 bg-secondary/20">
         <div className="container mx-auto px-4">
-          <div className="max-w-6xl mx-auto">
+          <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="font-serif text-3xl font-bold text-foreground mb-4">
                 Detalhamento de Cada Critério
               </h2>
-              <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                 A seguir, explicamos o que cada critério significa, por que ele é vital para o cristão
                 e como os dados coletados ajudam você a tomar uma decisão informada.
               </p>
@@ -438,56 +441,59 @@ const MetodologiaPage = () => {
                       </div>
                       <Progress value={criterio.weight} max={35} className="h-3" aria-label={`Peso do critério ${criterio.name}: ${criterio.weight}% de 35`} />
                     </CardHeader>
-                    <CardContent className="space-y-6">
+                    <CardContent className="space-y-5 text-sm font-sans">
                       <div>
-                        <h3 className="font-semibold text-foreground mb-3 flex items-center space-x-2">
-                          <Calculator className="h-4 w-4" />
+                        <h4 className="font-sans text-sm font-bold text-foreground mb-2 flex items-center space-x-2">
+                          <Calculator className="h-4 w-4 text-primary shrink-0" />
                           <span>O Que Avaliamos</span>
-                        </h3>
-                        <p className="text-muted-foreground leading-relaxed">
+                        </h4>
+                        <p className="font-sans text-sm text-muted-foreground leading-relaxed">
                           {criterio.description}
                         </p>
                       </div>
 
                       <div>
-                        <h3 className="font-semibold text-foreground mb-3 flex items-center space-x-2">
-                          <Cross className="h-4 w-4" />
+                        <h4 className="font-sans text-sm font-bold text-foreground mb-2 flex items-center space-x-2">
+                          <Cross className="h-4 w-4 text-primary shrink-0" />
                           <span>Por Que é Importante para o Cristão</span>
-                        </h3>
-                        <p className="text-muted-foreground leading-relaxed">
+                        </h4>
+                        <p className="font-sans text-sm text-muted-foreground leading-relaxed">
                           {criterio.whyImportant}
                         </p>
                       </div>
 
                       <div>
-                        <h3 className="font-semibold text-foreground mb-3 flex items-center space-x-2">
-                          <Users className="h-4 w-4" />
+                        <h4 className="font-sans text-sm font-bold text-foreground mb-2 flex items-center space-x-2">
+                          <Users className="h-4 w-4 text-primary shrink-0" />
                           <span>Como Isso Ajuda na Sua Decisão</span>
-                        </h3>
-                        <p className="text-muted-foreground leading-relaxed">
+                        </h4>
+                        <p className="font-sans text-sm text-muted-foreground leading-relaxed">
                           {criterio.howItHelps}
                         </p>
                       </div>
 
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
                         <div>
-                          <h3 className="font-semibold text-foreground mb-3">Indicadores Avaliados</h3>
-                          <div className="space-y-2">
+                          <h4 className="font-sans text-sm font-bold text-foreground mb-2 flex items-center space-x-2">
+                            <CheckCircle className="h-4 w-4 text-primary shrink-0" />
+                            <span>Indicadores Avaliados</span>
+                          </h4>
+                          <div className="space-y-1.5 pl-1">
                             {criterio.indicators.map((indicator, idx) => (
-                              <div key={idx} className="flex items-center space-x-2 text-sm">
-                                <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-                                <span className="text-muted-foreground">{indicator}</span>
+                              <div key={idx} className="flex items-center space-x-2 text-xs sm:text-sm">
+                                <CheckCircle className="h-3.5 w-3.5 text-emerald-600 flex-shrink-0" />
+                                <span className="text-muted-foreground font-sans">{indicator}</span>
                               </div>
                             ))}
                           </div>
                         </div>
 
-                        <div className="bg-secondary/30 rounded-lg p-4">
-                          <h3 className="font-semibold text-foreground mb-3 flex items-center space-x-2">
-                            <BookOpen className="h-4 w-4" />
+                        <div className="bg-secondary/30 rounded-lg p-4 border border-border/40">
+                          <h4 className="font-sans text-sm font-bold text-foreground mb-2 flex items-center space-x-2">
+                            <BookOpen className="h-4 w-4 text-primary shrink-0" />
                             <span>Base Bíblica</span>
-                          </h3>
-                          <p className="text-sm text-muted-foreground italic">
+                          </h4>
+                          <p className="font-sans text-xs sm:text-sm text-muted-foreground italic leading-relaxed">
                             {criterio.biblicalBasis}
                           </p>
                         </div>
@@ -517,7 +523,7 @@ const MetodologiaPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
               <Card className="card-elevated">
                 <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
+                  <CardTitle className="font-serif text-lg font-bold flex items-center space-x-2">
                     <Users className="h-5 w-5" />
                     <span>O que é a FPE?</span>
                   </CardTitle>
@@ -534,7 +540,7 @@ const MetodologiaPage = () => {
 
               <Card className="card-elevated">
                 <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
+                  <CardTitle className="font-serif text-lg font-bold flex items-center space-x-2">
                     <Shield className="h-5 w-5" />
                     <span>Nossa fonte</span>
                   </CardTitle>
@@ -562,7 +568,7 @@ const MetodologiaPage = () => {
 
             <Card className="card-elevated mb-8">
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
+                <CardTitle className="font-serif text-lg font-bold flex items-center space-x-2">
                   <Info className="h-5 w-5" />
                   <span>Classificação e contestação</span>
                 </CardTitle>
@@ -603,7 +609,7 @@ const MetodologiaPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
               <Card className="card-elevated">
                 <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
+                  <CardTitle className="font-serif text-lg font-bold flex items-center space-x-2">
                     <AlertCircle className="h-5 w-5" />
                     <span>Limitações</span>
                   </CardTitle>
@@ -632,7 +638,7 @@ const MetodologiaPage = () => {
 
               <Card className="card-elevated">
                 <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
+                  <CardTitle className="font-serif text-lg font-bold flex items-center space-x-2">
                     <CheckCircle className="h-5 w-5" />
                     <span>Garantias</span>
                   </CardTitle>
@@ -663,7 +669,7 @@ const MetodologiaPage = () => {
             {/* Seção: Como os votos são selecionados */}
             <Card className="card-elevated mb-8">
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
+                <CardTitle className="font-serif text-lg font-bold flex items-center space-x-2">
                   <Database className="h-5 w-5" />
                   <span>Como os votos são selecionados para a nota</span>
                 </CardTitle>

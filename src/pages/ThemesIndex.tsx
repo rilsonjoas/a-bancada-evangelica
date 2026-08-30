@@ -20,7 +20,7 @@ const ThemesIndex = () => {
     <div className="min-h-screen bg-gradient-subtle">
       <section className="bg-gradient-primary text-primary-foreground py-12">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="font-serif text-3xl md:text-4xl font-bold mb-3">
+          <h1 className="font-serif text-3xl md:text-4xl font-bold mb-3 text-white">
             Votações por tema
           </h1>
           <p className="text-primary-foreground/90 max-w-2xl mx-auto leading-relaxed">

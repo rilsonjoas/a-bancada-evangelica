@@ -103,12 +103,12 @@ export function ShareableCard({ politician, type = 'summary' }: ShareableCardPro
   };
 
   const shareButtons = (
-    <div className="flex gap-2">
-      <Button onClick={downloadAsImage} variant="outline" size="sm">
+    <div className="flex gap-3 mb-4 sticky top-0 bg-white dark:bg-slate-900 z-10 py-2 border-b border-border/50">
+      <Button onClick={downloadAsImage} className="bg-primary text-primary-foreground font-bold text-xs flex-1">
         <Download className="w-4 h-4 mr-2" />
         Baixar Card
       </Button>
-      <Button onClick={shareCard} variant="outline" size="sm">
+      <Button onClick={shareCard} variant="outline" className="border-primary/40 text-primary hover:bg-primary/5 font-bold text-xs flex-1">
         <Share2 className="w-4 h-4 mr-2" />
         Compartilhar Card
       </Button>

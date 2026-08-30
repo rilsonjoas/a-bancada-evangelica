@@ -1,3 +1,4 @@
+import { usePageMeta } from '@/hooks/usePageMeta';
 import React, { useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { ArrowLeft, Plus, X, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react';
@@ -19,7 +20,8 @@ export function PoliticianComparison() {
   // Get politician IDs from URL params
   const politicianIds = searchParams.get('ids')?.split(',').map(id => parseInt(id)).filter(id => !isNaN(id)) || [];
   
-  const { data: comparisonData, isLoading, error } = useComparisonData(politicianIds);
+  const {
+  data: comparisonData, isLoading, error } = useComparisonData(politicianIds);
 
   const addPolitician = (politicianId: number) => {
     if (!politicianIds.includes(politicianId) && politicianIds.length < 4) {
@@ -161,7 +163,7 @@ export function PoliticianComparison() {
 
                     <div className="space-y-2">
                       <div className="flex justify-between text-xs">
-                        <span>🛡️ Vida</span>
+                        <span>Proteção à Vida</span>
                         <span className="font-medium">
                           {politician.currentScore?.lifeProtection?.toFixed(0) || '0'}
                         </span>
@@ -185,7 +187,7 @@ export function PoliticianComparison() {
                       />
                       
                       <div className="flex justify-between text-xs">
-                        <span>⚖️ Integridade</span>
+                        <span>Integridade Moral</span>
                         <span className="font-medium">
                           {politician.currentScore?.moralIntegrity?.toFixed(0) || '0'}
                         </span>
@@ -265,11 +267,11 @@ export function PoliticianComparison() {
                   <CardContent>
                     <div className="space-y-4">
                       {[
-                        { key: 'lifeProtection', label: '🛡️ Proteção à Vida' },
+                        { key: 'lifeProtection', label: 'Proteção à Vida' },
                         { key: 'familyValues', label: '👨‍👩‍👧‍👦 Valores Familiares' },
-                        { key: 'moralIntegrity', label: '⚖️ Integridade Moral' },
+                        { key: 'moralIntegrity', label: 'Integridade Moral Moral' },
                         { key: 'socialResponsibility', label: '🤝 Responsabilidade Social' },
-                        { key: 'religiousFreedom', label: '✝️ Liberdade Religiosa' }
+                        { key: 'religiousFreedom', label: 'Liberdade Religiosa' }
                       ].map(criterion => {
                         const topPolitician = comparisonData.reduce((best, current) => {
                           const bestScore = best.currentScore?.[criterion.key] || 0;

@@ -24,7 +24,7 @@ const ThemePage = () => {
     return (
       <div className="min-h-screen bg-gradient-subtle">
         <section className="py-12">
-          <div className="container mx-auto px-4 max-w-2xl">
+          <div className="container mx-auto px-4 max-w-4xl">
             <Card className="card-elevated">
               <CardContent className="text-center py-12">
                 <FileQuestion className="w-12 h-12 mx-auto mb-4 text-gray-400" />
@@ -59,8 +59,8 @@ const ThemePage = () => {
             <ArrowLeft className="w-4 h-4" /> Votações por tema
           </Link>
           <div className="flex items-center gap-3 mb-3">
-            <Icon className="w-8 h-8" />
-            <h1 className="font-serif text-3xl md:text-4xl font-bold">{theme.label}</h1>
+            <Icon className="w-8 h-8 text-amber-400" />
+            <h1 className="font-serif text-3xl md:text-4xl font-bold text-white">{theme.label}</h1>
           </div>
           <p className="text-primary-foreground/90 max-w-3xl leading-relaxed">
             {theme.description}
