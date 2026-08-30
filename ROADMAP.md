@@ -568,7 +568,27 @@ Google" não é viável em iOS de qualquer forma.
 - [ ] ~~**C2 · Definir North Star metric**~~ 🟢 — **PAUSADO (decisão Rilson 2026-08-28)** — proposta inicial: "% de visitas que chegam a um perfil completo". Decisão, não código; congelado até o C1 acumular dados suficientes para basear a escolha.
 
 ### Fase 2 — crescimento (escolher COM dados do C1; competem entre si)
-- [ ] **M1 · Match Eleitor** 🟡 Nº 5 na fila ativa (2026-08-28) — cidadão responde as mesmas questões dos 5 critérios → vê parlamentares alinhados consigo. Maior potencial viral do produto. Build: ALTO (quiz + matching + UX). Manter: baixo depois de pronto (conteúdo estático). Só fazer se C1 mostrar engajamento com perfis.
+- [x] **M1 · Match Eleitor** ✅ (2026-08-29) — cidadão responde as mesmas questões dos 5 critérios → vê parlamentares alinhados consigo. Maior potencial viral do produto. Build: ALTO (quiz + matching + UX). Manter: baixo depois de pronto (conteúdo estático). Só fazer se C1 mostrar engajamento com perfis.
+  - **CONCLUÍDO** — o que foi entregue (validado em produção):
+    - Decisão com o Rilson (via pergunta objetiva): **5 perguntas, uma por
+      critério**, opções **concordo / não concordo / pular**; resultado =
+      **ranking de parlamentares + % de afinidade**; cálculo **100% no
+      navegador** (reusa `GET /api/politicians`, nenhum endpoint novo).
+    - `src/lib/match.ts`: `MATCH_QUESTIONS` (5, derivadas de `CRITERIA`) +
+      `affinityFor` — concordo soma a nota do critério; discordo soma o
+      reflexo (100 − nota); pular exclui o critério e renormaliza os pesos
+      oficiais (`SCORE_WEIGHTS`). **Se o cidadão concorda com tudo, a ordem
+      é a do ranking oficial** (honestidade: afinidade == overall); tudo
+      neutro → overall.
+    - `src/pages/Match.tsx`: wizard de 5 passos (progresso, voltar, pular) →
+      resultado top 30 em `MatchCard` (foto, nome, barra de afinidade por
+      faixa, nota geral, link ao perfil) + "Refazer". Rota `/match`, link
+      "Quem vota como você?" no rodapé, CTA no hero do Ranking,
+      `usePageMeta` para SEO.
+    - Validado: typecheck limpo, **94 front testes** (7 match + 5 página),
+      lint 0 erros, build OK, **E2E 16/16 em produção**, crawler tipográfico
+      `/match` p lh<1.5 = 0, Lighthouse a11y **100/100** em `/`, `/match` e
+      `/politicos/110`.
 - [x] **M2 · Páginas por tema** ✅ (2026-08-29) — "como votaram sobre saúde/impostos/educação" com key votes existentes + 1 parágrafo de contexto leigo + SEO. Build: médio. Manter: BAIXO-MÉDIO (contexto envelhece devagar; revisão semestral).
   - **CONCLUÍDO** — o que foi entregue (validado em produção):
     - Campo `KeyAgenda.theme` (slug, não enum — o catálogo é aberto e evolui
@@ -611,8 +631,10 @@ G1+G2+C1 numa sessão (manhã de trabalho) → G3+G4+G5 → F16 (coleta manual d
 > 4.835 pendentes aguardando aprovação humana em /admin/noticias) →
 > ③ M2·Páginas por tema ✅ **DEPLOYADO (2026-08-29**, /temas + 4 landings) →
 > ④ Auditoria tipográfica ✅ **CONCLUÍDO (2026-08-29**, lh≥1.5 em toda página,
-> corpo ≥14px, padrões extraídos em PADRAO-DE-ENGENHARIA.md; deploy pendente) →
-> ⑤ M1·Match Eleitor. **M3/Digest e M4/Alertas-e-mail
+> corpo ≥14px, padrões extraídos em PADRAO-DE-ENGENHARIA.md; **deploy b50bea8**) →
+> ⑤ M1·Match Eleitor ✅ **DEPLOYADO (2026-08-29**, /match — quiz de 5 perguntas
+> e ranking por afinidade, cálculo 100% no navegador, E2E 16/16, Lighthouse 100).
+> **M3/Digest e M4/Alertas-e-mail
 > PAUSADOS por decisão do Rilson (2026-08-28): não mantém sem certeza de sucesso.**
 > Sentry (G1) permanece pausado — Uptime Kuma já cobre a disponibilidade.
 
