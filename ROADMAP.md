@@ -571,7 +571,30 @@ Google" não é viável em iOS de qualquer forma.
 
 ### Fase 2 — crescimento (escolher COM dados do C1; competem entre si)
 - [ ] **M1 · Match Eleitor** 🟡 Nº 5 na fila ativa (2026-08-28) — cidadão responde as mesmas questões dos 5 critérios → vê parlamentares alinhados consigo. Maior potencial viral do produto. Build: ALTO (quiz + matching + UX). Manter: baixo depois de pronto (conteúdo estático). Só fazer se C1 mostrar engajamento com perfis.
-- [ ] **M2 · Páginas por tema** 🟡 Nº 3 na fila ativa (2026-08-28) — "como votaram sobre saúde/impostos/educação" com key votes existentes + 1 parágrafo de contexto leigo + SEO. Build: médio. Manter: BAIXO-MÉDIO (contexto envelhece devagar; revisão semestral).
+- [x] **M2 · Páginas por tema** ✅ (2026-08-29) — "como votaram sobre saúde/impostos/educação" com key votes existentes + 1 parágrafo de contexto leigo + SEO. Build: médio. Manter: BAIXO-MÉDIO (contexto envelhece devagar; revisão semestral).
+  - **CONCLUÍDO** — o que foi entregue (validado em produção):
+    - Campo `KeyAgenda.theme` (slug, não enum — o catálogo é aberto e evolui
+      na revisão semestral sem `db push`; índice para filtros futuros).
+      Seed `scripts/seed-practical-impact.ts` passou a gravar **tema + impacto
+      leigo** nas 10 proposições curadas → **51 pautas com tema** (de 75 com
+      voto): `meio-ambiente-energia` 36, `economia-agro` 7,
+      `assistencia-social` 5, `transito` 3. As demais pautas (outros
+      critérios) ficam sem tema, honesto.
+    - API: `GET /api/votes/analysis` expõe `theme` na pauta.
+    - Páginas: `/temas` (hub com contagem por tema) + `/temas/:slug`
+      (hero leigo + cards `KeyAgendaCard`, só temas com pautas — nada de
+      página vazia). Catálogo + parágrafo leigo em `src/lib/themes.ts`
+      (rotulado "revisto semestralmente", alinhado ao GUIA-CURADORIA).
+    - SEO de SPA: hook `usePageMeta` (title + meta description por página).
+    - Atalho "Navegue por tema" na aba Pautas-Chave da `/votacoes` + link
+      "Votações por tema" no rodapé.
+    - **Bônus a11y** (Lighthouse 92→100 na página de tema): Progress do
+      Radix agora com `aria-label` e textos `green/yellow-600 → 700`
+      (contraste ≥4.5) — reparo que subiu a acessibilidade da `/votacoes`
+      também.
+    - Validado: typecheck limpo, 82 front + 19 api testes verdes, build OK,
+      E2E 12/12, Lighthouse a11y 100/100 em `/temas` e `/temas/meio-ambiente-energia`,
+      `db push` aplicado no VPS + seed re-rodado (51 agendas com tema).
 - [ ] ~~**M3 · Digest semanal**~~ 🔴 ARMADILHA — **PAUSADO (decisão Rilson 2026-08-28: não manter sem certeza de sucesso)** — página/newsletter "votações da semana". Build: médio. Manter: ALTO — vira obrigação editorial SEMANAL; semana vazia = página vazia. Só voltaria com curadoria semi-automática comprovada.
 - [ ] ~~**M4 · Alertas por e-mail**~~ 🔴 ARMADILHA — **PAUSADO (decisão Rilson 2026-08-28: não manter sem certeza de sucesso)** — notificar sobre pautas grandes. Build: alto. Manter: ALTO — deliverability, LGPD, unsubscribe, infra de env. Deixar para quando houver base de usuários recorrentes.
 - [x] **M5 · Impacto leigo por key vote** ✅ (2026-08-29) — "na prática, isso significa…" nas 10 proposições de maior volume de votos (51 agendas: licenciamento ambiental PL 2159/2021, transição energética PL 327/2021, combustíveis sustentáveis PL 528/2020, consumo sustentável PL 3899/2012, incêndios florestais PL 3469/2024, anistia de crédito rural PL 5122/2023, PAA+Cozinha Solidária PL 2920/2023, retaliação comercial PL 2088/2023, SPVAT PLP 233/2023, piso do SUAS PEC 383/2017). Campo `practical_impact` no KeyAgenda (dado, não hardcode; `db push` no deploy) exposto como `practicalImpact` em `GET /api/votes/analysis`; bloco "Na prática, isso significa…" no `KeyAgendaCard` (aba Pautas-Chave da /votacoes). Seed idempotente `scripts/seed-practical-impact.ts` (`pnpm seed:practical-impact`) casando por prefixo do título — re-run seguro após cada sync. Curadoria neutra (sem juízo de valor, alinhada ao GUIA-CURADORIA-DADOS). Validado: typecheck limpo, 54 testes OK, build OK, 51/51 blocos em produção (390px e 1350px, 0 overflow, 0 corte), Lighthouse acessibilidade 100/100, E2E 6/6.
@@ -588,7 +611,7 @@ G1+G2+C1 numa sessão (manhã de trabalho) → G3+G4+G5 → F16 (coleta manual d
 > ① M5·Impacto leigo ✅ **DEPLOYADO (2026-08-29**, 10 proposições/51 agendas) →
 > ② #7·No noticiário ✅ **DEPLOYADO (2026-08-29**, fila de curadoria no ar,
 > 4.835 pendentes aguardando aprovação humana em /admin/noticias) →
-> ③ M2·Páginas por tema →
+> ③ M2·Páginas por tema ✅ **DEPLOYADO (2026-08-29**, /temas + 4 landings) →
 > ④ Auditoria tipográfica/espaçamento → ⑤ M1·Match Eleitor. **M3/Digest e M4/Alertas-e-mail
 > PAUSADOS por decisão do Rilson (2026-08-28): não mantém sem certeza de sucesso.**
 > Sentry (G1) permanece pausado — Uptime Kuma já cobre a disponibilidade.
