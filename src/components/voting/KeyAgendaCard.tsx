@@ -39,9 +39,9 @@ export function KeyAgendaCard({ agenda }: KeyAgendaCardProps) {
   const lastDate = formatDate(agenda.lastVoteDate);
 
   const getConsensusLevel = (score: number) => {
-    if (score >= 80) return { label: 'Alto Consenso', color: 'text-green-600' };
+    if (score >= 80) return { label: 'Alto Consenso', color: 'text-green-700' };
     if (score >= 60) return { label: 'Consenso Moderado', color: 'text-blue-600' };
-    if (score >= 40) return { label: 'Baixo Consenso', color: 'text-yellow-600' };
+    if (score >= 40) return { label: 'Baixo Consenso', color: 'text-yellow-700' };
     return { label: 'Muito Polarizado', color: 'text-red-600' };
   };
 
@@ -117,17 +117,17 @@ export function KeyAgendaCard({ agenda }: KeyAgendaCardProps) {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-green-600" />
+                <TrendingUp className="w-4 h-4 text-green-700" />
                 <span className="text-sm font-medium">Favoráveis</span>
               </div>
               <div className="text-right">
-                <span className="font-bold text-green-600">{agenda.favorableVotes}</span>
+                <span className="font-bold text-green-700">{agenda.favorableVotes}</span>
                 <span className="text-sm text-gray-500 ml-1">
                   ({fmt(favorablePercentage)}%)
                 </span>
               </div>
             </div>
-            <Progress value={favorablePercentage} className="h-2" />
+            <Progress value={favorablePercentage} className="h-2" aria-label="Percentual de votos favoráveis" />
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -141,28 +141,28 @@ export function KeyAgendaCard({ agenda }: KeyAgendaCardProps) {
                 </span>
               </div>
             </div>
-            <Progress value={contraryPercentage} className="h-2" />
+            <Progress value={contraryPercentage} className="h-2" aria-label="Percentual de votos contrários" />
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Minus className="w-4 h-4 text-yellow-600" />
+                <Minus className="w-4 h-4 text-yellow-700" />
                 <span className="text-sm font-medium">Abstenções</span>
               </div>
               <div className="text-right">
-                <span className="font-bold text-yellow-600">{agenda.abstentions}</span>
+                <span className="font-bold text-yellow-700">{agenda.abstentions}</span>
                 <span className="text-sm text-gray-500 ml-1">
                   ({fmt(abstentionPercentage)}%)
                 </span>
               </div>
             </div>
-            <Progress value={abstentionPercentage} className="h-2" />
+            <Progress value={abstentionPercentage} className="h-2" aria-label="Percentual de abstenções" />
           </div>
 
           {/* Visual Summary */}
           <div className="flex items-center justify-center pt-4 border-t">
             <div className="grid grid-cols-3 gap-6 text-center">
               <div>
-                <div className="text-lg font-bold text-green-600">{agenda.favorableVotes}</div>
+                <div className="text-lg font-bold text-green-700">{agenda.favorableVotes}</div>
                 <div className="text-xs text-gray-600">Favoráveis</div>
               </div>
               <div>
@@ -170,7 +170,7 @@ export function KeyAgendaCard({ agenda }: KeyAgendaCardProps) {
                 <div className="text-xs text-gray-600">Contrários</div>
               </div>
               <div>
-                <div className="text-lg font-bold text-yellow-600">{agenda.abstentions}</div>
+                <div className="text-lg font-bold text-yellow-700">{agenda.abstentions}</div>
                 <div className="text-xs text-gray-600">Abstenções</div>
               </div>
             </div>
