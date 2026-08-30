@@ -114,6 +114,11 @@ model KeyAgenda {
   // em linguagem leiga e neutra. Não afeta o score — é só contexto.
   practical_impact      String?
 
+  // M2 — tema legislativo (slug do catálogo em src/lib/themes.tsx) para as
+  // páginas "como votaram sobre X". String livre (não enum): o catálogo é
+  // aberto e evolve a cada revisão semestral sem precisar de db push.
+  theme                 String?
+
   // Origem da proposição
   source                SourceType
   source_id             String   // ID na API de origem
@@ -129,9 +134,10 @@ model KeyAgenda {
   updated_at            DateTime @updatedAt
   created_by            String?  // ID do usuário que criou
   
-  // Relacionamentos
+// Relacionamentos
   votes                 Vote[]
-  
+
+  @@index([theme])
   @@map("key_agendas")
 }
 

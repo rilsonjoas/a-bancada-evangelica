@@ -29,6 +29,7 @@ export interface VotingAnalysisData {
     title: string;
     description: string;
     practicalImpact?: string | null;
+    theme?: string | null;
     criteria: string;
     totalVotes: number;
     favorableVotes: number;

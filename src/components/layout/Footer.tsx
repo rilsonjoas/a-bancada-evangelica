@@ -79,6 +79,14 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
+                <Link
+                  to="/temas"
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Votações por tema
+                </Link>
+              </li>
+              <li>
                 <Link 
                   to="/errata" 
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"

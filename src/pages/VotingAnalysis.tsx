@@ -11,6 +11,7 @@ import { VotingTrendsChart } from '@/components/voting/VotingTrendsChart';
 import { KeyAgendaCard } from '@/components/voting/KeyAgendaCard';
 import { VotingStatsCard } from '@/components/voting/VotingStatsCard';
 import { CRITERIA } from '@/lib/criteria';
+import { THEMES, countAgendasByTheme } from '@/lib/themes';
 
 export function VotingAnalysis() {
   const [filters, setFilters] = useState({
@@ -50,6 +51,11 @@ export function VotingAnalysis() {
   }, [analysisData, filters]);
 
   const hasActiveFilters = Boolean(filters.criteria || filters.dateRange || filters.search);
+
+  const countsByTheme = useMemo(
+    () => countAgendasByTheme(analysisData?.keyAgendas ?? []),
+    [analysisData]
+  );
 
   const updateFilter = (key: string, value: string) => {
     // Radix Select não aceita value="", usamos "all" como sentinel e convertemos para ""
@@ -316,6 +322,33 @@ export function VotingAnalysis() {
 
         {/* Key Agendas Tab */}
         <TabsContent value="agendas" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Navegue por tema</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {THEMES.map((t) => {
+                  const count = countsByTheme[t.slug] ?? 0;
+                  if (count === 0) return null;
+                  const Icon = t.icon;
+                  return (
+                    <Link
+                      key={t.slug}
+                      to={`/temas/${t.slug}`}
+                      className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
+                    >
+                      <Icon className="w-4 h-4" />
+                      {t.label}
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary/80">
+                        {count}
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
           <div className="grid gap-6">
             {filteredAgendas.length > 0 ? (
               filteredAgendas.map((agenda) => (

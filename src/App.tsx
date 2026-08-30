@@ -23,6 +23,8 @@ import { Analytics } from "@/components/Analytics";
 import { DadosAbertos } from "./pages/DadosAbertos";
 import Errata from "./pages/Errata";
 import NewsCuration from "./pages/NewsCuration";
+import ThemesIndex from "./pages/ThemesIndex";
+import ThemePage from "./pages/ThemePage";
 
 /** Rola pro topo a cada navegação — sem isso o SPA mantém a altura da
  * página anterior e o usuário "cai" no meio da página seguinte. */
@@ -60,6 +62,8 @@ const App = () => (
               <Route path="/comparacao" element={<PoliticianComparison />} />
               <Route path="/grupos" element={<VotingClusters />} />
               <Route path="/votacoes" element={<VotingAnalysis />} />
+              <Route path="/temas" element={<ThemesIndex />} />
+              <Route path="/temas/:slug" element={<ThemePage />} />
               <Route path="/sobre" element={<SobrePage />} />
               <Route path="/metodologia" element={<MetodologiaPage />} />
               <Route path="/dados" element={<DadosAbertos />} />
