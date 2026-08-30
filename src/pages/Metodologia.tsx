@@ -298,21 +298,21 @@ const MetodologiaPage = () => {
                     <TrendingUp className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
                     <div>
                       <div className="font-semibold text-green-800 text-sm">Impacto Positivo</div>
-                      <div className="text-xs text-green-700 mt-1">Voto alinhado com os valores evangélicos — adiciona pontos ao critério correspondente</div>
+                      <div className="text-sm text-green-700 mt-1">Voto alinhado com os valores evangélicos — adiciona pontos ao critério correspondente</div>
                     </div>
                   </div>
                   <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
                     <TrendingDown className="h-5 w-5 text-red-600 mt-0.5 shrink-0" />
                     <div>
                       <div className="font-semibold text-red-800 text-sm">Impacto Negativo</div>
-                      <div className="text-xs text-red-700 mt-1">Voto contrário ao posicionamento evangélico — subtrai pontos do critério correspondente</div>
+                      <div className="text-sm text-red-700 mt-1">Voto contrário ao posicionamento evangélico — subtrai pontos do critério correspondente</div>
                     </div>
                   </div>
                   <div className="flex items-start gap-3 p-4 bg-gray-50 border border-gray-200 rounded-lg">
                     <Minus className="h-5 w-5 text-gray-500 mt-0.5 shrink-0" />
                     <div>
                       <div className="font-semibold text-gray-700 text-sm">Neutro / Ausente</div>
-                      <div className="text-xs text-gray-600 mt-1">Abstenção, obstrução ou ausência — não altera a pontuação, mas reduz o índice de consistência</div>
+                      <div className="text-sm text-gray-600 mt-1">Abstenção, obstrução ou ausência — não altera a pontuação, mas reduz o índice de consistência</div>
                     </div>
                   </div>
                 </div>
@@ -351,15 +351,15 @@ const MetodologiaPage = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
                     <div className="text-2xl font-bold text-green-700">80–100%</div>
-                    <div className="text-xs text-green-700 mt-1">Alta consistência — vota em quase todas as pautas</div>
+                    <div className="text-sm text-green-700 mt-1">Alta consistência — vota em quase todas as pautas</div>
                   </div>
                   <div className="text-center p-4 bg-yellow-50 rounded-lg border border-yellow-200">
                     <div className="text-2xl font-bold text-yellow-700">50–79%</div>
-                    <div className="text-xs text-yellow-700 mt-1">Consistência moderada — ausências frequentes</div>
+                    <div className="text-sm text-yellow-700 mt-1">Consistência moderada — ausências frequentes</div>
                   </div>
                   <div className="text-center p-4 bg-red-50 rounded-lg border border-red-200">
                     <div className="text-2xl font-bold text-red-700">0–49%</div>
-                    <div className="text-xs text-red-700 mt-1">Baixa consistência — muitas abstenções ou ausências</div>
+                    <div className="text-sm text-red-700 mt-1">Baixa consistência — muitas abstenções ou ausências</div>
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground">
@@ -384,7 +384,7 @@ const MetodologiaPage = () => {
                       herança partidária ajustada pelo que já se sabe. Perfis nessa situação são marcados
                       no site. A estimativa vira medição conforme mais votações nominais são incorporadas.
                     </p>
-                    <p className="text-xs">
+                    <p className="text-sm leading-relaxed">
                       Fórmula final: soma ponderada dos 5 critérios nos pesos 30/25/20/15/10, limitada a
                       0–100. O motor completo é código aberto:{' '}
                       <code className="text-xs bg-secondary px-1 py-0.5 rounded">scripts/recalculate-scores.ts</code>.
@@ -553,7 +553,7 @@ const MetodologiaPage = () => {
                       <span><strong className="text-foreground">Senado:</strong> composição da frente (codcol 2583)</span>
                     </li>
                   </ul>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     Não usamos listas de imprensa, redes sociais ou autodeclaração verbal.
                   </p>
                 </CardContent>
@@ -578,7 +578,7 @@ const MetodologiaPage = () => {
                   Correções aplicadas são anunciadas publicamente na{' '}
                   <a href="/errata" className="underline hover:text-primary transition-colors">Errata pública</a>.
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   Última auditoria: 25 de agosto de 2026 — 99,5% de precisão verificada contra a lista oficial (207/208 deputados corretos; 15 senadores em exercício marcados).
                 </p>
               </CardContent>
@@ -702,7 +702,7 @@ const MetodologiaPage = () => {
                   <p>
                     <strong className="text-foreground">Resultado:</strong> a nota de senadores é estimada com base no histórico de alinhamento do partido ao longo das legislaturas. Assim que a API do Senado disponibilizar votos individuais de comissões, o cálculo de notas será atualizado automaticamente.
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     <strong>Fonte:</strong> dados coletados de <code className="break-all">legis.senado.leg.br/dadosabertos/votacao</code> em 26/08/2026. O endpoint antigo por senador (<code className="break-all">/senador/[id]/votacoes</code>) foi descontinuado em fevereiro de 2026.
                   </p>
                 </div>
@@ -738,7 +738,7 @@ const MetodologiaPage = () => {
                     </a>
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground border-t pt-3">
+                <p className="text-sm text-muted-foreground border-t pt-3">
                   O guia inclui: APIs oficiais usadas, palavras-chave por critério, fórmula
                   de scoring, scripts determinísticos (recalculate-scores.ts), validações de
                   qualidade, e hashes SHA256 dos CSVs publicados para auditoria de integridade.

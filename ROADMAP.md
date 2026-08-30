@@ -524,12 +524,10 @@ Google" não é viável em iOS de qualquer forma.
   - Heróis de Metodologia e Contato: BookOpen genérico → marca-white.png (Ranking/Sobre já estavam certos)
   - Mantidos de propósito: ícones lucide semânticos (nav do Header, botões, arrays de dados) — não são marca
 - [x] **Acessibilidade + responsividade fina** — CONCLUÍDO (2026-08-27, docs/A11Y-AUDIT.md; a entrada na linha ~107 deste roadmap já registrava o item com as mesmas evidências: Lighthouse 100/100 em 10 rotas, 0 elementos sem nome acessível, 0 overflow em 10 rotas × 390/320px, contraste/Tendência de Alinhamento 600→700).
-- [ ] **Auditoria tipográfica e de espaçamento** 🟡 Nº 4 na fila ativa (2026-08-28) — pedido direto do Rilson (2026-08-22) — dor sentida também no Lecionário e Bíblia na Arte: "textos grandes quando não deveriam, espaçamento sem cuidado, leiturabilidade comprometida por coisas pequenas". Escopo mínimo:
-  - Hierarquia honesta: título grande SÓ no herói da página; corpo de leitura ≥14px em páginas de dados; labels uppercase pequenos reservados a rótulos (nunca parágrafos)
-  - Ritmo vertical numa escala única (4/8px) e respiro consistente entre seções
-  - line-height ≥1.5 em qualquer parágrafo de leitura
-  - Extrair os padrões que JÁ funcionam nos irmãos (Lecionário/Bíblia na Arte) e virar seção tipográfica no `PADRAO-DE-ENGENHARIA.md` pra valer pros próximos projetos
-  - Aplicar primeiro nas páginas de dados (Ranking/Votações/Perfil político), onde o card v2.1 já deu o tom
+- [x] **Auditoria tipográfica e de espaçamento** 🟡 — CONCLUÍDO (2026-08-29, crawler Playwright `e2e/typo-audit.cjs` medindo font-size/lh/overflow@390 nas 11 rotas; padrões extraídos em `PADRAO-DE-ENGENHARIA.md`): pedido direto do Rilson (2026-08-22) — dor sentida também no Lecionário e Bíblia na Arte: "textos grandes quando não deveriam, espaçamento sem cuidado, leiturabilidade comprometida por coisas pequenas".
+  - Entregue: line-height ≥1.5 como piso em **toda** página (defaults Tailwind `text-xs`/`sm`/`base`/`lg`/`xl`/`2xl` sobrescritos em `tailwind.config.ts → theme.extend.fontSize` — antes `text-sm`=1.43 e `text-xs`=1.33 esmagavam o lh 1.6 do body); corpo de leitura ≥14px (54 textos de card/página promovidos de `text-xs`→`text-sm`); hero do Ranking com último p de leitura 1.40→1.6; labels de barra "Nota geral" viraram `<span>` (semântica: rótulo≠parágrafo); títulos de notícia 1.38→1.5; exceções conscientes mantidas (tagline do logo, copyright/footer, última-sync, eixos de gráfico — 12px rótulo é a regra, não exceção violada)
+  - Validação programática: `p line-height < 1.5 = 0` e `p < 14px = só rótulos` nas 11 rotas; hierarquia honesta mantida (1 h1/rota, nada maior que o h1); overflow@390 só falso-positivos (skip-link sr-only, tooltip de dev) + gráfico Recharts de /grupos contido por overflow-hidden (registrado como melhoria futura de mobile chart)
+  - Escopo mínimo original (hierarquia honesta, ≥14px, 4/8px, lh≥1.5) cumprido; RITMO 4/8px já é padrão no card v2.1 e mapeado no checklist do PADRAO
 - [x] **`sitemap.xml` — RESOLVIDO (2026-08-21)**. Estático em `public/sitemap.xml` com as 8 rotas + prioridades/changefreq. `robots.txt` já existia.
 - [x] **Swagger/OpenAPI no NestJS — JÁ ESTAVA CONFIGURADO** (achado 2026-08-21): `src/api/main.ts:43-70` monta Swagger em `/api/docs` e Scalar em `/api/reference`. Item encerrado sem trabalho — o roadmap não sabia.
 
@@ -612,7 +610,9 @@ G1+G2+C1 numa sessão (manhã de trabalho) → G3+G4+G5 → F16 (coleta manual d
 > ② #7·No noticiário ✅ **DEPLOYADO (2026-08-29**, fila de curadoria no ar,
 > 4.835 pendentes aguardando aprovação humana em /admin/noticias) →
 > ③ M2·Páginas por tema ✅ **DEPLOYADO (2026-08-29**, /temas + 4 landings) →
-> ④ Auditoria tipográfica/espaçamento → ⑤ M1·Match Eleitor. **M3/Digest e M4/Alertas-e-mail
+> ④ Auditoria tipográfica ✅ **CONCLUÍDO (2026-08-29**, lh≥1.5 em toda página,
+> corpo ≥14px, padrões extraídos em PADRAO-DE-ENGENHARIA.md; deploy pendente) →
+> ⑤ M1·Match Eleitor. **M3/Digest e M4/Alertas-e-mail
 > PAUSADOS por decisão do Rilson (2026-08-28): não mantém sem certeza de sucesso.**
 > Sentry (G1) permanece pausado — Uptime Kuma já cobre a disponibilidade.
 

@@ -185,7 +185,7 @@ export function Errata() {
                   Abrir issue no GitHub
                 </a>
               </div>
-              <p className="text-xs text-muted-foreground pt-2">
+              <p className="text-sm text-muted-foreground pt-2">
                 Projeto independente, sem fins lucrativos — código aberto sob licença MIT
                 (github.com/rilsonjoas/a-bancada-evangelica).
               </p>

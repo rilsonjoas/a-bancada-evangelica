@@ -105,9 +105,9 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
               >
                 {formatScore(politician.scores.overall)}
               </Badge>
-                <p className="text-xs text-muted-foreground mt-1 max-w-[76px] leading-tight ml-auto">
+                <span className="text-xs text-muted-foreground mt-1 max-w-[76px] ml-auto block">
                   <abbr title="Nota de 0 a 100: o quanto os votos nominais registrados aderem aos 5 critérios publicados na metodologia. Não avalia a pessoa.">Nota geral</abbr>
-                </p>
+                </span>
               </div>
             </div>
 

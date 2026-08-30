@@ -384,7 +384,7 @@ export function VotingAnalysis() {
                         </div>
                         <div>
                           <h3 className="font-medium text-sm">{politician.name}</h3>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-sm text-muted-foreground">
                             {politician.party} · {politician.state}
                           </p>
                         </div>

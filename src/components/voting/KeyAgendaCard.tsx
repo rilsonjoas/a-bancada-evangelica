@@ -102,7 +102,7 @@ export function KeyAgendaCard({ agenda }: KeyAgendaCardProps) {
           </div>
         )}
         {(firstDate || lastDate) && (
-          <p className="mb-4 flex items-center gap-1.5 text-xs text-muted-foreground">
+          <p className="mb-4 flex items-center gap-1.5 text-sm text-muted-foreground">
             <Calendar className="h-3.5 w-3.5" />
             Votações entre {firstDate} e {lastDate}
           </p>

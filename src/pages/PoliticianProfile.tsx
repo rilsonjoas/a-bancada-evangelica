@@ -275,7 +275,7 @@ export function PoliticianProfile() {
                     ) : (
                       <div className="text-2xl font-bold text-muted-foreground">—</div>
                     )}
-                    <p className="text-xs text-muted-foreground mt-1">{c.weight}</p>
+                    <p className="text-sm text-muted-foreground mt-1">{c.weight}</p>
                   </CardContent>
                 </Card>
               );
@@ -408,7 +408,7 @@ export function PoliticianProfile() {
               ) : (
                 <p className="text-gray-500 text-center py-8">Dados de base de cálculo não disponíveis.</p>
               )}
-              <p className="text-xs text-muted-foreground border-t pt-3 leading-relaxed">
+              <p className="text-sm text-muted-foreground border-t pt-3 leading-relaxed">
                 <strong>Como ler:</strong> cada nota por critério é calculada a partir das
                 votações nominais que se encaixam naquele tema. Acima de 5 votações, a
                 base é considerada sólida; abaixo disso, a nota reflete uma amostra
@@ -486,13 +486,13 @@ export function PoliticianProfile() {
                     analisadas, parte dela vem da base partidária — o eleitor
                     precisa saber que é estimativa, não medição completa. */}
                 {(politician.expenseAnalysis?.totalCount ?? 0) === 0 && (
-                  <p className="text-xs text-muted-foreground border-t pt-3 leading-relaxed">
+                  <p className="text-sm text-muted-foreground border-t pt-3 leading-relaxed">
                     Análise de gastos ainda não realizada para este parlamentar.
                     Parte da nota vem da média histórica do partido (metodologia
                     híbrida) — trate-a como <strong>estimativa parcial</strong>.
                   </p>
                 )}
-                <p className="text-xs text-muted-foreground border-t pt-3 leading-relaxed">
+                <p className="text-sm text-muted-foreground border-t pt-3 leading-relaxed">
                   Marcadores são <strong>diferenças estatísticas</strong> em dados
                   públicos da Câmara — não acusações. Zero marcadores não garante
                   ausência de problemas.{' '}
@@ -556,7 +556,7 @@ export function PoliticianProfile() {
                     {/* Decisão de escopo documentada: financiamento é
                         transparência, não critério — doação legal não é
                         crime e insinuar o contrário seria injusto. */}
-                    <p className="text-xs text-muted-foreground border-t pt-3 leading-relaxed">
+                    <p className="text-sm text-muted-foreground border-t pt-3 leading-relaxed">
                       Fonte: TSE, prestação de contas eleitorais 2022. Este dado é
                       transparência — <strong>não afeta a nota</strong> do parlamentar.
                     </p>

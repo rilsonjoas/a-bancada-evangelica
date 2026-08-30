@@ -141,7 +141,7 @@ const SobrePage = () => {
                     <div key={item.label} className="flex items-center justify-between py-2 border-b border-border last:border-0">
                       <div>
                         <p className="text-sm font-medium text-foreground">{item.label}</p>
-                        <p className="text-xs text-muted-foreground">{item.note}</p>
+                        <p className="text-sm text-muted-foreground">{item.note}</p>
                       </div>
                       <Badge variant="secondary" className="font-mono text-sm">{item.value}</Badge>
                     </div>
@@ -235,7 +235,7 @@ const SobrePage = () => {
                     <Badge variant="secondary" className="text-xs font-mono mt-0.5 flex-shrink-0">{c.pct}</Badge>
                     <div>
                       <p className="font-semibold text-foreground text-sm">{c.title}</p>
-                      <p className="text-xs text-muted-foreground">{c.desc}</p>
+                      <p className="text-sm text-muted-foreground">{c.desc}</p>
                     </div>
                   </div>
                 ))}

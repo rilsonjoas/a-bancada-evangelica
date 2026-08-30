@@ -177,7 +177,7 @@ export default function NewsCurationPage() {
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium leading-snug">{m.title}</p>
+                    <p className="text-sm font-medium leading-normal">{m.title}</p>
                     <div className="flex items-center gap-3 mt-1 flex-wrap text-xs text-gray-500">
                       <span>{m.sourceName}</span>
                       {m.publishedAt && (

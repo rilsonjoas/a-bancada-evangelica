@@ -137,7 +137,7 @@ export function Privacidade() {
                 </a>
                 {' '}· Assunto sugerido: "Privacidade".
               </p>
-              <p className="text-xs text-muted-foreground pt-2">
+              <p className="text-sm text-muted-foreground pt-2">
                 Projeto independente, mantido por pessoa física, sem fins
                 lucrativos — código aberto sob licença MIT (
                 <a href="https://github.com/rilsonjoas/a-bancada-evangelica"

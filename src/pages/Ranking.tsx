@@ -253,7 +253,7 @@ const RankingPage = () => {
             <h1 className="font-serif text-4xl md:text-5xl font-bold mb-4 text-white tracking-tight">
               Como a Bancada Evangélica vota
             </h1>
-            <p className="text-lg md:text-xl text-primary-foreground/90 leading-relaxed max-w-2xl mx-auto mb-6">
+            <p className="text-lg md:text-xl text-primary-foreground/90 max-w-2xl mx-auto mb-6">
               Notas calculadas exclusivamente a partir de{' '}
               <strong>votos nominais públicos</strong> registrados na Câmara e no Senado.
               Sem enquete, sem declaração, sem simpatia — o voto registrado é o único dado.
@@ -271,7 +271,7 @@ const RankingPage = () => {
                   <span className="shrink-0 h-5 w-5 rounded-full bg-[#b49a60] text-[#0f172a] text-[11px] font-bold flex items-center justify-center mt-0.5">
                     {i + 1}
                   </span>
-                  <span className="opacity-95 leading-snug">{passo}</span>
+                  <span className="opacity-95 leading-relaxed">{passo}</span>
                 </div>
               ))}
             </div>
@@ -298,7 +298,7 @@ const RankingPage = () => {
                 <div className="text-sm opacity-90">Aderência muito alta</div>
               </div>
             </div>
-            <p className="text-xs text-primary-foreground/80 max-w-2xl mx-auto mt-4 leading-relaxed">
+            <p className="text-sm text-primary-foreground/80 max-w-2xl mx-auto mt-4 leading-relaxed">
               Todos os parlamentares monitorados recebem nota — mas nem todos
               por votos próprios: quem tem poucas votações compatíveis com as
               pautas classificadas recebe nota <strong>estimada pela média

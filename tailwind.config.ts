@@ -111,6 +111,19 @@ export default {
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
 			},
+			// M2/auditoria tipográfica (2026-08-29): line-height ≥ 1.5 em
+			// qualquer texto — o default do Tailwind deixava text-sm em 1.43
+			// e text-xs em 1.33, esmagando o line-height base 1.6 do body.
+			fontSize: {
+				xs: ['0.75rem', { lineHeight: '1.5' }], // 12px rótulos
+				sm: ['0.875rem', { lineHeight: '1.5' }], // 14px corpo mínimo
+				base: ['1rem', { lineHeight: '1.625' }],
+				lg: ['1.125rem', { lineHeight: '1.625' }],
+				xl: ['1.25rem', { lineHeight: '1.6' }],
+				'2xl': ['1.5rem', { lineHeight: '1.5' }],
+				'3xl': ['1.875rem', { lineHeight: '1.4' }],
+				'4xl': ['2.25rem', { lineHeight: '1.333' }],
+			},
 			keyframes: {
 				'accordion-down': {
 					from: {

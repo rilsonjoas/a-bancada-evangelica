@@ -40,7 +40,7 @@ export function NewsSection({ politicianId }: NewsSectionProps) {
         <CardTitle className="flex items-center gap-2">
           <Newspaper className="h-4 w-4" /> No noticiário
         </CardTitle>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           Menções na imprensa curadas manualmente — não usadas na nota.
         </p>
       </CardHeader>
@@ -55,7 +55,7 @@ export function NewsSection({ politicianId }: NewsSectionProps) {
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium leading-snug line-clamp-2">{m.title}</p>
+                <p className="text-sm font-medium leading-normal line-clamp-2">{m.title}</p>
                 <div className="flex items-center gap-2 mt-1 flex-wrap text-xs text-gray-500">
                   <span>{m.sourceName}</span>
                   {m.publishedAt && (

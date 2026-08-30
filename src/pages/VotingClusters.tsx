@@ -43,7 +43,7 @@ function ClusterTooltip({ active, payload }: { active?: boolean; payload?: Toolt
     <div className="bg-popover border border-border rounded-md p-3 shadow-lg text-sm">
       <p className="font-semibold text-foreground">{d.name}</p>
       <p className="text-muted-foreground">{d.party} · {d.state}</p>
-      <p className="text-xs text-muted-foreground mt-1">{d.clusterLabel}</p>
+      <p className="text-sm text-muted-foreground mt-1">{d.clusterLabel}</p>
     </div>
   );
 }
@@ -67,7 +67,7 @@ function ClusterCard({ cluster, color, index }: {
           <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
           <div>
             <p className="font-semibold text-foreground text-sm">{cluster.label}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">
+            <p className="text-sm text-muted-foreground mt-0.5">
               {parties.join(', ')}{parties.length < [...new Set(cluster.members.map(m => m.party))].length ? '…' : ''}
             </p>
           </div>
@@ -248,7 +248,7 @@ export default function VotingClusters() {
             <Award className="w-4 h-4 text-muted-foreground" />
             <h2 className="font-serif text-2xl font-bold text-foreground">Alinhamento por partido</h2>
           </div>
-          <p className="text-xs text-muted-foreground mb-4">
+          <p className="text-sm text-muted-foreground mb-4">
             Nota média nos 5 critérios evangélicos.{' '}
             <span className="inline-flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> alta (≥70)
@@ -308,7 +308,7 @@ export default function VotingClusters() {
                 <BarChart2 className="w-4 h-4 text-muted-foreground" />
                 <h2 className="font-serif text-2xl font-bold text-foreground">Visualização 2D (ACP)</h2>
               </div>
-              <p className="text-xs text-muted-foreground mb-4">
+              <p className="text-sm text-muted-foreground mb-4">
                 Cada ponto é um parlamentar. Proximidade indica padrão de voto similar.
               </p>
               <div
