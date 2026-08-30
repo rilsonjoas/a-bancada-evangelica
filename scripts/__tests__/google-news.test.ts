@@ -5,6 +5,7 @@ import {
   buildNewsQuery,
   googleNewsFeedUrl,
   isLikelyAbout,
+  withinWindow,
   type NewsItem,
 } from '../lib/google-news';
 
@@ -130,5 +131,26 @@ describe('isLikelyAbout — filtro anti-ruído', () => {
 
   it('rejeita pesquisa eleitoral que só menciona o nome no corpo', () => {
     expect(isLikelyAbout(query, 'Quaest para governador: placar das eleições')).toBe(false);
+  });
+});
+
+describe('withinWindow — janela temporal', () => {
+  const NOW = new Date('2026-08-29T00:00:00Z');
+
+  it('aceita matéria dentro da janela', () => {
+    expect(withinWindow('2026-08-01T10:00:00Z', 24, NOW)).toBe(true);
+  });
+
+  it('rejeita exatamente no limite antigo (24 meses atrás)', () => {
+    expect(withinWindow('2024-08-28T23:59:59Z', 24, NOW)).toBe(false);
+    expect(withinWindow('2024-08-29T00:00:00Z', 24, NOW)).toBe(true);
+  });
+
+  it('rejeita lixo histórico (ex.: 2010)', () => {
+    expect(withinWindow('2010-11-03T07:00:00Z', 24, NOW)).toBe(false);
+  });
+
+  it('rejeita data inválida — nunca publicamos o que não sabemos datar', () => {
+    expect(withinWindow('gibberish', 24, NOW)).toBe(false);
   });
 });

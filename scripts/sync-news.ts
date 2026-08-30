@@ -19,7 +19,7 @@
 import { PrismaClient } from '@prisma/client';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { searchGoogleNews, isLikelyAbout } from './lib/google-news';
+import { searchGoogleNews, isLikelyAbout, withinWindow } from './lib/google-news';
 
 const prisma = new PrismaClient();
 
@@ -31,7 +31,10 @@ const STATE = stateIdx !== -1 ? args[stateIdx + 1] : undefined;
 
 const BATCH = 50;     // log a cada N processados
 const DELAY_MS = 300; // sleep entre requests — Google News sem key não tolera rajada
-const MAX_PER_POLITICIAN = 30; // teto por parlamentar para a fila não explodir
+const MAX_PER_POLITICIAN = 10; // teto por parlamentar — curadoria humana fica viável
+// Janela temporal: notícias de eleição antiga e balanços históricos enchem a
+// fila com lixo não acionável. Fica só o que ainda serve para contexto atual.
+const MAX_AGE_MONTHS = 24;
 
 async function main() {
   const where = {
@@ -63,6 +66,8 @@ async function main() {
       const items = (await searchGoogleNews(query))
         // Filtro anti-ruído: nome completo precisa estar no título
         .filter((item) => isLikelyAbout(query, item.title))
+        // Janela temporal: descarta balanços antigos e lixo histórico
+        .filter((item) => withinWindow(item.pubDate, MAX_AGE_MONTHS))
         // Google News ordena por relevância; priorizar os mais recentes
         .sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime())
         .slice(0, MAX_PER_POLITICIAN);

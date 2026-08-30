@@ -110,6 +110,18 @@ export function isLikelyAbout(query: NewsQuery, itemTitle: string): boolean {
   return false;
 }
 
+/**
+ * Janela temporal: fica só o que ainda serve de contexto atual. publicate
+ * inválida é considerado FORA da janela (não arriscamos publicar lixo).
+ */
+export function withinWindow(pubDate: string, maxAgeMonths: number, now = new Date()): boolean {
+  const t = new Date(pubDate);
+  if (isNaN(t.getTime())) return false;
+  const cutoff = new Date(now);
+  cutoff.setMonth(cutoff.getMonth() - maxAgeMonths);
+  return t >= cutoff;
+}
+
 /** Endpoint público do Google News RSS (pt-BR). */
 export function googleNewsFeedUrl(query: string): string {
   return (
