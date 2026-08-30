@@ -275,10 +275,15 @@ const RankingPage = () => {
                 </div>
               ))}
             </div>
-            <Link to="/metodologia" className="inline-flex items-center gap-2 text-[#b49a60] hover:text-amber-300 font-semibold transition-colors">
-              Ler a metodologia completa
-              <TrendingUp className="h-4 w-4" />
-            </Link>
+            <div className="flex flex-wrap items-center justify-center gap-6">
+              <Link to="/match" className="inline-flex items-center gap-2 rounded-lg bg-[#b49a60] px-5 py-2.5 text-[#0f172a] font-bold hover:bg-amber-300 transition-colors">
+                Descubra quem vota como você
+              </Link>
+              <Link to="/metodologia" className="inline-flex items-center gap-2 text-[#b49a60] hover:text-amber-300 font-semibold transition-colors">
+                Ler a metodologia completa
+                <TrendingUp className="h-4 w-4" />
+              </Link>
+            </div>
             <div className="mt-6" />
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
               <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">

@@ -10,7 +10,7 @@ const { chromium } = require('@playwright/test');
 const BASE = process.env.BASE_URL || 'https://a-bancada-evangelica.vercel.app';
 const ROUTES = [
   '/', '/politicos/110', '/votacoes', '/temas', '/temas/meio-ambiente-energia',
-  '/metodologia', '/dados', '/comparacao', '/grupos', '/errata', '/sobre',
+  '/match', '/metodologia', '/dados', '/comparacao', '/grupos', '/errata', '/sobre',
 ];
 const MIN_BODY_PX = 14;
 const MIN_LH = 1.5;

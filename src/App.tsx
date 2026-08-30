@@ -25,6 +25,7 @@ import Errata from "./pages/Errata";
 import NewsCuration from "./pages/NewsCuration";
 import ThemesIndex from "./pages/ThemesIndex";
 import ThemePage from "./pages/ThemePage";
+import MatchPage from "./pages/Match";
 
 /** Rola pro topo a cada navegação — sem isso o SPA mantém a altura da
  * página anterior e o usuário "cai" no meio da página seguinte. */
@@ -64,6 +65,7 @@ const App = () => (
               <Route path="/votacoes" element={<VotingAnalysis />} />
               <Route path="/temas" element={<ThemesIndex />} />
               <Route path="/temas/:slug" element={<ThemePage />} />
+              <Route path="/match" element={<MatchPage />} />
               <Route path="/sobre" element={<SobrePage />} />
               <Route path="/metodologia" element={<MetodologiaPage />} />
               <Route path="/dados" element={<DadosAbertos />} />
