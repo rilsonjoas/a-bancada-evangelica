@@ -354,7 +354,7 @@ disciplina certa acontecendo antes mesmo do documento existir:
     e a decisão de non-fabrication.
 
 **O que falta pra fechar o padrão aqui:**
-- [ ] #6 acima (Fundamentação bíblica na Metodologia) ✅
+- [x] #6 acima (Fundamentação bíblica na Metodologia) ✅
       conclusa — glossário de termos técnicos completado em 2026-08-23.
       Contém definições, pesos, bases bíblicas e indicadores dos 5 critérios
       da metodologia, centralizado para consistência entre página, cards e
