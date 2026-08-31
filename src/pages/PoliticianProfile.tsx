@@ -510,7 +510,7 @@ export function PoliticianProfile() {
                     precisa saber que é estimativa, não medição completa. */}
                 {(politician.expenseAnalysis?.totalCount ?? 0) === 0 && (
                   <p className="text-sm text-muted-foreground border-t pt-3 leading-relaxed">
-                    Análise de gastos ainda não realizada para este parlamentar.
+                    Análise de gastos ainda não realizada para este {politician.currentHouse === 'SENADO' ? 'senador' : 'deputado'}.
                     Parte da nota vem da média histórica do partido (metodologia
                     híbrida) — trate-a como <strong>estimativa parcial</strong>.
                   </p>
@@ -714,7 +714,7 @@ export function PoliticianProfile() {
             </CardHeader>
             <CardContent>
               {politician.expenseAnalysis ? (
-                <ExpenseAnalysisChart analysis={politician.expenseAnalysis} />
+                <ExpenseAnalysisChart analysis={politician.expenseAnalysis} house={politician.currentHouse} />
               ) : (
                 <p className="text-gray-500 text-center py-8">
                   Análise de gastos não disponível para este político

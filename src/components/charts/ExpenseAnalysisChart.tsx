@@ -11,9 +11,10 @@ interface ExpenseAnalysisChartProps {
     integrityScore: number;
     riskLevel: string;
   };
+  house?: string;
 }
 
-export function ExpenseAnalysisChart({ analysis }: ExpenseAnalysisChartProps) {
+export function ExpenseAnalysisChart({ analysis, house }: ExpenseAnalysisChartProps) {
   const reducedMotion = useReducedMotion();
 
   // Dados para gráfico de barras - Comparação de valores
@@ -88,12 +89,16 @@ export function ExpenseAnalysisChart({ analysis }: ExpenseAnalysisChartProps) {
     <div className="space-y-8">
       {/* F9: contexto leigo antes dos números — o que é a cota */}
       <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 text-sm text-gray-700 leading-relaxed">
-        <strong>O que você está vendo:</strong> deputados federais recebem a{' '}
-        <strong>Cota para o Exercício da Atividade Parlamentar</strong> (verba
-        indenizatória) para custear o mandato — passagens, alimentação,
-        consultorias, material de trabalho. O uso é público e publicado pela
-        Câmara dos Deputados. Aqui nós apenas organizamos esses dados e os
-        comparamos com o padrão estatístico do conjunto.
+        <strong>O que você está vendo:</strong> {house === 'SENADO' ? 'senadores' : 'deputados federais'} recebem a{' '}
+        <strong>
+          {house === 'SENADO'
+            ? 'Cota para o Exercício da Atividade Parlamentar dos Senadores (CEAPS)'
+            : 'Cota para o Exercício da Atividade Parlamentar (CEAP)'}
+        </strong>{' '}
+        (verba indenizatória) para custear o mandato — passagens, alimentação,
+        consultorias, material de trabalho. O uso é público e publicado pelo{' '}
+        <strong>{house === 'SENADO' ? 'Senado Federal' : 'Câmara dos Deputados'}</strong>. Aqui
+        nós apenas organizamos esses dados e os comparamos com o padrão estatístico do conjunto.
         <details className="mt-2">
           <summary className="cursor-pointer select-none font-medium text-gray-900 hover:text-primary">
             Como a análise identifica despesas fora do padrão
@@ -314,8 +319,8 @@ export function ExpenseAnalysisChart({ analysis }: ExpenseAnalysisChartProps) {
       <div className="border border-border rounded-lg p-5 bg-muted/30 text-xs text-muted-foreground leading-relaxed space-y-2">
         <p className="font-semibold text-foreground text-sm">Sobre esta análise</p>
         <p>
-          Processamento automatizado de dados públicos publicados pela Câmara dos
-          Deputados, por critérios estatísticos descritos na{' '}
+          Processamento automatizado de dados públicos publicados pelo{' '}
+          {house === 'SENADO' ? 'Senado Federal' : 'Câmara dos Deputados'}, por critérios estatísticos descritos na{' '}
           <a href="/metodologia" className="text-primary hover:underline">metodologia aberta</a> deste projeto.
         </p>
         <p>
