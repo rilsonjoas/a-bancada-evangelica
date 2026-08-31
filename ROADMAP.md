@@ -69,8 +69,10 @@ segurança real que não existia nos outros dois.
       maduro que meus-remedios (mobile zero) e muito mais que
       biblia-na-arte (zero) nesse quesito. Só falta rodar em CI (P3)
 
+## P5 — Monitoramento & Logs
+
+- [x] **Uptime Kuma com alerta real**: monitores `api-bancada` (`/health`) e `analise-bancada` (`/api/clusters`) ativos, com alerta configurado em Telegram e e-mail.
 - [x] **Analytics de Privacidade com Umami — ATIVO (2026-08-31)**: Hospedado no próprio VPS em `https://umami.narniano.com` (sem cookies, totalmente aderente à LGPD). Script integrado em `index.html` com `website-id`: `2d26f077-fe38-4a94-8a07-b31b484e9f91`.
-- [ ] ~~Sem Sentry~~ — **PAUSADO por decisão do Rilson (2026-08-23), decisão MANTIDA (2026-08-28 e 2026-08-31)**: Não há necessidade de Sentry no momento. Uptime Kuma monitora disponibilidade e o Umami monitora acessos no VPS.
 - [x] **Rotação de log — AUDITADA (2026-08-22)**. API e worker rodam em
       Docker com driver `json-file` limitado (`max-size: 10m`, `max-file: 3`)
       direto no compose do hetzner-infra — NestJS loga em stdout, rotação é
