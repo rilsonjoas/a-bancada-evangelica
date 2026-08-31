@@ -69,7 +69,7 @@ export const DadosAbertos = () => {
 
         {/* Checksum / integridade (H4) */}
         <div className="space-y-2 pt-4 border-t border-border text-sm">
-          <p className="font-medium">Verificação de integridade (checksum)</p>
+          <h2 className="font-semibold text-base text-foreground">Verificação de integridade (checksum)</h2>
           <p className="text-muted-foreground leading-relaxed">
             Cada arquivo CSV baixado é enviado com um cabeçalho{' '}
             <code className="break-all bg-secondary px-1 py-0.5 rounded">X-Content-SHA256</code>{' '}
@@ -97,7 +97,7 @@ sha256sum bancada-evangelica-votacoes.csv
         </div>
 
         <div className="space-y-2 pt-4 border-t border-border text-sm">
-          <p className="text-muted-foreground">Como citar esses dados:</p>
+          <h2 className="font-semibold text-base text-foreground">Como citar esses dados</h2>
           <p className="leading-relaxed">
             A Bancada Evangélica{location.pathname}. Acesso em {today}. Dados
             provenientes de votações nominais públicas da Câmara dos Deputados e do

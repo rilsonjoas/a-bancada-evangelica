@@ -170,9 +170,9 @@ const MetodologiaPage = () => {
             <h1 className="font-serif text-4xl md:text-5xl font-bold mb-6 text-white">
               Nossa Metodologia de Avaliação
             </h1>
-            <h2 className="text-2xl mb-6 text-white/90">
+            <p className="text-2xl mb-6 text-white/90 font-medium">
               Um Guia para o Voto Consciente
-            </h2>
+            </p>
             <p className="text-xl text-primary-foreground/90 leading-relaxed">
               A plataforma A Bancada Evangélica não é uma lista de "políticos aprovados", mas sim uma ferramenta de discernimento.
             </p>
@@ -187,9 +187,9 @@ const MetodologiaPage = () => {
             <Card className="card-elevated mb-16">
               <CardContent className="p-8">
                 <div className="text-center mb-8">
-                  <h3 className="font-serif text-2xl font-bold text-foreground mb-4">
+                  <h2 className="font-serif text-2xl font-bold text-foreground mb-4">
                     Nossa Missão
-                  </h3>
+                  </h2>
                 </div>
                 <div className="space-y-6 text-muted-foreground leading-relaxed">
                   <p>
@@ -371,9 +371,9 @@ const MetodologiaPage = () => {
                   do partido (65–78%).
                 </p>
                 <div className="mt-6 rounded-lg border border-border bg-background p-5">
-                  <h3 className="font-serif font-semibold text-foreground mb-2">
+                  <h4 className="font-serif font-semibold text-foreground mb-2">
                     Como a nota é calculada — transparência total
-                  </h3>
+                  </h4>
                   <div className="text-sm text-muted-foreground leading-relaxed space-y-2">
                     <p>
                       A nota de cada parlamentar começa na <strong>média histórica do partido dele</strong>
@@ -755,9 +755,9 @@ const MetodologiaPage = () => {
             <Card className="card-elevated">
               <CardContent className="py-8 text-center">
                 <Database className="h-12 w-12 text-primary mx-auto mb-4" />
-                <h3 className="font-serif text-xl font-semibold mb-4">
+                <h2 className="font-serif text-xl font-semibold mb-4">
                   Acesso aos Dados e Código
-                </h3>
+                </h2>
                 <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
                   Acreditamos na transparência total. Todo nosso código, metodologia
                   e dados estão disponíveis publicamente para auditoria e contribuições.

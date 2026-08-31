@@ -965,5 +965,4 @@ verificação visual headless fica no playbook manual (playbook acima).
   (nada importava), importava ícone `WhatsApp` inexistente no
   lucide-react (crasharia se alguém usasse) e duplicava o
   compartilhamento vivo (Web Share API no perfil + ShareableCard v2).
-- Pendente: `heading-order` (h3/h4 pulando níveis) em Metodologia,
-  Perfil, Dados e Contato — revisar hierarquia componente a componente.
+- ✅ **`heading-order` — CONCLUÍDO (2026-08-31)**: `CardTitle` atualizado de `h2` para `h3` em `card.tsx`, unificando a hierarquia visual/semântica em todos os cards do app; ajustada a sequência sequencial `h1` → `h2` → `h3` → `h4` em *Metodologia*, *Perfil*, *DadosAbertos* e *Contato* (sem saltos de nível).
