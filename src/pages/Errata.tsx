@@ -165,33 +165,50 @@ export function Errata() {
           </Card>
 
           <Card className="card-elevated">
-            <CardContent className="pt-6 space-y-2">
-              <p className="font-semibold text-foreground">Encontrou um erro? Avise.</p>
-              <p className="text-muted-foreground text-sm">
-                Qualquer pessoa — inclusive o próprio parlamentar — pode apontar um dado
-                suspeito. Investigamos e, se confirmado, corrigimos publicamente.
+            <CardHeader>
+              <CardTitle className="font-serif flex items-center gap-2">
+                <Mail className="h-5 w-5 text-primary" />
+                Protocolo de Solicitação de Retificação
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                Qualquer pessoa — cidadãos, jornalistas, parlamentares ou assessorias — pode solicitar a verificação de um dado publicado.
+                Para garantir imparcialidade, todas as solicitações são auditadas com base estrita nas fontes oficiais.
               </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                <div className="p-3 rounded-lg bg-muted/40 border border-border/60">
+                  <strong className="text-foreground block font-medium mb-1">1. Fonte primária obrigatória</strong>
+                  <span className="text-muted-foreground">Envie o link do diário da Câmara, Senado ou TSE que comprova a divergência.</span>
+                </div>
+                <div className="p-3 rounded-lg bg-muted/40 border border-border/60">
+                  <strong className="text-foreground block font-medium mb-1">2. Análise em até 48h úteis</strong>
+                  <span className="text-muted-foreground">Revisamos o banco de dados e recalculamos a pontuação se a divergência for confirmada.</span>
+                </div>
+                <div className="p-3 rounded-lg bg-muted/40 border border-border/60">
+                  <strong className="text-foreground block font-medium mb-1">3. Publicação pública</strong>
+                  <span className="text-muted-foreground">Toda retificação aceita fica registrada nesta página com data e motivo.</span>
+                </div>
+              </div>
+
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <Link
                   to="/contato"
-                  className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-3 font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+                  className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-3 font-medium text-primary-foreground hover:bg-primary/90 transition-colors text-sm"
                 >
-                  <Mail className="h-5 w-5" />
-                  Reportar possível erro
+                  <Mail className="h-4 w-4" />
+                  Enviar solicitação de retificação
                 </Link>
                 <a
                   href="https://github.com/rilsonjoas/a-bancada-evangelica/issues"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-lg border border-border px-5 py-3 font-medium hover:bg-muted transition-colors"
+                  className="inline-flex items-center gap-2 rounded-lg border border-border px-5 py-3 font-medium hover:bg-muted transition-colors text-sm"
                 >
                   Abrir issue no GitHub
                 </a>
               </div>
-              <p className="text-sm text-muted-foreground pt-2">
-                Projeto independente, sem fins lucrativos — código aberto sob licença MIT
-                (github.com/rilsonjoas/a-bancada-evangelica).
-              </p>
             </CardContent>
           </Card>
         </div>

@@ -39,6 +39,33 @@ export class NewsController {
     return this.news.pending();
   }
 
+  // ── Curadoria (admin): decidir em lote (batch approve/reject) ──
+  @Post('admin/batch-review')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AdminTokenGuard)
+  @ApiOperation({ summary: 'Revisa várias menções em lote: APPROVED ou REJECTED' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        ids: { type: 'array', items: { type: 'number' } },
+        status: { type: 'string', enum: STATUSES },
+      },
+    },
+  })
+  async batchReview(
+    @Body('ids') ids: number[] | undefined,
+    @Body('status') status: string | undefined,
+  ) {
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new BadRequestException('ids deve ser um array não-vazio de números');
+    }
+    if (!STATUSES.includes(status as (typeof STATUSES)[number])) {
+      throw new BadRequestException('status deve ser APPROVED ou REJECTED');
+    }
+    return this.news.batchReview(ids, status as (typeof STATUSES)[number]);
+  }
+
   // ── Curadoria (admin): decidir (approve/reject) ──
   @Post('admin/:id/review')
   @HttpCode(HttpStatus.OK)

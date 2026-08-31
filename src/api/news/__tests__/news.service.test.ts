@@ -5,14 +5,14 @@ import type { PrismaService } from '../../prisma/prisma.service';
 describe('NewsService', () => {
   let prisma: {
     politician: { findUnique: ReturnType<typeof vi.fn> };
-    newsMention: { findMany: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn> };
+    newsMention: { findMany: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; updateMany: ReturnType<typeof vi.fn> };
   };
   let service: NewsService;
 
   beforeEach(() => {
     prisma = {
       politician: { findUnique: vi.fn() },
-      newsMention: { findMany: vi.fn(), update: vi.fn() },
+      newsMention: { findMany: vi.fn(), update: vi.fn(), updateMany: vi.fn() },
     };
     service = new NewsService(prisma as unknown as PrismaService);
   });
@@ -137,6 +137,27 @@ describe('NewsService', () => {
         select: { id: true, status: true, title: true, reviewed_at: true },
       });
       expect(result.status).toBe('APPROVED');
+    });
+  });
+
+  describe('batchReview', () => {
+    it('atualiza o status em lote para os ids fornecidos', async () => {
+      prisma.newsMention.updateMany.mockResolvedValue({ count: 3 });
+
+      const result = await service.batchReview([1, 2, 3], 'REJECTED');
+
+      expect(prisma.newsMention.updateMany).toHaveBeenCalledWith({
+        where: { id: { in: [1, 2, 3] } },
+        data: { status: 'REJECTED', reviewed_at: expect.any(Date) },
+      });
+      expect(result).toEqual({ updatedCount: 3 });
+    });
+
+    it('retorna updatedCount: 0 se o array de ids for vazio', async () => {
+      const result = await service.batchReview([], 'APPROVED');
+
+      expect(result).toEqual({ updatedCount: 0 });
+      expect(prisma.newsMention.updateMany).not.toHaveBeenCalled();
     });
   });
 });

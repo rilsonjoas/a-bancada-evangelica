@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Mail, Github, ExternalLink, ShieldCheck, Database, FileText } from "lucide-react";
+import { Mail, Github, ExternalLink, ShieldCheck, Database, FileText, Heart } from "lucide-react";
+import { DonationModal } from "@/components/common/DonationModal";
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
@@ -30,7 +31,7 @@ const Footer: React.FC = () => {
               Monitorando o posicionamento dos parlamentares brasileiros através de dados públicos e votos nominais registrados na Câmara e no Senado.
             </p>
 
-            <div className="flex items-center space-x-3 pt-1">
+            <div className="flex flex-wrap items-center gap-2 pt-1">
               <a
                 href="mailto:abancada@narniano.com"
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 transition-colors border border-slate-700/60"
@@ -49,6 +50,15 @@ const Footer: React.FC = () => {
                 <Github className="h-3.5 w-3.5 text-amber-400" />
                 <span>GitHub</span>
               </a>
+              <DonationModal>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-950/60 hover:bg-red-900/80 text-xs text-red-200 transition-colors border border-red-800/60 font-medium"
+                >
+                  <Heart className="h-3.5 w-3.5 text-red-400 fill-current" />
+                  <span>Apoie este projeto</span>
+                </button>
+              </DonationModal>
             </div>
           </div>
 

@@ -108,4 +108,21 @@ describe('MatchPage — M1 Match Eleitor', () => {
     renderMatch();
     expect(document.title).toContain('Quem vota como você?');
   });
+
+  it('permite responder o quiz usando atalhos numéricos do teclado (1, 2, 3)', () => {
+    renderMatch();
+    expect(screen.getByText('Pergunta 1 de 5')).toBeInTheDocument();
+
+    fireEvent.keyDown(window, { key: '1' });
+    expect(screen.getByText('Pergunta 2 de 5')).toBeInTheDocument();
+
+    fireEvent.keyDown(window, { key: '2' });
+    expect(screen.getByText('Pergunta 3 de 5')).toBeInTheDocument();
+
+    fireEvent.keyDown(window, { key: '3' });
+    expect(screen.getByText('Pergunta 4 de 5')).toBeInTheDocument();
+
+    fireEvent.keyDown(window, { key: 'Backspace' });
+    expect(screen.getByText('Pergunta 3 de 5')).toBeInTheDocument();
+  });
 });

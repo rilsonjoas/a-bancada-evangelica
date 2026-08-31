@@ -11,20 +11,29 @@ import {
   Bar,
   LabelList,
 } from 'recharts';
-import { Brain, Users, TrendingUp, BarChart2, ChevronDown, ChevronUp, AlertCircle, Award } from 'lucide-react';
+import { Brain, Users, TrendingUp, BarChart2, ChevronDown, ChevronUp, AlertCircle, Award, Info } from 'lucide-react';
 import { useState } from 'react';
-import { useClusterData, usePartyAlignment, type ClusterMember } from '@/hooks/useClusterData';
+import { useClusterData, usePartyAlignment, type ClusterMember, type Cluster } from '@/hooks/useClusterData';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { fmt } from '@/lib/format';
+import { Badge } from '@/components/ui/badge';
 
 const CLUSTER_COLORS = [
   '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
   '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6366f1',
 ];
 
-function StatCard({
- label, value, sub }: { label: string; value: string; sub?: string }) {
+const CLUSTER_DESCRIPTIONS: Record<string, string> = {
+  'Grupo 1 — Alinhamento Muito Alto com a FPE':
+    'Bloco com coesão muito alta em pautas evangélicas. Os integrantes deste grupo votam quase identicamente em pautas de vida, valores de família e liberdade de culto.',
+  'Grupo 2 — Alinhamento Moderado':
+    'Bloco moderado ou pragmático. Vota em harmonia com a bancada na maioria das pautas morais, mas apresenta oscilações em pautas econômicas ou administrativas.',
+  'Grupo 3 — Divergência em Pautas Específicas':
+    'Bloco com votações majoritariamente contrárias às posições curadas pela metodologia evangélica. Apresenta alta convergência interna de oposição.',
+};
+
+function StatCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <div className="bg-card border border-border rounded-lg p-4 flex flex-col gap-1">
       <span className="text-xs text-muted-foreground uppercase tracking-wide">{label}</span>
@@ -45,50 +54,89 @@ function ClusterTooltip({ active, payload }: { active?: boolean; payload?: Toolt
     <div className="bg-popover border border-border rounded-md p-3 shadow-lg text-sm">
       <p className="font-semibold text-foreground">{d.name}</p>
       <p className="text-muted-foreground">{d.party} · {d.state}</p>
-      <p className="text-sm text-muted-foreground mt-1">{d.clusterLabel}</p>
+      <p className="text-xs text-primary font-medium mt-1">{d.clusterLabel}</p>
     </div>
   );
 }
 
-function ClusterCard({ cluster, color, index }: {
-  cluster: { label: string; size: number; members: ClusterMember[] };
+function ClusterCard({
+  cluster,
+  color,
+  index,
+}: {
+  cluster: Cluster;
   color: string;
   index: number;
 }) {
   const [open, setOpen] = useState(index === 0);
-  const parties = [...new Set(cluster.members.map(m => m.party))].slice(0, 5);
+  const parties = [...new Set(cluster.members.map((m) => m.party))].slice(0, 5);
+  const description = CLUSTER_DESCRIPTIONS[cluster.label] ??
+    `Agrupamento estatístico com ${cluster.size} parlamentares e perfil homogêneo de votação.`;
 
   return (
-    <div className="border border-border rounded-lg overflow-hidden">
+    <div className="border border-border rounded-lg overflow-hidden bg-card">
       <button
         onClick={() => setOpen(!open)}
         aria-expanded={open}
-        className="w-full flex items-center justify-between p-4 bg-card hover:bg-accent/50 transition-colors text-left"
+        className="w-full flex items-center justify-between p-4 hover:bg-accent/50 transition-colors text-left"
       >
         <div className="flex items-center gap-3">
-          <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
+          <span className="w-3.5 h-3.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
           <div>
-            <p className="font-semibold text-foreground text-sm">{cluster.label}</p>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              {parties.join(', ')}{parties.length < [...new Set(cluster.members.map(m => m.party))].length ? '…' : ''}
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="font-semibold text-foreground text-sm">{cluster.label}</p>
+              <Badge variant="secondary" className="text-[11px] font-normal">
+                {cluster.size} parlamentares
+              </Badge>
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Principais partidos: {parties.join(', ')}
+              {parties.length < [...new Set(cluster.members.map((m) => m.party))].length ? '…' : ''}
             </p>
           </div>
         </div>
-        {open ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+        {open ? <ChevronUp className="w-4 h-4 text-muted-foreground shrink-0" /> : <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />}
       </button>
+
       {open && (
-        <div className="p-4 bg-background border-t border-border max-h-64 overflow-y-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
-            {cluster.members.map(m => (
-              <a
-                key={m.id}
-                href={`/politicos/${m.id}`}
-                className="flex items-center gap-2 text-xs text-foreground hover:text-primary transition-colors py-1 px-2 rounded hover:bg-accent/50"
-              >
-                <span className="font-medium truncate">{m.name}</span>
-                <span className="text-muted-foreground flex-shrink-0">{m.party}/{m.state}</span>
-              </a>
-            ))}
+        <div className="p-4 bg-background border-t border-border space-y-4">
+          <div className="p-3 bg-muted/40 rounded-md border border-border/50 text-xs text-muted-foreground flex items-start gap-2 leading-relaxed">
+            <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+            <div>
+              <strong className="text-foreground font-medium">O que este grupo significa: </strong>
+              {description}
+            </div>
+          </div>
+
+          {cluster.party_breakdown && Object.keys(cluster.party_breakdown).length > 0 && (
+            <div>
+              <p className="text-xs font-medium text-muted-foreground mb-2">Composição partidária do grupo:</p>
+              <div className="flex flex-wrap gap-1.5">
+                {Object.entries(cluster.party_breakdown).map(([party, count]) => (
+                  <Badge key={party} variant="outline" className="text-xs font-normal">
+                    {party}: <span className="font-semibold ml-1 text-foreground">{count}</span>
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div>
+            <p className="text-xs font-medium text-muted-foreground mb-2">Integrantes do grupo ({cluster.members.length} exibidos):</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-64 overflow-y-auto pr-1">
+              {cluster.members.map((m) => (
+                <a
+                  key={m.id}
+                  href={`/politicos/${m.id}`}
+                  className="flex items-center justify-between text-xs text-foreground hover:text-primary transition-colors py-1.5 px-2.5 rounded bg-muted/20 hover:bg-accent/50 border border-transparent hover:border-border"
+                >
+                  <span className="font-medium truncate">{m.name}</span>
+                  <span className="text-muted-foreground flex-shrink-0 text-[11px]">
+                    {m.party}/{m.state}
+                  </span>
+                </a>
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -114,23 +162,25 @@ function PartyAlignmentChart() {
   const { data, isLoading, isError } = usePartyAlignment();
   const reducedMotion = useReducedMotion();
 
-  if (isLoading) return (
-    <div className="flex items-center justify-center h-48">
-      <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-    </div>
-  );
+  if (isLoading)
+    return (
+      <div className="flex items-center justify-center h-48">
+        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
 
-  if (isError || !data || data.parties.length === 0) return (
-    <div className="flex items-center justify-center h-32 text-center">
-      <p className="text-sm text-muted-foreground">
-        {isError
-          ? 'Serviço indisponível'
-          : 'Dados de pontuação ainda não calculados. Execute os scripts de sincronização primeiro.'}
-      </p>
-    </div>
-  );
+  if (isError || !data || data.parties.length === 0)
+    return (
+      <div className="flex items-center justify-center h-32 text-center">
+        <p className="text-sm text-muted-foreground">
+          {isError
+            ? 'Serviço indisponível'
+            : 'Dados de pontuação ainda não calculados. Execute os scripts de sincronização primeiro.'}
+        </p>
+      </div>
+    );
 
-  const top20 = data.parties.slice(0, 20).map(p => ({
+  const top20 = data.parties.slice(0, 20).map((p) => ({
     party: p.party,
     score: p.avg_score ?? 0,
     level: p.alignment_level,
@@ -144,22 +194,22 @@ function PartyAlignmentChart() {
       aria-label="Gráfico de barras: score médio de alinhamento por partido nos 5 critérios; cores indicam nível (verde alta, âmbar moderada, vermelho baixa)"
     >
       <ResponsiveContainer width="100%" height={Math.max(280, top20.length * 28)}>
-      <BarChart data={top20} layout="vertical" margin={{ left: 8, right: 40, top: 4, bottom: 4 }}>
-        <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11 }} />
-        <YAxis type="category" dataKey="party" width={90} tick={{ fontSize: 11 }} interval={0} />
-        <Tooltip
-          formatter={(v: number) => [`${fmt(v)} pts`, 'Nota média']}
-          labelFormatter={(label) => {
-            const item = top20.find(p => p.party === label);
-            return item ? `${label} (${item.count} parlamentares)` : label;
-          }}
-        />
-        <Bar dataKey="score" radius={[0, 4, 4, 0]} isAnimationActive={!reducedMotion}>
-          {top20.map((entry, i) => (
-            <Cell key={i} fill={ALIGNMENT_COLOR[entry.level]} fillOpacity={0.85} />
-          ))}
-          <LabelList dataKey="score" position="right" formatter={(v: number) => fmt(v, 0)} style={{ fontSize: 11 }} />
-        </Bar>
+        <BarChart data={top20} layout="vertical" margin={{ left: 8, right: 40, top: 4, bottom: 4 }}>
+          <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11 }} />
+          <YAxis type="category" dataKey="party" width={90} tick={{ fontSize: 11 }} interval={0} />
+          <Tooltip
+            formatter={(v: number) => [`${fmt(v)} pts`, 'Nota média']}
+            labelFormatter={(label) => {
+              const item = top20.find((p) => p.party === label);
+              return item ? `${label} (${item.count} parlamentares)` : label;
+            }}
+          />
+          <Bar dataKey="score" radius={[0, 4, 4, 0]} isAnimationActive={!reducedMotion}>
+            {top20.map((entry, i) => (
+              <Cell key={i} fill={ALIGNMENT_COLOR[entry.level]} fillOpacity={0.85} />
+            ))}
+            <LabelList dataKey="score" position="right" formatter={(v: number) => fmt(v, 0)} style={{ fontSize: 11 }} />
+          </Bar>
         </BarChart>
       </ResponsiveContainer>
       <details className="mt-4">
@@ -176,7 +226,7 @@ function PartyAlignmentChart() {
             </tr>
           </thead>
           <tbody>
-            {top20.map(p => (
+            {top20.map((p) => (
               <tr key={p.party} className="border-t border-border">
                 <td className="py-1 font-medium">{p.party}</td>
                 <td className="py-1 text-right">{fmt(p.score)}</td>
@@ -192,22 +242,14 @@ function PartyAlignmentChart() {
 }
 
 export default function VotingClusters() {
+  usePageMeta('Grupos de Votação | A Bancada Evangélica', 'Análise estatística de alinhamento e agrupamento de parlamentares por padrão de voto real.');
   const { data, isLoading, isError } = useClusterData();
   const reducedMotion = useReducedMotion();
   const isMobile = useIsMobile();
 
-  const scatterData = data?.clusters.flatMap((cluster, ci) =>
-    cluster.members.map(m => ({
-      ...m,
-      clusterLabel: cluster.label,
-      clusterIndex: ci,
-    }))
-  ) ?? [];
-
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
-
+      <div className="container mx-auto px-4 py-8 max-w-5xl">
         {/* Hero */}
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-2">
@@ -215,10 +257,9 @@ export default function VotingClusters() {
             <span className="text-xs font-medium text-primary uppercase tracking-widest">Análise</span>
           </div>
           <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">Grupos de Votação</h1>
-          <p className="text-muted-foreground max-w-3xl mb-3">
-            Quando organizamos os parlamentares pelo jeito que eles votam —
-            sem olhar partido nem religião — surgem <strong>grupos naturais</strong>:
-            deputados e senadores que votam juntos, tema a tema. É uma radiografia
+          <p className="text-muted-foreground max-w-3xl mb-3 leading-relaxed">
+            Quando organizamos os parlamentares pelo jeito que eles votam — sem olhar partido nem religião —
+            surgem <strong>grupos naturais</strong>: deputados e senadores que votam juntos, tema a tema. É uma radiografia
             do comportamento real de voto, além dos rótulos de campanha.
           </p>
           {/* Nota técnica para quem quiser profundidade */}
@@ -228,9 +269,8 @@ export default function VotingClusters() {
             </summary>
             <p className="mt-2 leading-relaxed">
               Cada parlamentar vira um ponto no espaço das votações; o algoritmo{' '}
-              <strong>KMeans</strong> agrupa pontos parecidos, com as dimensões
-              reduzidas antes por <strong>PCA</strong>. O número de grupos não é
-              escolhido à mão: usamos o maior <strong>silhouette score</strong>{' '}
+              <strong>KMeans</strong> agrupa pontos parecidos, com as dimensões reduzidas antes por <strong>PCA</strong>.
+              O número de grupos não é escolhido à mão: usamos o maior <strong>silhouette score</strong>{' '}
               (medida de quão bem cada ponto encaixa no seu grupo).
             </p>
           </details>
@@ -247,17 +287,19 @@ export default function VotingClusters() {
         {/* Alinhamento por partido — sempre visível (dados da API NestJS) */}
         <div className="bg-card border border-border rounded-lg p-6 mb-8">
           <div className="flex items-center gap-2 mb-1">
-            <Award className="w-4 h-4 text-muted-foreground" />
+            <Award className="w-5 h-5 text-primary" />
             <h2 className="font-serif text-2xl font-bold text-foreground">Alinhamento por partido</h2>
           </div>
           <p className="text-sm text-muted-foreground mb-4">
             Nota média nos 5 critérios evangélicos.{' '}
             <span className="inline-flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> alta (≥70)
-            </span>{' · '}
+            </span>{' '}
+            ·{' '}
             <span className="inline-flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-amber-500 inline-block" /> moderada (50–70)
-            </span>{' · '}
+            </span>{' '}
+            ·{' '}
             <span className="inline-flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-red-500 inline-block" /> baixa (&lt;50)
             </span>
@@ -307,7 +349,7 @@ export default function VotingClusters() {
             {/* Scatter */}
             <div className="bg-card border border-border rounded-lg p-6 mb-8">
               <div className="flex items-center gap-2 mb-1">
-                <BarChart2 className="w-4 h-4 text-muted-foreground" />
+                <BarChart2 className="w-5 h-5 text-primary" />
                 <h2 className="font-serif text-2xl font-bold text-foreground">Visualização 2D (ACP)</h2>
               </div>
               <p className="text-sm text-muted-foreground mb-4">
@@ -318,40 +360,57 @@ export default function VotingClusters() {
                 role="img"
                 aria-label="Gráfico de dispersão: cada ponto é um parlamentar posicionado pelas duas primeiras componentes principais dos votos; pontos próximos indicam padrão de votação similar. A composição completa dos grupos está na lista abaixo."
               >
-              <div aria-hidden="true">
-              <ResponsiveContainer width="100%" height={isMobile ? 320 : 420}>
-                <ScatterChart margin={{ top: 10, right: 20, bottom: 10, left: 0 }}>
-                  <XAxis dataKey="x" type="number" name="PC1" tick={{ fontSize: isMobile ? 10 : 11 }} tickFormatter={v => fmt(v)} minTickGap={isMobile ? 40 : 20} />
-                  <YAxis dataKey="y" type="number" name="PC2" tick={{ fontSize: isMobile ? 10 : 11 }} tickFormatter={v => fmt(v)} minTickGap={isMobile ? 40 : 20} />
-                  <Tooltip content={<ClusterTooltip />} cursor={{ strokeDasharray: '3 3' }} />
-                  {data.clusters.map((cluster, ci) => (
-                    <Scatter
-                      key={cluster.id}
-                      name={cluster.label}
-                      data={cluster.members.map(m => ({ ...m, clusterLabel: cluster.label }))}
-                      fill={CLUSTER_COLORS[ci % CLUSTER_COLORS.length]}
-                      isAnimationActive={!reducedMotion}
-                    >
-                      {cluster.members.map((_, mi) => (
-                        <Cell
-                          key={mi}
+                <div aria-hidden="true">
+                  <ResponsiveContainer width="100%" height={isMobile ? 320 : 420}>
+                    <ScatterChart margin={{ top: 10, right: 20, bottom: 10, left: 0 }}>
+                      <XAxis
+                        dataKey="x"
+                        type="number"
+                        name="PC1"
+                        tick={{ fontSize: isMobile ? 10 : 11 }}
+                        tickFormatter={(v) => fmt(v)}
+                        minTickGap={isMobile ? 40 : 20}
+                      />
+                      <YAxis
+                        dataKey="y"
+                        type="number"
+                        name="PC2"
+                        tick={{ fontSize: isMobile ? 10 : 11 }}
+                        tickFormatter={(v) => fmt(v)}
+                        minTickGap={isMobile ? 40 : 20}
+                      />
+                      <Tooltip content={<ClusterTooltip />} cursor={{ strokeDasharray: '3 3' }} />
+                      {data.clusters.map((cluster, ci) => (
+                        <Scatter
+                          key={cluster.id}
+                          name={cluster.label}
+                          data={cluster.members.map((m) => ({ ...m, clusterLabel: cluster.label }))}
                           fill={CLUSTER_COLORS[ci % CLUSTER_COLORS.length]}
-                          fillOpacity={0.75}
-                        />
+                          isAnimationActive={!reducedMotion}
+                        >
+                          {cluster.members.map((_, mi) => (
+                            <Cell
+                              key={mi}
+                              fill={CLUSTER_COLORS[ci % CLUSTER_COLORS.length]}
+                              fillOpacity={0.75}
+                            />
+                          ))}
+                        </Scatter>
                       ))}
-                    </Scatter>
-                  ))}
-                </ScatterChart>
-              </ResponsiveContainer>
-              </div>
+                    </ScatterChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
 
               {/* Legend */}
               <div className="flex flex-wrap gap-3 mt-4">
                 {data.clusters.map((c, ci) => (
                   <div key={c.id} className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: CLUSTER_COLORS[ci % CLUSTER_COLORS.length] }} />
-                    <span className="text-xs text-muted-foreground">{c.label}</span>
+                    <span
+                      className="w-2.5 h-2.5 rounded-full"
+                      style={{ backgroundColor: CLUSTER_COLORS[ci % CLUSTER_COLORS.length] }}
+                    />
+                    <span className="text-xs text-muted-foreground font-medium">{c.label}</span>
                   </div>
                 ))}
               </div>
@@ -360,9 +419,9 @@ export default function VotingClusters() {
             {/* Cluster list */}
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <Users className="w-4 h-4 text-muted-foreground" />
+                <Users className="w-5 h-5 text-primary" />
                 <h2 className="font-serif text-2xl font-bold text-foreground">Composição dos grupos</h2>
-                <TrendingUp className="w-3 h-3 text-muted-foreground ml-auto" />
+                <TrendingUp className="w-4 h-4 text-muted-foreground ml-auto" />
                 <span className="text-xs text-muted-foreground">clique para expandir</span>
               </div>
               <div className="flex flex-col gap-3">

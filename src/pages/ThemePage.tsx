@@ -1,6 +1,8 @@
+import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, FileQuestion } from 'lucide-react';
+import { ArrowLeft, FileQuestion, ArrowUpDown } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { KeyAgendaCard } from '@/components/voting/KeyAgendaCard';
 import { useVotingAnalysisData } from '@/hooks/useVotingAnalysisData';
 import { usePageMeta } from '@/hooks/usePageMeta';
@@ -10,8 +12,28 @@ const ThemePage = () => {
   const { slug = '' } = useParams();
   const theme = themeBySlug(slug);
 
+  const [sortBy, setSortBy] = useState<'votes' | 'consensus' | 'title'>('votes');
+
   const { data } = useVotingAnalysisData({});
-  const agendas = (data?.keyAgendas ?? []).filter((a) => a.theme === slug);
+
+  const rawAgendas = useMemo(
+    () => (data?.keyAgendas ?? []).filter((a) => a.theme === slug),
+    [data, slug]
+  );
+
+  const agendas = useMemo(() => {
+    const list = [...rawAgendas];
+    if (sortBy === 'votes') {
+      return list.sort((a, b) => b.totalVotes - a.totalVotes);
+    }
+    if (sortBy === 'consensus') {
+      return list.sort((a, b) => b.consensusScore - a.consensusScore);
+    }
+    if (sortBy === 'title') {
+      return list.sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'));
+    }
+    return list;
+  }, [rawAgendas, sortBy]);
 
   usePageMeta(
     theme
@@ -70,14 +92,32 @@ const ThemePage = () => {
 
       <section className="py-12">
         <div className="container mx-auto px-4 max-w-4xl space-y-6">
-          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
-            <span className="font-medium">
-              {agendas.length} {agendas.length === 1 ? 'pauta-chave' : 'pautas-chave'}
-            </span>
-            <span aria-hidden="true">·</span>
-            <span>{totalVotes} votos registrados da bancada</span>
-            <span aria-hidden="true">·</span>
-            <span>Curadoria revisada semestralmente</span>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-sm text-gray-600 border-b pb-4">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm">
+              <span className="font-medium">
+                {agendas.length} {agendas.length === 1 ? 'pauta-chave' : 'pautas-chave'}
+              </span>
+              <span aria-hidden="true">·</span>
+              <span>{totalVotes} votos registrados</span>
+              <span aria-hidden="true">·</span>
+              <span>Curadoria semestral</span>
+            </div>
+
+            {agendas.length > 1 && (
+              <div className="flex items-center gap-2">
+                <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
+                <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+                  <SelectTrigger className="w-44 h-9 text-xs bg-background" aria-label="Ordenar pautas">
+                    <SelectValue placeholder="Ordenar por" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="votes">Mais votadas</SelectItem>
+                    <SelectItem value="consensus">Maior consenso</SelectItem>
+                    <SelectItem value="title">Título (A-Z)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
 
           {agendas.length === 0 ? (

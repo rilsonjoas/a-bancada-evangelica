@@ -15,12 +15,18 @@ import { CRITERIA } from '@/lib/criteria';
 import { THEMES, countAgendasByTheme } from '@/lib/themes';
 
 export function VotingAnalysis() {
-  const [filters, setFilters] = useState({
+  usePageMeta(
+    'Análise de Votações | A Bancada Evangélica',
+    'Acompanhe o histórico de votações nominais da Câmara e do Senado classificadas nos 5 critérios morais e éticos.'
+  );
 
+  const [filters, setFilters] = useState({
     criteria: '',
     dateRange: '',
-    search: ''
+    search: '',
   });
+
+  const [selectedTheme, setSelectedTheme] = useState<string>('ALL');
 
   const {
     data: analysisData,
@@ -30,12 +36,12 @@ export function VotingAnalysis() {
 
   // Filtros aplicados no cliente sobre a lista de pautas — o payload é
   // pequeno (~30 pautas) e agora cada pauta carrega firstVoteDate/
-  // lastVoteDate da API. Antes os filtros eram enviados à API, que
-  // IGNORAVA tudo (controller sem params) — filtro decorativo.
+  // lastVoteDate da API.
   const filteredAgendas = useMemo(() => {
     if (!analysisData?.keyAgendas) return [];
     return analysisData.keyAgendas.filter(a => {
       if (filters.criteria && a.criteria !== filters.criteria) return false;
+      if (selectedTheme !== 'ALL' && a.theme !== selectedTheme) return false;
       if (
         filters.search &&
         !`${a.title} ${a.description}`.toLowerCase().includes(filters.search.toLowerCase())
@@ -50,9 +56,9 @@ export function VotingAnalysis() {
       }
       return true;
     });
-  }, [analysisData, filters]);
+  }, [analysisData, filters, selectedTheme]);
 
-  const hasActiveFilters = Boolean(filters.criteria || filters.dateRange || filters.search);
+  const hasActiveFilters = Boolean(filters.criteria || filters.dateRange || filters.search || selectedTheme !== 'ALL');
 
   const countsByTheme = useMemo(
     () => countAgendasByTheme(analysisData?.keyAgendas ?? []),
@@ -181,7 +187,14 @@ export function VotingAnalysis() {
                 {filteredAgendas.length} de {analysisData?.keyAgendas?.length ?? 0} pautas correspondem aos filtros
                 <span className="hidden md:inline"> (afetam a lista em "Pautas-Chave")</span>
               </p>
-              <Button variant="ghost" size="sm" onClick={() => setFilters({ criteria: '', dateRange: '', search: '' })}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setFilters({ criteria: '', dateRange: '', search: '' });
+                  setSelectedTheme('ALL');
+                }}
+              >
                 Limpar filtros
               </Button>
             </div>
@@ -330,22 +343,43 @@ export function VotingAnalysis() {
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedTheme('ALL')}
+                  className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
+                    selectedTheme === 'ALL'
+                      ? 'border-primary bg-primary text-primary-foreground'
+                      : 'border-primary/20 bg-primary/5 text-primary hover:bg-primary/10'
+                  }`}
+                >
+                  Todos os temas ({analysisData?.keyAgendas?.length ?? 0})
+                </button>
                 {THEMES.map((t) => {
                   const count = countsByTheme[t.slug] ?? 0;
                   if (count === 0) return null;
                   const Icon = t.icon;
+                  const isSelected = selectedTheme === t.slug;
                   return (
-                    <Link
+                    <button
                       key={t.slug}
-                      to={`/temas/${t.slug}`}
-                      className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
+                      type="button"
+                      onClick={() => setSelectedTheme(isSelected ? 'ALL' : t.slug)}
+                      className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
+                        isSelected
+                          ? 'border-primary bg-primary text-primary-foreground'
+                          : 'border-primary/20 bg-primary/5 text-primary hover:bg-primary/10'
+                      }`}
                     >
                       <Icon className="w-4 h-4" />
                       {t.label}
-                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary/80">
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-xs ${
+                          isSelected ? 'bg-white/20 text-white' : 'bg-primary/10 text-primary/80'
+                        }`}
+                      >
                         {count}
                       </span>
-                    </Link>
+                    </button>
                   );
                 })}
               </div>

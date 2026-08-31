@@ -2,7 +2,8 @@ import { usePageMeta } from '@/hooks/usePageMeta';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { BookOpen, Target, Eye, Shield, Database, Code2, Brain, Github, ExternalLink } from 'lucide-react';
+import { BookOpen, Target, Eye, Shield, Database, Code2, Brain, Github, ExternalLink, Heart } from 'lucide-react';
+import { DonationModal } from '@/components/common/DonationModal';
 import { Link } from 'react-router-dom';
 import { usePoliticiansStats } from '@/hooks/usePoliticians';
 import { useVotingAnalysisData } from '@/hooks/useVotingAnalysisData';
@@ -288,6 +289,12 @@ const SobrePage = () => {
                     Metodologia
                   </Button>
                 </Link>
+                <DonationModal>
+                  <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white font-medium">
+                    <Heart className="h-4 w-4 mr-2 fill-current" />
+                    Apoiar o Projeto (PIX)
+                  </Button>
+                </DonationModal>
               </div>
             </CardContent>
           </Card>

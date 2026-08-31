@@ -76,4 +76,14 @@ export class NewsService {
       },
     });
   }
+
+  /** Decisão em lote (batch review) de várias menções pendentes. */
+  async batchReview(ids: number[], status: NewsStatus) {
+    if (!ids || ids.length === 0) return { updatedCount: 0 };
+    const res = await this.prisma.newsMention.updateMany({
+      where: { id: { in: ids } },
+      data: { status, reviewed_at: new Date() },
+    });
+    return { updatedCount: res.count };
+  }
 }

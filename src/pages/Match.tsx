@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, RotateCcw, Sparkles, MapPin } from "lucide-react";
+import { ArrowLeft, RotateCcw, Sparkles, MapPin, Keyboard } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePoliticians } from "@/hooks/usePoliticians";
@@ -9,10 +9,10 @@ import { MATCH_QUESTIONS, sortByAffinity, type MatchAnswers, type MatchChoice, t
 import { MatchCard } from "@/components/match/MatchCard";
 import { MatchStoryModal } from "@/components/match/MatchStoryModal";
 
-const CHOICES: { value: MatchChoice; label: string; hint: string }[] = [
-  { value: "concordo", label: "Concordo", hint: "conta a nota do parlamentar neste critério" },
-  { value: "discordo", label: "Não concordo", hint: "conta o reflexo (100 − nota)" },
-  { value: "neutro", label: "Pular", hint: "critério sai do cálculo" },
+const CHOICES: { value: MatchChoice; label: string; hint: string; keyHint: string }[] = [
+  { value: "concordo", label: "Concordo", hint: "conta a nota do parlamentar neste critério", keyHint: "1" },
+  { value: "discordo", label: "Não concordo", hint: "conta o reflexo (100 − nota)", keyHint: "2" },
+  { value: "neutro", label: "Pular", hint: "critério sai do cálculo", keyHint: "3" },
 ];
 
 const VISIBLE_RESULTS = 30;
@@ -52,12 +52,34 @@ const MatchPage = () => {
     return ranked.filter((r) => r.politician.currentState === selectedState);
   }, [ranked, selectedState]);
 
-  const answer = (choice: MatchChoice) => {
-    const q = MATCH_QUESTIONS[step];
-    const next = { ...answers, [q.key]: choice };
-    setAnswers(next);
-    setStep((s) => s + 1);
-  };
+  const answer = useCallback(
+    (choice: MatchChoice) => {
+      const q = MATCH_QUESTIONS[step];
+      if (!q) return;
+      setAnswers((prev) => ({ ...prev, [q.key]: choice }));
+      setStep((s) => s + 1);
+    },
+    [step]
+  );
+
+  // Teclas de atalho 1, 2, 3 no quiz
+  useEffect(() => {
+    if (finished) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignorar se o usuário estiver digitando em um input
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement)?.tagName)) {
+        return;
+      }
+      if (e.key === '1') answer('concordo');
+      else if (e.key === '2') answer('discordo');
+      else if (e.key === '3') answer('neutro');
+      else if (e.key === 'Backspace' && step > 0) setStep((s) => s - 1);
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [finished, step, answer]);
 
   if (finished) {
     return (
@@ -76,7 +98,7 @@ const MatchPage = () => {
         </section>
 
         <section className="py-10">
-          <div className="container mx-auto px-4">
+          <div className="container mx-auto px-4 max-w-6xl">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
               <div>
                 <p className="text-sm text-muted-foreground">
@@ -146,12 +168,12 @@ const MatchPage = () => {
                     ))}
                   </ol>
                 )}
-                <p className="mt-6 text-sm text-muted-foreground max-w-2xl mx-auto text-center leading-relaxed">
+                <p className="mt-8 text-sm text-muted-foreground max-w-2xl mx-auto text-center leading-relaxed">
                   Afinidade não é voto: é proximidade de visão sobre as pautas
                   que a metodologia acompanha. Consulte o perfil de cada um para
                   ver a forma como votou e a consistência. Se você concordou com
                   todos os critérios, esta ordem é exatamente a do{" "}
-                  <Link to="/metodologia" className="text-primary hover:underline">
+                  <Link to="/metodologia" className="text-primary hover:underline font-semibold">
                     ranking oficial
                   </Link>
                   .
@@ -172,7 +194,7 @@ const MatchPage = () => {
   }
 
   const question = MATCH_QUESTIONS[step];
-  const answeredCount = Object.values(answers).filter(Boolean).length;
+  const progressPercent = Math.round((step / MATCH_QUESTIONS.length) * 100);
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
@@ -186,12 +208,15 @@ const MatchPage = () => {
             você vê os parlamentares mais próximos da sua visão — calculado
             localmente, sem mandar nada pra lugar nenhum.
           </p>
-          <Link
-            to="/metodologia"
-            className="inline-flex items-center gap-1.5 mt-3 text-sm font-medium text-blue-100 hover:text-white transition-colors"
-          >
-            Ver a metodologia completa
-          </Link>
+          <div className="mt-3 flex items-center justify-center gap-3 text-xs text-blue-100">
+            <Link to="/metodologia" className="hover:text-white transition-colors underline">
+              Ver a metodologia completa
+            </Link>
+            <span>·</span>
+            <span className="inline-flex items-center gap-1">
+              <Keyboard className="w-3.5 h-3.5" /> Use as teclas [1, 2, 3] no teclado
+            </span>
+          </div>
         </div>
       </section>
 
@@ -202,21 +227,21 @@ const MatchPage = () => {
               <span className="text-sm font-medium text-muted-foreground">
                 Pergunta {step + 1} de {MATCH_QUESTIONS.length}
               </span>
-              <span className="text-sm text-muted-foreground">
-                {answeredCount || 0} respondidas
+              <span className="text-sm font-semibold text-primary">
+                {progressPercent}% concluído
               </span>
             </div>
             <div
-              className="h-2 w-full rounded-full bg-secondary overflow-hidden"
+              className="h-2.5 w-full rounded-full bg-secondary overflow-hidden"
               role="progressbar"
-              aria-valuenow={Math.round((answeredCount / MATCH_QUESTIONS.length) * 100)}
+              aria-valuenow={progressPercent}
               aria-valuemin={0}
               aria-valuemax={100}
-              aria-label={`${Math.round((answeredCount / MATCH_QUESTIONS.length) * 100)}% respondido`}
+              aria-label={`${progressPercent}% respondido`}
             >
               <div
-                className="h-full bg-primary transition-all duration-300"
-                style={{ width: `${(answeredCount / MATCH_QUESTIONS.length) * 100}%` }}
+                className="h-full bg-primary transition-all duration-300 rounded-full"
+                style={{ width: `${progressPercent}%` }}
               />
             </div>
           </div>
@@ -238,16 +263,23 @@ const MatchPage = () => {
                     type="button"
                     aria-pressed={answers[question.key] === c.value}
                     onClick={() => answer(c.value)}
-                    className="w-full text-left rounded-lg border border-border bg-card hover:border-primary/50 hover:bg-accent/40 transition-colors px-4 py-3"
+                    className="w-full flex items-center justify-between text-left rounded-lg border border-border bg-card hover:border-primary hover:bg-accent/40 transition-colors px-4 py-3.5 group focus:outline-none focus:ring-2 focus:ring-primary"
                   >
-                    <span className="block font-medium text-foreground">{c.label}</span>
-                    <span className="block text-sm text-muted-foreground">{c.hint}</span>
+                    <div>
+                      <span className="block font-semibold text-foreground group-hover:text-primary transition-colors">
+                        {c.label}
+                      </span>
+                      <span className="block text-xs text-muted-foreground mt-0.5">{c.hint}</span>
+                    </div>
+                    <kbd className="hidden sm:inline-block px-2 py-1 text-xs font-mono font-semibold text-muted-foreground bg-muted border border-border rounded group-hover:border-primary/50 group-hover:text-foreground">
+                      {c.keyHint}
+                    </kbd>
                   </button>
                 ))}
               </div>
 
               {step > 0 && (
-                <div className="mt-6 text-center">
+                <div className="mt-6 flex items-center justify-between pt-4 border-t border-border/60">
                   <button
                     type="button"
                     onClick={() => setStep((s) => s - 1)}
@@ -256,6 +288,9 @@ const MatchPage = () => {
                     <ArrowLeft className="w-4 h-4" />
                     Pergunta anterior
                   </button>
+                  <span className="text-xs text-muted-foreground">
+                    <kbd className="px-1.5 py-0.5 bg-muted rounded border text-[10px]">Backspace</kbd> para voltar
+                  </span>
                 </div>
               )}
             </CardContent>

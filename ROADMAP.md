@@ -69,15 +69,8 @@ segurança real que não existia nos outros dois.
       maduro que meus-remedios (mobile zero) e muito mais que
       biblia-na-arte (zero) nesse quesito. Só falta rodar em CI (P3)
 
-## P5 — Monitoramento & Logs
-
-- [x] **Uptime Kuma com alerta real (achado 2026-08-14, já confirmado em
-      `hetzner-infra/MIGRATION.md` desde 2026-08-07)**: monitores
-      `api-bancada` (`/health`) e `analise-bancada` (`/api/clusters`)
-      ativos, com alerta configurado em **Telegram e e-mail** (não é só
-      painel visual). Este item estava marcado como pendente/não
-      confirmado antes — checagem cruzada mostrou que já estava resolvido.
-- [ ] ~~Sem Sentry~~ — **PAUSADO por decisão do Rilson (2026-08-23), decisão MANTIDA (2026-08-28)**: volta como ideia de futuro, não é backlog ativo. Motivo original: sem visibilidade de erro em runtime (front Vercel + API). Disponibilidade do site já é coberta pelo Uptime Kuma ativo; Sentry em si segue congelado.
+- [x] **Analytics de Privacidade com Umami — ATIVO (2026-08-31)**: Hospedado no próprio VPS em `https://umami.narniano.com` (sem cookies, totalmente aderente à LGPD). Script integrado em `index.html` com `website-id`: `2d26f077-fe38-4a94-8a07-b31b484e9f91`.
+- [ ] ~~Sem Sentry~~ — **PAUSADO por decisão do Rilson (2026-08-23), decisão MANTIDA (2026-08-28 e 2026-08-31)**: Não há necessidade de Sentry no momento. Uptime Kuma monitora disponibilidade e o Umami monitora acessos no VPS.
 - [x] **Rotação de log — AUDITADA (2026-08-22)**. API e worker rodam em
       Docker com driver `json-file` limitado (`max-size: 10m`, `max-file: 3`)
       direto no compose do hetzner-infra — NestJS loga em stdout, rotação é
@@ -191,7 +184,8 @@ Conferido issue por issue contra o código, não só pelo título:
       - UI: seção **"No noticiário"** no perfil (título+fonte+data+link,
         `NewsSection`, só aprovadas; NÃO entra no score — transparência pura)
         e **`/admin/noticias`** (área de curadoria com token via sessionStorage,
-        fila com contexto do parlamentar + botões Aprovar/Rejeitar + link original).
+        fila com contexto do parlamentar + busca em tempo real + filtro por veículo/fonte
+        + seleção múltipla e barra flutuante de decisão em lote `POST /api/news/admin/batch-review`).
       - **Tarefa contínua de curadoria (Rilson)**: revisar pendentes em
         `/admin/noticias` — na dúvida de homônimo, REJEITAR. Só o aprovado
         aparece no perfil.
@@ -699,7 +693,7 @@ tabs 2×2 no mobile.
    consistência". `README.md` também tinha ficado com o número antigo
    (7.930/31) — corrigido pros números reais atuais.
 4. [x] **Metodologia: party seed explicado** — bloco "Como a nota é calculada — transparência total": base partidária + delta por voto nominal + penalidade de gastos; estimativa parcial sinalizada; fórmula final apontando pro motor open source.
-5. [ ] Interpretação por grupo na página de Clusters — aguardando serviço Python ativo em produção (a página hoje mostra estado de erro gracioso com fallback de alinhamento por partido).
+5. [x] **Interpretação por grupo na página de Clusters** — CONCLUÍDO (2026-08-31): descrições leigas por grupo em linguagem de eleitor (`CLUSTER_DESCRIPTIONS`), detalhamento da composição partidária por grupo (`party_breakdown`), suporte a fallback gracioso e meta SEO.
 
 ### 🚨 Incidente 2026-08-22 — disco cheio derrubou o Postgres compartilhado
 
