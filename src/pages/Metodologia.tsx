@@ -723,7 +723,7 @@ const MetodologiaPage = () => {
                     A API de dados abertos do Senado Federal expõe apenas <strong className="text-foreground">96 votações nominais plenárias</strong> entre 2023 e 2026 — a grande maioria sobre reforma tributária, indicações de cargos e questões orçamentárias. Nenhuma delas tratou de temas como aborto, família, liberdade religiosa ou integridade moral.
                   </p>
                   <p>
-                    Isso <strong className="text-foreground">não significa que os senadores não votaram sobre essas pautas</strong>. A maioria dessas votações ocorre em <strong className="text-foreground">comissões com poder conclusivo</strong> (CCP, CI, CAD, etc.), cujos dados individuais de voto <strong className="text-foreground">não são disponibilizados pela API pública do Senado</strong>.
+                    Isso <strong className="text-foreground">não significa que os senadores não votaram sobre essas pautas</strong>. A maioria dessas votações ocorre em <strong className="text-foreground">comissões com poder conclusivo</strong> (CCJ, CAS, CAE, CI, etc.), cujos dados individuais de voto <strong className="text-foreground">não são disponibilizados pela API pública do Senado</strong>.
                   </p>
                   <p>
                     <strong className="text-foreground">Resultado:</strong> a nota de senadores é estimada com base no histórico de alinhamento do partido ao longo das legislaturas. Assim que a API do Senado disponibilizar votos individuais de comissões, o cálculo de notas será atualizado automaticamente.
