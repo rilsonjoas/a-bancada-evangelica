@@ -581,8 +581,9 @@ const RankingPage = () => {
             <div className="space-y-4">
               {/* Como ler a nota — lente watchdog: escopo honesto e explícito */}
               <div className="rounded-xl border border-border bg-muted/40 px-5 py-4 text-sm leading-relaxed text-muted-foreground">
-                <strong className="text-foreground">Como ler a nota:</strong> soma ponderada
-                das votações nominais registradas nos 5 critérios da metodologia.
+                <strong className="text-foreground">Como ler a nota:</strong> média ponderada
+                dos 5 critérios da metodologia — cada um parte do histórico do partido e
+                é ajustado pela média dos votos nominais reais daquele parlamentar.
                 Ela mede o <strong className="text-foreground">voto registrado</strong> —
                 não mede fé, discurso nem intenção.{' '}
                 <Link to="/metodologia" className="underline font-medium">
