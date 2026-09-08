@@ -281,7 +281,7 @@ Após cada sync, o worker roda `pnpm quality:check` que valida:
 2. **Scores no range** 0–100 para todos
 3. **Scores obrigatórios** — todo político ativo com votos tem 5 scores
 4. **Despesas órfãs** = 0 (toda despesa tem político válido)
-5. **Consistência FPE** — contagem bate com fontes oficiais (Câmara 54477 + Senado 2583)
+5. **Consistência FPE** — corrigido 2026-09-08: a checagem real (`checkFpeConsistency`) só confere se a contagem de membros ativos está numa faixa plausível (0 < N < 450) — **não compara contra a API oficial em tempo real**. Um erro de contagem dentro dessa faixa passaria sem alerta. A comparação de verdade contra Câmara 54477 + Senado 2583 é o que `sync-fpe-members.ts` faz na hora do sync, não este check
 
 Falha em qualquer check → alerta no log + sync não marca como "sucesso".
 
