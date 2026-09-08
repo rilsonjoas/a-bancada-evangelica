@@ -41,7 +41,7 @@ export function Errata() {
           <Card className="card-elevated">
             <CardContent className="pt-6">
               <p className="text-sm text-muted-foreground">
-                Última atualização: 27 de agosto de 2026. Todo dado publicado nesta
+                Última atualização: 08 de setembro de 2026. Todo dado publicado nesta
                 plataforma pode ser auditado conforme a{' '}
                 <Link to="/metodologia" className="text-blue-600 hover:underline">
                   Metodologia
@@ -94,9 +94,10 @@ export function Errata() {
               <div className="flex items-center gap-2 rounded-lg bg-green-50 border border-green-200 p-3 dark:bg-green-950/30 dark:border-green-800">
                 <CheckCircle className="h-4 w-4 text-green-600 shrink-0" />
                 <p className="text-sm">
-                  <strong className="text-foreground">Última auditoria:</strong> 25 de agosto de
-                  2026 — cruzamento da lista de membros da Frente Parlamentar Evangélica com a
-                  lista oficial da Câmara (frente 54477).
+                  <strong className="text-foreground">Última auditoria:</strong> 08 de setembro de
+                  2026 — motor de cálculo das notas revisado e corrigido (ver histórico abaixo).
+                  Auditoria anterior, 25 de agosto de 2026 — cruzamento da lista de membros da
+                  Frente Parlamentar Evangélica com a lista oficial da Câmara (frente 54477).
                 </p>
               </div>
             </CardContent>
@@ -110,6 +111,60 @@ export function Errata() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
+              <div className="rounded-lg border border-border p-4 space-y-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge variant="secondary">2026-09-08</Badge>
+                  <span className="font-semibold text-foreground">
+                    Correção no motor de cálculo das notas (afetou a maioria dos parlamentares)
+                  </span>
+                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  <strong className="text-foreground">O que estava errado:</strong>{' '}
+                  Dois problemas distintos no <code className="text-xs bg-secondary px-1 py-0.5 rounded">recalculate-scores.ts</code>,
+                  achados a partir de uma pergunta sobre o perfil de um senador. (1) O recálculo
+                  diário partia da nota já gravada no dia anterior, em vez do histórico fixo do
+                  partido — isso somava o total de votos de novo, todo dia, fazendo a nota só
+                  crescer ou só cair até saturar. (2) O impacto de cada voto era somado sem
+                  limite em vez de calculado por média — um parlamentar com muitos votos no
+                  mesmo critério saturava em 0 ou 100 só por volume, não por convicção real.
+                </p>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  <strong className="text-foreground">Impacto medido:</strong> antes da correção,
+                  98% dos deputados com voto estavam com nota travada em 0 ou 100 em "Defesa da
+                  Família", 100% em "Responsabilidade Social". Depois: 0% e 1%. Notas de 495 dos
+                  595 parlamentares mudaram nesta correção — a maioria dessas notas nunca
+                  refletiu voto real, era artefato do bug.
+                </p>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  <strong className="text-foreground">Correção:</strong> a base de cada critério
+                  agora é sempre o histórico do partido recalculado do zero (nunca lido de volta
+                  do banco), e o impacto do voto é a média de todos os votos do parlamentar
+                  naquele critério, não a soma. Motor coberto por testes de regressão
+                  (<code className="text-xs bg-secondary px-1 py-0.5 rounded">scripts/__tests__/scoring.test.ts</code>)
+                  provando as duas propriedades que faltavam: idempotência (rodar N vezes dá o
+                  mesmo resultado) e independência de volume de voto.
+                </p>
+              </div>
+              <div className="rounded-lg border border-border p-4 space-y-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge variant="secondary">2026-09-08</Badge>
+                  <span className="font-semibold text-foreground">
+                    89 parlamentares nunca tinham sido semeados com o histórico do partido
+                  </span>
+                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  <strong className="text-foreground">O que estava errado:</strong> 81 senadores
+                  e 8 deputados (todos adicionados ao banco depois da única vez que o script de
+                  semeadura por partido rodou — entre eles Silas Câmara, presidente da própria
+                  Frente Parlamentar Evangélica) estavam com os 5 critérios no valor-padrão bruto
+                  do banco (idêntico pra qualquer partido), não no histórico real do partido dele.
+                </p>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  <strong className="text-foreground">Correção:</strong> os 89 foram semeados com
+                  o histórico real do próprio partido. Script determinístico e comitado:
+                  {' '}<code className="text-xs bg-secondary px-1 py-0.5 rounded">scripts/fix-never-seeded-scores.ts</code>.
+                </p>
+              </div>
               <div className="rounded-lg border border-border p-4 space-y-2">
                 <div className="flex items-center gap-2 flex-wrap">
                   <Badge variant="secondary">2026-08-25</Badge>
