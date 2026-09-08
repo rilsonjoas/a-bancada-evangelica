@@ -9,6 +9,42 @@ import { runQualityChecks } from './quality-check';
 const execFileAsync = promisify(execFile);
 const prisma = new PrismaClient();
 
+// ── Eixo 1 do PLANO-OPERACAO-SUSTENTAVEL.md — frescor + alerta de falha ──────
+//
+// Mesmo padrão já em produção em hetzner-infra/backup/backup.sh: cada job
+// manda um ping opcional pro Uptime Kuma ao terminar (status=up/down). O
+// Uptime Kuma já tem alerta real (Telegram + e-mail) configurado — nenhum
+// código de alerta novo aqui, só reaproveitar infra que já roda. Sem URL
+// configurada na env = no-op silencioso, nunca quebra o job em si.
+const UPTIME_KUMA_PUSH_ENV: Record<string, string> = {
+  'daily-politicians-sync': 'UPTIME_KUMA_PUSH_URL_POLITICIANS',
+  'daily-news-sync': 'UPTIME_KUMA_PUSH_URL_NEWS',
+  'daily-score-calculation': 'UPTIME_KUMA_PUSH_URL_SCORES',
+  'weekly-expenses-sync': 'UPTIME_KUMA_PUSH_URL_EXPENSES',
+  'weekly-expense-analysis': 'UPTIME_KUMA_PUSH_URL_EXPENSE_ANALYSIS',
+  'monthly-log-cleanup': 'UPTIME_KUMA_PUSH_URL_LOG_CLEANUP',
+};
+
+async function pingUptimeKuma(envVar: string, opts: { status?: 'up' | 'down'; msg?: string } = {}): Promise<void> {
+  const url = process.env[envVar];
+  if (!url) return; // monitor ainda não criado/configurado — silencioso de propósito
+
+  const { status = 'up', msg = 'OK' } = opts;
+  const separator = url.includes('?') ? '&' : '?';
+  const target = `${url}${separator}status=${status}&msg=${encodeURIComponent(msg)}`;
+
+  try {
+    await fetch(target, { signal: AbortSignal.timeout(10_000) });
+  } catch (err) {
+    // Falha de push não deve derrubar o job real — só registra e segue.
+    console.error(`⚠️ Push pro Uptime Kuma falhou (${envVar}):`, err instanceof Error ? err.message : err);
+  }
+}
+
+// Eixo 2 do plano — capacidade de curadoria da fila de notícias.
+const CURATION_QUEUE_ALERT_THRESHOLD = Number(process.env.CURATION_QUEUE_ALERT_THRESHOLD ?? 50);
+const CURATION_QUEUE_STALE_DAYS = Number(process.env.CURATION_QUEUE_STALE_DAYS ?? 90);
+
 interface SyncSchedule {
   name: string;
   cronExpression: string;
@@ -82,6 +118,13 @@ class SyncWorkerService {
           console.error('❌ Erro na busca de menções na imprensa:', error);
           throw error;
         }
+
+        // Eixo 2 do plano (2026-09-08): a busca agora é automática, mas a
+        // decisão de aprovar/rejeitar continua 100% humana por decisão de
+        // produto — o que pode crescer sem controle é a FILA. Duas
+        // salvaguardas pra ela não virar um backlog impossível se a
+        // curadoria ficar parada um tempo:
+        await this.manageCurationQueue();
       },
       enabled: true
     });
@@ -136,13 +179,21 @@ class SyncWorkerService {
     for (const schedule of this.schedules) {
       if (schedule.enabled) {
         cron.schedule(schedule.cronExpression, async () => {
+          const pushEnvVar = UPTIME_KUMA_PUSH_ENV[schedule.name];
           try {
             console.log(`⏰ Executando tarefa agendada: ${schedule.name}`);
             await schedule.task();
             console.log(`✅ Tarefa concluída: ${schedule.name}`);
+            if (pushEnvVar) await pingUptimeKuma(pushEnvVar, { status: 'up', msg: `${schedule.name} concluída` });
           } catch (error) {
             console.error(`❌ Erro na tarefa ${schedule.name}:`, error);
             await this.logError(schedule.name, error);
+            if (pushEnvVar) {
+              await pingUptimeKuma(pushEnvVar, {
+                status: 'down',
+                msg: error instanceof Error ? error.message : String(error),
+              });
+            }
           }
         });
 
@@ -383,6 +434,74 @@ class SyncWorkerService {
           source: politician.current_house === 'CAMARA' ? 'CAMARA' : 'SENADO'
         }
       });
+    }
+  }
+
+  /**
+   * Eixo 2 do PLANO-OPERACAO-SUSTENTAVEL.md — capacidade de curadoria.
+   *
+   * Duas salvaguardas, nenhuma delas decide "aprovar" ou "rejeitar" no
+   * sentido editorial (isso continua exclusivamente humano, na área de
+   * curadoria) — só protegem a FILA em si de virar um problema:
+   *
+   * 1. Expira PENDING esquecido há mais de CURATION_QUEUE_STALE_DAYS
+   *    (padrão 90) sem revisão. Sem isso, ficar semanas sem curar =
+   *    culpa acumulando sem limite; com isso, a fila se autolimpa mesmo
+   *    se a curadoria ficar parada um tempo. Motivo fica registrado no
+   *    SyncLog (details), não numa coluna nova em NewsMention — mesmo
+   *    padrão de auditoria que H6 já usa pra diff de scores, sem exigir
+   *    migração de schema.
+   * 2. Reporta a saúde da fila pro Uptime Kuma: status=down (dispara
+   *    alerta real, Telegram/e-mail) se PENDING passar de
+   *    CURATION_QUEUE_ALERT_THRESHOLD (padrão 50) — em vez de você
+   *    descobrir o backlog só quando abrir a página por acaso.
+   */
+  private async manageCurationQueue(): Promise<void> {
+    const cutoff = new Date(Date.now() - CURATION_QUEUE_STALE_DAYS * 24 * 60 * 60 * 1000);
+
+    try {
+      const stale = await prisma.newsMention.findMany({
+        where: { status: 'PENDING', created_at: { lt: cutoff } },
+        select: { id: true, title: true, politician_id: true },
+      });
+
+      if (stale.length > 0) {
+        await prisma.newsMention.updateMany({
+          where: { id: { in: stale.map((s) => s.id) } },
+          data: { status: 'REJECTED', reviewed_at: new Date() },
+        });
+
+        await prisma.syncLog.create({
+          data: {
+            sync_type: 'NEWS',
+            source: 'MANUAL',
+            status: 'SUCCESS',
+            start_time: new Date(),
+            end_time: new Date(),
+            records_processed: stale.length,
+            records_updated: stale.length,
+            details: {
+              action: 'auto_expire_stale_pending',
+              reason: `PENDING sem revisão humana há mais de ${CURATION_QUEUE_STALE_DAYS} dias`,
+              expiredIds: stale.map((s) => s.id),
+            },
+          },
+        });
+
+        console.log(`🗑️ ${stale.length} menções expiradas automaticamente (PENDING > ${CURATION_QUEUE_STALE_DAYS} dias)`);
+      }
+
+      const pendingCount = await prisma.newsMention.count({ where: { status: 'PENDING' } });
+      console.log(`📋 Fila de curadoria: ${pendingCount} pendentes (limite de alerta: ${CURATION_QUEUE_ALERT_THRESHOLD})`);
+
+      await pingUptimeKuma('UPTIME_KUMA_PUSH_URL_CURATION_QUEUE', {
+        status: pendingCount > CURATION_QUEUE_ALERT_THRESHOLD ? 'down' : 'up',
+        msg: `${pendingCount} pendentes na fila de curadoria`,
+      });
+    } catch (error) {
+      // Falha aqui não deve derrubar o job de busca de notícias, que já
+      // terminou com sucesso antes desta etapa rodar.
+      console.error('❌ Erro ao gerenciar a fila de curadoria:', error);
     }
   }
 
