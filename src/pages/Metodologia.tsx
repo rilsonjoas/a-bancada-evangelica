@@ -597,7 +597,7 @@ const MetodologiaPage = () => {
                   <a href="/errata" className="underline hover:text-primary transition-colors">Errata pública</a>.
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Última auditoria: 25 de agosto de 2026 — 99,5% de precisão verificada contra a lista oficial (207/208 deputados corretos; 15 senadores em exercício marcados).
+                  Última auditoria: 25 de agosto de 2026, cruzando nome a nome contra a lista oficial da frente 54477. Dos 208 deputados já marcados antes da auditoria, 207 flags estavam corretos (99,5% de precisão; 1 falso positivo removido). Mais importante: a auditoria também <strong className="text-foreground">encontrou 4 membros ativos que estavam faltando</strong> — incluindo <strong className="text-foreground">Silas Câmara, presidente da própria frente</strong> — e marcou 21 membros oficiais hoje inativos (licença, suplência ou vacância; flag é filiação declarada, não exercício do mandato). Total corrigido: <strong className="text-foreground">232 membros</strong> (idêntico à lista oficial), sendo 210 entre os parlamentares em exercício; 15 senadores em exercício marcados.
                 </p>
               </CardContent>
             </Card>
