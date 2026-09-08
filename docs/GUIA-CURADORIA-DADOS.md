@@ -35,7 +35,18 @@ Câmara/Senado cujo título casa com ela).
 
 ## Sobre pautas semeadas manualmente
 
-Ainda não existe mecanismo de curadoria manual em produção — quando
-existir, este guia será atualizado. Até lá, pautas relevantes não casadas
-por keyword devem ser reportadas em issue (com link oficial) e ficam
-registradas como dívida de vocabulário.
+Pautas relevantes não casadas por keyword devem ser reportadas em issue
+(com link oficial) e ficam registradas como dívida de vocabulário.
+
+## Curadoria manual em produção (atualizado 2026-09-08)
+
+Esta parte do guia estava desatualizada — dizia "ainda não existe
+mecanismo de curadoria manual em produção", mas existe desde a #7
+(2026-08-28): menções na imprensa por parlamentar (`NewsMention`), com
+fila em `/admin/noticias` protegida por `ADMIN_TOKEN`. Busca automática
+diária (`sync-news.ts`, cron 03:30); decisão de aprovar/rejeitar é
+sempre humana, nunca automática — mesma regra de ouro deste guia, "zero
+honesto > número fabricado", aplicada a notícia em vez de voto: uma
+menção não citada errado é melhor que uma matéria errada publicada.
+Cadência e gestão da fila (alerta de fila grande, expiração de item
+esquecido) documentadas em `docs/PLANO-OPERACAO-SUSTENTAVEL.md`.
