@@ -5,8 +5,12 @@ import { Download, ExternalLink, CheckCircle2, AlertTriangle } from 'lucide-reac
 import { apiFetch } from '@/lib/apiClient';
 import { formatRelativeTime } from '@/lib/format';
 
-// A API vive em domínio próprio (VPS/Railway) — links relativos cairiam
-// no domínio do Vercel, onde não existe /api/*. Achado real 2026-08-23.
+// A API vive em domínio próprio (VPS Hetzner, desde 2026-08-02 — ver
+// README.md §Deploy) — links relativos cairiam no domínio do Vercel,
+// onde não existe /api/*. Achado real 2026-08-23. Comentário corrigido
+// 2026-09-08: ainda citava "Railway", de onde o projeto saiu há mais
+// de um mês (mesma referência morta que o ROADMAP já registra ter
+// "corrigido" 2x — .env.example escapou nas duas rodadas).
 const API_BASE_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:3001').replace(/\/$/, '');
 
 const SYNC_TYPE_LABEL: Record<string, string> = {
