@@ -294,7 +294,11 @@ const MetodologiaPage = () => {
                 <p className="text-muted-foreground">
                   Cada votação plenária monitorada é classificada em um dos 5 critérios e recebe um
                   <strong> sentido evangélico</strong>: votar <em>a favor</em> de uma pauta pró-vida, por exemplo,
-                  é positivo; votar <em>contra</em> é negativo. O impacto em pontos é somado ao critério correspondente.
+                  é positivo; votar <em>contra</em> é negativo. O critério final usa a <strong>média</strong> do
+                  impacto em pontos de todos os votos daquele parlamentar no critério — não a soma. Isso importa:
+                  soma cresceria sem limite conforme mais votações relevantes surgem (quem votou 20 vezes puxaria
+                  mais nota que quem votou 2, só por volume); média mede a tendência real do voto dele, não quantas
+                  vezes o tema apareceu em pauta.
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="flex items-start gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
@@ -323,17 +327,18 @@ const MetodologiaPage = () => {
                   <p className="text-sm text-muted-foreground">
                     <strong>Exemplo real:</strong> O PL 2630/2020 (Marco Civil da Internet) foi classificado como
                     <em> Defesa da Família</em>. Deputados que votaram <strong>SIM</strong> nesta lei receberam
-                    <strong className="text-red-600"> -10 pts</strong> em Família, pois o posicionamento evangélico
+                    <strong className="text-red-600"> -10 pts</strong> nesta votação, pois o posicionamento evangélico
                     era contrário ao projeto. Deputados que votaram <strong>NÃO</strong> receberam
-                    <strong className="text-green-700"> +10 pts</strong>.
+                    <strong className="text-green-700"> +10 pts</strong>. Se o mesmo deputado tiver outras votações
+                    em Família, o critério final é a média entre todas — não a soma desta com as demais.
                   </p>
                 </div>
                 <div className="p-4 bg-secondary/30 rounded-lg">
                   <p className="text-sm text-muted-foreground">
                     <strong>Base de pontuação:</strong> Cada critério parte do histórico de alinhamento do partido do
                     político nas últimas legislaturas (ver Reprodutibilidade) — não de um valor fixo igual pra todo
-                    mundo. Os votos individuais, quando existem, adicionam ou subtraem valores sobre esse ponto de
-                    partida; despesas fora do padrão fazem o mesmo em Integridade Moral.
+                    mundo. A média dos votos individuais, quando existem, ajusta esse ponto de partida pra cima ou
+                    pra baixo; despesas fora do padrão fazem o mesmo em Integridade Moral.
                   </p>
                 </div>
               </CardContent>
@@ -378,8 +383,11 @@ const MetodologiaPage = () => {
                   <div className="text-sm text-muted-foreground leading-relaxed space-y-2">
                     <p>
                       A nota de cada parlamentar começa na <strong>média histórica do partido dele</strong>
-                      {' '}em cada critério e é ajustada por <strong>cada voto nominal registrado</strong>:
-                      votos alinhados sobem a nota daquele critério, votos contrários descem. Integridade
+                      {' '}em cada critério e é ajustada pela <strong>média de todos os votos nominais
+                      registrados</strong> naquele critério — não pela soma, de propósito: a soma cresceria
+                      sem limite conforme mais votações relevantes fossem surgindo, então quem votou 20
+                      vezes puxaria mais nota que quem votou 2 só por volume, não por convicção. A média
+                      reflete a tendência real do voto, tenha ele acontecido 1 vez ou 20. Integridade
                       Moral também considera despesas públicas fora do padrão estatístico (penalidade proporcional).
                     </p>
                     <p>

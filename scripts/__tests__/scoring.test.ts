@@ -96,30 +96,31 @@ describe('performanceLabel', () => {
   });
 });
 
-describe('regressão: idempotência do modelo híbrido (achado real 2026-09-08)', () => {
+describe('regressão: idempotência do modelo híbrido (achado real 2026-09-08, #1)', () => {
   // Reproduz a lógica de recalculate-scores.ts pra provar a propriedade
   // que estava quebrada: rodar o cálculo N vezes com o MESMO voto real
   // tem que dar sempre o MESMO resultado. Antes da correção, a base
   // vinha do valor já gravado (existing?.campo) em vez do seed fixo do
   // partido — cada execução somava o delta de voto de novo por cima do
   // que já tinha o delta somado, e a nota só crescia/caía até saturar em
-  // 0 ou 100. Essa função simula exatamente o "hasVotes ? seed+delta :
-  // seed" que existe hoje no motor real.
-  function hybridScore(politicianId: number, party: string, criteriaIndex: number, voteDeltaSum: number) {
+  // 0 ou 100. Essa função simula o "hasVotes ? seed+delta : seed" que
+  // existe hoje no motor real (delta já pronto, seja média ou soma —
+  // este teste é sobre a base ser fixa, não sobre o achado #2 abaixo).
+  function hybridScore(politicianId: number, party: string, criteriaIndex: number, voteDelta: number) {
     const base = partyBase(party);
     const seed = clampSeed(base[criteriaIndex] + individualNoise(politicianId, criteriaIndex));
-    return clampScore(seed + voteDeltaSum);
+    return clampScore(seed + voteDelta);
   }
 
   it('rodar o cálculo várias vezes com o mesmo voto dá sempre o mesmo resultado', () => {
     const politicianId = 677; // Flávio Bolsonaro, mesmo caso real da correção
     const party = 'PL';
     const criteriaIndex = 1; // FAMILY_VALUES
-    const voteDeltaSum = -20; // soma de todos os votos reais desse critério
+    const voteDelta = -20;
 
-    const run1 = hybridScore(politicianId, party, criteriaIndex, voteDeltaSum);
-    const run2 = hybridScore(politicianId, party, criteriaIndex, voteDeltaSum);
-    const run3 = hybridScore(politicianId, party, criteriaIndex, voteDeltaSum);
+    const run1 = hybridScore(politicianId, party, criteriaIndex, voteDelta);
+    const run2 = hybridScore(politicianId, party, criteriaIndex, voteDelta);
+    const run3 = hybridScore(politicianId, party, criteriaIndex, voteDelta);
 
     expect(run1).toBe(run2);
     expect(run2).toBe(run3);
@@ -128,5 +129,46 @@ describe('regressão: idempotência do modelo híbrido (achado real 2026-09-08)'
   it('sem voto (delta=0), o resultado é sempre o seed fixo do partido — nunca deriva', () => {
     const results = Array.from({ length: 5 }, () => hybridScore(677, 'PL', 1, 0));
     expect(new Set(results).size).toBe(1);
+  });
+});
+
+describe('regressão: média em vez de soma (achado real 2026-09-08, #2)', () => {
+  // Caso real medido em produção: Acácio Favacho (MDB), 16 votos em
+  // Família com applied_score de ±15 cada, somando +150. SOMAR não tem
+  // limite — qualquer deputado com volume de voto suficiente satura em
+  // 100 garantido, mesmo com a base fixa do achado #1 já corrigida.
+  // MÉDIA resolve: reflete tendência (alinhado/contrário/misto), não
+  // volume de quantas vezes o tema apareceu em pauta.
+  function average(values: number[]): number {
+    return values.reduce((a, b) => a + b, 0) / values.length;
+  }
+
+  it('16 votos de +15 cada NÃO deveriam somar +150 — a média é só +15', () => {
+    const votes = Array(16).fill(15);
+    const sum = votes.reduce((a, b) => a + b, 0);
+    expect(sum).toBe(240); // a soma sem limite do bug antigo
+    expect(average(votes)).toBe(15); // o valor real e estável, pós-correção
+  });
+
+  it('caso real: Acácio Favacho, votos mistos em Família (+150 de soma, 16 votos)', () => {
+    const votes = [15, 15, -15, 15, 15, 15, 15, 15, 15, 15, -15, 15, -15, 15, 15, 15];
+    expect(votes.reduce((a, b) => a + b, 0)).toBe(150);
+    // Base MDB pra família = 58 (± ruído). +150 satura em 100 sempre;
+    // a média (~9.4) mantém a nota dentro de faixa plausível.
+    expect(average(votes)).toBeCloseTo(9.375, 3);
+    // ID genérico só pra ter algum ruído individual determinístico — não
+    // é o ID real do Acácio Favacho, o ponto do teste é a fórmula, não
+    // reproduzir o valor exato dele.
+    const base = partyBase('MDB');
+    const seed = clampSeed(base[1] + individualNoise(1001, 1)); // FAMILY_VALUES index=1
+    const withSum = clampScore(seed + 150);
+    const withAverage = clampScore(seed + average(votes));
+    expect(withSum).toBe(100); // o que o bug produzia — sempre saturado
+    expect(withAverage).toBeLessThan(100); // o que a correção produz
+  });
+
+  it('poucos votos (1-2) não mudam de comportamento — média = soma quando N pequeno', () => {
+    expect(average([10])).toBe(10);
+    expect(average([10, -10])).toBe(0);
   });
 });

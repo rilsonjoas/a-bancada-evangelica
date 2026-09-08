@@ -1,7 +1,7 @@
 /**
  * recalculate-scores.ts
  * Recalcula scores usando abordagem híbrida:
- *   - Para critérios COM votos reais: seed do partido + delta dos votos
+ *   - Para critérios COM votos reais: seed do partido + MÉDIA dos votos
  *   - Para critérios SEM votos reais: mantém o seed do partido
  *   - Penalidade de despesas suspeitas em moral_integrity
  *
@@ -9,25 +9,37 @@
  * PLEN acessíveis (vida, família, religião) enquanto usa dados reais
  * para ajustar critérios com votações disponíveis (social, família).
  *
- * CORREÇÃO CRÍTICA (2026-09-08, achado real): até esta versão, a "base"
- * de cada critério vinha de `existing?.campo` — o valor JÁ GRAVADO pela
- * execução anterior, que já incluía o delta de voto somado. Como este
- * script roda todo dia via cron (sync-worker.ts, 05:00) e `sumDelta()`
- * soma TODOS os votos desde sempre (não só os novos), isso somava o
- * histórico completo de novo, todo santo dia, em cima de um valor que já
- * o continha. Resultado real medido em produção: 98% dos deputados com
- * voto travados em 0 ou 100 em Família, 100% em Responsabilidade Social,
- * 69% em Integridade Moral — extremos sem significado, não nota real.
- * Vida e Liberdade Religiosa escaparam só por terem poucos/nenhum voto
- * casado (mesmo problema de vocabulário estreito já documentado em
- * docs/GUIA-CURADORIA-DADOS.md pra liberdade religiosa).
+ * DOIS ACHADOS REAIS CORRIGIDOS EM 2026-09-08, distintos entre si:
  *
- * Correção: a base agora é sempre `partyBase() + individualNoise()` —
- * um valor FIXO, recalculado do zero a cada execução, nunca lido de
- * volta do banco. O delta de voto (soma de TODOS os votos reais, que já
- * é o total certo por natureza) se aplica uma vez só sobre essa base
- * fixa, então rodar este script qualquer número de vezes dá o mesmo
- * resultado (idempotente) — a garantia que faltava.
+ * 1) Base móvel em vez de fixa. Até esta versão, a "base" de cada
+ *    critério vinha de `existing?.campo` — o valor JÁ GRAVADO pela
+ *    execução anterior, que já incluía o delta de voto somado. Como
+ *    este script roda todo dia via cron (sync-worker.ts, 05:00) e o
+ *    delta somava TODOS os votos desde sempre (não só os novos), isso
+ *    somava o histórico completo de novo, todo santo dia, em cima de
+ *    um valor que já o continha — drift sem fim, sempre piorando.
+ *    Corrigido: a base agora é sempre `partyBase() + individualNoise()`
+ *    — um valor FIXO, recalculado do zero a cada execução, nunca lido
+ *    de volta do banco. Isso torna o script idempotente (rodar N vezes
+ *    dá o mesmo resultado), mas por si só NÃO bastou — ver achado 2.
+ *
+ * 2) Soma sem limite em vez de média. applied_score de cada voto tem
+ *    peso fixo do SCAN_RULES (ex.: ±15 em Família). SOMAR todos os
+ *    votos de um critério não tem limite nenhum — um deputado com 16
+ *    votos nesse critério acumulava até ±240, muito além da faixa
+ *    0–100, saturando na hora mesmo já com a base fixa do achado 1.
+ *    Medido em produção (só com o achado 1 corrigido, achado 2 ainda
+ *    não): Família ainda 69% saturada, Responsabilidade Social 74%.
+ *    Exemplo real: Acácio Favacho (MDB), 16 votos em Família somando
+ *    +150 — saturava em 100 garantido, não por ser realmente extremo,
+ *    só por ter votado bastante sobre o tema. Corrigido: MÉDIA, não
+ *    soma — reflete a TENDÊNCIA real do voto (alinhado/contrário/misto),
+ *    não o VOLUME de quantas vezes o tema apareceu em pauta. Decisão
+ *    do Rilson (2026-09-08): média, não um cap na soma — muda o
+ *    significado da nota de "acúmulo" pra "tendência", deliberadamente.
+ *
+ * Resultado combinado dos dois: script idempotente E sem saturação
+ * garantida por volume de voto.
  */
 import { PrismaClient } from '@prisma/client';
 import path from 'node:path';
@@ -97,9 +109,7 @@ async function recalculate() {
     const existing = politician.scores[0];
     const base = partyBase(politician.current_party);
 
-    // Agrupar votos reais por critério — sumDelta já é o TOTAL real (todos
-    // os votos desde sempre), por isso a base tem que ser fixa (ver
-    // comentário no topo do arquivo), nunca o valor já ajustado.
+    // Agrupar votos reais por critério.
     const deltas: Record<CriteriaKey, number[]> = {
       LIFE_PROTECTION: [], FAMILY_VALUES: [], MORAL_INTEGRITY: [],
       SOCIAL_RESPONSIBILITY: [], RELIGIOUS_FREEDOM: [],
@@ -111,7 +121,19 @@ async function recalculate() {
     }
 
     const hasCriteriaVotes = (c: CriteriaKey) => deltas[c].length > 0;
-    const sumDelta = (c: CriteriaKey) => deltas[c].reduce((a, b) => a + b, 0);
+
+    // MÉDIA, não soma (achado real 2026-09-08, segundo bug distinto do
+    // "base móvel" acima). applied_score de cada voto tem peso fixo do
+    // SCAN_RULES (ex.: ±15 em Família) — SOMAR todos os votos desde
+    // sempre não tem limite: um deputado com 16 votos nesse critério
+    // já acumula até ±240, muito além da faixa 0–100, saturando na
+    // hora mesmo com a base fixa corrigida. Medido em produção antes
+    // desta correção: Acácio Favacho (MDB), 16 votos em Família somando
+    // +150 — saturava em 100 garantido, não por ser realmente extremo,
+    // só por ter votado bastante. Média corrige isso: reflete a
+    // TENDÊNCIA real do voto (alinhado, contrário, ou misto), não o
+    // VOLUME de quantas vezes o tema apareceu em pauta.
+    const avgDelta = (c: CriteriaKey) => deltas[c].reduce((a, b) => a + b, 0) / deltas[c].length;
 
     // Seed do partido pra cada critério — fixo, recalculado do zero.
     const seedFor = (c: CriteriaKey) => clampSeed(base[CRITERIA_INDEX[c]] + individualNoise(politician.id, CRITERIA_INDEX[c]));
@@ -125,11 +147,11 @@ async function recalculate() {
     const expensePenalty = Math.min(25, suspiciousCount * 3 + avgSuspicion * 0.1);
 
     // Híbrido: parte do seed do partido (fixo), ajusta só onde há voto real.
-    const life = clampScore(hasCriteriaVotes('LIFE_PROTECTION') ? seedFor('LIFE_PROTECTION') + sumDelta('LIFE_PROTECTION') : seedFor('LIFE_PROTECTION'));
-    const family = clampScore(hasCriteriaVotes('FAMILY_VALUES') ? seedFor('FAMILY_VALUES') + sumDelta('FAMILY_VALUES') : seedFor('FAMILY_VALUES'));
-    const moral = clampScore(seedFor('MORAL_INTEGRITY') + sumDelta('MORAL_INTEGRITY') - expensePenalty);
-    const social = clampScore(hasCriteriaVotes('SOCIAL_RESPONSIBILITY') ? seedFor('SOCIAL_RESPONSIBILITY') + sumDelta('SOCIAL_RESPONSIBILITY') : seedFor('SOCIAL_RESPONSIBILITY'));
-    const religious = clampScore(hasCriteriaVotes('RELIGIOUS_FREEDOM') ? seedFor('RELIGIOUS_FREEDOM') + sumDelta('RELIGIOUS_FREEDOM') : seedFor('RELIGIOUS_FREEDOM'));
+    const life = clampScore(hasCriteriaVotes('LIFE_PROTECTION') ? seedFor('LIFE_PROTECTION') + avgDelta('LIFE_PROTECTION') : seedFor('LIFE_PROTECTION'));
+    const family = clampScore(hasCriteriaVotes('FAMILY_VALUES') ? seedFor('FAMILY_VALUES') + avgDelta('FAMILY_VALUES') : seedFor('FAMILY_VALUES'));
+    const moral = clampScore(seedFor('MORAL_INTEGRITY') + (hasCriteriaVotes('MORAL_INTEGRITY') ? avgDelta('MORAL_INTEGRITY') : 0) - expensePenalty);
+    const social = clampScore(hasCriteriaVotes('SOCIAL_RESPONSIBILITY') ? seedFor('SOCIAL_RESPONSIBILITY') + avgDelta('SOCIAL_RESPONSIBILITY') : seedFor('SOCIAL_RESPONSIBILITY'));
+    const religious = clampScore(hasCriteriaVotes('RELIGIOUS_FREEDOM') ? seedFor('RELIGIOUS_FREEDOM') + avgDelta('RELIGIOUS_FREEDOM') : seedFor('RELIGIOUS_FREEDOM'));
 
     const scores: Record<CriteriaKey, number> = {
       LIFE_PROTECTION: life, FAMILY_VALUES: family, MORAL_INTEGRITY: moral,
