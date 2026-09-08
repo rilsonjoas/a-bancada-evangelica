@@ -305,14 +305,14 @@ const MetodologiaPage = () => {
                     <TrendingUp className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
                     <div>
                       <div className="font-semibold text-green-800 text-sm">Impacto Positivo</div>
-                      <div className="text-sm text-green-700 mt-1">Voto alinhado com os valores evangélicos — adiciona pontos ao critério correspondente</div>
+                      <div className="text-sm text-green-700 mt-1">Voto alinhado com os valores evangélicos — conta a favor na média do critério correspondente</div>
                     </div>
                   </div>
                   <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
                     <TrendingDown className="h-5 w-5 text-red-600 mt-0.5 shrink-0" />
                     <div>
                       <div className="font-semibold text-red-800 text-sm">Impacto Negativo</div>
-                      <div className="text-sm text-red-700 mt-1">Voto contrário ao posicionamento evangélico — subtrai pontos do critério correspondente</div>
+                      <div className="text-sm text-red-700 mt-1">Voto contrário ao posicionamento evangélico — conta contra na média do critério correspondente</div>
                     </div>
                   </div>
                   <div className="flex items-start gap-3 p-4 bg-gray-50 border border-gray-200 rounded-lg">
