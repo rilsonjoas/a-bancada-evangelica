@@ -229,11 +229,11 @@ const SobrePage = () => {
             <CardContent className="pt-6">
               <div className="space-y-4">
                 {[
-                  { pct: '30%', title: 'Proteção à Vida', desc: 'Votações sobre aborto, eutanásia, pena de morte' },
-                  { pct: '25%', title: 'Valores Familiares', desc: 'Conceito de família, adoção, liberdade de educação' },
-                  { pct: '20%', title: 'Integridade Moral', desc: 'Despesas fora do padrão estatístico + votações de ética' },
-                  { pct: '15%', title: 'Responsabilidade Social', desc: 'Projetos para populações vulneráveis, saúde pública' },
-                  { pct: '10%', title: 'Liberdade Religiosa', desc: 'Proteção ao culto, expressão de fé, patrimônio religioso' },
+                  { pct: '30%', title: 'Proteção à Vida', desc: 'Votações sobre aborto, eutanásia, proteção ao nascituro' },
+                  { pct: '25%', title: 'Valores Familiares', desc: 'Conceito de família, casamento, adoção, proteção à infância' },
+                  { pct: '20%', title: 'Integridade Moral', desc: 'Despesas fora do padrão estatístico + votações sobre corrupção/improbidade' },
+                  { pct: '15%', title: 'Responsabilidade Social', desc: 'Assistência social, saúde pública, populações vulneráveis' },
+                  { pct: '10%', title: 'Liberdade Religiosa', desc: 'Liberdade de culto, expressão religiosa, combate à intolerância' },
                 ].map(c => (
                   <div key={c.title} className="flex items-start gap-3 py-2 border-b border-border last:border-0">
                     <Badge variant="secondary" className="text-xs font-mono mt-0.5 flex-shrink-0">{c.pct}</Badge>
