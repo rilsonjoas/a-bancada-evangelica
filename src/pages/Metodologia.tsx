@@ -71,7 +71,7 @@ const MetodologiaPage = () => {
       icon: Scale,
       weight: 20,
       name: 'Integridade Moral',
-      description: 'Analisamos o caráter do político: histórico de processos judiciais, investigações por corrupção ou improbidade, e o uso da cota parlamentar. Despesas que destoam do padrão estatístico do conjunto penalizam esta pontuação (diferença estatística, não acusação). A presunção de inocência é respeitada — a nota começa em 80.',
+      description: 'Analisamos o caráter do político: histórico de processos judiciais, investigações por corrupção ou improbidade, e o uso da cota parlamentar. Despesas que destoam do padrão estatístico do conjunto penalizam esta pontuação (diferença estatística, não acusação). A nota parte do histórico de conduta do partido nas últimas legislaturas — nunca de uma acusação presumida contra o político — e só é penalizada quando há despesa analisada fora do padrão.',
       whyImportant: '"O justo anda na sua integridade; bem-aventurados serão os seus filhos depois dele" (Provérbios 20:7). Um líder cristão deve ser "irrepreensível" (1 Timóteo 3:2) e um bom administrador dos recursos que lhe foram confiados.',
       howItHelps: 'Esta análise ajuda a ir além do "rouba, mas faz". Avalie o caráter do político e sua conduta ética, escolhendo representantes que honrem a confiança pública.',
       indicators: [
@@ -330,9 +330,10 @@ const MetodologiaPage = () => {
                 </div>
                 <div className="p-4 bg-secondary/30 rounded-lg">
                   <p className="text-sm text-muted-foreground">
-                    <strong>Base de pontuação:</strong> Cada critério começa em 50 pontos (Integridade começa em 80,
-                    pela presunção de inocência). Os votos adicionam ou subtraem valores sobre esse ponto de partida,
-                    que é calibrado pelo histórico de alinhamento do partido do político.
+                    <strong>Base de pontuação:</strong> Cada critério parte do histórico de alinhamento do partido do
+                    político nas últimas legislaturas (ver Reprodutibilidade) — não de um valor fixo igual pra todo
+                    mundo. Os votos individuais, quando existem, adicionam ou subtraem valores sobre esse ponto de
+                    partida; despesas fora do padrão fazem o mesmo em Integridade Moral.
                   </p>
                 </div>
               </CardContent>
@@ -386,6 +387,17 @@ const MetodologiaPage = () => {
                       análise de gastos pendente, a nota dele é uma <strong>estimativa parcial</strong> —
                       herança partidária ajustada pelo que já se sabe. Perfis nessa situação são marcados
                       no site. A estimativa vira medição conforme mais votações nominais são incorporadas.
+                    </p>
+                    <p>
+                      <strong>Caso real: Integridade Moral sem despesa analisada ainda.</strong> Quando não
+                      há despesa da cota parlamentar analisada pra um político, não existe penalidade a
+                      aplicar — a nota de Integridade Moral permanece exatamente na base herdada do
+                      histórico do partido (ex.: um parlamentar pode aparecer com 77 nesse critério sem
+                      nenhum escândalo associado a ele especificamente). Não é nota inflada nem erro: é o
+                      ponto de partida do partido, sem prejulgamento e sem dado individual ainda pra
+                      ajustá-lo. O perfil mostra essa condição explicitamente — o badge de risco some e
+                      uma nota explicativa aparece no card de estatísticas — em vez de escondê-la atrás
+                      de um número que pareceria definitivo.
                     </p>
                     <p className="text-sm leading-relaxed">
                       Fórmula final: soma ponderada dos 5 critérios nos pesos 30/25/20/15/10, limitada a
@@ -655,7 +667,7 @@ const MetodologiaPage = () => {
                     </li>
                     <li className="flex items-start space-x-2">
                       <CheckCircle className="h-4 w-4 mt-0.5 text-green-600" />
-                      <span>Presunção de inocência aplicada (Integridade Moral começa em 80/100)</span>
+                      <span>Presunção de inocência aplicada — sem despesa analisada fora do padrão, Integridade Moral nunca é penalizada; a nota nunca parte de uma acusação</span>
                     </li>
                     <li className="flex items-start space-x-2">
                       <CheckCircle className="h-4 w-4 mt-0.5 text-green-600" />
