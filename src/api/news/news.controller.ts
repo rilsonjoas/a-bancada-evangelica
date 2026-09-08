@@ -39,6 +39,16 @@ export class NewsController {
     return this.news.pending();
   }
 
+  // ── Curadoria (admin): contagem real da fila (Eixo 2 do plano de
+  // operação sustentável) — pending() acima trunca em 100, isso aqui é
+  // o total de verdade pro badge da fila não escamotear backlog. ──
+  @Get('admin/pending/count')
+  @UseGuards(AdminTokenGuard)
+  @ApiOperation({ summary: 'Contagem total de menções pendentes (sem truncar em 100)' })
+  async pendingCount() {
+    return { count: await this.news.pendingCount() };
+  }
+
   // ── Curadoria (admin): decidir em lote (batch approve/reject) ──
   @Post('admin/batch-review')
   @HttpCode(HttpStatus.OK)

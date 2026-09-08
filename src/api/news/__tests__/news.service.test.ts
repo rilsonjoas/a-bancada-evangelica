@@ -5,14 +5,19 @@ import type { PrismaService } from '../../prisma/prisma.service';
 describe('NewsService', () => {
   let prisma: {
     politician: { findUnique: ReturnType<typeof vi.fn> };
-    newsMention: { findMany: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; updateMany: ReturnType<typeof vi.fn> };
+    newsMention: {
+      findMany: ReturnType<typeof vi.fn>;
+      update: ReturnType<typeof vi.fn>;
+      updateMany: ReturnType<typeof vi.fn>;
+      count: ReturnType<typeof vi.fn>;
+    };
   };
   let service: NewsService;
 
   beforeEach(() => {
     prisma = {
       politician: { findUnique: vi.fn() },
-      newsMention: { findMany: vi.fn(), update: vi.fn(), updateMany: vi.fn() },
+      newsMention: { findMany: vi.fn(), update: vi.fn(), updateMany: vi.fn(), count: vi.fn() },
     };
     service = new NewsService(prisma as unknown as PrismaService);
   });
@@ -117,6 +122,17 @@ describe('NewsService', () => {
         sourceName: 'Correio',
         politician: { id: 3, name: 'João da Silva', party: 'PL', state: 'SP', photoUrl: null },
       });
+    });
+  });
+
+  describe('pendingCount', () => {
+    it('conta PENDING sem o truncamento de 100 que pending() aplica (Eixo 2 do plano de operação)', async () => {
+      prisma.newsMention.count.mockResolvedValue(137);
+
+      const result = await service.pendingCount();
+
+      expect(prisma.newsMention.count).toHaveBeenCalledWith({ where: { status: 'PENDING' } });
+      expect(result).toBe(137);
     });
   });
 

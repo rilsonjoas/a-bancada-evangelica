@@ -63,6 +63,16 @@ export class NewsService {
     }));
   }
 
+  /**
+   * Contagem real de pendentes — pending() acima trunca em 100 pra manter
+   * a página de curadoria leve; isso aqui é o total de verdade, usado no
+   * badge da fila (Eixo 2, docs/PLANO-OPERACAO-SUSTENTAVEL.md) pra não
+   * escamotear backlog real acima do que a página carrega.
+   */
+  async pendingCount(): Promise<number> {
+    return this.prisma.newsMention.count({ where: { status: 'PENDING' } });
+  }
+
   /** Decisão de curadoria. Carimba reviewed_at e retorna o item revisado. */
   async review(id: number, status: NewsStatus) {
     return this.prisma.newsMention.update({

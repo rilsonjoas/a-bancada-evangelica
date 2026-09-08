@@ -74,6 +74,20 @@ export default function NewsCurationPage() {
     enabled: !!saved && !!token,
   });
 
+  // Contagem real da fila (Eixo 2, docs/PLANO-OPERACAO-SUSTENTAVEL.md) —
+  // `pending` acima trunca em 100 (limite do endpoint /admin/pending, pra
+  // manter a página leve). Sem isso, a fila podia ter 300 itens e a UI
+  // mostrar "100 pendentes carregadas" como se fosse o total, escondendo
+  // o backlog real justo quando ele mais importa (período eleitoral).
+  const { data: totalPendingCount } = useQuery({
+    queryKey: ['news-pending-count', token],
+    queryFn: async () => {
+      const res = await apiFetch('/api/news/admin/pending/count', { headers: headersFor(token) });
+      return (res as { count: number }).count;
+    },
+    enabled: !!saved && !!token,
+  });
+
   // Lista de veículos únicos para filtro
   const sources = useMemo(() => {
     const set = new Set<string>();
@@ -251,6 +265,14 @@ export default function NewsCurationPage() {
               <Badge variant="secondary">{pending.length} pendentes carregadas</Badge>
               {filteredPending.length !== pending.length && (
                 <span className="text-muted-foreground">({filteredPending.length} filtradas)</span>
+              )}
+              {/* Total real da fila (Eixo 2) — só aparece quando difere do
+                  carregado, pra não duplicar informação nos dias normais
+                  em que a fila cabe toda em 100. */}
+              {typeof totalPendingCount === 'number' && totalPendingCount > pending.length && (
+                <Badge variant="destructive" title="A fila tem mais itens do que a página carrega de uma vez">
+                  {totalPendingCount} no total
+                </Badge>
               )}
             </div>
             <button onClick={logout} className="inline-flex items-center gap-1 hover:text-red-600">
