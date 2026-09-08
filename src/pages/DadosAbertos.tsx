@@ -1,10 +1,77 @@
 import { usePageMeta } from '@/hooks/usePageMeta';
 import { useLocation } from 'react-router-dom';
-import { Download, ExternalLink } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { Download, ExternalLink, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { apiFetch } from '@/lib/apiClient';
+import { formatRelativeTime } from '@/lib/format';
 
 // A API vive em domínio próprio (VPS/Railway) — links relativos cairiam
 // no domínio do Vercel, onde não existe /api/*. Achado real 2026-08-23.
 const API_BASE_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:3001').replace(/\/$/, '');
+
+const SYNC_TYPE_LABEL: Record<string, string> = {
+  POLITICIANS: 'políticos',
+  VOTES: 'votações',
+  EXPENSES: 'gastos parlamentares',
+  TSE_DATA: 'dados do TSE',
+  SCORES: 'notas (scores)',
+  NEWS: 'menções na imprensa',
+};
+
+interface LastSyncResponse {
+  lastSync: string | null;
+  syncType: string | null;
+  source: string | null;
+}
+
+/**
+ * Eixo 1 do docs/PLANO-OPERACAO-SUSTENTAVEL.md — expor frescor real em
+ * vez de deixar o dado parecer sempre atualizado. GET /api/stats/last-sync
+ * já existia, público, mas não era consumido em nenhum lugar do frontend.
+ *
+ * >48h sem sincronizar vira um aviso visual (não é erro fatal — o site
+ * continua servindo o último dado bom — mas quem visita e quem mantém o
+ * projeto veem a mesma informação honesta ao mesmo tempo).
+ */
+function LastSyncStatus() {
+  const { data, isLoading } = useQuery({
+    queryKey: ['stats-last-sync'],
+    queryFn: () => apiFetch<LastSyncResponse>('/api/stats/last-sync'),
+    staleTime: 5 * 60_000,
+  });
+
+  if (isLoading) return null;
+
+  const relative = formatRelativeTime(data?.lastSync ?? null);
+  if (!relative) {
+    return (
+      <div className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2.5">
+        <AlertTriangle className="h-4 w-4 shrink-0" />
+        <span>Nenhuma sincronização registrada ainda.</span>
+      </div>
+    );
+  }
+
+  const hoursAgo = data?.lastSync ? (Date.now() - new Date(data.lastSync).getTime()) / 3_600_000 : Infinity;
+  const isStale = hoursAgo > 48;
+  const typeLabel = data?.syncType ? SYNC_TYPE_LABEL[data.syncType] ?? data.syncType.toLowerCase() : 'dados';
+
+  return (
+    <div
+      className={`flex items-center gap-2 text-sm rounded-lg px-4 py-2.5 border ${
+        isStale
+          ? 'text-amber-700 bg-amber-50 border-amber-200'
+          : 'text-green-700 bg-green-50 border-green-200'
+      }`}
+    >
+      {isStale ? <AlertTriangle className="h-4 w-4 shrink-0" /> : <CheckCircle2 className="h-4 w-4 shrink-0" />}
+      <span>
+        Última sincronização com sucesso ({typeLabel}): <strong>{relative}</strong>
+        {isStale && ' — mais tempo que o esperado, verificando'}
+      </span>
+    </div>
+  );
+}
 
 export const DadosAbertos = () => {
   usePageMeta("Dados Abertos & API | A Bancada Evangélica", "Acesse nossos dados abertos e APIs públicas para auditoria e pesquisa.");
@@ -24,6 +91,8 @@ export const DadosAbertos = () => {
           parlamentares brasileiros com base em critérios objetivos da metodologia.
           Os dados podem ser utilizados para pesquisas, jornalismo ou análise pessoal.
         </p>
+
+        <LastSyncStatus />
 
         <div className="space-y-3">
           <a
