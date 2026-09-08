@@ -195,6 +195,22 @@ export function PoliticianProfile() {
                     <span className="text-sm text-gray-400 font-normal"> / 100</span>
                   </div>
                   <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 mt-0.5">Nota geral</div>
+                  {/* Achado real (2026-09-08): sem isto, quem via a nota aqui
+                      (visível em toda aba, não só "Votações") não tinha
+                      nenhum jeito de saber que ela é estimativa de partido —
+                      a explicação só existia escondida na aba Votações,
+                      onde a maioria nunca clica. Pergunta óbvia de quem
+                      olha "69,0/100" sem ver voto nenhum: "como assim?" */}
+                  {(politician.currentScore?.totalVotes ?? 0) === 0 && (
+                    <div className="text-[11px] text-amber-700 mt-1.5 max-w-[190px] leading-snug">
+                      <Info className="inline w-3 h-3 mr-0.5 -mt-0.5" />
+                      Estimativa pelo partido — {politician.name.split(' ')[0]} ainda não tem
+                      voto próprio registrado.{' '}
+                      <Link to="/metodologia" className="underline hover:text-amber-800">
+                        Entenda por quê
+                      </Link>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex gap-2">
@@ -684,11 +700,20 @@ export function PoliticianProfile() {
               </div>
 
               {politician.recentVotes?.length === 0 && (
-                <div className="mt-4 p-4 bg-secondary/20 rounded-lg text-sm text-muted-foreground">
-                  <Info className="inline w-4 h-4 mr-1" />
-                  A pontuação deste político é estimada com base no alinhamento histórico do seu partido, pois ainda não há votos individuais registrados. Confira a{' '}
-                  <Link to="/metodologia" className="text-primary underline">Metodologia</Link>{' '}
-                  para entender como isso funciona.
+                <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-900">
+                  <p className="font-medium flex items-center gap-1.5">
+                    <Info className="w-4 h-4 shrink-0" />
+                    Então como {politician.name.split(' ')[0]} tem nota sem ter votado nada?
+                  </p>
+                  <p className="mt-1.5 text-amber-800">
+                    A nota de cada critério parte do histórico do partido dele (dado público,
+                    calibrado por análises de conduta partidária em legislaturas passadas) —
+                    não é um voto individual, é uma estimativa enquanto não existe voto próprio
+                    pra ajustar. Quando surgir um voto nominal desse parlamentar num tema
+                    relevante, a nota passa a refletir o voto real, não só o partido. Confira a{' '}
+                    <Link to="/metodologia" className="underline hover:text-amber-950">Metodologia</Link>{' '}
+                    pra ver a fórmula completa.
+                  </p>
                 </div>
               )}
             </CardContent>
