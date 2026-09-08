@@ -18,6 +18,13 @@ dist-ssr
 *.local
 *.tsbuildinfo
 
+# Gerado por `pnpm docs:sync-public` (prebuild/predev) a partir de
+# docs/REPRODUCIBILITY.md — nunca editar aqui, editar a fonte em docs/.
+# Achado real 2026-09-08: o link "Ler guia de reprodutibilidade" na
+# /metodologia servia o HTML do SPA em produção (Vercel rewrite
+# catch-all) porque esse arquivo nunca existia dentro de public/.
+public/docs/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

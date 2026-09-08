@@ -41,7 +41,8 @@ export function NewsSection({ politicianId }: NewsSectionProps) {
           <Newspaper className="h-4 w-4" /> No noticiário
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          Menções na imprensa curadas manualmente — não usadas na nota.
+          Menções recentes do parlamentar na imprensa — não entram na nota,
+          servem só pra você acompanhar melhor a atuação dele.
         </p>
       </CardHeader>
       <CardContent className="space-y-3">

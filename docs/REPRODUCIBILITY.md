@@ -44,31 +44,40 @@ Resultado final: notas 0–100 por critério + nota geral + rank
 | **Senado — FPE** | `https://legis.senado.leg.br/dadosabertos/collegiado/2583/membros` | Membros da bancada evangélica no Senado (codcol=2583) | `scripts/sync-fpe-members.ts` |
 | **TSE — Prestação de contas 2022** | `https://dadosabertos.tse.jus.br/prestacao_contas/2022/` | Doações de campanha declaradas | `scripts/sync-tse-receitas.ts` + `sync-tse-candidatura.ts` |
 
-> **Importante**: as APIs oficiais mudam. Versões exatas usadas no último sync estão registradas em `docs/SYNC-LOG-2026-08-27.md` (gerado a cada rodada).
+> **Importante**: as APIs oficiais mudam. O histórico real de cada sync
+> (o que rodou, quando, quantos registros) fica em `SyncLog` no banco —
+> público via `GET /api/stats/sync-history` (corrigido em 2026-09-08:
+> este guia citava um arquivo `docs/SYNC-LOG-2026-08-27.md` que nunca
+> existiu no repositório).
 
 ---
 
 ## 3. Classificação de votações → Pautas-chave
 
-Cada votação nominal é cruzada com **palavras-chave** dos 5 critérios. Se houver match, a votação vira uma **pauta-chave** (KeyAgenda).
+Cada votação nominal é cruzada com **palavras-chave** dos 5 critérios. Se houver match, a votação vira uma **pauta-chave** (KeyAgenda), com um **peso fixo** (`weight`) e um sinal (`simIsPositive`) que decide se votar SIM soma ou subtrai.
 
-**Palavras-chave por critério** (definidas em `src/lib/criteria.tsx`):
+**Regras reais** (`SCAN_RULES`, definidas em `scripts/sync-votes.ts` — corrigido em 2026-09-08, este guia citava um arquivo errado, `src/lib/criteria.tsx`, que só guarda texto descritivo, não as keywords que decidem o match):
 
-| Critério | Peso | Palavras-chave (exemplos) |
-|----------|------|---------------------------|
-| **Proteção à Vida** (30%) | `lifeProtection` | `aborto`, `vida`, `nascituro`, `eutanásia`, `anticoncepcao`, `planejamento familiar` |
-| **Valores Familiares** (25%) | `familyValues` | `família`, `casamento`, `união estável`, `adocao`, `guarda`, `filhos`, `educação familiar` |
-| **Integridade Moral** (20%) | `moralIntegrity` | `corrupção`, `lavagem`, `improbidade`, `ética`, `conduta`, `decoro`, `rachadinha` |
-| **Responsabilidade Social** (15%) | `socialResponsibility` | `saúde`, `educação`, `assistência social`, `idoso`, `pessoa com deficiência`, `saneamento`, `habitação` |
-| **Liberdade Religiosa** (10%) | `religiousFreedom` | `liberdade religiosa`, `culto`, `igreja`, `templo`, `objeção de consciência`, `liberdade de crença` |
+| Critério | Peso | Keywords reais (`SCAN_RULES`) | SIM é positivo? |
+|----------|------|-------------------------------|------------------|
+| **Proteção à Vida** (30%) | 20 | `aborto`, `nascituro`, `eutanasia`, `interrupcao da gravidez` | Não (votar SIM nessas pautas é contrário) |
+| | 15 | `protecao da vida`, `direito a vida`, `crime contra a vida`, `homicidio` | Sim |
+| **Valores Familiares** (25%) | 15 | `familia`, `casamento`, `adocao`, `menor de idade`, `crianca`, `estatuto da crianca` | Sim |
+| | 15 | `identidade de genero`, `diversidade sexual`, `homoafetiv`, `transexual` | Não |
+| **Integridade Moral** (20%) | 15 | `corrupcao`, `improbidade`, `ficha limpa`, `transparencia publica`, `lei anticorrupcao` | Sim |
+| | 12 | `amnistia`, `anistia`, `prescricao`, `indulto` | Não |
+| **Responsabilidade Social** (15%) | 10 | `assistencia social`, `bolsa familia`, `beneficio social`, `populacao em situacao de rua` | Sim |
+| | 8 | `saude publica`, `sus`, `atendimento a vitimas` | Sim |
+| **Liberdade Religiosa** (10%) | 20 | `liberdade religiosa`, `liberdade de culto`, `discriminacao religiosa`, `intolerancia religiosa`, `expressao religiosa`, `simbolo religioso`, `perseguicao religiosa` | Sim |
+| | 10 | `laicidade`, `ensino religioso`, `crenca`, `assistencia espiritual`, `folga religiosa` | Sim |
 
-**Lógica de match** (em `scripts/sync-votes.ts` → função `classifyAgenda`):
-1. Pega `ementa` + `titulo` + `keywords` da votação/proposição
+**Lógica de match** (em `scripts/sync-votes.ts` → função `matchRule`):
+1. Pega o texto da votação/proposição (ementa + título)
 2. Normaliza (lowercase, remove acentos, pontuação)
-3. Para cada critério, testa se **qualquer** palavra-chave aparece no texto
+3. Testa as regras **em ordem** — a primeira cujo array de keywords casar decide o critério, peso e sinal (não é "qualquer regra que casar", é a primeira)
 4. Se houver match → cria/atualiza `KeyAgenda` com `criteria` = aquele critério
-5. Uma votação pode cair em **múltiplos** critérios (ex.: aborto + família)
-6. Votos **sem match** em nenhum critério → **não entram no scoring** (são ignorados)
+5. `applied_score` do voto = `peso` se (voto=SIM e simIsPositive) ou (voto=NÃO e !simIsPositive); `-peso` no caso contrário; `0` se abstenção/ausência/obstrução
+6. Votos **sem match** em nenhuma regra → **não entram no scoring** (são ignorados)
 
 > **Verificável**: a lista completa de pautas-chave geradas está no CSV de export (`/api/politicians/export/csv?criteria=...`) e na tabela `key_agendas` do banco.
 
@@ -76,28 +85,58 @@ Cada votação nominal é cruzada com **palavras-chave** dos 5 critérios. Se ho
 
 ## 4. Scoring por parlamentar
 
-Para **cada parlamentar** e **cada critério**:
+**Corrigido em 2026-09-08** — a fórmula anterior deste guia (base fixa 50 +
+soma normalizada) nunca bateu com o código real; ficou sem verificação
+desde a criação do guia (27/08). A fórmula abaixo é a real, extraída de
+`scripts/lib/scoring.ts` + `scripts/recalculate-scores.ts`.
+
+Para **cada parlamentar** e **cada um dos 5 critérios**:
 
 ```
-Seja V = conjunto de votações nominais do parlamentar que casaram com pautas-chave daquele critério
-Para cada v ∈ V:
-  - voto = SIM → +1 ponto
-  - voto = NÃO → -1 ponto
-  - voto = ABSTENÇÃO/AUSENTE → 0 pontos
+1. Seed do partido (fixo, nunca lido de volta do banco — ver §8):
+   seed = clamp5a98( PARTY_ALIGNMENT[partido][critério] + individualNoise(id, índice_do_critério) )
 
-Score_bruto = soma(pontos de v ∈ V)
-Total_votos = |V|
+   PARTY_ALIGNMENT vem de scripts/lib/scoring.ts — histórico real de
+   alinhamento por partido (fonte: DIAP, FPE, JRN/Estadão, 56ª/57ª
+   legislaturas). Partido sem entrada na tabela usa [55,55,65,60,55].
 
-Score_final_critério = clamp( 50 + (Score_bruto / Total_votos) * 50 , 0, 100 )
+   individualNoise(id, i) = round(((seed_pseudoaleatório(id,i) % 17) - 8) * 0.9)
+   onde seed_pseudoaleatório(id,i) = (id*31 + i*17) % 100 — só existe pra
+   dois políticos do mesmo partido não terem nota idêntica; não tem
+   nenhum significado além disso.
+
+2. Seja V = conjunto de votos nominais REAIS do parlamentar que casaram
+   com uma pauta-chave (KeyAgenda) daquele critério (ver §3)
+
+3. Se V estiver vazio → Score_critério = seed (fica na estimativa de
+   partido; ver "Base de pontuação" na página /metodologia)
+
+4. Se V não estiver vazio → Score_critério = clamp0a100( seed + média(applied_score de V) )
+   MÉDIA, não soma — deliberado (achado real 2026-09-08): somar sem
+   limite faz qualquer parlamentar com volume suficiente de voto
+   saturar em 0 ou 100 só por ter votado muito, não por ser realmente
+   extremo. A média mede tendência, não volume.
+
+Integridade Moral tem um passo extra, sempre aplicado (com ou sem voto):
+   penalidade = min(25, despesas_suspeitas_count*3 + despesa_suspeita_média*0.1)
+   Score_moral = clamp0a100( seed_moral + média(applied_score de V, ou 0 se V vazio) - penalidade )
 ```
 
-**Explicação da fórmula**:
-- Base 50 = neutro (presunção de inocência / ponto de partida)
-- Cada voto alinhado puxa +50/Total_votos; cada voto contrário puxa -50/Total_votos
-- Resultado clampado em [0, 100]
-- Se `Total_votos = 0` → **não há score calculado** (usa estimativa partidária)
+**Duas funções de clamp diferentes, de propósito**:
+- `clamp5a98` (só no seed) — nunca deixa a ESTIMATIVA de partido, por si
+  só, parecer uma certeza absoluta (0 ou 100)
+- `clamp0a100` (na nota final, com dado real aplicado) — aqui um extremo
+  pode ser genuinamente justificado por voto/despesa real
 
-> **Implementação**: `scripts/recalculate-scores.ts` (roda no sync-worker diário 05:00). Função pura, sem side effects.
+Se `Total_votos = 0` em TODOS os 5 critérios → a nota inteira é
+estimativa de partido (ver Metodologia, seção "Limitações").
+
+> **Implementação real**: `scripts/lib/scoring.ts` (seed, clamps,
+> `individualNoise`, pesos, `performanceLabel`) + `scripts/recalculate-scores.ts`
+> (orquestra o híbrido, roda no sync-worker diário 05:00). Testes de
+> regressão em `scripts/__tests__/scoring.test.ts`, incluindo o caso
+> real que motivou a correção de hoje (16 votos somando +150 vs. a
+> média de +9,4).
 
 ---
 
@@ -113,11 +152,16 @@ Overall = Σ (Score_critério_i × Peso_i)   // pesos: 30/25/20/15/10 = 100%
 
 ## 6. Consistência
 
+**Corrigido em 2026-09-08** — a fórmula anterior (desvio-padrão entre os
+5 critérios) não é a real; nunca foi verificada contra o código.
+
 ```
-Consistência = 1 - (desvio_padrão_dos_5_scores / 50)
+Consistência = (nº de votos com applied_score ≠ 0) / (total de votos registrados)
 ```
-- 100% = todos os 5 critérios têm a mesma nota
-- 0% = variação máxima entre critérios
+- Mede **participação real**: SIM/NÃO conta, abstenção/ausência/obstrução não
+- 100% = o parlamentar se posicionou em toda votação relevante que apareceu
+- 0% = só absteve/faltou, ou não tem voto nenhum registrado (`totalVotes = 0` → consistência sempre 0, exibida como "—" no perfil, nunca como 0% — ver achado 2026-08-22 em `recalculate-scores.ts`)
+- **Não** mede o quão parecidos os 5 critérios são entre si — isso não é o que a palavra "consistência" descreve aqui
 
 ---
 
@@ -168,12 +212,15 @@ pnpm sync:all
 # Quantidade de políticos, votos, pautas
 pnpm quality:check
 
-# Deve mostrar (valores aproximados agosto/2026):
-# - 594 políticos (513 Câmara + 81 Senado)
-# - ~26.860 votos
-# - ~74.336 despesas
-# - 247 membros FPE (210 Câmara + 15 Senado ativos + 22 inativos)
-# - Scores 0–100 para todos com total_votes > 0
+# Snapshot real conferido em 2026-09-08 (vai continuar mudando — não trate
+# como valor fixo, é só pra você saber a ordem de grandeza esperada):
+# - 595 políticos ativos (513 Câmara + 82 Senado)
+# - Membros FPE: ver contagem oficial + data na página /metodologia
+#   ("Quem é da Bancada Evangélica") — não duplicar esse número aqui,
+#   é exatamente o tipo de inconsistência entre documentos que este
+#   guia existe pra evitar
+# - Scores 0–100 para todos com total_votes > 0; sem voto = estimativa
+#   de partido (ver §4)
 ```
 
 ### 7.4 Gerar CSV de dados abertos (igual ao site)
@@ -260,14 +307,20 @@ psql $DATABASE_URL -c "
 
 ---
 
-## 11. Hashes de referência (agosto/2026)
+## 11. Hashes de referência
 
-| Arquivo | SHA256 | Gerado em |
-|---------|--------|-----------|
-| `ranking_completo.csv` | `a1b2c3d4...` (atualizar no deploy) | 2026-08-27 |
-| `votacoes_individuais.csv` | `e5f6g7h8...` | 2026-08-27 |
+**Corrigido em 2026-09-08** — esta seção prometia uma tabela de hashes
+"publicados a cada sync" num arquivo `docs/CSV-HASHES-YYYY-MM-DD.txt`
+que **nunca existiu** (as duas linhas abaixo eram placeholder literal,
+nunca preenchido: `a1b2c3d4...`). Não existe pipeline de publicação de
+hash histórico — não fingir que existe.
 
-> Os hashes são publicados a cada sync bem-sucedido em `docs/CSV-HASHES-YYYY-MM-DD.txt`.
+O mecanismo real de integridade é o que §7.5 já descreve corretamente:
+cada resposta de `GET /api/politicians/export/votes/csv` vem com o
+header `X-Content-SHA256`, calculado **na hora**, específico daquele
+download. Não há (ainda) um hash histórico publicado por data — se
+quiser comparar dois momentos no tempo, baixe o CSV nas duas datas e
+guarde os headers você mesmo.
 
 ---
 
