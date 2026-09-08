@@ -50,6 +50,42 @@ class SyncWorkerService {
       enabled: true
     });
 
+    // Menções na imprensa (todo dia às 03:30, entre políticos e scores).
+    //
+    // Achado real (2026-09-08): scripts/sync-news.ts existia desde #7
+    // (2026-08-28) mas nunca esteve no cron — só rodava quando alguém
+    // digitava `pnpm sync:news` manualmente. Isso ia direto contra a
+    // "Tarefa contínua de curadoria" já registrada no ROADMAP, e ficaria
+    // pior justo no mês que mais importa: 1º turno em 04/10/2026 é quando
+    // o volume de matéria sobre cada parlamentar mais cresce.
+    //
+    // Sem --limit/--state: processa todo mundo is_active, igual aos
+    // outros jobs diários. Google News RSS não usa API key (comentário
+    // original do script) — se começar a bloquear/rate-limitar por volume
+    // diário, é sinal de reduzir frequência ou aplicar --state por
+    // rodízio, não de insistir sem ajuste.
+    this.schedules.push({
+      name: 'daily-news-sync',
+      cronExpression: '30 3 * * *',
+      description: 'Busca diária de menções na imprensa (fila de curadoria)',
+      task: async () => {
+        console.log('📰 Iniciando busca diária de menções na imprensa...');
+        try {
+          const { stdout, stderr } = await execFileAsync('pnpm', ['sync:news'], {
+            cwd: process.cwd(),
+            maxBuffer: 1024 * 1024 * 10,
+          });
+          if (stdout) console.log(stdout);
+          if (stderr) console.error(stderr);
+          console.log('✅ Busca de menções concluída');
+        } catch (error) {
+          console.error('❌ Erro na busca de menções na imprensa:', error);
+          throw error;
+        }
+      },
+      enabled: true
+    });
+
     // Recálculo de pontuações (todo dia às 05:00)
     this.schedules.push({
       name: 'daily-score-calculation',
