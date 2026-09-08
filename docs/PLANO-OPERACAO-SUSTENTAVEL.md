@@ -4,6 +4,54 @@ Como manter A Bancada Evangélica confiável sem depender de você ficar
 sempre em cima. Escrito em 2026-09-08, a partir de um levantamento real
 do estado do projeto — nada aqui é aspiracional sem checar o código.
 
+## Status (atualizado 2026-09-08, mesmo dia)
+
+**Código: pronto e testado (133 testes, tsc limpo, build OK).**
+**Operação: falta 1 tarefa manual sua (~5 min) pra ativar o alerta de verdade.**
+
+- [x] Eixo 1 (código) — push Uptime Kuma em todo job do `sync-worker.ts`,
+      frescor exposto em `/dados` (`LastSyncStatus`)
+- [ ] Eixo 1 (sua parte) — **criar os 8 monitores tipo "Push" no Uptime
+      Kuma e colar as URLs no `.env` do VPS** (passo a passo na seção
+      "Como criar os monitores" abaixo). Sem isso, os pings não têm
+      pra onde ir — não quebra nada, só não alerta ainda.
+- [x] Eixo 2 (código) — expiração automática (120 dias), alerta de fila
+      (>150), contagem real no painel (corrigiu undercount de UI)
+- [x] Eixo 2 (decisão) — **curadoria por evento, não por calendário**
+      (decidido 2026-09-08, a seu pedido — nada de ritual fixo de
+      revisar toda semana; você só entra quando o alerta disparar)
+- [x] Eixo 3 (documentação) — gatilhos definidos, watch list criada
+- [ ] Eixo 3 (uso contínuo) — colar link na watch list quando notar
+      cobertura relevante (não é uma tarefa única, é um hábito leve)
+- [x] Eixo 4 — calendário eleitoral formal, nada a fazer até 01/02/2027
+
+**O que falta pro plano estar "concluído" de verdade**: só a criação
+dos monitores no Uptime Kuma. É a única peça manual que transforma
+"o código já sabe alertar" em "o alerta realmente chega". O resto —
+expiração, contagem, cadência de curadoria, calendário — já está rodando
+ou já é decisão registrada, sem ação pendente.
+
+## Como criar os monitores no Uptime Kuma (a única tarefa manual restante)
+
+Uptime Kuma v1 (versão confirmada em produção: 1.23.17) não tem API pra
+isso — só dá pela UI logada. 8 monitores tipo **Push**, um por variável
+em `.env.example`:
+
+| Variável | Nome sugerido | Intervalo sugerido |
+|---|---|---|
+| `UPTIME_KUMA_PUSH_URL_POLITICIANS` | Bancada — sync políticos | 1440 min (24h) |
+| `UPTIME_KUMA_PUSH_URL_NEWS` | Bancada — sync notícias | 1440 min |
+| `UPTIME_KUMA_PUSH_URL_SCORES` | Bancada — recálculo de scores | 1440 min |
+| `UPTIME_KUMA_PUSH_URL_EXPENSES` | Bancada — sync gastos | 10080 min (7 dias) |
+| `UPTIME_KUMA_PUSH_URL_EXPENSE_ANALYSIS` | Bancada — análise de despesas | 10080 min |
+| `UPTIME_KUMA_PUSH_URL_LOG_CLEANUP` | Bancada — limpeza de logs | 44640 min (31 dias) |
+| `UPTIME_KUMA_PUSH_URL_CURATION_QUEUE` | Bancada — saúde da fila de curadoria | 1440 min |
+
+Passo a passo, 8x: **Add New Monitor → Push → nome da tabela → intervalo
+da tabela → Save → copiar a URL do Push → colar no `.env` do VPS na
+variável correspondente.** Reiniciar o `bancada-sync-worker` depois de
+colar todas.
+
 ## Princípio central
 
 **Confiabilidade não vem de "estar sempre atualizando" — vem do site
@@ -94,18 +142,18 @@ sessão), mas a decisão de aprovar/rejeitar continua 100% sua, por
 decisão de produto que não deve mudar (é o que garante "nunca
 editorializa").
 
-- [ ] **Cadência explícita, não "sempre que der".** Sugestão: 2x/semana
-  fora de período eleitoral, diário (15 min) na janela até 25/10/2026.
-  Colocar isso num lugar que você realmente vai olhar (calendário
-  pessoal, não só o ROADMAP) é o que faz a cadência funcionar de verdade.
-- [ ] **Alerta de fila grande.** Reusa o mesmo canal do Eixo 1: se
-  `PENDING` passar de N itens (sugestão: 50), um push/alerta avisa —
-  em vez de você descobrir o backlog só quando abrir a página por acaso.
-- [ ] **Expiração de item esquecido.** `PENDING` há mais de X meses
-  (sugestão: 3) vira `REJECTED` automático com motivo "expirado sem
-  revisão humana". Sem isso, ficar semanas sem curar = culpa acumulando
-  sem limite; com isso, a fila se autolimpa e continua saudável mesmo se
-  você desaparecer um tempo.
+- [x] **Cadência por evento, não por calendário** (decidido 2026-09-08,
+  a pedido do Rilson — sem condição de revisar com frequência fixa e
+  quer evitar isso). Sem ritual pré-marcado: você só entra quando o
+  alerta abaixo disparar. O sistema já tolera isso — `PENDING` nunca
+  aparece pro público, então não curar por um tempo só reduz conteúdo
+  publicado, nunca publica algo errado.
+- [x] **Alerta de fila grande.** Implementado — `PENDING` > 150 dispara
+  push `UPTIME_KUMA_PUSH_URL_CURATION_QUEUE` com status=down. Falta só
+  criar o monitor no Uptime Kuma (ver "Status" no topo do documento).
+- [x] **Expiração de item esquecido.** Implementado —`PENDING` há mais
+  de 120 dias vira `REJECTED` automático (motivo em `SyncLog.details`).
+  Roda dentro do próprio job diário de notícias, sem depender de você.
 - [ ] Priorização na UI da fila: já existe filtro por fonte/busca
   (`NewsCuration.tsx`) — se o volume da eleição for grande, considerar
   ordenar por "parlamentar com menos menções aprovadas ainda" primeiro,
@@ -155,8 +203,8 @@ a operação de rotina fica assim:
 
 - **Diário**: nada manual — cron cobre políticos, notícias, scores;
   Uptime Kuma avisa se algo falhar
-- **2x/semana (ou diário em período eleitoral)**: curadoria da fila,
-  dentro do tempo que você mesmo definiu
+- **Curadoria da fila**: nenhuma cadência fixa — só quando o alerta de
+  fila grande disparar (Eixo 2). Pode passar meses sem precisar entrar.
 - **Quando o Watch list (Eixo 3) acumular algo relevante, ou nova
   legislatura**: revisão de `PARTY_ALIGNMENT`
 - **Trimestral**: reconfirmar que a auditoria de FPE ainda está
