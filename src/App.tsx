@@ -4,7 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-import { useEffect } from "react";
+import { Suspense, lazy, useEffect } from "react";
+import { Loader2 } from "lucide-react";
 import { queryClient } from "@/lib/queryClient";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
@@ -13,8 +14,6 @@ import SobrePage from "./pages/Sobre";
 import MetodologiaPage from "./pages/Metodologia";
 import ContatoPage from "./pages/Contato";
 import { PoliticianProfile } from "./pages/PoliticianProfile";
-import { PoliticianComparison } from "./pages/PoliticianComparison";
-import VotingClusters from "./pages/VotingClusters";
 import { VotingAnalysis } from "./pages/VotingAnalysis";
 import NotFound from "./pages/NotFound";
 import Privacidade from "./pages/Privacidade";
@@ -26,6 +25,27 @@ import NewsCuration from "./pages/NewsCuration";
 import ThemesIndex from "./pages/ThemesIndex";
 import ThemePage from "./pages/ThemePage";
 import MatchPage from "./pages/Match";
+
+// Code-splitting (2026-09-08): as duas rotas com gráfico mais pesado
+// (clustering PCA/KMeans com recharts, radar de comparação) saíam
+// bundladas no chunk principal mesmo pra quem nunca visita — build
+// mostrava 1,87MB minificado num chunk só. Carregadas só quando
+// alguém navega pra /grupos ou /comparacao.
+const VotingClusters = lazy(() => import("./pages/VotingClusters"));
+const PoliticianComparison = lazy(() =>
+  import("./pages/PoliticianComparison").then((m) => ({ default: m.PoliticianComparison }))
+);
+
+/** Fallback do Suspense pras rotas lazy — mesmo ícone/spinner que o
+ * Ranking.tsx já usa em estado de carregamento (Loader2 + animate-spin). */
+function RouteLoadingFallback() {
+  return (
+    <div className="flex items-center justify-center py-24" role="status" aria-live="polite">
+      <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
+      <span className="sr-only">Carregando…</span>
+    </div>
+  );
+}
 
 /** Rola pro topo a cada navegação — sem isso o SPA mantém a altura da
  * página anterior e o usuário "cai" no meio da página seguinte. */
@@ -60,8 +80,22 @@ const App = () => (
               <Route path="/" element={<RankingPage />} />
               <Route path="/ranking" element={<RankingPage />} />
               <Route path="/politicos/:id" element={<PoliticianProfile />} />
-              <Route path="/comparacao" element={<PoliticianComparison />} />
-              <Route path="/grupos" element={<VotingClusters />} />
+              <Route
+                path="/comparacao"
+                element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <PoliticianComparison />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/grupos"
+                element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <VotingClusters />
+                  </Suspense>
+                }
+              />
               <Route path="/votacoes" element={<VotingAnalysis />} />
               <Route path="/temas" element={<ThemesIndex />} />
               <Route path="/temas/:slug" element={<ThemePage />} />
