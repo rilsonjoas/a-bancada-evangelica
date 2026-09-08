@@ -42,8 +42,15 @@ async function pingUptimeKuma(envVar: string, opts: { status?: 'up' | 'down'; ms
 }
 
 // Eixo 2 do plano — capacidade de curadoria da fila de notícias.
-const CURATION_QUEUE_ALERT_THRESHOLD = Number(process.env.CURATION_QUEUE_ALERT_THRESHOLD ?? 50);
-const CURATION_QUEUE_STALE_DAYS = Number(process.env.CURATION_QUEUE_STALE_DAYS ?? 90);
+//
+// Decisão do Rilson (2026-09-08): curadoria por EVENTO (quando o alerta
+// disparar), não por calendário fixo — ele não tem como ficar revisando
+// isso com frequência, e o sistema não exige: PENDING nunca aparece pro
+// público, então não curar por um tempo só significa "menos conteúdo
+// publicado", nunca "conteúdo errado publicado". Defaults tolerantes de
+// propósito, pra alertar raramente.
+const CURATION_QUEUE_ALERT_THRESHOLD = Number(process.env.CURATION_QUEUE_ALERT_THRESHOLD ?? 150);
+const CURATION_QUEUE_STALE_DAYS = Number(process.env.CURATION_QUEUE_STALE_DAYS ?? 120);
 
 interface SyncSchedule {
   name: string;
