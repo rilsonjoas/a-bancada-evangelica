@@ -11,10 +11,12 @@ do estado do projeto — nada aqui é aspiracional sem checar o código.
 
 - [x] Eixo 1 (código) — push Uptime Kuma em todo job do `sync-worker.ts`,
       frescor exposto em `/dados` (`LastSyncStatus`)
-- [ ] Eixo 1 (sua parte) — **criar os 7 monitores tipo "Push" no Uptime
-      Kuma e colar as URLs no `.env` do VPS** (passo a passo na seção
-      "Como criar os monitores" abaixo). Sem isso, os pings não têm
-      pra onde ir — não quebra nada, só não alerta ainda.
+- [ ] Eixo 1 (sua parte) — **decisão 2026-09-08: criar só os 2
+      monitores de maior risco por enquanto** (`SCORES` e
+      `CURATION_QUEUE` — os únicos onde uma falha silenciosa faria o
+      site mostrar dado errado em vez de só dado velho; esqueleto pronto
+      pra colar na UI, ver seção abaixo). Os outros 5 ficam adiados por
+      escolha, não esquecidos.
 - [x] Eixo 2 (código) — expiração automática (120 dias), alerta de fila
       (>150), contagem real no painel (corrigiu undercount de UI)
 - [x] Eixo 2 (decisão) — **curadoria por evento, não por calendário**
@@ -25,9 +27,11 @@ do estado do projeto — nada aqui é aspiracional sem checar o código.
       cobertura relevante (não é uma tarefa única, é um hábito leve)
 - [x] Eixo 4 — calendário eleitoral formal, nada a fazer até 01/02/2027
 
-**O que falta pro plano estar "concluído" de verdade**: só a criação
-dos monitores no Uptime Kuma. É a única peça manual que transforma
-"o código já sabe alertar" em "o alerta realmente chega". O resto —
+**O que falta pro plano estar "concluído" de verdade**: criar os 2
+monitores prioritários (`SCORES`, `CURATION_QUEUE`) no Uptime Kuma —
+esses transformam "o código já sabe alertar" em "o alerta realmente
+chega" pros dois casos que importam. Os outros 5 são melhoria, não
+bloqueio — ficam pra quando bater vontade. O resto do plano —
 expiração, contagem, cadência de curadoria, calendário — já está rodando
 ou já é decisão registrada, sem ação pendente.
 
@@ -36,22 +40,32 @@ ou já é decisão registrada, sem ação pendente.
 Uptime Kuma v1 (versão confirmada em produção: 1.23.17) não tem API pra
 isso — só dá pela UI logada. 7 monitores tipo **Push**, um por variável
 em `.env.example`. Nome alinhado ao padrão que você já usa no painel
-(`Projeto · Componente`, ex. "Bancada · API", "Cron · Backup (push)"):
+(`Projeto · Componente`, ex. "Bancada · API", "Cron · Backup (push)").
 
-| Variável | Nome sugerido (seu padrão) | Intervalo sugerido |
-|---|---|---|
-| `UPTIME_KUMA_PUSH_URL_POLITICIANS` | Bancada · Sync Políticos (push) | 1440 min (24h) |
-| `UPTIME_KUMA_PUSH_URL_NEWS` | Bancada · Sync Notícias (push) | 1440 min |
-| `UPTIME_KUMA_PUSH_URL_SCORES` | Bancada · Recálculo de Scores (push) | 1440 min |
-| `UPTIME_KUMA_PUSH_URL_EXPENSES` | Bancada · Sync Gastos (push) | 10080 min (7 dias) |
-| `UPTIME_KUMA_PUSH_URL_EXPENSE_ANALYSIS` | Bancada · Análise de Despesas (push) | 10080 min |
-| `UPTIME_KUMA_PUSH_URL_LOG_CLEANUP` | Bancada · Limpeza de Logs (push) | 44640 min (31 dias) |
-| `UPTIME_KUMA_PUSH_URL_CURATION_QUEUE` | Bancada · Fila de Curadoria (push) | 1440 min |
+**Correção 2026-09-08 (achado ao gerar o passo a passo real):** o campo
+"Heartbeat Interval" da UI do Uptime Kuma é em **segundos**, não
+minutos — a versão anterior desta tabela tinha o número certo em horas
+mas a unidade errada ("1440 min" em vez de "86400 segundos"), o que
+teria feito o monitor marcar "down" a cada ~24 min em vez de ~24h. Fonte:
+[GitHub louislam/uptime-kuma#7264](https://github.com/louislam/uptime-kuma/issues/7264)
+(mínimo 20s; limite técnico de ~24 dias por heartbeat em algumas versões
+— relevante só pra `LOG_CLEANUP`, que fica pra depois de qualquer jeito).
 
-Passo a passo, 7x: **Add New Monitor → Push → nome da tabela → intervalo
-da tabela → Save → copiar a URL do Push → colar no `.env` do VPS na
-variável correspondente.** Reiniciar o `bancada-sync-worker` depois de
-colar todas.
+| Variável | Nome sugerido (seu padrão) | Heartbeat Interval | Status |
+|---|---|---|---|
+| `UPTIME_KUMA_PUSH_URL_SCORES` | Bancada · Recálculo de Scores (push) | `86400` (24h) | **prioridade — esqueleto enviado 2026-09-08** |
+| `UPTIME_KUMA_PUSH_URL_CURATION_QUEUE` | Bancada · Fila de Curadoria (push) | `86400` | **prioridade — esqueleto enviado 2026-09-08** |
+| `UPTIME_KUMA_PUSH_URL_POLITICIANS` | Bancada · Sync Políticos (push) | `86400` | adiado por escolha |
+| `UPTIME_KUMA_PUSH_URL_NEWS` | Bancada · Sync Notícias (push) | `86400` | adiado por escolha |
+| `UPTIME_KUMA_PUSH_URL_EXPENSES` | Bancada · Sync Gastos (push) | `604800` (7 dias) | adiado por escolha |
+| `UPTIME_KUMA_PUSH_URL_EXPENSE_ANALYSIS` | Bancada · Análise de Despesas (push) | `604800` | adiado por escolha |
+| `UPTIME_KUMA_PUSH_URL_LOG_CLEANUP` | Bancada · Limpeza de Logs (push) | `2678400` (31 dias) — checar se a versão em produção aceita; se não, usar semanal (`604800`) como aproximação | adiado por escolha |
+
+Passo a passo por linha: **Add New Monitor → Push → nome da tabela →
+Heartbeat Interval da tabela → Retries `0` → Save → copiar a URL do
+Push → colar no `.env` do VPS na variável correspondente.** Reiniciar o
+`bancada-sync-worker` (`docker compose restart bancada-sync-worker` em
+`~/hetzner-infra/bancada`) depois de colar cada leva.
 
 Uma diferença de fundo pro "Cron · Backup (push)"/"Cron · Disco (push)"
 que já existem: aqueles são genéricos de infra (`hetzner-infra`, um por
