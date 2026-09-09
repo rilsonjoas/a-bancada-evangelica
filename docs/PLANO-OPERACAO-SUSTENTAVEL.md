@@ -11,7 +11,7 @@ do estado do projeto — nada aqui é aspiracional sem checar o código.
 
 - [x] Eixo 1 (código) — push Uptime Kuma em todo job do `sync-worker.ts`,
       frescor exposto em `/dados` (`LastSyncStatus`)
-- [ ] Eixo 1 (sua parte) — **criar os 8 monitores tipo "Push" no Uptime
+- [ ] Eixo 1 (sua parte) — **criar os 7 monitores tipo "Push" no Uptime
       Kuma e colar as URLs no `.env` do VPS** (passo a passo na seção
       "Como criar os monitores" abaixo). Sem isso, os pings não têm
       pra onde ir — não quebra nada, só não alerta ainda.
@@ -34,23 +34,30 @@ ou já é decisão registrada, sem ação pendente.
 ## Como criar os monitores no Uptime Kuma (a única tarefa manual restante)
 
 Uptime Kuma v1 (versão confirmada em produção: 1.23.17) não tem API pra
-isso — só dá pela UI logada. 8 monitores tipo **Push**, um por variável
-em `.env.example`:
+isso — só dá pela UI logada. 7 monitores tipo **Push**, um por variável
+em `.env.example`. Nome alinhado ao padrão que você já usa no painel
+(`Projeto · Componente`, ex. "Bancada · API", "Cron · Backup (push)"):
 
-| Variável | Nome sugerido | Intervalo sugerido |
+| Variável | Nome sugerido (seu padrão) | Intervalo sugerido |
 |---|---|---|
-| `UPTIME_KUMA_PUSH_URL_POLITICIANS` | Bancada — sync políticos | 1440 min (24h) |
-| `UPTIME_KUMA_PUSH_URL_NEWS` | Bancada — sync notícias | 1440 min |
-| `UPTIME_KUMA_PUSH_URL_SCORES` | Bancada — recálculo de scores | 1440 min |
-| `UPTIME_KUMA_PUSH_URL_EXPENSES` | Bancada — sync gastos | 10080 min (7 dias) |
-| `UPTIME_KUMA_PUSH_URL_EXPENSE_ANALYSIS` | Bancada — análise de despesas | 10080 min |
-| `UPTIME_KUMA_PUSH_URL_LOG_CLEANUP` | Bancada — limpeza de logs | 44640 min (31 dias) |
-| `UPTIME_KUMA_PUSH_URL_CURATION_QUEUE` | Bancada — saúde da fila de curadoria | 1440 min |
+| `UPTIME_KUMA_PUSH_URL_POLITICIANS` | Bancada · Sync Políticos (push) | 1440 min (24h) |
+| `UPTIME_KUMA_PUSH_URL_NEWS` | Bancada · Sync Notícias (push) | 1440 min |
+| `UPTIME_KUMA_PUSH_URL_SCORES` | Bancada · Recálculo de Scores (push) | 1440 min |
+| `UPTIME_KUMA_PUSH_URL_EXPENSES` | Bancada · Sync Gastos (push) | 10080 min (7 dias) |
+| `UPTIME_KUMA_PUSH_URL_EXPENSE_ANALYSIS` | Bancada · Análise de Despesas (push) | 10080 min |
+| `UPTIME_KUMA_PUSH_URL_LOG_CLEANUP` | Bancada · Limpeza de Logs (push) | 44640 min (31 dias) |
+| `UPTIME_KUMA_PUSH_URL_CURATION_QUEUE` | Bancada · Fila de Curadoria (push) | 1440 min |
 
-Passo a passo, 8x: **Add New Monitor → Push → nome da tabela → intervalo
+Passo a passo, 7x: **Add New Monitor → Push → nome da tabela → intervalo
 da tabela → Save → copiar a URL do Push → colar no `.env` do VPS na
 variável correspondente.** Reiniciar o `bancada-sync-worker` depois de
 colar todas.
+
+Uma diferença de fundo pro "Cron · Backup (push)"/"Cron · Disco (push)"
+que já existem: aqueles são genéricos de infra (`hetzner-infra`, um por
+host, reusado por vários projetos). Estes 7 são só do Bancada — por
+isso o prefixo `Bancada ·` em vez de `Cron ·`, seguindo o mesmo padrão
+de "Bancada · API" e "Bancada · ML" que já estão no seu painel.
 
 ## Princípio central
 
