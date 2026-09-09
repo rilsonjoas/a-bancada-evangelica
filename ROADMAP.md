@@ -962,3 +962,118 @@ verificação visual headless fica no playbook manual (playbook acima).
   lucide-react (crasharia se alguém usasse) e duplicava o
   compartilhamento vivo (Web Share API no perfil + ShareableCard v2).
 - ✅ **`heading-order` — CONCLUÍDO (2026-08-31)**: `CardTitle` atualizado de `h2` para `h3` em `card.tsx`, unificando a hierarquia visual/semântica em todos os cards do app; ajustada a sequência sequencial `h1` → `h2` → `h3` → `h4` em *Metodologia*, *Perfil*, *DadosAbertos* e *Contato* (sem saltos de nível).
+
+---
+
+## 🚨 Incidente 2026-09-08 — motor de scores saturado + 89 nunca semeados (achado a partir de 1 pergunta sobre um perfil)
+
+**Como foi achado:** Rilson olhou o perfil do senador Flávio Bolsonaro
+(`/politicos/677`) e estranhou: nota 57/100 com "Nenhuma votação
+individual registrada". A pergunta certa ("como ele tem nota sem
+voto?") levou a comparar o valor exibido (50/50/80/50/60) contra o
+`@default` bruto do `schema.prisma` — bateu byte a byte. Não era o
+seed do partido (PL real: `[88,88,52,38,88]`), era o placeholder
+genérico do banco, nunca sobrescrito.
+
+**Achado 1 — 89 políticos nunca semeados.** `seed-party-scores.ts` só
+roda 1 vez, no começo do projeto. Todo político adicionado DEPOIS
+(Senado sincronizado depois do seed original; deputados incluídos em
+auditoria posterior — entre eles **Silas Câmara, presidente da própria
+FPE**, achado na mesma sessão ao corrigir a auditoria de filiação)
+nunca passou pelo seed. Confirmado contra produção: **81 senadores +
+8 deputados** na assinatura exata `life=50 AND family=50 AND social=50
+AND religious=60`. Corrigido com script cirúrgico (`fix-never-seeded-scores.ts`,
+só toca em quem bate a assinatura — nunca sobrescreve score real de
+quem já tem voto), aplicado em produção após `--dry-run`.
+
+**Achado 2 — motor de recálculo saturava em 0/100, e piorava todo dia.**
+Dois bugs distintos e sobreponíveis em `recalculate-scores.ts`:
+1. **Base móvel**: `existing?.campo` (valor já gravado, incluindo
+   delta de execuções anteriores) era usado como base, e o delta de
+   voto somava TODOS os votos desde sempre — não incremental. Cron
+   diário (05:00) somava o histórico completo de novo, todo dia, em
+   cima de um valor que já o continha. Drift sem fim.
+2. **Soma sem limite**: mesmo com a base fixa (achado 1 do motor),
+   somar `applied_score` (peso fixo do `SCAN_RULES`, ±8 a ±20) sem
+   limite nenhum satura qualquer critério com volume de voto
+   suficiente. Caso real: Acácio Favacho (MDB), 16 votos em Família
+   somando +150 — saturava em 100 garantido, não por convicção real,
+   só por ter votado bastante sobre o tema.
+
+**Impacto medido em produção, antes da correção:** 98% dos deputados
+com voto travados em 0 ou 100 em "Defesa da Família", 100% em
+"Responsabilidade Social", 69% em "Integridade Moral". Depois dos dois
+fixes: 0%, 0% e 1% (residual — 3 casos com volume de voto pequeno e
+seed de partido já alto, plausível, não artefato). **495 dos 595
+parlamentares tiveram a nota mudada** nesta correção.
+
+**Correção:** `scripts/lib/scoring.ts` novo — fonte única de
+`PARTY_ALIGNMENT`, `individualNoise`, dois clamps (`clampSeed` 5–98 pra
+estimativa, `clampScore` 0–100 pra nota com dado real), `overallScore`,
+`performanceLabel`. Antes duplicado em 2-3 lugares, cada cópia podendo
+divergir sem ninguém notar. `recalculate-scores.ts`: base agora é
+SEMPRE `partyBase() + individualNoise()` (fixo, recalculado do zero,
+nunca lido de volta do banco) + **média**, não soma, do `applied_score`
+real (decisão do Rilson entre média vs. cap na soma — média muda o
+significado de "acúmulo" pra "tendência real do voto"). Testes de
+regressão novos (`scripts/__tests__/scoring.test.ts`, 24 casos)
+provando as duas propriedades que faltavam: idempotência (rodar N
+vezes dá o mesmo resultado) e independência de volume de voto,
+incluindo o caso real do Acácio Favacho.
+
+**Auditoria de conteúdo (mesma sessão, mesmo princípio):** revisão
+completa de `Metodologia.tsx`, `docs/REPRODUCIBILITY.md`, `Sobre.tsx`,
+`Ranking.tsx` e `Errata.tsx` contra o código/dado real, a pedido do
+Rilson ("quero o site o mais confiável e auditável possível"). Achados
+reais, todos corrigidos:
+- `docs/REPRODUCIBILITY.md` descrevia uma **fórmula que nunca existiu**
+  no código (base fixa 50 + soma normalizada; fórmula de consistência
+  por desvio-padrão; keywords fabricadas citando o arquivo errado) —
+  documento que promete reprodutibilidade estava, ele mesmo,
+  irreproduzível. Hashes SHA256 "publicados" (§11) eram placeholder
+  literal (`a1b2c3d4...`) nunca preenchido, referenciando arquivo que
+  nunca existiu.
+- Link **"Ler guia de reprodutibilidade" quebrado em produção há ~12
+  dias** — `docs/REPRODUCIBILITY.md` nunca estava dentro de `public/`,
+  então o rewrite catch-all do Vercel (`vercel.json`) servia o HTML do
+  SPA no lugar do markdown. Corrigido com `pnpm docs:sync-public`
+  (prebuild/predev hook) — fonte única em `docs/`, cópia gerada em
+  `public/docs/` a cada build, nunca comitada (`.gitignore`).
+- **Contagem de membros da FPE** (232 vs. 247): não era drift, era
+  aritmética errada de uma correção anterior na mesma sessão — 232 é
+  só o total da Câmara (210 ativos + 22 inativos, confere com a
+  auditoria de 25/08); os 15 senadores em exercício são de fonte
+  separada e nunca foram somados corretamente no texto. Total geral
+  real: 247 (225 em exercício + 22 inativos).
+- Siglas de comissão do Senado inventadas (`CCP`, `CAD` não existem —
+  confirmado contra senado.leg.br; reais: CCJ, CAE, CAS, CI, CRE, CMA).
+- "Pena de morte" na página `/sobre` não está nas keywords reais de
+  Proteção à Vida (`SCAN_RULES` em `sync-votes.ts`).
+- 3ª ocorrência de referência morta ao **Railway** (`.env.example` +
+  comentário em `DadosAbertos.tsx`) — projeto saiu do Railway em
+  02/08, ROADMAP já registra 2 rodadas de limpeza anteriores (README
+  em 20/08, `/sobre` em 21/08) que não cobriram esses dois arquivos.
+- Linguagem residual de "soma"/"adiciona pontos" em 4 lugares
+  (`Metodologia.tsx` ×3, `Ranking.tsx` ×1) contradizendo a correção do
+  motor — reescrito pra "média"/"conta a favor/contra".
+
+**Errata pública atualizada** (`src/pages/Errata.tsx`) com as duas
+correções de dado (motor de scores + 89 nunca semeados) — mesmo
+padrão da entrada existente de 25/08, sem correção silenciosa.
+
+**Verificado:** `tsc` limpo (app + api), `pnpm test` 135/135, `pnpm
+test:api` 22/22, `pnpm build` OK. Correções de banco (89 políticos +
+recálculo de 595) aplicadas direto em produção via SSH, com
+`--dry-run` antes de cada uma. Correções de frontend/docs commitadas
+na branch `security/remove-unused-chart-component` — **deploy em
+andamento na mesma sessão**.
+
+**Prevenção**: `scripts/lib/scoring.ts` centraliza o que antes vivia
+espalhado (3 cópias da mesma tabela de partido); testes de regressão
+cobrem exatamente as duas propriedades que faltavam; `pnpm docs:sync-public`
+elimina a classe de bug "doc não está onde o build espera". Não existe
+ainda um check automatizado que compare texto da Metodologia contra a
+fórmula real do código — a revisão de hoje foi manual. Se esse tipo de
+divergência se repetir, vale considerar um teste que extraia
+constantes do código (pesos, keywords) e falhe se o texto publicado
+não citar os mesmos valores.
