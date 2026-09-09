@@ -10,7 +10,13 @@ RUN corepack enable
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-RUN pnpm install --prod=false
+# pnpm 10+ (baixado automaticamente pelo corepack) removeu a sintaxe
+# --flag=valor para flags booleanas: "--prod=false" agora é erro fatal
+# ("unexpected value 'false' for '--prod'"). Sem o --prod, o pnpm já
+# instala dependencies + devDependencies por padrão — comportamento
+# idêntico ao "--prod=false" antigo. Achado real 2026-09-09 (run
+# 34293823596, "Deploy VPS" falhou em 26s no build da imagem).
+RUN pnpm install
 
 COPY . .
 
