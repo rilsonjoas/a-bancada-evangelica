@@ -97,7 +97,12 @@ segurança real que não existia nos outros dois.
       no levantamento original): `index.html` já tem `description`,
       Open Graph completo (`og:title`, `og:description`, `og:image`,
       `og:url`) e Twitter Card, `public/robots.txt` presente
-- [x] **`sitemap.xml` — criado (2026-08-22)**. Estático com as 10 rotas públicas fixas; páginas dinâmicas `/politicos/:id` descobertas via links internos do /ranking por enquanto. `robots.txt` ganhou a linha `Sitemap:`. (era: "não existe ainda (site tem só um punhado de rotas,
+- [x] **✅ `sitemap.xml` COMPLETO (2026-09-14)** — rotas dinâmicas incluidas:
+      `scripts/generate-sitemap.ts` consulta a API (595 políticos,
+      parâmetro `offset`, não `page` — achado ao implementar) e gera 613
+      URLs (14 fixas + 4 `/temas/:slug` + 595 `/politicos/:id`). Rodar via
+      `pnpm sitemap:generate` (idempotente, regera lastmod) antes de deploy.
+- [x] **✅ `sitemap.xml` — criado (2026-08-22)**. Estático com as 10 rotas públicas fixas; páginas dinâmicas `/politicos/:id` descobertas via links internos do /ranking por enquanto. `robots.txt` ganhou a linha `Sitemap:`. (era: "não existe ainda (site tem só um punhado de rotas,
       baixa prioridade, mas é rápido de gerar)
 - [x] **Acessibilidade — CONCLUÍDO (2026-08-27, docs/A11Y-AUDIT.md)**: 6/6 passos. skip-link ✓ · nomes acessíveis ✓ · foco global ✓ · Ranking+Perfil rotulados ✓ · validação navegador ✓ (comandos prontos no doc). Rodada 2026-08-27 (bloco "auditoria tipográfica + responsividade fina") fechou o passo 6 e o item: Lighthouse **100/100 em 10/10 rotas**; **0 elementos interativos sem accessible name** (2 candidatos no Ranking são falso positivo — switches com `label[for]`); **0 overflow** em 10 rotas × (390/320px) após corrigir grid `md:grid-cols-*` sem `grid-cols-1` no `/votacoes` e `<code>` de URL longa no `/metodologia`; rodapé com h2 gigante (47px > h1) corrigido para 18px; contraste `Tendência de Alinhamento` 600→700 (/votacoes 97→100). Métrica "~19% aria-label" do 2026-08-16 está **defasada** — não repetir. Auditoria original: contraste AA ✅ em todos os pares core; críticos = 3 imgs sem alt, skip-link ausente, aria-labels zerados nas páginas, icon-buttons sem nome. Correções na ordem do plano do documento. Checagem original (2026-08-16):
      12 usos de `aria-label`/`alt` em 64 componentes (~19% de
@@ -788,12 +793,13 @@ dado verdadeiro (proporção de votos com posição definida), não bug.
 > percebida. Os dois primeiros itens são críticos (elevam 7→9/10 e tornam
 > credível o posicionamento "neutralidade auditável" pra jornalista).
 
-- [ ] **🔴 Abrir o repositório no GitHub** — README promete "código aberto
-      (MIT)" mas o repo é PRIVADO; jornalista/investigador tentando auditar
-      leva 404. Destrói o pilar "dados verificáveis, não opinião". Ação:
-      tornar `rilsonjoas/a-bancada-evangelica` público (ou mirror público
-      read-only) + conferir que nenhum segredo esteja no histórico
-      (`.env`, chaves — auditoria com gitleaks antes).
+- [x] **🔴 Abrir o repositório no GitHub** ✅ (2026-09-14) — lema "código
+      aberto (MIT)" da README agora é verdade técnico: repo
+      `rilsonjoas/a-bancada-evangelica` é PÚBLICO. Auditoria `gitleaks`
+      completa no histórico: **212 commits, 0 leaks**; só `.env.example`
+      trackeado (placeholders), `.env` real ignorado; 265 arquivos, sem
+      backup/banco/dados TSE versionados (só `data/tse/README.md`).
+      Descrição do repo preenchida para descoberta por jornalistas.
 - [ ] **🔴 Neutralizar labels morais na API**. `performanceLabel()` em
       `scripts/lib/scoring.ts:142-152` ainda retorna "Guardião da Fé" /
       "Testemunho Fiel" / "Caminhando" / "Precisa Crescer"; a UI foi
@@ -803,20 +809,24 @@ dado verdadeiro (proporção de votos com posição definida), não bug.
       vira conotação de ataque pessoal. Ação: substituir pelos rótulos
       neutros ("aderência muito alta/alta/moderada/baixa") na fonte +
       recalcular (`recalculate-scores.ts`) + conferir os 4 componentes.
-- [ ] **🟠 Parecer jurídico peri-eleitoral** — minuta em `/termos` citando
-      Lei 9.504/97 (propaganda), liberdade de expressão/informação
-      (CF/88 art. 5º), controle social e direito de resposta (já existe
-      processo de contestação + errata pública). Advogado (Lucas Vianna)
-      para revisão posterior.
+- [x] **✅ Parecer jurídico peri-eleitoral (2026-09-14)** — seção 3 dos
+      Termos de Uso: "Período eleitoral e propaganda" citando Lei
+      9.504/97 art. 36, CF/88 art. 5º IV e XIV, reforçando que o projeto
+      é jornalismo de dados/controle social (não propaganda eleitoral),
+      notas baseadas no mandato em exercício e não em promessas de
+      campanha. Advogado (Lucas Vianna) pode revisar depois — estrutura
+      defensiva já robusta.
 - [ ] **🟠 Sitemap + indexação**: `public/sitemap.xml` não inclui
       `/politicos/:id`, `/temas`, `/match`, `/errata`, `/dados` — a página
       mais buscada em eleição (perfil do deputado) não é indexável. SPA usa
       `usePageMeta` (dynamic meta) mas crawlers de WhatsApp/X precisam de
       OG no HTML inicial. Priorizar `/politicos/:id` no sitemap (rotas
       estáticas geradas via API) antes do pico.
-- [ ] **🟠 Performance mobile**: chunk principal 1,78MB (423KB gzip) — risco
-      LCP >3s em 3G/celular (canal nº1 de consumo eleitoral). Code-splitting
-      de react-router/react-query/recharts antes do push.
+- [x] **✅ Performance mobile (2026-09-14)**: chunk principal 1,78MB (423KB
+      gzip) → **485KB (96KB gzip, −73%)**. Lazy nas rotas não-home
+      (perfil, votação, temas, match, dados, errata, admin) + `manualChunks`
+      separando vendor-react/vendor-data/vendor-charts/vendor-icons/
+      vendor-html2canvas (imutáveis → cache agressivo). Testes 135/135 ✓.
 - [ ] **🟠 Monitoramento**: Sentry pausado (zero erro em runtime) + push
       monitors `SCORES` e `CURATION_QUEUE` não criados no Uptime Kuma
       (2/7 — docs/PLANO-OPERACAO-SUSTENTAVEL.md:84-85). Criar antes do pico.
