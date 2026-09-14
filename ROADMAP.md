@@ -102,6 +102,10 @@ segurança real que não existia nos outros dois.
       parâmetro `offset`, não `page` — achado ao implementar) e gera 613
       URLs (14 fixas + 4 `/temas/:slug` + 595 `/politicos/:id`). Rodar via
       `pnpm sitemap:generate` (idempotente, regera lastmod) antes de deploy.
+      **Verificação pendente (Rilson)**: confirmar no painel Vercel que o
+      deploy pós-push `de8b5b5` refletiu o sitemap de 613 URLs (o Vercel
+      deploya automaticamente via GitHub App a cada push; o sitemap ficou
+      no `public/` — frontend).
 - [x] **✅ `sitemap.xml` — criado (2026-08-22)**. Estático com as 10 rotas públicas fixas; páginas dinâmicas `/politicos/:id` descobertas via links internos do /ranking por enquanto. `robots.txt` ganhou a linha `Sitemap:`. (era: "não existe ainda (site tem só um punhado de rotas,
       baixa prioridade, mas é rápido de gerar)
 - [x] **Acessibilidade — CONCLUÍDO (2026-08-27, docs/A11Y-AUDIT.md)**: 6/6 passos. skip-link ✓ · nomes acessíveis ✓ · foco global ✓ · Ranking+Perfil rotulados ✓ · validação navegador ✓ (comandos prontos no doc). Rodada 2026-08-27 (bloco "auditoria tipográfica + responsividade fina") fechou o passo 6 e o item: Lighthouse **100/100 em 10/10 rotas**; **0 elementos interativos sem accessible name** (2 candidatos no Ranking são falso positivo — switches com `label[for]`); **0 overflow** em 10 rotas × (390/320px) após corrigir grid `md:grid-cols-*` sem `grid-cols-1` no `/votacoes` e `<code>` de URL longa no `/metodologia`; rodapé com h2 gigante (47px > h1) corrigido para 18px; contraste `Tendência de Alinhamento` 600→700 (/votacoes 97→100). Métrica "~19% aria-label" do 2026-08-16 está **defasada** — não repetir. Auditoria original: contraste AA ✅ em todos os pares core; críticos = 3 imgs sem alt, skip-link ausente, aria-labels zerados nas páginas, icon-buttons sem nome. Correções na ordem do plano do documento. Checagem original (2026-08-16):
