@@ -304,20 +304,20 @@ async function main() {
 
     if (overallScore >= 80) {
       performanceLevel = PerformanceLevel.EXCELLENT;
-      performanceLabel = 'Excelente';
-      performanceDescription = 'Alinhamento excepcional com valores cristãos e evangélicos';
+      performanceLabel = 'Aderência muito alta';
+      performanceDescription = 'Votações consistentemente alinhadas com os critérios cristãos declarados';
     } else if (overallScore >= 60) {
       performanceLevel = PerformanceLevel.GOOD;
-      performanceLabel = 'Bom';
-      performanceDescription = 'Bom alinhamento com valores cristãos e evangélicos';
+      performanceLabel = 'Aderência alta';
+      performanceDescription = 'Bom alinhamento com os critérios evangélicos declarados';
     } else if (overallScore >= 40) {
       performanceLevel = PerformanceLevel.AVERAGE;
-      performanceLabel = 'Médio';
-      performanceDescription = 'Alinhamento parcial com valores cristãos e evangélicos';
+      performanceLabel = 'Aderência moderada';
+      performanceDescription = 'Alinhamento parcial — há votações mistas';
     } else {
       performanceLevel = PerformanceLevel.POOR;
-      performanceLabel = 'Insuficiente';
-      performanceDescription = 'Baixo alinhamento com valores cristãos e evangélicos';
+      performanceLabel = 'Aderência baixa';
+      performanceDescription = 'Votações frequentemente divergem dos critérios cristãos declarados';
     }
 
     await prisma.politicianScore.create({

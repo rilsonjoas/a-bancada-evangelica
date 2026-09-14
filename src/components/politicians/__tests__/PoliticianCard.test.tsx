@@ -19,7 +19,7 @@ const mockPolitician: APIPolitician = {
     religiousFreedom: 95,
     overall: 88.5,
     performanceLevel: "EXCELLENT",
-    performanceLabel: "Guardião da Fé",
+    performanceLabel: "Aderência muito alta",
     totalVotes: 42,
     consistencyScore: 0.85,
     lastCalculation: "2025-01-01T00:00:00Z",

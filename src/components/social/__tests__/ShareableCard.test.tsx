@@ -20,7 +20,7 @@ const mockPolitician: Pick<
     religiousFreedom: 95,
     overall: 88.5,
     performanceLevel: "EXCELLENT",
-    performanceLabel: "Guardião da Fé",
+    performanceLabel: "Aderência muito alta",
     performanceDescription: "",
     totalVotes: 42,
     consistencyScore: 0.85,

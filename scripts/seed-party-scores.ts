@@ -104,9 +104,9 @@ async function seed() {
   console.log(`   ✅ ${updated} políticos atualizados`);
   console.log(`   ⚠️  ${unknown} com partido desconhecido (score neutro aplicado)`);
   console.log('\n📊 Distribuição esperada:');
-  console.log('   PL/PP/Republicanos → 70-90 pts (Guardião/Fiel)');
-  console.log('   MDB/PSD → 55-68 pts (Caminhando)');
-  console.log('   PT/PSOL/PCdoB → 20-35 pts (Precisa Crescer)');
+  console.log('   PL/PP/Republicanos → 70-90 pts (Aderência muito alta/alta)');
+  console.log('   MDB/PSD → 55-68 pts (Aderência moderada)');
+  console.log('   PT/PSOL/PCdoB → 20-35 pts (Aderência baixa)');
 }
 
 seed()

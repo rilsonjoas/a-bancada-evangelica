@@ -2,7 +2,7 @@
 
 <p align="center">
   <strong>Plataforma de transparência parlamentar com avaliação por valores cristãos</strong><br/>
-  514 deputados federais avaliados em 5 critérios — com dados reais da Câmara dos Deputados
+  595 parlamentares avaliados em 5 critérios — com dados reais da Câmara dos Deputados e do Senado
 </p>
 
 <p align="center">
@@ -13,7 +13,7 @@
   <img src="https://img.shields.io/badge/NestJS-11-E0234E?style=flat-square&logo=nestjs" />
   <img src="https://img.shields.io/badge/TypeScript-5.8-3178C6?style=flat-square&logo=typescript&logoColor=white" />
   <img src="https://img.shields.io/badge/Prisma-5-2D3748?style=flat-square&logo=prisma&logoColor=white" />
-  <img src="https://img.shields.io/badge/Testes-32%20passando-brightgreen?style=flat-square&logo=vitest" />
+  <img src="https://img.shields.io/badge/Testes-157%20passando-brightgreen?style=flat-square&logo=vitest" />
   <img src="https://img.shields.io/badge/Deploy-Hetzner%20VPS-orange?style=flat-square&logo=hetzner" />
 </p>
 
@@ -21,7 +21,7 @@
 
 ## O que é
 
-**A Bancada Evangélica** avalia todos os deputados federais da 57ª legislatura (2023–2027) com base em 5 critérios objetivos de alinhamento com valores cristãos: proteção à vida, valores familiares, integridade moral, responsabilidade social e liberdade religiosa.
+**A Bancada Evangélica** avalia os parlamentares da 57ª legislatura (2023–2027) — 513 deputados federais da Câmara + 82 senadores — com base em 5 critérios objetivos de alinhamento com valores cristãos: proteção à vida, valores familiares, integridade moral, responsabilidade social e liberdade religiosa.
 
 A Frente Parlamentar Evangélica (FPE) é um **filtro opcional** — não um limite. O eleitor pode ver o ranking geral ou ativar o toggle "Apenas FPE" para focar nos 209 deputados que se identificam publicamente como representantes evangélicos.
 
@@ -35,7 +35,7 @@ Parlamentar que se apresenta como representante de valores cristãos é cobrado 
 
 Isso é sobre uma coisa só: verdade sustentada por dado, não por retórica. "E tudo o que saia da minha boca revele esta verdade" vale tanto pra mim escrevendo isto quanto pra qualquer parlamentar que citei aqui — os critérios são objetivos, documentados e auditáveis, e o projeto não existe pra empurrar um partido, existe pra que o voto real fique visível.
 
-Hoje são 514 deputados avaliados com dado oficial da Câmara, metodologia publicada, sem viés partidário declarado. A visão de longo prazo não é audiência de massa — é virar a fonte que jornalista e pesquisador citam quando precisam saber, com dado, se o discurso bate com o voto. Isso se constrói com credibilidade acumulada votação a votação, não com uma campanha de lançamento.
+Hoje são 595 parlamentares avaliados com dado oficial da Câmara, do Senado e do TSE, metodologia publicada, sem viés partidário declarado. A visão de longo prazo não é audiência de massa — é virar a fonte que jornalista e pesquisador citam quando precisam saber, com dado, se o discurso bate com o voto. Isso se constrói com credibilidade acumulada votação a votação, não com uma campanha de lançamento.
 
 ### Decisão permanente: sem anúncio, sem afiliado, sem destaque pago
 
@@ -49,7 +49,7 @@ Este projeto não roda anúncio, não tem afiliado, não vende dado nem destaque
 |---|---|
 | **Frontend** | React 18, TypeScript, Vite, TanStack Query, shadcn/ui, Tailwind CSS, Recharts |
 | **API** | NestJS 11 (IoC/DI), Prisma ORM, PostgreSQL (Hetzner VPS) |
-| **Testes** | Vitest, Testing Library (32 testes, 4 suites) |
+| **Testes** | Vitest, Testing Library (157 testes, 25 suites) |
 | **Infra** | Hetzner VPS (API + Análise ML via Docker), Vercel (frontend) |
 | **Fontes de dados** | API oficial da Câmara dos Deputados, CEAP (cota parlamentar) |
 
@@ -93,7 +93,7 @@ A API segue o padrão de **módulos NestJS com injeção de dependência** — c
 
 | Feature | Detalhe |
 |---|---|
-| **Ranking** | 514 parlamentares ordenados por score, com filtros de estado, partido e casa |
+| **Ranking** | 595 parlamentares ordenados por score, com filtros de estado, partido e casa |
 | **Filtro FPE** | Toggle "Apenas FPE" — 209 membros identificados via API da Câmara |
 | **Perfil individual** | Score por critério, histórico de votações, análise de gastos, mandatos |
 | **Comparação** | Compare até 4 parlamentares lado a lado em todos os critérios |
@@ -101,7 +101,7 @@ A API segue o padrão de **módulos NestJS com injeção de dependência** — c
 | **Alinhamento por partido** | Score médio por partido com segmentação por nível |
 | **Metodologia** | Página completa explicando pesos, critérios e fontes de dados |
 | **API REST** | 10 endpoints com documentação Swagger em `/api/docs` |
-| **Testes** | 32 testes automatizados cobrindo componentes e lógica de UI |
+| **Testes** | 157 testes automatizados cobrindo componentes e lógica de UI + API |
 | **Sync automático** | Worker próprio (`sync-worker.ts`, node-cron): políticos 03h diário, gastos domingo 04h, scores 05h diário — dado não fica desatualizado numa votação importante |
 
 ### Critérios de avaliação
@@ -127,17 +127,18 @@ A API segue o padrão de **módulos NestJS com injeção de dependência** — c
 ## Dados reais (57ª legislatura)
 
 ```
-Parlamentares ativos:   514
-Com scores calculados:  514 (100%)
-Votos monitorados:      26.860
-Pautas-chave:           83
-Membros da FPE:         209 / 514 (40,6%)
+Parlamentares avaliados:   595 (513 Câmara + 82 Senado)
+Com voto próprio:          505
+Avaliados só por partido:  89
+Votos monitorados:         26.860
+Pautas-chave:              83
+Média geral:               63,1 / 100
 
-Distribuição de performance:
-  Guardião da Fé (≥80 pts):   133 parlamentares (25,9%)
-  Aliado (65–79 pts):          215 parlamentares (41,8%)
-  Parcial (45–64 pts):         213 parlamentares (41,4%)
-  Divergente (<45 pts):         85 parlamentares (16,5%)
+Distribuição de performance (rótulos neutros de aderência, capturado 2026-09-14):
+  Aderência muito alta (≥80 pts):    42 parlamentares (7,1%)
+  Aderência alta (65–79 pts):       296 parlamentares (49,7%)
+  Aderência moderada (45–64 pts):   146 parlamentares (24,5%)
+  Aderência baixa (<45 pts):        111 parlamentares (18,7%)
 ```
 
 ---

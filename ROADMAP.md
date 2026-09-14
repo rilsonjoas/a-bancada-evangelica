@@ -771,7 +771,7 @@ dado verdadeiro (proporção de votos com posição definida), não bug.
 
 ---
 
-## Distribuição e Impacto (2026-08-22)
+## Distribuição e Impacto (2026-08-22; plano de execução 2026-09-14)
 
 > Projeto cívico: decisão permanente de não monetizar (sem ads/afiliado;
 > doação como porta aberta). Aqui sucesso = alcance e confiança, não receita.
@@ -781,25 +781,77 @@ dado verdadeiro (proporção de votos com posição definida), não bug.
 - Mesma janela do Teste Político: pico de interesse nas semanas antes do 1º turno (4/out)
 - Diferencial: dados TSE/Câmara/Senado verificáveis — formato "como seu deputado votou"
 
+### 🚧 Bloqueadores para divulgação em massa (resolver ANTES de qualquer push; consolidado 2026-09-14)
+
+> Gatilho: avaliação de maturidade de 2026-09-14. O gargalo de divulgação
+> aqui NÃO é técnico — é credibilidade auditável e risco legal/neutralidade
+> percebida. Os dois primeiros itens são críticos (elevam 7→9/10 e tornam
+> credível o posicionamento "neutralidade auditável" pra jornalista).
+
+- [ ] **🔴 Abrir o repositório no GitHub** — README promete "código aberto
+      (MIT)" mas o repo é PRIVADO; jornalista/investigador tentando auditar
+      leva 404. Destrói o pilar "dados verificáveis, não opinião". Ação:
+      tornar `rilsonjoas/a-bancada-evangelica` público (ou mirror público
+      read-only) + conferir que nenhum segredo esteja no histórico
+      (`.env`, chaves — auditoria com gitleaks antes).
+- [ ] **🔴 Neutralizar labels morais na API**. `performanceLabel()` em
+      `scripts/lib/scoring.ts:142-152` ainda retorna "Guardião da Fé" /
+      "Testemunho Fiel" / "Caminhando" / "Precisa Crescer"; a UI foi
+      neutralizada na Onda A2 mas a API expõe o valor antigo e 4
+      componentes renderizam direto da API (PoliticianCard, ShareableCard,
+      ComparisonTable, PoliticianComparison). Risco: print "Precisa Crescer"
+      vira conotação de ataque pessoal. Ação: substituir pelos rótulos
+      neutros ("aderência muito alta/alta/moderada/baixa") na fonte +
+      recalcular (`recalculate-scores.ts`) + conferir os 4 componentes.
+- [ ] **🟠 Parecer jurídico peri-eleitoral** — minuta em `/termos` citando
+      Lei 9.504/97 (propaganda), liberdade de expressão/informação
+      (CF/88 art. 5º), controle social e direito de resposta (já existe
+      processo de contestação + errata pública). Advogado (Lucas Vianna)
+      para revisão posterior.
+- [ ] **🟠 Sitemap + indexação**: `public/sitemap.xml` não inclui
+      `/politicos/:id`, `/temas`, `/match`, `/errata`, `/dados` — a página
+      mais buscada em eleição (perfil do deputado) não é indexável. SPA usa
+      `usePageMeta` (dynamic meta) mas crawlers de WhatsApp/X precisam de
+      OG no HTML inicial. Priorizar `/politicos/:id` no sitemap (rotas
+      estáticas geradas via API) antes do pico.
+- [ ] **🟠 Performance mobile**: chunk principal 1,78MB (423KB gzip) — risco
+      LCP >3s em 3G/celular (canal nº1 de consumo eleitoral). Code-splitting
+      de react-router/react-query/recharts antes do push.
+- [ ] **🟠 Monitoramento**: Sentry pausado (zero erro em runtime) + push
+      monitors `SCORES` e `CURATION_QUEUE` não criados no Uptime Kuma
+      (2/7 — docs/PLANO-OPERACAO-SUSTENTAVEL.md:84-85). Criar antes do pico.
+- [ ] **🟠 Recálculo de scores em produção** — o código de rótulos neutros
+      está commitado, mas o banco ainda tem os labels antigos ("Testemunho
+      Fiel" etc.) até o worker `recalculate-scores.ts` rodar. O sync de
+      SCORES roda diariamente às 05h (capturado 14/09/2026 às 05:00:02,
+      API ainda exibia label antigo) — confirmar que a primeira execução
+      após o deploy propaga os novos labels pra UI.
+
 ### Formato viral já construído: ShareableCard
 
 - Cards "você sabia como Fulano votou?" são conteúdo printável de WhatsApp/X
 - Produzir cards por tema pauta — liberdade religiosa (fase 3, já no ar) é o tema âncora do nicho
+- [ ] **GT1 · 3 cards de pauta prontos (liberdade religiosa)** — produzir e
+      deixar agendados antes de 28/09; com UTM rastreáveis no Umami.
 
 ### Canais (com guardrail de neutralidade)
 
-1. Mídia evangélica de notícias e podcasts fé & política — pitch "dados, não opinião" (credibilidade watchdog)
-2. Líderes/pastores com audiência — oferecer dados e método, nunca endosso partidário
-3. X/Twitter político BR — gráficos de votação por partido/estado (a API `/api/politicians` já agrega byState/byParty)
+1. [ ] Mídia evangélica de notícias e podcasts fé & política — pitch "dados, não opinião" (credibilidade watchdog); lista de 10-15 contatos
+2. [ ] Líderes/pastores com audiência — oferecer dados e método, nunca endosso partidário
+3. [ ] X/Twitter político BR — gráficos de votação por partido/estado (a API `/api/politicians` já agrega byState/byParty)
+4. [ ] LinkedIn — fila já pronta no índice editorial (Posts 0/1/2: apresentação, bug de scoring, KMeans/PCA)
+5. [ ] Contato com jornalistas de dados (Congresso em Foco, Poder360) oferecendo a base + metodologia como fonte
 
-### Guardrails
+### 📅 Calendário (replicar do Teste Político)
 
-- Sem candidatos/partidos específicos na divulgação (risco TSE, mesma regra do Teste Político)
-- Neutralidade percebida É o produto — qualquer push tendencioso mata o projeto inteiro
+- [ ] **Semana 22-28/09**: resolver bloqueadores + 3 cards + contatos de mídia/podcast
+- [ ] **28/09-02/10 (pico)**: push em canais ativos (X + LinkedIn + contatos)
+- [ ] **05-25/10 (entre turnos)**: reaproveitar o que performou
 
-### Métricas (Umami já instalado)
+### 📊 Métricas (Umami já instalado)
 
 - Visitas por card compartilhado, retorno de jornalistas/comunidades, menções espontâneas
+- [ ] Conferir Umami semanalmente (segunda) a partir do primeiro post; decidir dobrar/abandonar canal com base em visibilidade real por UTM
 
 ---
 
@@ -1067,6 +1119,11 @@ recálculo de 595) aplicadas direto em produção via SSH, com
 `--dry-run` antes de cada uma. Correções de frontend/docs commitadas
 na branch `security/remove-unused-chart-component` — **deploy em
 andamento na mesma sessão**.
+
+**✅ Deploy confirmado em produção (2026-09-09, balanço de portfólio):**
+`bancada-api` na VPS rodando no commit `f15ff43` (16h de uptime, saudável),
+que já inclui o fix do motor de scores e o registro do incidente
+(`c08f28d`). Branch mesclada e publicada — nada pendurado.
 
 **Prevenção**: `scripts/lib/scoring.ts` centraliza o que antes vivia
 espalhado (3 cópias da mesma tabela de partido); testes de regressão

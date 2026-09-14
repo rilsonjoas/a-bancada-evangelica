@@ -137,24 +137,28 @@ export function performanceLabel(score: number): {
   label: string;
   description: string;
 } {
+  // Rótulos neutros de aderência (neutralizados em 2026-09-14 — a UI já
+  // estava neutra, mas a API expunha labels morais tipo "Guardião da Fé" /
+  // "Precisa Crescer" que virariam print de ataque pessoal. Neutro mede a
+  // distância das votações aos critérios, nunca julga a pessoa).
   if (score >= 80) return {
     level: 'EXCELLENT',
-    label: 'Guardião da Fé',
-    description: 'Votações consistentemente alinhadas com os valores cristãos',
+    label: 'Aderência muito alta',
+    description: 'Votações consistentemente alinhadas com os critérios cristãos declarados',
   };
   if (score >= 65) return {
     level: 'GOOD',
-    label: 'Testemunho Fiel',
-    description: 'Bom alinhamento com os critérios evangélicos',
+    label: 'Aderência alta',
+    description: 'Bom alinhamento com os critérios evangélicos declarados',
   };
   if (score >= 45) return {
     level: 'AVERAGE',
-    label: 'Caminhando',
+    label: 'Aderência moderada',
     description: 'Alinhamento parcial — há votações mistas',
   };
   return {
     level: 'POOR',
-    label: 'Precisa Crescer',
-    description: 'Votações frequentemente divergem dos valores cristãos',
+    label: 'Aderência baixa',
+    description: 'Votações frequentemente divergem dos critérios cristãos declarados',
   };
 }
