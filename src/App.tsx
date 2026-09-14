@@ -13,18 +13,10 @@ import RankingPage from "./pages/Ranking";
 import SobrePage from "./pages/Sobre";
 import MetodologiaPage from "./pages/Metodologia";
 import ContatoPage from "./pages/Contato";
-import { PoliticianProfile } from "./pages/PoliticianProfile";
-import { VotingAnalysis } from "./pages/VotingAnalysis";
 import NotFound from "./pages/NotFound";
 import Privacidade from "./pages/Privacidade";
 import Termos from "./pages/Termos";
 import { Analytics } from "@/components/Analytics";
-import { DadosAbertos } from "./pages/DadosAbertos";
-import Errata from "./pages/Errata";
-import NewsCuration from "./pages/NewsCuration";
-import ThemesIndex from "./pages/ThemesIndex";
-import ThemePage from "./pages/ThemePage";
-import MatchPage from "./pages/Match";
 
 // Code-splitting (2026-09-08): as duas rotas com gráfico mais pesado
 // (clustering PCA/KMeans com recharts, radar de comparação) saíam
@@ -35,6 +27,24 @@ const VotingClusters = lazy(() => import("./pages/VotingClusters"));
 const PoliticianComparison = lazy(() =>
   import("./pages/PoliticianComparison").then((m) => ({ default: m.PoliticianComparison }))
 );
+
+// Code-splitting (2026-09-14): o chunk principal ainda reclamava 1,78MB.
+// As rotas abaixo só são baixadas quando navegadas (perfis de político,
+// votação, temas, match e páginas institucionais ficam em chunks próprios).
+const PoliticianProfile = lazy(() =>
+  import("./pages/PoliticianProfile").then((m) => ({ default: m.PoliticianProfile }))
+);
+const VotingAnalysis = lazy(() =>
+  import("./pages/VotingAnalysis").then((m) => ({ default: m.VotingAnalysis }))
+);
+const ThemesIndex = lazy(() => import("./pages/ThemesIndex"));
+const ThemePage = lazy(() => import("./pages/ThemePage"));
+const MatchPage = lazy(() => import("./pages/Match"));
+const DadosAbertos = lazy(() =>
+  import("./pages/DadosAbertos").then((m) => ({ default: m.DadosAbertos }))
+);
+const Errata = lazy(() => import("./pages/Errata"));
+const NewsCuration = lazy(() => import("./pages/NewsCuration"));
 
 /** Fallback do Suspense pras rotas lazy — mesmo ícone/spinner que o
  * Ranking.tsx já usa em estado de carregamento (Loader2 + animate-spin). */
@@ -79,7 +89,14 @@ const App = () => (
             <Routes>
               <Route path="/" element={<RankingPage />} />
               <Route path="/ranking" element={<RankingPage />} />
-              <Route path="/politicos/:id" element={<PoliticianProfile />} />
+              <Route
+                path="/politicos/:id"
+                element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <PoliticianProfile />
+                  </Suspense>
+                }
+              />
               <Route
                 path="/comparacao"
                 element={
@@ -96,15 +113,64 @@ const App = () => (
                   </Suspense>
                 }
               />
-              <Route path="/votacoes" element={<VotingAnalysis />} />
-              <Route path="/temas" element={<ThemesIndex />} />
-              <Route path="/temas/:slug" element={<ThemePage />} />
-              <Route path="/match" element={<MatchPage />} />
+              <Route
+                path="/votacoes"
+                element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <VotingAnalysis />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/temas"
+                element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <ThemesIndex />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/temas/:slug"
+                element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <ThemePage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/match"
+                element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <MatchPage />
+                  </Suspense>
+                }
+              />
               <Route path="/sobre" element={<SobrePage />} />
               <Route path="/metodologia" element={<MetodologiaPage />} />
-              <Route path="/dados" element={<DadosAbertos />} />
-              <Route path="/errata" element={<Errata />} />
-              <Route path="/admin/noticias" element={<NewsCuration />} />
+              <Route
+                path="/dados"
+                element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <DadosAbertos />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/errata"
+                element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <Errata />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/admin/noticias"
+                element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <NewsCuration />
+                  </Suspense>
+                }
+              />
               <Route path="/contato" element={<ContatoPage />} />
               <Route path="/privacidade" element={<Privacidade />} />
               <Route path="/termos" element={<Termos />} />
