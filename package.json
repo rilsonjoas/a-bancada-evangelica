@@ -47,7 +47,8 @@
     "sync:news": "tsx scripts/sync-news.ts",
     "seed:fpe:tiers": "tsx scripts/seed-fpe-tiers.ts",
     "seed:practical-impact": "tsx scripts/seed-practical-impact.ts",
-    "sync:all": "pnpm sync:camara && pnpm sync:senado && pnpm sync:fpe && pnpm sync:votes && pnpm scores:recalculate"
+    "sync:all": "pnpm sync:camara && pnpm sync:senado && pnpm sync:fpe && pnpm sync:votes && pnpm scores:recalculate",
+    "sitemap:generate": "tsx scripts/generate-sitemap.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
