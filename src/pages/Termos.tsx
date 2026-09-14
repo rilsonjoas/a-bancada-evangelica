@@ -32,7 +32,7 @@ export function Termos() {
           <Card className="card-elevated">
             <CardContent className="pt-6">
               <p className="text-sm text-muted-foreground">
-                Última atualização: 22 de agosto de 2026. Ao usar este site você
+                Última atualização: 14 de setembro de 2026. Ao usar este site você
                 concorda com estes termos — escritos para serem lidos de verdade.
               </p>
             </CardContent>
@@ -83,8 +83,47 @@ export function Termos() {
           <Card className="card-elevated">
             <CardHeader>
               <CardTitle className="font-serif flex items-center gap-2">
+                <Scale className="h-5 w-5 text-primary" />
+                3. Período eleitoral e propaganda
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-muted-foreground leading-relaxed">
+              <p>
+                Este projeto é <strong>jornalismo de dados e controle social</strong>,
+                não propaganda eleitoral. Não apoiamos, não atacamos e não
+                custeamos candidato, partido ou coligação — e não vinculamos a
+                avaliação de um parlamentar a nenhuma chapa ou candidatura.
+              </p>
+              <p>
+                Em períodos de campanha, a plataforma continua operando — inclusive
+                porque os <strong>votos nominais do mandato em exercício</strong> são
+                registro público disponível a qualquer cidadão. Diferenciamos, no
+                entanto, o que é regra permanente do que é contexto eleitoral:
+              </p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>As notas refletem <strong>votações no mandato</strong>, nunca
+                  promessas ou programas de campanha de qualquer candidato;</li>
+                <li>Não atualizamos nem destacamos conteúdo para favorecer ou
+                  prejudicar ninguém em disputa;</li>
+                <li>Comparações ou materiais com conotação eleitoral só são
+                  publicados em linguagem factual e neutra (art. 36 da Lei
+                  nº 9.504/1997 — propaganda eleitoral é dever do candidato,
+                  não nosso).</li>
+              </ul>
+              <p>
+                Parlamentares em exercício que venham a se candidatar em 2026
+                permanecem avaliados pelo histórico do mandato — o dado não
+                muda porque existe campanha, e trata-se de informação pública
+                útil ao eleitor (art. 5º, incisos IV e XIV, da Constituição).
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="card-elevated">
+            <CardHeader>
+              <CardTitle className="font-serif flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5 text-primary" />
-                3. Direito de resposta e correções
+                4. Direito de resposta e correções
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-muted-foreground leading-relaxed">
@@ -105,7 +144,7 @@ export function Termos() {
 
           <Card className="card-elevated">
             <CardHeader>
-              <CardTitle className="font-serif flex items-center gap-2">4. Uso dos dados</CardTitle>
+              <CardTitle className="font-serif flex items-center gap-2">5. Uso dos dados</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-muted-foreground leading-relaxed">
               <p>
@@ -126,7 +165,7 @@ export function Termos() {
 
           <Card className="card-elevated">
             <CardHeader>
-              <CardTitle className="font-serif flex items-center gap-2">5. Limitações de responsabilidade</CardTitle>
+              <CardTitle className="font-serif flex items-center gap-2">6. Limitações de responsabilidade</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-muted-foreground leading-relaxed">
               <p>
