@@ -152,4 +152,88 @@ export class VotesService {
       politicianRanking,
     };
   }
+
+  /**
+   * Votos individuais reais de uma pauta (GT1 — integridade de dados).
+   * Antigamente a UI caía num fallback que FABRICAVA parlamentares e
+   * contagens; este endpoint serve apenas votos reais gravados no banco.
+   * Se a pauta não tiver votos, retorna lista vazia (0 honesto autorizado).
+   */
+  async agendaVotes(agendaId: string) {
+    const agenda = await this.prisma.keyAgenda.findUnique({ where: { id: agendaId } });
+    if (!agenda) return null;
+
+    const rows = await this.prisma.vote.findMany({
+      where: { key_agenda_id: agendaId },
+      orderBy: { vote_date: 'desc' },
+      select: {
+        id: true,
+        vote_type: true,
+        applied_score: true,
+        vote_date: true,
+        source: true,
+        source_vote_id: true,
+        source_proposition_id: true,
+        voting_description: true,
+        result_description: true,
+        politician: {
+          select: {
+            id: true,
+            name: true,
+            current_party: true,
+            current_state: true,
+            current_house: true,
+          },
+        },
+      },
+    });
+
+    const summary = { total: 0, yes: 0, no: 0, abstention: 0, obstruction: 0, absent: 0 };
+    for (const r of rows) {
+      summary.total += 1;
+      if (r.vote_type === 'YES') summary.yes += 1;
+      else if (r.vote_type === 'NO') summary.no += 1;
+      else if (r.vote_type === 'ABSTENTION') summary.abstention += 1;
+      else if (r.vote_type === 'OBSTRUCTION') summary.obstruction += 1;
+      else summary.absent += 1;
+    }
+
+    return {
+      agenda: {
+        id: agenda.id,
+        title: agenda.title,
+        description: agenda.description ?? '',
+        criteria: agenda.criteria,
+        positiveWeight: agenda.positive_weight,
+        negativeWeight: agenda.negative_weight,
+        source: agenda.source,
+        sourceId: agenda.source_id,
+        sourceUrl: agenda.source_url ?? null,
+        keywords: agenda.keywords,
+        status: agenda.status,
+        priority: agenda.priority,
+        createdAt: agenda.created_at,
+        updatedAt: agenda.updated_at,
+        _count: { votes: rows.length },
+      },
+      votes: rows.map((r) => ({
+        id: r.id,
+        politician: {
+          id: r.politician.id,
+          name: r.politician.name,
+          currentParty: r.politician.current_party,
+          currentState: r.politician.current_state,
+          currentHouse: r.politician.current_house,
+        },
+        voteType: r.vote_type,
+        appliedScore: r.applied_score,
+        voteDate: r.vote_date,
+        source: r.source,
+        sourceVoteId: r.source_vote_id,
+        ...(r.voting_description ? { votingDescription: r.voting_description } : {}),
+        ...(r.result_description ? { resultDescription: r.result_description } : {}),
+      })),
+      summary,
+    };
+  }
 }

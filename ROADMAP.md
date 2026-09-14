@@ -13,6 +13,57 @@ segurança real que não existia nos outros dois.
 
 ---
 
+## 🚦 Mapa de pendências — eleição 2026 (atualizado 14/09)
+
+> Checklist executável do que falta até o 1º turno (04/10). Alt: guardar
+> este mapa e só ticar aqui. Legenda: 🔴 bloqueador · 🔵 manual (Rilson)
+> · 🟠 decisão · ⚙️ agente executa · 🟢 automático.
+
+### 🔴 Técnicas — FEITAS (14/09)
+- [x] Rótulos neutros na fonte + 4 componentes + testes (`ca51739`)
+- [x] Repo público + gitleaks 212 commits, 0 leaks (`ca51739`)
+- [x] Sitemap 613 URLs — verificado na Vercel ao vivo ✅
+- [x] Code-splitting 1,78MB→485KB (−73%) (`3403fa1` + `beaf0df`)
+- [x] Termos seção 3 peri-eleitoral Lei 9.504/97 (`26062f6`)
+- [x] **Zero dados fabricados no front** (14/09): removidos os fallbacks
+      que INVENTAVAM dados quando a API falhava. Achado: 4 lugares
+      fabricavam (detalhe na seção "Qualidade de Dados"). Endpoint real
+      `/api/agendas/:id/votes` criado + testes. ⚙️ commit pendente.
+
+### 🟢 Automático (verificar em 15/09)
+- [ ] Recálculo dos labels no DB prod — cron 05h propaga "Aderência…"
+      (deploy já no ar) → confirmar via API + tick aqui.
+
+### 🔵 Manuais (Rilson) — prazo antes do pico 28/09
+- [ ] **GT1 · 3 cards de pauta** — [🔴 decisão de dados] o plano pedia
+      "liberdade religiosa", mas o banco tem **0 pautas votadas desse
+      critério** (achado 21/08, recurrente; regra: 0 honesto > fabricado).
+      Decisão registrada 14/09: cards com pautas REAIS do critério
+      **Família** (PL 6233 Código Civil · PL 244-C · PL 5122), cada um
+      com UTM. ⚙️ conteúdo em produção.
+- [ ] Post X/Twitter: gráficos de votação por partido/estado
+- [ ] LinkedIn: Posts 0/1/2 (índice editorial)
+- [ ] Pitch imprensa evangélica + jornalistas de dados (10–15 contatos)
+- [ ] Reddit: copy pronta + feedback de viés (mata 2 pendências)
+- [ ] Conferir Umami semanal (segunda): visibilidade por UTM →
+      dobrar/abandonar
+- [ ] Criar monitors Uptime Kuma `SCORES` + `CURATION_QUEUE` (2/7 hoje)
+
+### 🟠 Decisões
+- [ ] Sentry: ativar (1 sessão) vs pausado
+- [ ] North Star metric (aguarda dados Umami)
+- [ ] M3 digest/M4 e-mail — manter pausados? (hoje: sim)
+- [ ] GT1 "liberdade religiosa" — pauta nova de nicho para semear
+      manualmente (HOJE: sem dado de voto; cards usam Família)
+
+### 🔵 Contínuas (curadoria)
+- [ ] Revisar pendentes `/admin/noticias` (~4.835)
+- [ ] Revalidar FPE tier (fonte datada 25/08 → ~25/11)
+- [ ] Texto da Metodologia sobre party seed
+- [ ] Investigar 125 políticos label congelado "Aguardando Análise"
+
+---
+
 ## P0 — Segurança
 
 - [x] **Remover `db_cluster-27-10-2025@05-42-20.backup.gz` do histórico
@@ -368,6 +419,47 @@ disciplina certa acontecendo antes mesmo do documento existir:
       mantida: desqualificação/ficha suja só entra no score com fonte
       oficial TSE citável, nunca inferência — hoje é só infra (tabela
       `politician_disqualifications` vazia, como esperado)
+
+### 🔍 Auditoria "zero dados fabricados no front" (2026-09-14)
+
+**Gatilho:** ao tentar produzir o GT1 (cards de pauta) a partir de dados
+reais, confirmado que **não existem pautas votadas do critério Religião**
+(0 com voto casado — achado 21/08, recorrente). Ao garantir a regra "0
+honesto > número fabricado", auditado o front inteiro e achado que ele
+**fabricava dados** em 4 lugares quando a API falhava:
+
+- ✅ `src/hooks/useVotes.ts` — `generateFallbackAgendaVotes` + arrays
+  `FIRST_NAMES/LAST_NAMES/PARTIES/STATES`: inventava parlamentares,
+  partidos e contagens ao abrir "Ver como cada deputado votou nesta
+  pauta" (o endpoint `/api/agendas/:id/votes` **não existia**; a UI caía
+  nesse fallback fabricado). **Pior violação** pois expõe pessoa/partido
+  inventados como se fossem voto real.
+- ✅ `src/hooks/useVotingAnalysisData.ts` — `FALLBACK_ANALYSIS_DATA`:
+  dataset inteiro inventado (totalVotes 26860, políticos "João Silva"/
+  "Maria Santos", pautas PL 2159/2021 e PLP 233/2023 com números fixos)
+  se `/api/votes/analysis` falhar. Página "Votações" mostrava esses dados.
+- ✅ `src/hooks/useClusterData.ts` — `FALLBACK_CLUSTERS` +
+  `FALLBACK_PARTY_ALIGNMENT`: clusters KMeans e alinhamento por partido
+  com membros inventados e silhueta/pca fixos se a API falhar. Páginas
+  "Grupos" e alinhamento partidário exibiam isso.
+- ✅ `src/data/mockPoliticians.ts` — dataset mock (não referenciado em
+  produção; candidate a remoção).
+
+**Correção (em andamento 14/09, ⚙️ agente):**
+- Endpoint real `GET /api/agendas/:id/votes` criado (`VotesService.
+  agendaVotes` + `AgendasController`) — serve apenas votos gravados;
+  pauta sem voto retorna lista vazia. Testes unitários adicionados.
+- Fallbacks fabricados substituídos por degração honesta: erro propagado
+  para o `error` do React Query (páginas já renderizam "Serviço
+  indisponível"/"Dados indisponíveis" — estado vazio, nunca inventado).
+- `criteriaEngine.ts` TODOs (`calculateTransparencyBonus` etc.) retornam
+  **0** — é subnotificação honesta, não fabricação; anotado para futuro
+  cálculo real (não urgente).
+
+**Regra reforçada:** fallback em UI = estado vazio com mensagem de erro,
+jamais números/pessoas/pautas sintéticas. O projeto promete "voto real",
+então entrará em CI uma checagem que falha se `FALLBACK_/generateFallback`
+aparecer nos hooks (implementar junto do commit).
 
 ---
 
@@ -844,8 +936,12 @@ dado verdadeiro (proporção de votos com posição definida), não bug.
 ### Formato viral já construído: ShareableCard
 
 - Cards "você sabia como Fulano votou?" são conteúdo printável de WhatsApp/X
-- Produzir cards por tema pauta — liberdade religiosa (fase 3, já no ar) é o tema âncora do nicho
-- [ ] **GT1 · 3 cards de pauta prontos (liberdade religiosa)** — produzir e
+- **Retificação de dados (14/09):** o tema-âncora "liberdade religiosa"
+  (fase 3) tem **0 pautas votadas no banco** — não há voto real pra card
+  desse tema. Cards passam a usar pautas REAIS do critério Família
+  (PL 6233 Código Civil · PL 244-C · PL 5122). Pauta de religião vira
+  decisão de curadoria manual (semear) para o futuro — ver Mapa acima.
+- [ ] **GT1 · 3 cards de pauta prontos (Família)** — produzir e
       deixar agendados antes de 28/09; com UTM rastreáveis no Umami.
 
 ### Canais (com guardrail de neutralidade)

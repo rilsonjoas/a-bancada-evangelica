@@ -90,3 +90,81 @@ describe('VotesService.analysis — exposição do tema (M2)', () => {
     expect(a2?.practicalImpact).toBeNull();
   });
 });
+
+// ================================================================
+// agendaVotes — votos individuais reais por pauta (GT1 integridade)
+// ================================================================
+describe('VotesService.agendaVotes — voto real, sem fabricação', () => {
+  let prisma: {
+    keyAgenda: { findUnique: Mock };
+    vote: { findMany: Mock };
+  };
+  let service: VotesService;
+
+  beforeEach(() => {
+    prisma = {
+      keyAgenda: { findUnique: vi.fn() },
+      vote: { findMany: vi.fn() },
+    };
+    service = new VotesService(prisma as unknown as never);
+  });
+
+  it('retorna null quando a pauta não existe', async () => {
+    prisma.keyAgenda.findUnique.mockResolvedValue(null);
+    expect(await service.agendaVotes('inexistente')).toBeNull();
+  });
+
+  it('retorna dados reais com shape VotesByAgenda', async () => {
+    prisma.keyAgenda.findUnique.mockResolvedValue({
+      id: 'cmq123',
+      title: 'PL 244-C — violência patrimonial contra criança',
+      description: 'Tipifica...',
+      criteria: 'FAMILY_VALUES',
+      positive_weight: 10,
+      negative_weight: -10,
+      source: 'CAMARA',
+      source_id: '123',
+      source_url: null,
+      keywords: [],
+      status: 'ACTIVE',
+      priority: 1,
+      created_at: new Date('2023-06-13'),
+      updated_at: new Date('2023-06-13'),
+    });
+    prisma.vote.findMany.mockResolvedValue([
+      {
+        id: 'v1',
+        vote_type: 'YES',
+        applied_score: 10,
+        vote_date: new Date('2023-06-13'),
+        source: 'CAMARA',
+        source_vote_id: 'sv1',
+        source_proposition_id: null,
+        voting_description: null,
+        result_description: null,
+        politician: { id: 406, name: 'Marcelo Crivella', current_party: 'REPUBLICANOS', current_state: 'RJ', current_house: 'camara' },
+      },
+      {
+        id: 'v2',
+        vote_type: 'NO',
+        applied_score: -10,
+        vote_date: new Date('2023-06-13'),
+        source: 'CAMARA',
+        source_vote_id: 'sv2',
+        source_proposition_id: '999',
+        voting_description: 'Desc',
+        result_description: 'Resultado',
+        politician: { id: 1, name: 'Deputado Teste', current_party: 'PT', current_state: 'SP', current_house: 'camara' },
+      },
+    ]);
+
+    const result = await service.agendaVotes('cmq123');
+    expect(result).not.toBeNull();
+    expect(result!.agenda.id).toBe('cmq123');
+    expect(result!.votes).toHaveLength(2);
+    expect(result!.votes[0].politician.id).toBe(406);
+    expect(result!.votes[0].politician.name).toBe('Marcelo Crivella');
+    expect(result!.summary.yes).toBe(1);
+    expect(result!.summary.no).toBe(1);
+  });
+});
