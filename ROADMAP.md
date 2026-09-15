@@ -50,7 +50,12 @@ segurança real que não existia nos outros dois.
       critério** (achado 21/08, recurrente; regra: 0 honesto > fabricado).
       Decisão registrada 14/09: cards com pautas REAIS do critério
       **Família** (PL 6233 Código Civil · PL 244-C · PL 5122), cada um
-      com UTM. ⚙️ conteúdo em produção.
+      com UTM. ⚙️ conteúdo em produção. **CORRIGIDO 15/09** (Rilson
+      feedback 5 itens): dados FPE-only (152/0/0 · 84/75/0 · 159/16/0),
+      headline "Como a Bancada Evangélica votou", placar em colunas
+      SIM/NÃO/ABST, participação "X dos 225 membros", logo base64 e
+      tagline "Transparência Parlamentar". Commit `92d3050`. ⏳ falta
+      conferência visual dos PNGs + agendamento.
 - [ ] Post X/Twitter: gráficos de votação por partido/estado
 - [ ] LinkedIn: Posts 0/1/2 (índice editorial)
 - [ ] Pitch imprensa evangélica + jornalistas de dados (10–15 contatos)
