@@ -109,7 +109,16 @@ async function main() {
 
   console.log(`Gerando páginas OG estáticas para /politicos/:id (${BASE_URL})...`);
 
-  const politicians = await fetchAllPoliticians();
+  // API fora do ar ≠ build fora do ar: sem páginas OG o /politicos/:id cai
+  // no rewrite SPA (OG genérico), que continua HONESTO — nunca fabricado.
+  // Derrotar o deploy da home por causa de um fetch opcional seria pior.
+  let politicians: PoliticianOg[];
+  try {
+    politicians = await fetchAllPoliticians();
+  } catch (err) {
+    console.error('  ⚠️ API indisponível — pulando geração de páginas OG (deploy segue com SPA padrão).', err instanceof Error ? err.message : err);
+    return;
+  }
   console.log(`  ${politicians.length} políticos.`);
 
   let ok = 0;
