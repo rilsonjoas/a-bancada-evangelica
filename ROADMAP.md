@@ -61,7 +61,16 @@ segurança real que não existia nos outros dois.
 - [ ] Revisar pendentes `/admin/noticias` (~4.835)
 - [ ] Revalidar FPE tier (fonte datada 25/08 → ~25/11)
 - [ ] Texto da Metodologia sobre party seed
-- [ ] Investigar 125 políticos label congelado "Aguardando Análise"
+- [x] **Investigar 125 políticos label congelado "Aguardando Análise"
+      (auditado 14/09)** — CONCLUÍDO: não é dado fabricado. O label é o
+      valor literal que o sync grava quando o político não tem score
+      computado (0 votos agregados confirmado no ranking real de
+      produção `/api/votes/analysis` → 50 no top-50, todos com 0 votos).
+      Decisão: manter "0 honesto > número fabricado" — não criar escalas
+      sintéticas pra preencher label. Pendência remanescente é de
+      **curadoria/UX** (~125 na vitrine "aguardando" sem votos), não de
+      engenharia. Estado: AGUARDANDO decisão editorial do Rilson sobre
+      exibir ou ocultar políticos sem voto.
 
 ---
 
