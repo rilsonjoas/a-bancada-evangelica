@@ -24,33 +24,39 @@ global.ResizeObserver = class {
   disconnect() {}
 };
 
-vi.mock("@/hooks/useComparisonData", () => ({
-  useComparisonData: (ids: number[]) => ({
-    data: ids.map((id) => ({
-      id,
-      name: id === 1 ? "João Silva" : "Maria Santos",
-      fullName: id === 1 ? "João Carlos Silva Santos" : "Maria José dos Santos",
-      currentParty: id === 1 ? "PL" : "REPUBLICANOS",
-      currentState: id === 1 ? "SP" : "RJ",
-      currentHouse: "camara",
-      photoUrl: "",
-      currentScore: {
-        lifeProtection: 90,
-        familyValues: 85,
-        moralIntegrity: 80,
-        socialResponsibility: 75,
-        religiousFreedom: 88,
-        overall: id === 1 ? 87.3 : 84.1,
-        performanceLevel: "EXCELLENT",
-        performanceLabel: "Aderência muito alta",
-        totalVotes: 150,
-        consistencyScore: 90
-      }
-    })),
-    isLoading: false,
-    error: null
-  })
+const { useComparisonDataMock } = vi.hoisted(() => ({
+  useComparisonDataMock: vi.fn(),
 }));
+
+vi.mock("@/hooks/useComparisonData", () => ({
+  useComparisonData: useComparisonDataMock,
+}));
+
+const successPayload = (ids: number[]) => ({
+  data: ids.map((id) => ({
+    id,
+    name: id === 1 ? "João Silva" : "Maria Santos",
+    fullName: id === 1 ? "João Carlos Silva Santos" : "Maria José dos Santos",
+    currentParty: id === 1 ? "PL" : "REPUBLICANOS",
+    currentState: id === 1 ? "SP" : "RJ",
+    currentHouse: "camara",
+    photoUrl: "",
+    currentScore: {
+      lifeProtection: 90,
+      familyValues: 85,
+      moralIntegrity: 80,
+      socialResponsibility: 75,
+      religiousFreedom: 88,
+      overall: id === 1 ? 87.3 : 84.1,
+      performanceLevel: "EXCELLENT",
+      performanceLabel: "Aderência muito alta",
+      totalVotes: 150,
+      consistencyScore: 90
+    }
+  })),
+  isLoading: false,
+  error: null,
+});
 
 describe("PoliticianComparison Page", () => {
   let queryClient: QueryClient;
@@ -58,6 +64,7 @@ describe("PoliticianComparison Page", () => {
   beforeEach(() => {
     cleanup();
     queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    useComparisonDataMock.mockReturnValue(successPayload([]));
   });
 
   const renderComparison = () =>
@@ -77,5 +84,17 @@ describe("PoliticianComparison Page", () => {
   it("exibe o seletor de parlamentares quando a lista está vazia", () => {
     renderComparison();
     expect(screen.getByText(/Escolher o primeiro parlamentar/i)).toBeInTheDocument();
+  });
+
+  it("não fabrica dados quando a API falha — mostra erro honesto", () => {
+    useComparisonDataMock.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      error: new Error("API error 500"),
+    });
+    renderComparison();
+    expect(screen.getByText(/Não foi possível carregar os dados/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Parlamentar #/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/João Silva/i)).not.toBeInTheDocument();
   });
 });

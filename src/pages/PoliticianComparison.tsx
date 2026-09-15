@@ -81,6 +81,17 @@ export function PoliticianComparison() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center py-16 text-red-700">
+          Não foi possível carregar os dados.{" "}
+          <Link to="/comparar" className="underline">Tente novamente</Link>.
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header */}

@@ -47,12 +47,13 @@ jobs:
         run: pnpm test
 
       # Guarda-roupa anti-dados-fabricados (regra "0 honesto > número
-      # fabricado"): qualquer FALLBACK_*/generateFallback com conteúdo
-      # sintético reacendido nos hooks/pages derruba o CI.
+      # fabricado"): qualquer FALLBACK_*/generateFallback/MOCK_* com conteúdo
+      # sintético reacendido nos hooks/pages derruba o CI. Os mocks de
+      # testes vivem em __tests__ (excluídos via glob).
       - name: No fabricated data fallbacks
         run: |
           # Pega só onde os dados são realmente CRIADOS ou CHAMADOS
-          if rg -n '(const\s+FALLBACK_|function\s+generateFallback)' src/hooks src/pages src/data; then
+          if rg -n -g '!**/__tests__/**' -g '!**/*.test.ts' -g '!**/*.test.tsx' '(const\s+FALLBACK_|function\s+generateFallback|const\s+MOCK_[A-Z])' src/hooks src/pages src/data; then
             echo "::error::Dados fabricados detectados: fallbacks sintéticos em UI não são permitidos (regra '0 honesto > número fabricado')."
             exit 1
           fi

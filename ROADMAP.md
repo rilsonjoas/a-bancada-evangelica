@@ -20,6 +20,13 @@ segurança real que não existia nos outros dois.
 > · 🟠 decisão · ⚙️ agente executa · 🟢 automático.
 
 ### 🔴 Técnicas — FEITAS (14/09)
+- [x] **Fabricação nova encontrada e removida (15/09)** — re-auditoria
+      anti-fabricação achou o ÚNICO resquício que o guard de 14/09 não
+      pegava: `useComparisonData.ts` devolvia "João Silva"/"Parlamentar
+      #N" com nota 80 quando a API falhava. Agora propaga erro e a página
+      de Comparação mostra "Não foi possível carregar os dados". Guard do
+      CI ampliado p/ caçar `MOCK_*` em hooks/pages/data + teste de
+      regressão (página e hook).
 - [x] Rótulos neutros na fonte + 4 componentes + testes (`ca51739`)
 - [x] Repo público + gitleaks 212 commits, 0 leaks (`ca51739`)
 - [x] Sitemap 613 URLs — verificado na Vercel ao vivo ✅
@@ -919,15 +926,13 @@ dado verdadeiro (proporção de votos com posição definida), não bug.
       trackeado (placeholders), `.env` real ignorado; 265 arquivos, sem
       backup/banco/dados TSE versionados (só `data/tse/README.md`).
       Descrição do repo preenchida para descoberta por jornalistas.
-- [ ] **🔴 Neutralizar labels morais na API**. `performanceLabel()` em
-      `scripts/lib/scoring.ts:142-152` ainda retorna "Guardião da Fé" /
-      "Testemunho Fiel" / "Caminhando" / "Precisa Crescer"; a UI foi
-      neutralizada na Onda A2 mas a API expõe o valor antigo e 4
-      componentes renderizam direto da API (PoliticianCard, ShareableCard,
-      ComparisonTable, PoliticianComparison). Risco: print "Precisa Crescer"
-      vira conotação de ataque pessoal. Ação: substituir pelos rótulos
-      neutros ("aderência muito alta/alta/moderada/baixa") na fonte +
-      recalcular (`recalculate-scores.ts`) + conferir os 4 componentes.
+- [x] **🔴 Neutralizar labels morais na API** ✅ (2026-09-15) —
+      `scripts/lib/scoring.ts` retorna rótulos NEUTROS ("Aderência muito
+      alta/alta/moderada/baixa"). Confirmado via API em produção
+      (15/09): `performanceLabel` já é "Aderência alta/moderada" com
+      `lastCalculation: 2026-09-15T05:00:02`. Este item ficou obsoleto
+      quando a UI foi neutralizada na Onda A2 e o recálculo rodou em
+      produção na última re-auditoria.
 - [x] **✅ Parecer jurídico peri-eleitoral (2026-09-14)** — seção 3 dos
       Termos de Uso: "Período eleitoral e propaganda" citando Lei
       9.504/97 art. 36, CF/88 art. 5º IV e XIV, reforçando que o projeto
