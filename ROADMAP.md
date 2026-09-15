@@ -31,9 +31,11 @@ segurança real que não existia nos outros dois.
       `/api/agendas/:id/votes` criado + testes. Commit `db87afe`
       (CI com guarda-roupa anti-fabricação). ✅
 
-### 🟢 Automático (verificar em 15/09)
-- [ ] Recálculo dos labels no DB prod — cron 05h propaga "Aderência…"
-      (deploy já no ar) → confirmar via API + tick aqui.
+### 🟢 Automático (verificado em 15/09)
+- [x] Recálculo dos labels no DB prod — cron 05h propaga "Aderência…"
+      (deploy já no ar) → **CONFIRMADO VIA API (15/09, 09:38)**: produção
+      já retorna `performanceLabel: "Aderência alta/moderada"` e
+      `lastCalculation: 2026-09-15T05:00:02`. ✅
 
 ### 🔵 Manuais (Rilson) — prazo antes do pico 28/09
 - [ ] **GT1 · 3 cards de pauta** — [🔴 decisão de dados] o plano pedia
