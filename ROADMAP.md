@@ -54,6 +54,13 @@ segurança real que não existia nos outros dois.
 - [ ] Post X/Twitter: gráficos de votação por partido/estado
 - [ ] LinkedIn: Posts 0/1/2 (índice editorial)
 - [ ] Pitch imprensa evangélica + jornalistas de dados (10–15 contatos)
+      — template revisado e lista de contatos verificada (14 contatos, 9
+      com e-mail oficial confirmado; gap: Guiame/Gospel Prime/Gospel Mais/
+      Aos Fatos/Congresso em Foco). **ENVIO ADIADO (decisão Rilson 15/09)** —
+      a nota vive no vault `12 - Redes sociais/… Pitch de Imprensa.md`;
+      reaproveitar para retomar quando der OK. Números do template
+      verificados ao vivo (504/594 com votos próprios · 63,1 média ·
+      83 pautas · 26.860 votos). Janela ideal era 22–28/09
 - [ ] Reddit: copy pronta + feedback de viés (mata 2 pendências)
 - [ ] Conferir Umami semanal (segunda): visibilidade por UTM →
       dobrar/abandonar
