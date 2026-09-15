@@ -11,7 +11,7 @@
     "docs:sync-public": "mkdir -p public/docs && cp docs/REPRODUCIBILITY.md public/docs/REPRODUCIBILITY.md",
     "prebuild": "pnpm docs:sync-public",
     "predev": "pnpm docs:sync-public",
-    "build": "vite build",
+    "build": "vite build && tsx scripts/generate-og-pages.ts",
     "build:dev": "vite build --mode development",
     "test": "vitest run",
     "test:api": "vitest run --config vitest.api.config.ts",
