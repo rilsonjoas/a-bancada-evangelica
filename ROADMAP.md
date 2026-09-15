@@ -28,7 +28,8 @@ segurança real que não existia nos outros dois.
 - [x] **Zero dados fabricados no front** (14/09): removidos os fallbacks
       que INVENTAVAM dados quando a API falhava. Achado: 4 lugares
       fabricavam (detalhe na seção "Qualidade de Dados"). Endpoint real
-      `/api/agendas/:id/votes` criado + testes. ⚙️ commit pendente.
+      `/api/agendas/:id/votes` criado + testes. Commit `db87afe`
+      (CI com guarda-roupa anti-fabricação). ✅
 
 ### 🟢 Automático (verificar em 15/09)
 - [ ] Recálculo dos labels no DB prod — cron 05h propaga "Aderência…"
@@ -445,21 +446,27 @@ honesto > número fabricado", auditado o front inteiro e achado que ele
 - ✅ `src/data/mockPoliticians.ts` — dataset mock (não referenciado em
   produção; candidate a remoção).
 
-**Correção (em andamento 14/09, ⚙️ agente):**
+**Correção (14/09, commit `db87afe`):**
 - Endpoint real `GET /api/agendas/:id/votes` criado (`VotesService.
   agendaVotes` + `AgendasController`) — serve apenas votos gravados;
   pauta sem voto retorna lista vazia. Testes unitários adicionados.
-- Fallbacks fabricados substituídos por degração honesta: erro propagado
+  Confirmado na API pública: PL 6233/2023 → 340 votos (335 sim · 3 não ·
+  1 abst · consenso 99); PL 3914/2023 (art. 244-C ECA) → 365 votos
+  (270 sim · 94 não · consenso 74); PL 5122/2023 → 403 votos (314 sim ·
+  87 não · 1 abst · consenso 78).
+- Fallbacks fabricados substituídos por degradação honesta: erro propagado
   para o `error` do React Query (páginas já renderizam "Serviço
   indisponível"/"Dados indisponíveis" — estado vazio, nunca inventado).
+- `src/data/mockPoliticians.ts` removido (não referenciado em produção).
 - `criteriaEngine.ts` TODOs (`calculateTransparencyBonus` etc.) retornam
   **0** — é subnotificação honesta, não fabricação; anotado para futuro
   cálculo real (não urgente).
 
 **Regra reforçada:** fallback em UI = estado vazio com mensagem de erro,
-jamais números/pessoas/pautas sintéticas. O projeto promete "voto real",
-então entrará em CI uma checagem que falha se `FALLBACK_/generateFallback`
-aparecer nos hooks (implementar junto do commit).
+jamais números/pessoas/pautas sintéticas. O projeto promete "voto real".
+✅ Implementado no CI (`ci.yml`, passo "No fabricated data fallbacks"):
+falha se `const FALLBACK_` ou `function generateFallback` reaparecer em
+`src/hooks`, `src/pages` ou `src/data`.
 
 ---
 
