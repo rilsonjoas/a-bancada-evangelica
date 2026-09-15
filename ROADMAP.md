@@ -59,7 +59,12 @@ segurança real que não existia nos outros dois.
 
 ### 🔵 Contínuas (curadoria)
 - [ ] Revisar pendentes `/admin/noticias` (~4.835)
-- [ ] Revalidar FPE tier (fonte datada 25/08 → ~25/11)
+- [ ] Revalidar FPE tier (fonte datada 25/08 → ~25/11) — **reauditada 15/09**:
+      a fonte oficial vigente (frente `54477`, legislatura 57) consta agora
+      **232 membros**, **−18 vs 250** da auditoria 14/08. A marcação
+      `is_fpe_member` no nosso DB espelha a vigência da Câmara. Falta apenas
+      persistir o recálculo (cron 05h de 15/09 roda à noite; o job grava o
+      label real de quem votou — sem fallback).
 - [ ] Texto da Metodologia sobre party seed
 - [x] **Investigar 125 políticos label congelado "Aguardando Análise"
       (auditado 14/09)** — CONCLUÍDO: não é dado fabricado. O label é o
