@@ -6,34 +6,41 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.resolve(__dirname, '../public');
 const OUT_DIR = path.join(__dirname, '../gt1-export');
+const MEMBROS_FPE = 225;
+
+const LOGO_B64 = (() => {
+  const buf = fs.readFileSync(path.join(PUBLIC_DIR, 'marca-white.png'));
+  return `data:image/png;base64,${buf.toString('base64')}`;
+})();
 
 /**
- * GT1 · Cards de pauta (Família) — renderiza os 3 cards reais a partir de
- * números VERIFICADOS na API pública (GET /api/votes/analysis · critério
- * FAMILY_VALUES) em 14/09/2026 e tira print 1080×1080 (padrão WhatsApp/X).
+ * GT1 · Cards de pauta (Família) — renderiza os 3 cards reais com votos
+ * filtrados APENAS para membros da Bancada Evangélica (FPE, 225 deputados
+ * com isFpeMember=true na API).
  *
- * Regra de honestidade (auditoria 14/09): os números abaixo são os REAIS
- * retornados pela API em produção, nunca fabricados. Se a API mudar, editar
- * estes números exige re-verificação — não é fallback, é dado verificado.
+ * Correções 15/09/2026 (feedback Rilson):
+ *  1. Logo embutido como base64 (file:// não resolvia no Playwright)
+ *  2. Headline "Como a Bancada Evangélica votou" adicionada
+ *  3. Placar reformatado: SIM / NÃO / ABST lado a lado (sem "/" confuso)
+ *  4. Participação: "X dos 225 membros votaram"
+ *  5. Tagline corrigida para "TRANSPARÊNCIA PARLAMENTAR"
  *
  * Uso: pnpm exec tsx scripts/render-gt1-cards.ts
  */
 
 interface CardData {
-  arquivo: string; // nome do PNG de saída
-  selo: string; // etiqueta de topo (critério)
-  titulo: string; // título curto do card
-  pauta: string; // número da pauta
-  faz: string; // o que faz (ementa curta)
-  placar: string; // legenda do placar
+  arquivo: string;
+  selo: string;
+  titulo: string;
+  pauta: string;
+  faz: string;
   total: number;
   sim: number;
   nao: number;
   abst: number;
-  consenso: number;
   data: string;
-  utm: string; // valor completo de utm_campaign
-  rodapeLink: string; // path sem UTM para o rodapé visual
+  utm: string;
+  rodapeLink: string;
 }
 
 const CARDS: CardData[] = [
@@ -43,12 +50,10 @@ const CARDS: CardData[] = [
     titulo: 'PL 6233/2023',
     pauta: 'Código Civil · atualização monetária e juros',
     faz: 'Altera a Lei nº 10.406 (Código Civil) para dispor sobre a atualização monetária e os juros em contratos — regra que toca o bolso de quem toma ou concede crédito.',
-    placar: 'O placar em plenário',
-    total: 340,
-    sim: 335,
-    nao: 3,
-    abst: 1,
-    consenso: 99,
+    total: 152,
+    sim: 152,
+    nao: 0,
+    abst: 0,
     data: 'Votado em 19/03/2024',
     utm: 'gt1-familia-pauta1-pl6233',
     rodapeLink: 'votacoes',
@@ -59,12 +64,10 @@ const CARDS: CardData[] = [
     titulo: 'PL 3914/2023',
     pauta: 'Violência patrimonial contra a criança',
     faz: 'Cria o crime de violência patrimonial contra crianças e adolescentes (novo art. 244-C do ECA): usar, abusar ou desviar os recursos, bens e rendimentos de um menor.',
-    placar: 'O placar em plenário',
-    total: 365,
-    sim: 270,
-    nao: 94,
+    total: 159,
+    sim: 84,
+    nao: 75,
     abst: 0,
-    consenso: 74,
     data: 'Votado em 25/03/2025',
     utm: 'gt1-familia-pauta2-pl3914',
     rodapeLink: 'votacoes',
@@ -75,12 +78,10 @@ const CARDS: CardData[] = [
     titulo: 'PL 5122/2023',
     pauta: 'Anistia e rebate de dívidas de crédito rural',
     faz: 'Autoriza liquidar, perdoar, renegociar e dar desconto em dívidas de crédito rural de agricultores, pecuaristas, piscicultores, pescadores e carcinicultores — efeito direto no preço dos alimentos.',
-    placar: 'O placar em plenário',
-    total: 403,
-    sim: 314,
-    nao: 87,
-    abst: 1,
-    consenso: 78,
+    total: 176,
+    sim: 159,
+    nao: 16,
+    abst: 0,
     data: 'Votado em 16/07/2025',
     utm: 'gt1-familia-pauta3-pl5122',
     rodapeLink: 'votacoes',
@@ -93,7 +94,6 @@ function cardHTML(c: CardData): string {
   const simPct = Math.round((c.sim / c.total) * 100);
   const naoPct = Math.round((c.nao / c.total) * 100);
   const abstPct = Math.round((c.abst / c.total) * 100);
-  const shareUrl = `${ORIGIN}/${c.rodapeLink}?utm_source=whatsapp&utm_medium=share&utm_campaign=${c.utm}`;
 
   return `<!doctype html>
 <html lang="pt-BR">
@@ -102,45 +102,56 @@ function cardHTML(c: CardData): string {
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { width: 1080px; height: 1080px; }
-  /* fonte sistema — evita fetch externo / rede indisponível no render */
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
   .card { width: 1080px; height: 1080px; background: #ffffff; display: flex; flex-direction: column; overflow: hidden; }
 
-  /* fio dourado — assinatura da marca */
   .filigree { height: 14px; background: #b49a60; flex: none; }
 
   .body {
     flex: 1; display: flex; flex-direction: column; justify-content: center;
-    padding: 64px 68px 40px; text-align: center;
+    padding: 56px 68px 40px; text-align: center;
   }
 
   .selo {
-    display: inline-block; margin: 0 auto 46px; padding: 10px 26px;
+    display: inline-block; margin: 0 auto 28px; padding: 10px 26px;
     border: 1px solid #b49a60; border-radius: 999px;
     color: #1e293b; font-size: 26px; font-weight: 700; letter-spacing: 0.24em;
   }
 
-  .titulo { font-size: 96px; font-weight: 800; color: #0f172a; line-height: 1.02; }
-  .pauta { margin-top: 20px; font-size: 34px; font-weight: 700; color: #1e3a5f; }
-  .faz { margin: 34px auto 0; max-width: 900px; font-size: 30px; line-height: 1.45; color: #334155; font-weight: 500; }
+  .headline {
+    margin-bottom: 20px; font-size: 28px; font-weight: 800;
+    letter-spacing: 0.18em; text-transform: uppercase; color: #b49a60;
+  }
 
-  .placar { margin-top: 46px; font-size: 30px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.16em; color: #64748b; }
+  .titulo { font-size: 92px; font-weight: 800; color: #0f172a; line-height: 1.02; }
+  .pauta { margin-top: 16px; font-size: 34px; font-weight: 700; color: #1e3a5f; }
+  .faz { margin: 28px auto 0; max-width: 900px; font-size: 28px; line-height: 1.45; color: #334155; font-weight: 500; }
 
-  .nums { margin-top: 26px; display: flex; align-items: center; justify-content: center; gap: 0; }
-  .nums .big { font-size: 108px; font-weight: 800; color: #1e3a5f; line-height: 1; }
-  .nums .slash { font-size: 64px; font-weight: 800; color: #b49a60; margin: 0 8px; }
-  .nums .div { text-align: left; padding-left: 18px; border-left: 2px solid #e2e8f0; }
-  .nums .div .v { font-size: 44px; font-weight: 800; color: #0f172a; line-height: 1; }
-  .nums .div .l { font-size: 20px; font-weight: 600; letter-spacing: 0.1em; color: #64748b; margin-top: 6px; }
+  .nums { margin-top: 40px; display: flex; gap: 20px; justify-content: center; }
+  .num-col {
+    flex: 1; max-width: 260px;
+    border: 2px solid #e2e8f0; border-radius: 16px;
+    padding: 22px 12px 18px; text-align: center;
+  }
+  .num-col.sim { border-color: #16a34a; }
+  .num-col.sim .num-val { color: #16a34a; }
+  .num-col.nao { border-color: #dc2626; }
+  .num-col.nao .num-val { color: #dc2626; }
+  .num-col.abst { border-color: #94a3b8; }
+  .num-col.abst .num-val { color: #64748b; }
 
-  .consenso { margin-top: 40px; font-size: 30px; font-weight: 700; color: #1e3a5f; }
-  .data { margin-top: 26px; font-size: 24px; font-weight: 600; letter-spacing: 0.12em; color: #94a3b8; text-transform: uppercase; }
+  .num-val { font-size: 68px; font-weight: 800; line-height: 1; }
+  .num-lbl { font-size: 22px; font-weight: 700; letter-spacing: 0.1em; color: #64748b; margin-top: 8px; }
+  .num-pct { font-size: 24px; font-weight: 600; color: #94a3b8; margin-top: 4px; }
 
-  .footer { flex: none; padding: 40px 56px; background: #0f172a; display: flex; align-items: center; justify-content: space-between; }
+  .participacao { margin-top: 32px; font-size: 26px; font-weight: 600; color: #64748b; }
+  .data { margin-top: 20px; font-size: 24px; font-weight: 600; letter-spacing: 0.12em; color: #94a3b8; text-transform: uppercase; }
+
+  .footer { flex: none; padding: 36px 56px; background: #0f172a; display: flex; align-items: center; justify-content: space-between; }
   .footer .brand { display: flex; align-items: center; gap: 18px; }
-  .footer .brand img { width: 60px; height: 60px; }
-  .footer .brand .t { color: #ffffff; font-size: 26px; font-weight: 800; }
-  .footer .brand .s { color: #b49a60; font-size: 18px; font-weight: 600; letter-spacing: 0.12em; }
+  .footer .brand img { width: 56px; height: 56px; }
+  .footer .brand .t { color: #ffffff; font-size: 24px; font-weight: 800; }
+  .footer .brand .s { color: #b49a60; font-size: 16px; font-weight: 600; letter-spacing: 0.12em; }
   .footer .u { text-align: right; }
   .footer .u .dom { color: #ffffff; font-size: 18px; font-weight: 700; }
   .footer .u .utm { color: #94a3b8; font-size: 16px; }
@@ -154,30 +165,39 @@ function cardHTML(c: CardData): string {
       <div>
         <span class="selo">${c.selo}</span>
       </div>
+      <div class="headline">Como a Bancada Evangélica votou</div>
       <div class="titulo">${c.titulo}</div>
       <div class="pauta">${c.pauta}</div>
       <p class="faz">${c.faz}</p>
 
-      <div class="placar">${c.placar}</div>
       <div class="nums">
-        <span class="big">${c.total}</span>
-        <span class="slash">/</span>
-        <div class="div">
-          <div class="v">${simPct}% SIM</div>
-          <div class="l">de ${c.total} votos reais</div>
+        <div class="num-col sim">
+          <div class="num-val">${c.sim}</div>
+          <div class="num-lbl">SIM</div>
+          <div class="num-pct">${simPct}%</div>
+        </div>
+        <div class="num-col nao">
+          <div class="num-val">${c.nao}</div>
+          <div class="num-lbl">NÃO</div>
+          <div class="num-pct">${naoPct}%</div>
+        </div>
+        <div class="num-col abst">
+          <div class="num-val">${c.abst}</div>
+          <div class="num-lbl">ABST.</div>
+          <div class="num-pct">${abstPct}%</div>
         </div>
       </div>
 
-      <div class="consenso">Consenso ${c.consenso}% · ${c.nao} NÃO · ${abstPct}% abstenção</div>
+      <div class="participacao">${c.total} dos ${MEMBROS_FPE} membros votaram</div>
       <div class="data">${c.data}</div>
     </div>
 
     <div class="footer">
       <div class="brand">
-        <img src="file://${PUBLIC_DIR}/marca-white.png" alt="" />
+        <img src="${LOGO_B64}" alt="" />
         <div>
           <div class="t">A Bancada Evangélica</div>
-          <div class="s">Transparência por votos nominais</div>
+          <div class="s">TRANSPARÊNCIA PARLAMENTAR</div>
         </div>
       </div>
       <div class="u">
@@ -199,22 +219,16 @@ async function main() {
   for (const card of CARDS) {
     const html = cardHTML(card);
     await page.setContent(html, { waitUntil: 'domcontentloaded' });
-    // garante que a imagem da marca carregou antes do print
-    await page.evaluate(async () => {
-      const imgs = Array.from(document.querySelectorAll('img'));
-      await Promise.all(imgs.map((i) => i.decode().catch(() => {})));
-    });
     const out = path.join(OUT_DIR, card.arquivo);
     await page.screenshot({ path: out });
-    console.log(`✅ ${card.arquivo} — ${card.total} votos · ${simPctToStr(card)}`);
+    const simPct = Math.round((card.sim / card.total) * 100);
+    console.log(
+      `✅ ${card.arquivo} — ${card.total} votos (${card.sim} SIM/${card.nao} NÃO/${card.abst} abst.) · ${simPct}%`,
+    );
   }
 
   await browser.close();
   console.log(`\n${CARDS.length} cards → ${OUT_DIR}`);
-}
-
-function simPctToStr(c: CardData) {
-  return `${Math.round((c.sim / c.total) * 100)}% SIM`;
 }
 
 main().catch((e) => {

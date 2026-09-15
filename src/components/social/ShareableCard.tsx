@@ -152,8 +152,8 @@ export function ShareableCard({ politician, type = 'summary' }: ShareableCardPro
                 <p className="text-white text-base font-bold leading-tight">
                   A Bancada Evangélica
                 </p>
-                <p className="text-slate-300 text-[11px] leading-tight">
-                  Transparência por votos nominais
+                <p className="text-amber-400 text-[10px] font-semibold uppercase tracking-widest leading-tight">
+                  TRANSPARÊNCIA PARLAMENTAR
                 </p>
               </div>
             </div>
@@ -288,8 +288,8 @@ export function ShareableCard({ politician, type = 'summary' }: ShareableCardPro
             <img src="/marca-white.png" alt="" aria-hidden="true" className="h-10 w-10" />
             <div className="text-left">
               <p className="text-white text-base font-bold leading-tight">A Bancada Evangélica</p>
-              <p className="text-slate-300 text-[11px] leading-tight">
-                Transparência por votos nominais
+              <p className="text-amber-400 text-[10px] font-semibold uppercase tracking-widest leading-tight">
+                TRANSPARÊNCIA PARLAMENTAR
               </p>
             </div>
           </div>
