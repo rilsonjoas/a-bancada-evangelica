@@ -53,9 +53,9 @@ segurança real que não existia nos outros dois.
 - [ ] Criar monitors Uptime Kuma `SCORES` + `CURATION_QUEUE` (2/7 hoje)
 
 ### 🟠 Decisões
-- [ ] Sentry: ativar (1 sessão) vs pausado
+- [ ] Sentry: ativar (1 sessão) vs pausado — **reconfirmado pausado (Rilson 2026-09-15)**
 - [ ] North Star metric (aguarda dados Umami)
-- [ ] M3 digest/M4 e-mail — manter pausados? (hoje: sim)
+- [ ] M3 digest/M4 e-mail — manter pausados? — **reconfirmado pausados (Rilson 2026-09-15)**
 - [ ] GT1 "liberdade religiosa" — pauta nova de nicho para semear
       manualmente (HOJE: sem dado de voto; cards usam Família)
 
