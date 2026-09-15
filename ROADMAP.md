@@ -940,12 +940,18 @@ dado verdadeiro (proporção de votos com posição definida), não bug.
       notas baseadas no mandato em exercício e não em promessas de
       campanha. Advogado (Lucas Vianna) pode revisar depois — estrutura
       defensiva já robusta.
-- [ ] **🟠 Sitemap + indexação**: `public/sitemap.xml` não inclui
-      `/politicos/:id`, `/temas`, `/match`, `/errata`, `/dados` — a página
-      mais buscada em eleição (perfil do deputado) não é indexável. SPA usa
-      `usePageMeta` (dynamic meta) mas crawlers de WhatsApp/X precisam de
-      OG no HTML inicial. Priorizar `/politicos/:id` no sitemap (rotas
-      estáticas geradas via API) antes do pico.
+- [x] **✅ Sitemap + indexação (2026-09-15)**: sitemap já cobria tudo
+      (595 rotas dinâmicas verificadas ao vivo, commit `de8b5b5`); o gap
+      real era só OG — crawlers de WhatsApp/X não executam JS, então todo
+      `/politicos/:id` caía no `index.html` genérico. Resolvido com
+      `scripts/generate-og-pages.ts` (pós-build em `package.json`):
+      gera `dist/politicos/<id>/index.html` por político (594/594, título
+      real, nota real, foto via proxy same-origin da API, canonical,
+      og:url absoluta). Vercel serve o arquivo estático antes do rewrite
+      SPA. Sem votos registrados → descrição HONESTA ("estimativa média do
+      partido"), nunca fabricada; API fora do ar não derruba o build (cai
+      no SPA padrão). Verificado ao vivo: `/politicos/2` e `/politicos/690`.
+      Testes antifabricação em `scripts/__tests__/generate-og-pages.test.ts`.
 - [x] **✅ Performance mobile (2026-09-14)**: chunk principal 1,78MB (423KB
       gzip) → **485KB (96KB gzip, −73%)**. Lazy nas rotas não-home
       (perfil, votação, temas, match, dados, errata, admin) + `manualChunks`
