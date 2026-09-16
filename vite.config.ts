@@ -23,9 +23,16 @@ export default defineConfig(({ mode }) => ({
           if (id.includes("/@tanstack/") || id.includes("/axios/")) {
             return "vendor-data";
           }
-          if (id.includes("/recharts/") || id.includes("/d3-") || id.includes("/victory")) {
-            return "vendor-charts";
-          }
+          // CORREÇÃO 2026-09-16: recharts NÃO vai mais em vendor-charts separado.
+          // Achado real: manualChunks separando recharts+d3 de react criava uma
+          // referência circular com TDZ ("Cannot access 'P' before initialization")
+          // no chunk vendor-charts — a app inteira crashava na carga (tela branca,
+          // nenhuma rota renderizava). O Rollup resolve a circular dentro do
+          // bundle somente se as bibliotecas não forem forçadas a chunks manuais.
+          // doc: recharts foi removido do manualChunks → fica no bundle principal.
+          // if (id.includes("/recharts/") || id.includes("/d3-") || id.includes("/victory")) {
+          //   return "vendor-charts";
+          // }
           if (id.includes("/lucide-react/")) {
             return "vendor-icons";
           }
