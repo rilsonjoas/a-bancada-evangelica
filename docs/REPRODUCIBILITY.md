@@ -44,6 +44,15 @@ Resultado final: notas 0–100 por critério + nota geral + rank
 | **Senado — FPE** | `https://legis.senado.leg.br/dadosabertos/collegiado/2583/membros` | Membros da bancada evangélica no Senado (codcol=2583) | `scripts/sync-fpe-members.ts` |
 | **TSE — Prestação de contas 2022** | `https://dadosabertos.tse.jus.br/prestacao_contas/2022/` | Doações de campanha declaradas | `scripts/sync-tse-receitas.ts` + `sync-tse-candidatura.ts` |
 
+> **Auditoria FPE (2026-09-16)**: `sync-fpe-members.ts` agora grava
+> `fpe_captured_at` com a data REAL da captura (antes o seed escrevia
+> `25/08/2026` hardcoded dentro de um recálculo de tiers, fazendo o
+> campo parecer X e ser Y) e `fpe_source` constante. Quem saiu da lista
+> oficial é DESMARCADO (fpe_* limpos) — antes, quem deixou a frente
+> continuava marcado como membro silenciosamente. O SyncLog do FPE
+> registra `fpeDropped` e `capturedAt`. O seed de tiers não sobrescreve
+> mais uma captura já registrada.
+
 > **Importante**: as APIs oficiais mudam. O histórico real de cada sync
 > (o que rodou, quando, quantos registros) fica em `SyncLog` no banco —
 > público via `GET /api/stats/sync-history` (corrigido em 2026-09-08:
@@ -56,7 +65,7 @@ Resultado final: notas 0–100 por critério + nota geral + rank
 
 Cada votação nominal é cruzada com **palavras-chave** dos 5 critérios. Se houver match, a votação vira uma **pauta-chave** (KeyAgenda), com um **peso fixo** (`weight`) e um sinal (`simIsPositive`) que decide se votar SIM soma ou subtrai.
 
-**Regras reais** (`SCAN_RULES`, definidas em `scripts/sync-votes.ts` — corrigido em 2026-09-08, este guia citava um arquivo errado, `src/lib/criteria.tsx`, que só guarda texto descritivo, não as keywords que decidem o match):
+**Regras reais** (`SCAN_RULES`, definidas em `scripts/lib/scan-rules.ts` — fonte ÚNICA, criada em 2026-09-16; este guia citava `scripts/sync-votes.ts` como dono das regras até 16/09, quando cada sync mantinha **sua própria cópia** e as duas cópias divergiram. Agora `sync-votes.ts` (Câmara) e `sync-votes-senado.ts` importam o mesmo módulo, e cada pauta-chave grava `rules_version = SCAN_RULES_VERSION` (hoje `1.0.0`) para que reclassificações futuras saibam quais pautas foram classificadas por qual conjunto de regras):
 
 | Critério | Peso | Keywords reais (`SCAN_RULES`) | SIM é positivo? |
 |----------|------|-------------------------------|------------------|
@@ -71,7 +80,9 @@ Cada votação nominal é cruzada com **palavras-chave** dos 5 critérios. Se ho
 | **Liberdade Religiosa** (10%) | 20 | `liberdade religiosa`, `liberdade de culto`, `discriminacao religiosa`, `intolerancia religiosa`, `expressao religiosa`, `simbolo religioso`, `perseguicao religiosa` | Sim |
 | | 10 | `laicidade`, `ensino religioso`, `crenca`, `assistencia espiritual`, `folga religiosa` | Sim |
 
-**Lógica de match** (em `scripts/sync-votes.ts` → função `matchRule`):
+> **Corrigido 2026-09-16 (Senado)**: o sync do Senado gravava `keywords = [rule.criteria]` (o enum, não as palavras-chave) — impossibilitava reclassificar e divergia da Câmara. Agora grava as keywords reais do módulo compartilhado.
+
+**Lógica de match** (em `scripts/lib/scan-rules.ts` → função `matchScanRule`):
 1. Pega o texto da votação/proposição (ementa + título)
 2. Normaliza (lowercase, remove acentos, pontuação)
 3. Testa as regras **em ordem** — a primeira cujo array de keywords casar decide o critério, peso e sinal (não é "qualquer regra que casar", é a primeira)
@@ -147,6 +158,17 @@ Overall = Σ (Score_critério_i × Peso_i)   // pesos: 30/25/20/15/10 = 100%
 ```
 
 **Ranking**: ordenação decrescente por `Overall`. Empates quebrados por `Total_votos` (mais votos = melhor rank).
+
+**"A última nota de cada político ativo" tem UMA fonte (2026-09-16):**
+`src/api/scores/scores.query.ts` (`latestActivePoliticianScores` +
+`summarizeLatestScores`). Antes cada endpoint (overview, ranking, votos,
+partidos) tinha a própria cópia da query — e elas divergiram: o ranking do
+site dizia média 63,1 enquanto `/api/votes/analysis` dizia 62,3, porque um
+deles contava **todas as linhas** de `politician_scores` (histórico +
+inativos) em vez da última por ativo. Desde 16/09 todos consomem o mesmo
+módulo; o summary também expõe `withOwnVotes` (quem tem voto próprio vs.
+quem está só com estimativa de partido), usado na média de partidos e nos
+cards da UI.
 
 ---
 
@@ -262,9 +284,12 @@ curl "http://localhost:3001/api/stats/sync-history?limit=10"
 
 | Script | Função | Entrada | Saída |
 |--------|--------|---------|-------|
-| `scripts/sync-votes.ts` | Baixa votações + classifica pauta-chaves | APIs Câmara/Senado | Tabelas `votes`, `key_agendas` |
+| `scripts/lib/scan-rules.ts` | **Fonte única das SCAN_RULES** + `SCAN_RULES_VERSION` + `matchScanRule` — importado por Câmara e Senado (2026-09-16) | Texto da votação | Critério + peso + keywords + versão |
+| `scripts/sync-votes.ts` | Baixa votações + classifica pauta-chaves | APIs Câmara/Senado | Tabelas `votes`, `key_agendas` (com `rules_version`) |
+| `scripts/sync-votes-senado.ts` | Votações nominais do Senado + pautas-chave | API Senado | Tabelas `votes`, `key_agendas` |
 | `scripts/recalculate-scores.ts` | **Coração do scoring** — recalcula notas; registra diff no `SyncLog` tipo `SCORES` (H6) | `votes` + `politician_scores` atuais | Tabela `politician_scores` + histórico de auditoria |
 | `scripts/sync-fpe-members.ts` | Marca membros FPE com tier/fonte/data | APIs oficiais frentes | Colunas `fpe_*` em `politicians` |
+| `src/api/scores/scores.query.ts` | Fonte única da "última nota por político ativo" (2026-09-16) | Tabela `politician_scores` | Scores vigentes + summary (média, distribuição, withOwnVotes) |
 | `src/api/politicians/politicians.service.ts` → `exportVotes()` | Dump de votações individuais p/ auditoria (H4) | Tabela `votes` | CSV com fonte oficial e link |
 | `src/api/politicians/politicians.service.ts` → `formatScore()` | Formata score do banco para API | `PoliticianScore` | DTO com notas 0–100 + metadata |
 
@@ -277,7 +302,7 @@ curl "http://localhost:3001/api/stats/sync-history?limit=10"
 
 Após cada sync, o worker roda `pnpm quality:check` que valida:
 
-1. **Estabilidade de ativos** ≤ 5% variação vs dia anterior
+1. **Estabilidade de ativos** ≤ 5% variação vs dia anterior — **corrigido 2026-09-16**: a checagem lia `details.totalPoliticians` de um SyncLog, campo que nenhum sync gravava → a validação **nunca passava de verdade** (comparava contra `undefined` e seguia). Agora casa o log pelo `details.action = 'quality_check'` (não por `skip: 1`, que interceptava o log errado) e **grava o SyncLog em todo check**, inclusive sucesso, com `totalPoliticians` real + resultados. Uma base que "sempre passou" mas nunca comparou nada virou uma checagem que se audita.
 2. **Scores no range** 0–100 para todos
 3. **Scores obrigatórios** — todo político ativo com votos tem 5 scores
 4. **Despesas órfãs** = 0 (toda despesa tem político válido)
