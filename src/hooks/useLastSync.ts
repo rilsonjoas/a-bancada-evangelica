@@ -1,12 +1,24 @@
 import { useQuery } from '@tanstack/react-query';
 
+export type SyncType = 'POLITICIANS' | 'VOTES' | 'EXPENSES' | 'TSE_DATA' | 'SCORES' | 'NEWS';
+
+const SYNC_TYPE_LABEL: Record<string, string> = {
+  POLITICIANS: 'políticos',
+  VOTES: 'votações',
+  EXPENSES: 'gastos',
+  TSE_DATA: 'dados TSE',
+  SCORES: 'cálculo de notas',
+  NEWS: 'cobertura na imprensa',
+};
+
 interface LastSyncData {
   lastSync: string | null;
   syncType: string | null;
   source: string | null;
+  freshness?: Record<string, string | null>;
 }
 
-function fmtLastSync(iso: string | null): string {
+function fmtDateTime(iso: string | null): string {
   if (!iso) return '';
   const d = new Date(iso);
   const dd = String(d.getDate()).padStart(2, '0');
@@ -16,6 +28,12 @@ function fmtLastSync(iso: string | null): string {
   return `${dd}/${mm} às ${hh}:${mi}`;
 }
 
+/**
+ * Frescura honesta (2026-09-16):
+ * NÃO usa o "último log qualquer" (NEWS/SCORES diários mascaravam votos
+ * velhos). Busca o tipo de dado MAIS ANTIGO dentre os sincronizados e
+ * mostra ele — é o dado que de fato pode estar desatualizado.
+ */
 export function useLastSync() {
   const { data } = useQuery<LastSyncData>({
     queryKey: ['lastSync'],
@@ -28,8 +46,24 @@ export function useLastSync() {
     refetchOnWindowFocus: false,
   });
 
+  // Prefere o shape novo (frescura por tipo): pega o mais antigo.
+  let oldest: { type: string; at: string | null } | null = null;
+  if (data?.freshness) {
+    for (const [type, at] of Object.entries(data.freshness)) {
+      if (!at) continue;
+      if (!oldest || at < oldest.at!) oldest = { type, at };
+    }
+  }
+
+  const at = oldest?.at ?? data?.lastSync ?? null;
+  const type = oldest?.type ?? data?.syncType ?? null;
+  const label = SYNC_TYPE_LABEL[type ?? ''] ?? null;
+
   return {
-    lastSyncLabel: fmtLastSync(data?.lastSync ?? null),
+    lastSyncAt: at,
+    syncType: type,
+    lastSyncLabel: fmtDateTime(at),
+    label: label ? `${label}` : null,
     raw: data ?? null,
   };
 }

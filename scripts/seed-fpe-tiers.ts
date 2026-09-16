@@ -10,11 +10,15 @@ const prisma = new PrismaClient();
 // Não há API oficial de frentes do Senado com lista de membros — a filiação
 // dos senadores foi confirmada a partir da organização da bancada. Mantemos
 // a mesma fonte/confiabilidade (REGISTRADO) pois vem de lista oficial.
+//
+// Correção (2026-09-16): o sync-fpe-members agora grava fpe_captured_at com
+// a data REAL da leitura da lista oficial, então o seed NÃO sobrescreve uma
+// data já gravada — era o que o fazia "rejuvenescer" membros para 25/08 toda
+// vez que rodava manualmente.
 const SOURCE_CAMARA = 'Lista oficial da Frente Parlamentar Evangélica — Câmara (frente 54477)';
 const SOURCE_URL_CAMARA = 'https://dadosabertos.camara.leg.br/api/v2/frentes/54477/membros';
 const SOURCE_SENADO = 'Composição da bancada evangélica no Senado (codcol 2583)';
 const SOURCE_URL_SENADO = 'https://legis.senado.leg.br/dadosabertos/comissao/2583';
-const CAPTURED_AT = new Date('2026-08-25T12:00:00Z');
 
 async function main() {
   const members = await prisma.politician.findMany({
@@ -41,7 +45,8 @@ async function main() {
         fpe_tier: FpeTier.REGISTRADO,
         fpe_source: source,
         fpe_source_url: sourceUrl,
-        fpe_captured_at: CAPTURED_AT,
+        // Preserva a captured_at real (do sync diário ou de capturas
+        // anteriores) — não solapa com data velha.
       },
     });
     updated++;

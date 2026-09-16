@@ -74,22 +74,15 @@ async function fetchMembros(frenteId: number): Promise<MembroResponse['dados']> 
 }
 
 async function updateMembers(membros: MembroResponse['dados']) {
-  console.log('\n🔄 Atualizando is_fpe_member no banco...');
+  console.log('\n🔄 Atualizando filiação à FPE no banco...');
 
-  // Marcar todos como não-FPE inicialmente
-  const [totalPoliticians, reset] = await Promise.all([
-    prisma.politician.count({ where: { is_active: true, current_house: 'CAMARA' } }),
-    prisma.politician.updateMany({
-      where: { is_active: true, current_house: 'CAMARA' },
-      data: { is_fpe_member: false },
-    }),
-  ]);
-  console.log(`  → Resetados ${reset.count} políticos ativos da Câmara.`);
-
-  // Mapear membros FPE por ID da legislatura
-  const camaraIds = new Set(membros.map(m => m.id));
-  let updated = 0;
-  let notFound: number[] = [];
+  // A lista oficial (frente mais recente da Câmara) é a fonte da captura.
+  // Achado real (2026-09-16): o script só virava o is_fpe_member e nunca
+  // gravava fpe_captured_at/fpe_source — a UI mostrava uma data hardcoded
+  // (25/08 no seed) e o "fonte verificável" ficava mentiroso. Agora a data
+  // de captura é a data em que a lista oficial foi lida.
+  const FPE_SOURCE = 'Lista oficial da Frente Parlamentar Evangélica (Câmara)';
+  const capturedAt = new Date();
 
   // Buscar todos os políticos ativos da Câmara
   const politicians = await prisma.politician.findMany({
@@ -97,15 +90,24 @@ async function updateMembers(membros: MembroResponse['dados']) {
     select: { id: true, legislature_id: true, name: true },
   });
 
+  const memberIds = new Set<number>();
+  let updated = 0;
+  let notFound: number[] = [];
+
   for (const member of membros) {
     const match = politicians.find(
       p => p.legislature_id === String(member.id) || p.name.toLowerCase().includes(member.nome.toLowerCase())
     );
 
     if (match) {
+      memberIds.add(match.id);
       await prisma.politician.update({
         where: { id: match.id },
-        data: { is_fpe_member: true },
+        data: {
+          is_fpe_member: true,
+          fpe_captured_at: capturedAt,
+          // preserva fpe_tier existente (curadoria manual do seed) — não solapa
+        },
       });
       updated++;
     } else {
@@ -113,7 +115,27 @@ async function updateMembers(membros: MembroResponse['dados']) {
     }
   }
 
-  console.log(`  → ${updated} políticos marcados como FPE.`);
+  // Remover filiação de quem deixou a lista (ou sumiu do match) e LIMPAR a
+  // auditoria velha — fpe_tier/fpe_source/fpe_captured_at de alguém que não é
+  // mais membro é dado morto (a UI exibe "não é membro", mas o banco não
+  // deveria mentir).
+  const currentFpeIds = (await prisma.politician.findMany({
+    where: { is_fpe_member: true },
+    select: { id: true },
+  })).map(p => p.id);
+
+  const dropped = currentFpeIds.filter(id => !memberIds.has(id));
+  if (dropped.length > 0) {
+    await prisma.politician.updateMany({
+      where: { id: { in: dropped } },
+      data: { is_fpe_member: false, fpe_source: null, fpe_captured_at: null },
+    });
+  }
+
+  console.log(`  → ${updated} políticos marcados como FPE (capturados em ${capturedAt.toISOString()}).`);
+  if (dropped.length > 0) {
+    console.log(`  → ${dropped.length} políticos desmarcados (não estão mais na lista oficial).`);
+  }
   if (notFound.length > 0) {
     console.log(`  → ${notFound.length} membros da FPE não encontrados no banco (IDs: ${notFound.slice(0, 10).join(', ')}${notFound.length > 10 ? '...' : ''})`);
   }
@@ -136,8 +158,10 @@ async function updateMembers(membros: MembroResponse['dados']) {
         action: 'sync_fpe_members',
         fpeOfficialCount: membros.length,
         fpeMatched: updated,
+        fpeDropped: dropped.length,
         notFoundIds: notFound.slice(0, 50),
         legislature: '57',
+        capturedAt: capturedAt.toISOString(),
       },
     },
   });
