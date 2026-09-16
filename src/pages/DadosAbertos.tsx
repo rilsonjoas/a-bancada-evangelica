@@ -5,12 +5,7 @@ import { Download, ExternalLink, CheckCircle2, AlertTriangle } from 'lucide-reac
 import { apiFetch } from '@/lib/apiClient';
 import { formatRelativeTime } from '@/lib/format';
 
-// A API vive em domínio próprio (VPS Hetzner, desde 2026-08-02 — ver
-// README.md §Deploy) — links relativos cairiam no domínio do Vercel,
-// onde não existe /api/*. Achado real 2026-08-23. Comentário corrigido
-// 2026-09-08: ainda citava "Railway", de onde o projeto saiu há mais
-// de um mês (mesma referência morta que o ROADMAP já registra ter
-// "corrigido" 2x — .env.example escapou nas duas rodadas).
+// http://192.168.0.101:3001/politicians não existe mais; API em domínio próprio
 const API_BASE_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:3001').replace(/\/$/, '');
 
 const SYNC_TYPE_LABEL: Record<string, string> = {
@@ -26,6 +21,21 @@ interface LastSyncResponse {
   lastSync: string | null;
   syncType: string | null;
   source: string | null;
+}
+
+interface SyncLogEntry {
+  id: string;
+  sync_type: string;
+  source: string | null;
+  status: string;
+  start_time: string | null;
+  end_time: string | null;
+  records_processed: number | null;
+  records_inserted: number | null;
+  records_updated: number | null;
+  records_failed: number | null;
+  error_message: string | null;
+  details: unknown;
 }
 
 /**
@@ -73,6 +83,71 @@ function LastSyncStatus() {
         Última sincronização com sucesso ({typeLabel}): <strong>{relative}</strong>
         {isStale && ' — mais tempo que o esperado, verificando'}
       </span>
+    </div>
+  );
+}
+
+/**
+ * H6 (2026-08-27, ampliado 2026-09-16): trilha de auditoria legível na
+ * página — antes era um link para o JSON cru de /api/stats/sync-history,
+ * que ninguém abria. Agora as últimas sincronizações aparecem em tabela,
+ * e o link ao JSON bruto continua como "dado aberto" para quem quiser.
+ */
+function SyncHistoryTable() {
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['stats-sync-history'],
+    queryFn: () => apiFetch<SyncLogEntry[]>('/api/stats/sync-history?limit=8'),
+    staleTime: 5 * 60_000,
+  });
+
+  if (isLoading) return null;
+  if (isError || !data) {
+    return (
+      <div className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2.5">
+        <AlertTriangle className="h-4 w-4 shrink-0" />
+        <span>Não foi possível carregar a trilha de auditoria.</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="overflow-x-auto rounded-lg border border-border">
+      <table className="w-full text-sm">
+        <thead className="bg-secondary/40 text-muted-foreground">
+          <tr>
+            <th className="px-3 py-2 text-left font-medium">Tipo</th>
+            <th className="px-3 py-2 text-left font-medium">Origem</th>
+            <th className="px-3 py-2 text-left font-medium">Status</th>
+            <th className="px-3 py-2 text-left font-medium">Registros</th>
+            <th className="px-3 py-2 text-left font-medium">Última execução</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((log) => (
+            <tr key={log.id} className="border-t border-border">
+              <td className="px-3 py-2 font-medium">{SYNC_TYPE_LABEL[log.sync_type] ?? log.sync_type.toLowerCase()}</td>
+              <td className="px-3 py-2 text-muted-foreground">{log.source ?? '—'}</td>
+              <td className="px-3 py-2">
+                {log.status === 'SUCCESS' ? (
+                  <span className="inline-flex items-center gap-1 text-green-700">
+                    <CheckCircle2 className="h-3.5 w-3.5" /> OK
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-red-700">
+                    <AlertTriangle className="h-3.5 w-3.5" /> Falha
+                  </span>
+                )}
+              </td>
+              <td className="px-3 py-2 font-mono text-muted-foreground">
+                {log.records_inserted ?? 0} ins / {log.records_updated ?? 0} upd
+              </td>
+              <td className="px-3 py-2 text-muted-foreground">
+                {formatRelativeTime(log.end_time ?? null)}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -128,16 +203,27 @@ export const DadosAbertos = () => {
             Explorar a API no Swagger (/api/docs)
           </a>
 
-          {/* H6 (2026-08-27): histórico de auditoria das sincronizações */}
-          <a
-            href={`${API_BASE_URL}/api/stats/sync-history`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-lg border border-border px-5 py-3 font-medium hover:bg-muted transition-colors"
-          >
-            <ExternalLink className="h-5 w-5" />
-            Histórico de auditoria das sincronizações (diff de notas)
-          </a>
+          {/* H6 (2026-08-27): histórico de auditoria das sincronizações —
+              agora legível na própria página, não só JSON cru. */}
+          <div className="space-y-3">
+            <div>
+              <h2 className="font-semibold text-base text-foreground">Trilha de auditoria das sincronizações</h2>
+              <p className="text-muted-foreground">
+                Cada vez que os dados são atualizados (votações, gastos, notas), um registro é
+                gravado com origem e quantidade de linhas.
+              </p>
+            </div>
+            <SyncHistoryTable />
+            <a
+              href={`${API_BASE_URL}/api/stats/sync-history`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground underline hover:text-primary transition-colors"
+            >
+              <ExternalLink className="h-4 w-4" />
+              Abrir histórico completo em JSON bruto
+            </a>
+          </div>
         </div>
 
         {/* Checksum / integridade (H4) */}

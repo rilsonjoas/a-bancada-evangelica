@@ -24,7 +24,7 @@ export interface PoliticianScore extends ScoreBreakdown {
   nationalRank?: number;
   stateRank?: number;
   partyRank?: number;
-  lastCalculation: string;
+  lastCalculation: string | null;
 }
 
 export interface HistoricalScore extends ScoreBreakdown {

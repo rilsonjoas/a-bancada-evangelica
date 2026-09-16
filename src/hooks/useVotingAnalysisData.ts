@@ -4,6 +4,7 @@ import { apiFetch } from "@/lib/apiClient";
 export interface VotingAnalysisData {
   totalVotes: number;
   activePoliticians: number;
+  withOwnVotes?: number;
   totalAgendas: number;
   averageScore?: number;
   agendaByCriteria: Record<string, number>;

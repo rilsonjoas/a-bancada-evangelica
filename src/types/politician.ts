@@ -27,7 +27,9 @@ export interface APIPolitician {
     performanceDescription?: string;
     totalVotes: number;
     consistencyScore: number;
-    lastCalculation: string;
+    // Honestidade de frescor (2026-09-16): passou a ser nullable — político
+    // sem cálculo registrado mostra "—", não data inventada de "agora".
+    lastCalculation: string | null;
   };
 }
 

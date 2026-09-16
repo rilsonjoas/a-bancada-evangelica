@@ -40,7 +40,7 @@ export interface PoliticianDetail {
     performanceDescription: string;
     totalVotes: number;
     consistencyScore: number;
-    lastCalculation: string;
+    lastCalculation: string | null;
   };
   recentVotes: Array<{
     id: string;

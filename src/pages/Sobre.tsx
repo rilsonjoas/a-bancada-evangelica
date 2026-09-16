@@ -7,6 +7,7 @@ import { DonationModal } from '@/components/common/DonationModal';
 import { Link } from 'react-router-dom';
 import { usePoliticiansStats } from '@/hooks/usePoliticians';
 import { useVotingAnalysisData } from '@/hooks/useVotingAnalysisData';
+import { useClusterData, usePartyAlignment } from '@/hooks/useClusterData';
 
 const SobrePage = () => {
   usePageMeta("Sobre o Projeto | A Bancada Evangélica", "Saiba mais sobre nossa missão, metodologia de cálculo e transparência de dados abertos.");
@@ -15,6 +16,8 @@ const SobrePage = () => {
   // divergia do README e da página de Votações. Mesma fonte pra todo o site.
   const { data: statsData } = usePoliticiansStats();
   const { data: votingData } = useVotingAnalysisData({});
+  const { data: clusterData } = useClusterData();
+  const { data: partyAlignment } = usePartyAlignment();
 
   const fmt = (n: number | undefined) => (n ?? 0).toLocaleString('pt-BR');
 
@@ -139,8 +142,8 @@ const SobrePage = () => {
                     { label: 'Parlamentares com notas', value: fmt(statsData?.totalPoliticians), note: 'Câmara e Senado, mandatos ativos' },
                     { label: 'Votos reais registrados', value: fmt(votingData?.totalVotes), note: 'Votações nominais do Plenário' },
                     { label: 'Pautas monitoradas', value: fmt(votingData?.totalAgendas), note: 'Classificadas nos 5 critérios' },
-                    { label: 'Partidos no ranking', value: '19+', note: 'Com ≥ 3 deputados ativos' },
-                    { label: 'Grupos de votação', value: '2', note: 'KMeans · silhouette 0.27' },
+                    { label: 'Partidos no ranking', value: partyAlignment ? String(partyAlignment.total_parties ?? 0) : '—', note: 'Mediana ≥ 3 parlamentares ativos' },
+                    { label: 'Grupos de votação', value: clusterData ? fmt(clusterData.clusters?.length) : '—', note: clusterData ? `KMeans · silhueta ${clusterData.silhouette?.toFixed(2) ?? 'n/d'}` : 'Serviço ML indisponível' },
                   ].map(item => (
                     <div key={item.label} className="flex items-center justify-between py-2 border-b border-border last:border-0">
                       <div>

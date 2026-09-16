@@ -224,7 +224,7 @@ export function VotingAnalysis() {
             <VotingStatsCard
               title="Parlamentares Ativos"
               value={analysisData?.activePoliticians || 0}
-              subtitle="Com votações registradas"
+              subtitle={`Com votações próprias: ${analysisData?.withOwnVotes || 0} (o restante tem nota estimada por partido)`}
               icon={<Users className="w-6 h-6" />}
             />
             <VotingStatsCard
@@ -422,10 +422,18 @@ export function VotingAnalysis() {
                           <h3 className="font-medium text-sm">{politician.name}</h3>
                           <p className="text-sm text-muted-foreground">
                             {politician.party} · {politician.state}
+                            {/* Honestidade de dado (2026-09-16): nota sem voto
+                                próprio é ESTIMATIVA do partido — sinalizar, não
+                                deixar parecer nota de votação individual. */}
+                            {politician.totalVotes === 0 && (
+                              <span className="ml-2 text-xs text-amber-600 font-medium">
+                                nota estimada (sem votos próprios)
+                              </span>
+                            )}
                           </p>
                         </div>
                       </div>
-                      <div className="text-right shrink-0">
+                      <div className={`text-right shrink-0 ${politician.totalVotes === 0 ? 'opacity-70' : ''}`}>
                         <div className={`text-base font-bold ${politician.alignmentScore >= 70 ? 'text-green-600' : politician.alignmentScore >= 50 ? 'text-blue-600' : 'text-red-600'}`}>
                           {politician.alignmentScore.toFixed(1)}%
                         </div>

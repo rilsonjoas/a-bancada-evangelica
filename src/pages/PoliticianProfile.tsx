@@ -15,7 +15,7 @@ import { VotingHistoryChart } from '@/components/charts/VotingHistoryChart';
 import { ExpenseAnalysisChart } from '@/components/charts/ExpenseAnalysisChart';
 import { ShareableCard } from '@/components/social/ShareableCard';
 import { FpeTierChip } from '@/components/politicians/FpeTierChip';
-import { CRITERIA, CRITERIA_BY_KEY, CRITERIA_BY_FIELD } from '@/lib/criteria';
+import { CRITERIA, CRITERIA_BY_KEY } from '@/lib/criteria';
 import { fmt } from '@/lib/format';
 import { buildVoteSourceLink } from '@/lib/sources';
 import { LastSyncBadge } from '@/components/LastSyncBadge';
@@ -394,41 +394,12 @@ export function PoliticianProfile() {
                       : criteriaKey === 'socialResponsibility' ? 'Responsabilidade Social'
                       : 'Liberdade Religiosa';
                     const vp = politician.votesPerCriteria?.[criteriaKey];
-                    let count = vp?.count ?? 0;
-
-                    if (count === 0) {
-                      const cConfig = CRITERIA_BY_FIELD[criteriaKey];
-                      if (cConfig && politician.recentVotes && politician.recentVotes.length > 0) {
-                        const matching = politician.recentVotes.filter(
-                          (v) => v.criteria === cConfig.key || v.criteria === criteriaKey
-                        ).length;
-                        if (matching > 0) count = matching;
-                      }
-
-                      if (count === 0) {
-                        const totalVotes = politician.currentScore?.totalVotes ?? (politician as unknown as { voting?: { totalVotes?: number } }).voting?.totalVotes ?? 0;
-                        if (totalVotes > 0) {
-                          const weights: Record<string, number> = {
-                            lifeProtection: 0.30,
-                            familyValues: 0.25,
-                            moralIntegrity: 0.20,
-                            socialResponsibility: 0.15,
-                            religiousFreedom: 0.10,
-                          };
-                          count = Math.max(Math.round(totalVotes * (weights[criteriaKey] || 0.2)), 1);
-                        } else if ((politician as unknown as { overallScore?: number }).overallScore) {
-                          const defaults: Record<string, number> = {
-                            lifeProtection: 14,
-                            familyValues: 12,
-                            moralIntegrity: 10,
-                            socialResponsibility: 8,
-                            religiousFreedom: 6,
-                          };
-                          count = defaults[criteriaKey] || 10;
-                        }
-                      }
-                    }
-                    const lowConfidence = count < 5; // abaixo de 5 votos = base frágil
+                    // SÓ dados reais de votos registrados — achado (2026-09-16):
+                    // o código antigo FABRICAVA contagem quando o critério tinha
+                    // 0 votos (proporção inventada de totalVotes × peso, ou
+                    // defaults hardcoded 14/12/10/8/6). 0 honesto > número lindo.
+                    const count = vp?.count ?? 0;
+                    const lowConfidence = count === 0 || count < 5;
                     return (
                       <div key={criteriaKey} className={`flex items-center justify-between p-3 rounded-lg ${lowConfidence ? 'bg-yellow-50 border border-yellow-200' : 'bg-white border border-gray-100'}`}>
                         <div className="flex items-center gap-2">
@@ -436,7 +407,7 @@ export function PoliticianProfile() {
                           {lowConfidence && (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs text-yellow-700 bg-yellow-100 rounded-full">
                               <span className="w-1.5 h-1.5 rounded-full bg-yellow-500" aria-hidden="true" />
-                              Base frágil ({count} voto{count !== 1 ? 's' : ''})
+                              {count === 0 ? 'Sem votos registrados' : `Base frágil (${count} voto${count !== 1 ? 's' : ''})`}
                             </span>
                           )}
                         </div>
