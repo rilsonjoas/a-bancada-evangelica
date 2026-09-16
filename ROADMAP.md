@@ -86,6 +86,18 @@ segurança real que não existia nos outros dois.
       `is_fpe_member` no nosso DB espelha a vigência da Câmara. Falta apenas
       persistir o recálculo (cron 05h de 15/09 roda à noite; o job grava o
       label real de quem votou — sem fallback).
+      **RECÁLCULO VERIFICADO 15/09 (ao vivo):** cron 05h RODOU e gravou
+      `lastCalculation: 2026-09-15T05:00` nos scores ✅, mas descobri um gap
+      real: `is_fpe_member` no DB = **225** (210 Câmara + 15 Senado) vs
+      **232 oficiais** na fonte. Causa raiz achada: `sync-worker.ts` NUNCA
+      chamava `sync:fpe` (só `sync-camara`, `sync-senado`, `sync:news`,
+      `scores:recalculate`) — o script rodava só manualmente (`pnpm sync:fpe`).
+      **FIX aplicado (commit `…`):** `sync:fpe` adicionado ao job diário de
+      políticos (03h) no `sync-worker.ts`, com erro não-fatal (FPE não derruba
+      o sync de políticos). Nota: **19 dos 22 faltantes NÃO existem no nosso
+      DB** (são suplentes/substitutos que `sync-camara` não traz — o banco tem
+      512 deputados vs ~878 ativos na Câmara; questão de escopo dos suplentes,
+      não de bug FPE). O fix cobre os 3 que existem mas estavam com flag errada.
 - [ ] Texto da Metodologia sobre party seed
 - [x] **Investigar 125 políticos label congelado "Aguardando Análise"
       (auditado 14/09)** — CONCLUÍDO: não é dado fabricado. O label é o

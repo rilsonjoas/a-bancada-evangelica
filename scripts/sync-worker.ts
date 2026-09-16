@@ -245,6 +245,26 @@ class SyncWorkerService {
       console.log('📥 Sincronizando dados do Senado...');
       await syncSenado();
       
+      // Atualiza filiação FPE (membros da Frente Parlamentar Evangélica).
+      // Achado real (2026-09-15): o sync:fpe NUNCA rodou no cron — só
+      // manualmente. Gap de 22 membros (232 oficiais vs 210 no DB).
+      // Roda no mesmo fluxo do politician sync porque depende da base
+      // de políticos estar atualizada (precisa de legislature_id pra match).
+      console.log('🏛️ Sincronizando membros da FPE (frente 54477)...');
+      try {
+        const { stdout, stderr } = await execFileAsync('pnpm', ['sync:fpe'], {
+          cwd: process.cwd(),
+          maxBuffer: 1024 * 1024 * 10,
+        });
+        if (stdout) console.log(stdout);
+        if (stderr) console.error(stderr);
+        console.log('✅ Sincronização FPE concluída');
+      } catch (fpeError) {
+        // Falha no FPE não deve derrubar o sync de políticos —
+        // os dados da Câmara/Senado já foram atualizados.
+        console.error('⚠️ Erro no sync FPE (políticos já atualizados):', fpeError instanceof Error ? fpeError.message : fpeError);
+      }
+      
       console.log('🔍 Rodando data quality checks...');
       await runQualityChecks();
       
