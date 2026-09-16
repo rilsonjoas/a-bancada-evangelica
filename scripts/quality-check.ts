@@ -30,33 +30,47 @@ export async function runQualityChecks(): Promise<CheckResult[]> {
     results.push(await check);
   }
 
-  // Log summary
+  // Log summary — grava SEMPRE (até em sucesso), incluindo totalPoliticians
+  // para o check de estabilidade do próximo ciclo. Antes (2026-09-16) só
+  // gravava quando havia falha, e sem o campo — logo, nunca havia linha para
+  // comparar e o check NUNCA validou nada.
   const passed = results.filter(r => r.passed).length;
   const failed = results.filter(r => !r.passed);
   console.log(`\n📋 Quality checks: ${passed}/${results.length} passaram`);
+
+  const now = new Date();
+  const totalPoliticians = await prisma.politician.count({ where: { is_active: true } });
+
+  await prisma.syncLog.create({
+    data: {
+      sync_type: 'POLITICIANS',
+      source: 'MANUAL',
+      status: failed.some(f => f.name.includes('CRÍTICO')) ? 'ERROR' : 'PARTIAL',
+      start_time: now,
+      end_time: now,
+      records_processed: results.length,
+      records_inserted: 0,
+      records_updated: 0,
+      records_failed: failed.length,
+      error_message: failed.length > 0 ? failed.map(f => `${f.name}: ${f.message}`).join(' | ') : undefined,
+      details: {
+        action: 'quality_check',
+        totalPoliticians,
+        results: results.map(r => ({
+          name: r.name,
+          passed: r.passed,
+          message: r.message,
+          ...(r.details ? { details: r.details } : {}),
+        })),
+      },
+    },
+  });
 
   if (failed.length > 0) {
     console.log('⚠️  Alertas:');
     for (const f of failed) {
       console.log(`   ❌ ${f.name}: ${f.message}`);
     }
-
-    // Salvar no SyncLog
-    await prisma.syncLog.create({
-      data: {
-        sync_type: 'POLITICIANS',
-        source: 'MANUAL',
-        status: failed.some(f => f.name.includes('CRÍTICO')) ? 'ERROR' : 'PARTIAL',
-        start_time: new Date(),
-        end_time: new Date(),
-        records_processed: results.length,
-        records_inserted: passed,
-        records_updated: 0,
-        records_failed: failed.length,
-        error_message: failed.map(f => `${f.name}: ${f.message}`).join(' | '),
-        details: { checks: results },
-      },
-    });
   } else {
     console.log('✅ Todos os checks passaram!');
   }
@@ -68,28 +82,34 @@ export async function runQualityChecks(): Promise<CheckResult[]> {
 async function checkPoliticianCountStability(): Promise<CheckResult> {
   const current = await prisma.politician.count({ where: { is_active: true } });
 
-  // Pegar penúltimo SyncLog SUCCESS de POLITICIANS
-  const previous = await prisma.syncLog.findFirst({
-    where: { sync_type: 'POLITICIANS', status: 'SUCCESS' },
+  // Compara com o PRIMEIRO log do ciclo anterior (o mais antigo dentre os
+  // últimos perto do atual). Corrige bug real (2026-09-16): o código antigo
+  // lia `details.totalPoliticians` do `skip:1`, mas NENHUM sync gravava esse
+  // campo (só {legislature, timestamp}) — então o check sempre caía em
+  // "Sem contagem anterior" e nunca validava. Além disso, com CAMARA/SENADO/
+  // FPE gerando 3+ logs POLITICIANS por dia, `skip:1` pegaria log aleatório,
+  // não "o ciclo anterior".
+  const recentLogs = await prisma.syncLog.findMany({
+    where: { details: { path: ['action'], equals: 'quality_check' } },
     orderBy: { end_time: 'desc' },
-    skip: 1,
+    take: 10,
     select: { details: true, end_time: true },
   });
 
-  if (!previous?.details) {
-    return {
-      name: 'Estabilidade de políticos ativos',
-      passed: true,
-      message: `Sem histórico anterior. Ativos atuais: ${current}`,
-    };
-  }
+  // O total de ativos gravado pelo próprio quality-check no ciclo anterior.
+  const prevEntry = recentLogs.find(
+    (l) => (l.details as any)?.totalPoliticians != null
+  );
+  const prevCount = (prevEntry?.details as any)?.totalPoliticians as number | undefined;
 
-  const prevCount = (previous.details as any)?.totalPoliticians as number | undefined;
-  if (!prevCount) {
+  if (prevCount == null) {
+    // Primeira execução com o novo formato: grava o valor e valida quando
+    // houver um ciclo anterior para comparar.
     return {
       name: 'Estabilidade de políticos ativos',
       passed: true,
-      message: `Sem contagem anterior registrada. Ativos atuais: ${current}`,
+      message: `Sem histórico no novo formato. Ativos atuais: ${current}`,
+      details: { current, previous: null, delta: 0, percentage: 0 },
     };
   }
 

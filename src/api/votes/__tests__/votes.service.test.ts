@@ -8,8 +8,7 @@ describe('VotesService.analysis — exposição do tema (M2)', () => {
   let prisma: {
     vote: { count: Mock; groupBy: Mock; findMany: Mock };
     keyAgenda: { findMany: Mock };
-    politician: { count: Mock };
-    politicianScore: { aggregate: Mock; findMany: Mock };
+    politician: { count: Mock; findMany: Mock };
     $queryRaw: Mock;
   };
   let service: VotesService;
@@ -18,8 +17,7 @@ describe('VotesService.analysis — exposição do tema (M2)', () => {
     prisma = {
       vote: { count: vi.fn(), groupBy: vi.fn(), findMany: vi.fn() },
       keyAgenda: { findMany: vi.fn() },
-      politician: { count: vi.fn() },
-      politicianScore: { aggregate: vi.fn(), findMany: vi.fn() },
+      politician: { count: vi.fn(), findMany: vi.fn() },
       $queryRaw: vi.fn(),
     };
     service = new VotesService(prisma as unknown as never);
@@ -27,8 +25,22 @@ describe('VotesService.analysis — exposição do tema (M2)', () => {
     prisma.vote.count.mockResolvedValue(12);
     prisma.politician.count.mockResolvedValue(2);
     prisma.$queryRaw.mockResolvedValue([]);
-    prisma.politicianScore.aggregate.mockResolvedValue({ _avg: { overall_score: 62 } });
-    prisma.politicianScore.findMany.mockResolvedValue([]);
+    prisma.politician.findMany.mockResolvedValue([
+      {
+        id: 1,
+        name: 'Deputado Teste',
+        current_party: 'PT',
+        current_state: 'SP',
+        scores: [
+          {
+            performance_level: 'GOOD',
+            overall_score: 80,
+            total_votes: 12,
+            created_at: new Date('2025-06-01'),
+          },
+        ],
+      },
+    ]);
     prisma.vote.findMany.mockResolvedValue([]);
     prisma.vote.groupBy.mockImplementation(async (args: { by: string[]; _count?: unknown; _min?: unknown }) => {
       if (args._count && !args.by.includes('vote_type')) {
@@ -88,6 +100,24 @@ describe('VotesService.analysis — exposição do tema (M2)', () => {
     expect(a1?.practicalImpact).toContain('Na prática');
     expect(a2?.theme).toBeNull();
     expect(a2?.practicalImpact).toBeNull();
+  });
+
+  it('calcula média e distribuição por político ativo (última nota)', async () => {
+    prisma.keyAgenda.findMany.mockResolvedValue([]);
+
+    const result = await service.analysis();
+
+    expect(result.averageScore).toBe(80);
+    expect(result.alignmentStats).toEqual({ high: 0, medium: 1, low: 0 });
+    expect(result.politicianRanking).toHaveLength(1);
+    expect(result.politicianRanking[0]).toMatchObject({
+      id: 1,
+      name: 'Deputado Teste',
+      party: 'PT',
+      state: 'SP',
+      alignmentScore: 80,
+      totalVotes: 12,
+    });
   });
 });
 
