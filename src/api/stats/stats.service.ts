@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { latestActivePoliticianScores, summarizeLatestScores } from '../scores/scores.query';
 
 @Injectable()
 export class StatsService {
@@ -11,45 +12,28 @@ export class StatsService {
     // "648 com nota" para 514 monitorados. Agora: último score de cada
     // político ATIVO, um voto por político. A média também passa a ser
     // por político (não por linha).
-    const [totalPoliticians, houseStats, actives] = await Promise.all([
-      this.prisma.politician.count({ where: { is_active: true } }),
+    //
+    // Refatorado (2026-09-16): a query e a soma agora vivem em
+    // src/api/scores/scores.query.ts — mesma fonte do votes/analysis e do
+    // ranking. Antes cada endpoint tinha sua própria cópia e elas
+    // divergiram (63,1 vs 62,3). Se quiser mudar o que é "nota vigente",
+    // muda lá, não aqui.
+    const [actives, houseStats] = await Promise.all([
+      latestActivePoliticianScores(this.prisma),
       this.prisma.politician.groupBy({
         by: ['current_house'],
         where: { is_active: true },
         _count: true,
       }),
-      this.prisma.politician.findMany({
-        where: { is_active: true },
-        select: {
-          scores: {
-            take: 1,
-            orderBy: { created_at: 'desc' },
-            select: { performance_level: true, overall_score: true, total_votes: true },
-          },
-        },
-      }),
     ]);
 
-    const withScore = actives.filter(a => a.scores.length > 0);
-    const distribution = { excellent: 0, good: 0, average: 0, poor: 0 };
-    let scoreSum = 0;
-    let withOwnVotes = 0;
-    for (const a of withScore) {
-      const s = a.scores[0];
-      const key = s.performance_level.toLowerCase() as keyof typeof distribution;
-      if (key in distribution) distribution[key] += 1;
-      scoreSum += s.overall_score ?? 0;
-      if (s.total_votes > 0) withOwnVotes += 1;
-    }
-    const averageScore = withScore.length > 0
-      ? Math.round((scoreSum / withScore.length) * 10) / 10
-      : 0;
+    const summary = summarizeLatestScores(actives);
 
     return {
-      totalPoliticians,
-      withOwnVotes,
-      averageScore,
-      performanceDistribution: distribution,
+      totalPoliticians: actives.length,
+      withOwnVotes: summary.withOwnVotes,
+      averageScore: summary.averageScore,
+      performanceDistribution: summary.distribution,
       houseDistribution: {
         camara: houseStats.find(s => s.current_house === 'CAMARA')?._count ?? 0,
         senado: houseStats.find(s => s.current_house === 'SENADO')?._count ?? 0,
@@ -57,16 +41,38 @@ export class StatsService {
     };
   }
 
+  /**
+   * Frescura por tipo de sincronização (2026-09-16).
+   * Antes: retornava o último log SUCCESS de QUALQUER tipo. Como NEWS/SCORES
+   * rodam diariamente mas VOTES só manualmente, o badge dizia "atualizado
+   * hoje" mesmo com a base de votos velha. Agora expõe a frescura de cada
+   * tipo — a UI mostra o tipo mais antigo (o dado que realmente importa).
+   */
   async lastSync() {
-    const last = await this.prisma.syncLog.findFirst({
+    const distinctTypes = await this.prisma.syncLog.groupBy({
+      by: ['sync_type'],
       where: { status: 'SUCCESS' },
-      orderBy: { end_time: 'desc' },
-      select: { end_time: true, sync_type: true, source: true },
+      _max: { end_time: true },
     });
+
+    const freshness: Record<string, string | null> = {};
+    let oldest: { syncType: string | null; at: string | null } | null = null;
+
+    for (const row of distinctTypes) {
+      const at = row._max.end_time?.toISOString() ?? null;
+      freshness[row.sync_type] = at;
+      if (at && (!oldest || row._max.end_time! < new Date(oldest.at!))) {
+        oldest = { syncType: row.sync_type, at };
+      }
+    }
+
     return {
-      lastSync: last?.end_time ?? null,
-      syncType: last?.sync_type ?? null,
-      source: last?.source ?? null,
+      // Mantém o shape antigo (compat): último log no geral.
+      lastSync: oldest?.at ?? null,
+      syncType: oldest?.syncType ?? null,
+      source: null,
+      // Novo: frescura granular por tipo de dado.
+      freshness,
     };
   }
 

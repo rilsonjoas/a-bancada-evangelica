@@ -1,63 +1,97 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { latestActivePoliticianScores } from '../scores/scores.query';
 
-type PartyRow = {
-  party: string;
-  politician_count: bigint;
-  avg_score: string | null;
-  avg_life: string | null;
-  avg_family: string | null;
-  avg_integrity: string | null;
-  avg_social: string | null;
-  avg_religious: string | null;
+type PartyAcc = {
+  count: number;
+  withVotes: number;
+  scoreSum: number;
+  lifeSum: number;
+  familySum: number;
+  integritySum: number;
+  socialSum: number;
+  religiousSum: number;
 };
 
+/**
+ * Média de alinhamento por partido.
+ *
+ * Corrigido (2026-09-16): a query antiga fazia AVG(overall_score) direto na
+ * tabela — sem distinguir quem tem voto próprio. Notas de político sem voto
+ * são ESTIMATIVAS do partido (seed), então misturadas na média faziam o
+ * número "parecer" mais confiável do que é (na prática, o partido puxava a
+ * própria média para perto de si mesmo — circularidade).
+ *
+ * Agora a média de cada critério só considera partidários com voto próprio
+ * registrado (total_votes > 0). `estimated` expõe a quantidade cuja nota é
+ * estimativa — e a UI pode avisar "média sobre X, Y estimados".
+ */
 @Injectable()
 export class PartiesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async alignment() {
-    const rows = await this.prisma.$queryRaw<PartyRow[]>`
-      SELECT
-        p.current_party                                    AS party,
-        COUNT(*)                                           AS politician_count,
-        ROUND(AVG(ps.overall_score)::numeric, 1)          AS avg_score,
-        ROUND(AVG(ps.life_protection)::numeric, 1)        AS avg_life,
-        ROUND(AVG(ps.family_values)::numeric, 1)          AS avg_family,
-        ROUND(AVG(ps.moral_integrity)::numeric, 1)        AS avg_integrity,
-        ROUND(AVG(ps.social_responsibility)::numeric, 1)  AS avg_social,
-        ROUND(AVG(ps.religious_freedom)::numeric, 1)      AS avg_religious
-      FROM politicians p
-      INNER JOIN politician_scores ps ON ps.politician_id = p.id
-      WHERE p.is_active = true
-        AND p.current_party IS NOT NULL
-        AND p.current_party != ''
-      GROUP BY p.current_party
-      HAVING COUNT(*) >= 3
-      ORDER BY AVG(ps.overall_score) DESC NULLS LAST
-    `;
+    const rows = await latestActivePoliticianScores(this.prisma);
 
-    const level = (s: string | null) => {
-      const v = s ? parseFloat(s) : null;
+    const acc = new Map<string, PartyAcc>();
+    for (const p of rows) {
+      const party = p.currentParty;
+      if (!party) continue;
+      if (!acc.has(party)) {
+        acc.set(party, {
+          count: 0,
+          withVotes: 0,
+          scoreSum: 0,
+          lifeSum: 0,
+          familySum: 0,
+          integritySum: 0,
+          socialSum: 0,
+          religiousSum: 0,
+        });
+      }
+      const a = acc.get(party)!;
+      a.count += 1;
+      const s = p.score;
+      if (s && (s.total_votes ?? 0) > 0) {
+        a.withVotes += 1;
+        a.scoreSum += s.overall_score ?? 0;
+        a.lifeSum += s.life_protection ?? 0;
+        a.familySum += s.family_values ?? 0;
+        a.integritySum += s.moral_integrity ?? 0;
+        a.socialSum += s.social_responsibility ?? 0;
+        a.religiousSum += s.religious_freedom ?? 0;
+      }
+    }
+
+    const level = (v: number | null) => {
       if (v === null) return 'sem_dados';
       if (v >= 70) return 'alta';
       if (v >= 50) return 'moderada';
       return 'baixa';
     };
 
-    const parties = rows.map(r => ({
-      party: r.party,
-      politician_count: Number(r.politician_count),
-      avg_score: r.avg_score ? parseFloat(r.avg_score) : null,
-      alignment_level: level(r.avg_score),
-      criteria: {
-        life_protection:       r.avg_life      ? parseFloat(r.avg_life)      : null,
-        family_values:         r.avg_family    ? parseFloat(r.avg_family)    : null,
-        moral_integrity:       r.avg_integrity ? parseFloat(r.avg_integrity) : null,
-        social_responsibility: r.avg_social    ? parseFloat(r.avg_social)    : null,
-        religious_freedom:     r.avg_religious ? parseFloat(r.avg_religious) : null,
-      },
-    }));
+    const parties = Array.from(acc.entries())
+      .map(([party, a]) => {
+        const n = a.withVotes;
+        const avg = (sum: number) => (n > 0 ? Math.round((sum / n) * 10) / 10 : null);
+        return {
+          party,
+          politician_count: a.count,
+          with_votes: a.withVotes,
+          estimated: a.count - a.withVotes,
+          avg_score: avg(a.scoreSum),
+          alignment_level: level(avg(a.scoreSum)),
+          criteria: {
+            life_protection:       avg(a.lifeSum),
+            family_values:         avg(a.familySum),
+            moral_integrity:       avg(a.integritySum),
+            social_responsibility: avg(a.socialSum),
+            religious_freedom:     avg(a.religiousSum),
+          },
+        };
+      })
+      .filter(parties => parties.politician_count >= 3)
+      .sort((a, b) => (b.avg_score ?? -1) - (a.avg_score ?? -1));
 
     return { parties, total_parties: parties.length };
   }

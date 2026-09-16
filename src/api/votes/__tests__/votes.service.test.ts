@@ -31,12 +31,22 @@ describe('VotesService.analysis — exposição do tema (M2)', () => {
         name: 'Deputado Teste',
         current_party: 'PT',
         current_state: 'SP',
+        current_house: 'CAMARA',
+        is_fpe_member: false,
         scores: [
           {
             performance_level: 'GOOD',
+            performance_label: 'Bom',
+            performance_description: 'desc',
             overall_score: 80,
+            life_protection: 80,
+            family_values: 80,
+            moral_integrity: 80,
+            social_responsibility: 80,
+            religious_freedom: 80,
             total_votes: 12,
-            created_at: new Date('2025-06-01'),
+            consistency_score: 1,
+            last_calculation: new Date('2025-06-01'),
           },
         ],
       },
@@ -118,6 +128,70 @@ describe('VotesService.analysis — exposição do tema (M2)', () => {
       alignmentScore: 80,
       totalVotes: 12,
     });
+  });
+
+  it('usa a ÚLTIMA nota de cada político (não média de todas as linhas) — divergência 63,1 vs 62,3 (2026-09-16)', async () => {
+    prisma.keyAgenda.findMany.mockResolvedValue([]);
+    prisma.politician.count.mockResolvedValue(2);
+    prisma.politician.findMany.mockResolvedValue([
+      {
+        id: 1,
+        name: 'Deputado Teste',
+        current_party: 'PT',
+        current_state: 'SP',
+        current_house: 'CAMARA',
+        is_fpe_member: false,
+        // Duas linhas de score: a última (jun/2025) tem 80; a antiga (jan/2025)
+        // tinha 40. Contar todas as linhas → média 60; pegar a última → 80.
+        scores: [
+          { performance_level: 'GOOD', performance_label: 'Bom', performance_description: 'desc', overall_score: 80, life_protection: 80, family_values: 80, moral_integrity: 80, social_responsibility: 80, religious_freedom: 80, total_votes: 12, consistency_score: 1, last_calculation: new Date('2025-06-01') },
+          { performance_level: 'POOR', performance_label: 'Ruim', performance_description: 'desc', overall_score: 40, life_protection: 40, family_values: 40, moral_integrity: 40, social_responsibility: 40, religious_freedom: 40, total_votes: 4, consistency_score: 1, last_calculation: new Date('2025-01-01') },
+        ],
+      },
+      {
+        id: 2,
+        name: 'Deputado B',
+        current_party: 'PL',
+        current_state: 'MG',
+        current_house: 'CAMARA',
+        is_fpe_member: false,
+        scores: [
+          { performance_level: 'EXCELLENT', performance_label: 'Excelente', performance_description: 'desc', overall_score: 100, life_protection: 100, family_values: 100, moral_integrity: 100, social_responsibility: 100, religious_freedom: 100, total_votes: 20, consistency_score: 1, last_calculation: new Date('2025-06-01') },
+          { performance_level: 'EXCELLENT', performance_label: 'Excelente', performance_description: 'desc', overall_score: 100, life_protection: 100, family_values: 100, moral_integrity: 100, social_responsibility: 100, religious_freedom: 100, total_votes: 20, consistency_score: 1, last_calculation: new Date('2025-01-01') },
+        ],
+      },
+    ]);
+
+    const result = await service.analysis();
+
+    // Média por-político da nota vigente: (80 + 100) / 2 = 90.
+    // A agregação ANTIGA contava todas as linhas: (40+80+100+100)/4 = 80 → era
+    // a raiz da divergência. Este teste quebraria se alguém reintroduzir.
+    expect(result.averageScore).toBe(90);
+    expect(result.activePoliticians).toBe(2);
+  });
+
+  it('exposição de withOwnVotes em analysis não fabrica dado', async () => {
+    prisma.keyAgenda.findMany.mockResolvedValue([]);
+    prisma.politician.count.mockResolvedValue(1);
+    prisma.politician.findMany.mockResolvedValue([
+      {
+        id: 1,
+        name: 'Deputado Teste',
+        current_party: 'PT',
+        current_state: 'SP',
+        current_house: 'CAMARA',
+        is_fpe_member: false,
+        scores: [
+          { performance_level: 'GOOD', performance_label: 'Bom', performance_description: 'desc', overall_score: 80, life_protection: 80, family_values: 80, moral_integrity: 80, social_responsibility: 80, religious_freedom: 80, total_votes: 12, consistency_score: 1, last_calculation: new Date('2025-06-01') },
+        ],
+      },
+    ]);
+
+    const result = await service.analysis();
+
+    expect(result.totalVotes).toBe(12);
+    expect(result.withOwnVotes).toBe(1);
   });
 });
 

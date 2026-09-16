@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { latestActivePoliticianScores, summarizeLatestScores } from '../scores/scores.query';
 
 @Injectable()
 export class VotesService {
@@ -14,29 +15,11 @@ export class VotesService {
     const [totalVotes, agendas, latestScores] = await Promise.all([
       this.prisma.vote.count(),
       this.prisma.keyAgenda.findMany({ where: { status: 'ACTIVE' } }),
-      this.prisma.politician.findMany({
-        where: { is_active: true },
-        select: {
-          scores: {
-            take: 1,
-            orderBy: { created_at: 'desc' },
-            select: { performance_level: true, overall_score: true },
-          },
-        },
-      }),
+      latestActivePoliticianScores(this.prisma),
     ]);
-    const withScore = latestScores.filter(p => p.scores.length > 0);
-    const alignmentCounts = { EXCELLENT: 0, GOOD: 0, AVERAGE: 0, POOR: 0 };
-    let scoreSum = 0;
-    for (const p of withScore) {
-      const s = p.scores[0];
-      const key = s.performance_level.toUpperCase() as keyof typeof alignmentCounts;
-      if (key in alignmentCounts) alignmentCounts[key] += 1;
-      scoreSum += s.overall_score ?? 0;
-    }
-    const avgScore = withScore.length > 0
-      ? Math.round((scoreSum / withScore.length) * 10) / 10
-      : 0;
+    const summary = summarizeLatestScores(latestScores);
+    const withScore = summary.withScore;
+    const avgScore = summary.averageScore;
 
     // Votos por critério (via key_agenda)
     const voteByCriteriaRaw = await this.prisma.vote.groupBy({
@@ -101,7 +84,12 @@ export class VotesService {
       agendaVoteMap.set(v.key_agenda_id, curr);
     }
 
-    const activePoliticians = await this.prisma.politician.count({ where: { is_active: true } });
+    // Parlamentares que de fato têm voto próprio registrado — distinto do
+    // total de ativos (cujo score pode ser estimativa de partido). Antes o
+    // card "Parlamentares ativos · Com votações registradas" mostrava o
+    // TOTAL — subtítulo mentia (2026-09-16).
+    const activePoliticians = latestScores.length;
+    const withOwnVotes = summary.withOwnVotes;
 
     // Pautas por critério (todos os 5 critérios têm dados)
     const agendaByCriteria: Record<string, number> = {};
@@ -111,47 +99,33 @@ export class VotesService {
 
     // Top 50 políticos por pontuação (uma nota por político ativo).
     // Alinhado ao ranking oficial do site: última nota de cada político.
-    // Antigo bug (2026-09-16): buscava TODAS as linhas de score e deduplicava
+    // Bug real (2026-09-16): buscava TODAS as linhas de score e deduplicava
     // pelo MAIOR score já registrado — top-50 divergia do /politicians/ranking.
-    const rankingRaw = await this.prisma.politician.findMany({
-      where: { is_active: true },
-      select: {
-        id: true,
-        name: true,
-        current_party: true,
-        current_state: true,
-        scores: {
-          take: 1,
-          orderBy: { created_at: 'desc' },
-          select: { overall_score: true, total_votes: true },
-        },
-      },
-    });
-
-    const politicianRanking = rankingRaw
-      .filter(p => p.scores.length > 0)
-      .sort((a, b) => (b.scores[0].overall_score ?? 0) - (a.scores[0].overall_score ?? 0))
+    const politicianRanking = withScore
+      .filter(p => p.score != null)
+      .sort((a, b) => (b.score!.overall_score ?? 0) - (a.score!.overall_score ?? 0))
       .slice(0, 50)
       .map(p => ({
         id: p.id,
         name: p.name,
-        party: p.current_party,
-        state: p.current_state,
-        alignmentScore: Math.round((p.scores[0].overall_score ?? 0) * 10) / 10,
-        totalVotes: p.scores[0].total_votes ?? 0,
+        party: p.currentParty,
+        state: p.currentState,
+        alignmentScore: Math.round((p.score!.overall_score ?? 0) * 10) / 10,
+        totalVotes: p.score!.total_votes ?? 0,
       }));
 
     return {
       totalVotes,
       activePoliticians,
+      withOwnVotes,
       totalAgendas: agendas.length,
       averageScore: avgScore,
       agendaByCriteria,
       voteByCriteria,
       alignmentStats: {
-        high:   alignmentCounts.EXCELLENT,
-        medium: alignmentCounts.GOOD,
-        low:    alignmentCounts.AVERAGE + alignmentCounts.POOR,
+        high:   summary.distribution.excellent,
+        medium: summary.distribution.good,
+        low:    summary.distribution.average + summary.distribution.poor,
       },
       timelineTrends,
       keyAgendas: agendas

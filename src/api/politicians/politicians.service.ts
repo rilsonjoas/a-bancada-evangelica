@@ -32,7 +32,7 @@ export class PoliticiansService {
       performanceDescription: score.performance_description ?? 'Sem dados suficientes',
       totalVotes: score.total_votes ?? 0,
       consistencyScore: score.consistency_score ?? 0,
-      lastCalculation: score.last_calculation?.toISOString() ?? new Date().toISOString(),
+      lastCalculation: score.last_calculation?.toISOString() ?? null,
     };
   }
 
@@ -96,7 +96,15 @@ export class PoliticiansService {
 
     const [total, performanceStats, stateStats, partyStats] = await Promise.all([
       this.prisma.politician.count({ where }),
-      this.prisma.politicianScore.groupBy({ by: ['performance_level'], _count: true }),
+      // Bug real (2026-09-16): o groupBy de performance não tinha `where`
+      // is_active — contava scores de inativos/históricos, enquanto `total`
+      // da listagem usava is_active. As faixas do filtro podiam somar mais
+      // que o total. Agora espelha o mesmo `where` da listagem.
+      this.prisma.politicianScore.groupBy({
+        by: ['performance_level'],
+        where: { politician: { is_active: true } },
+        _count: true,
+      }),
       // byState/byParty respeitam os mesmos filtros da listagem (where) —
       // se o pedido já filtrou por partido, a distribuição por estado
       // reflete só esse partido, não a base inteira (issue #3)
