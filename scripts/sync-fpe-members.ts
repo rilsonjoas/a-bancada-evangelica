@@ -117,6 +117,30 @@ async function updateMembers(membros: MembroResponse['dados']) {
   if (notFound.length > 0) {
     console.log(`  → ${notFound.length} membros da FPE não encontrados no banco (IDs: ${notFound.slice(0, 10).join(', ')}${notFound.length > 10 ? '...' : ''})`);
   }
+
+  // Trilha de auditoria: registrar no SyncLog (padrão dos demais syncs).
+  // Achado real (2026-09-15): este script não registrava no SyncLog —
+  // mesmo rodando no cron, o histórico do app não mostrava a execução.
+  await prisma.syncLog.create({
+    data: {
+      sync_type: 'POLITICIANS',
+      source: 'CAMARA',
+      status: 'SUCCESS',
+      start_time: new Date(),
+      end_time: new Date(),
+      records_processed: membros.length,
+      records_inserted: 0,
+      records_updated: updated,
+      records_failed: notFound.length,
+      details: {
+        action: 'sync_fpe_members',
+        fpeOfficialCount: membros.length,
+        fpeMatched: updated,
+        notFoundIds: notFound.slice(0, 50),
+        legislature: '57',
+      },
+    },
+  });
 }
 
 async function main() {
