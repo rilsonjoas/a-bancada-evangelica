@@ -126,6 +126,13 @@ model KeyAgenda {
   
   // Busca automática
   keywords              String[] // Para busca automática
+
+  // E (2026-09-16): versão das SCAN_RULES que classificou esta pauta
+  // (scripts/lib/scan-rules.ts). Falta de versionamento era achado real:
+  // as regras mudavam sem etiqueta e pauta antiga ficava com critério/peso
+  // congelados enquanto o sync da outra casa seguia a regra nova. A versão
+  // permite, no futuro, saber QUAIS pautas precisam reclassificar.
+  rules_version         String   @default("1.0.0")
   
   // Status e metadados
   status                AgendaStatus @default(ACTIVE)

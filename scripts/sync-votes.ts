@@ -11,42 +11,10 @@
 import { PrismaClient } from '@prisma/client';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { SCAN_RULES, SCAN_RULES_VERSION, matchScanRule, type ScanRule } from './lib/scan-rules';
 
 const prisma = new PrismaClient();
 const BASE = 'https://dadosabertos.camara.leg.br/api/v2';
-
-// ── Critérios e keywords evangelicamente relevantes ────────────────────────────
-type Criteria = 'LIFE_PROTECTION' | 'FAMILY_VALUES' | 'MORAL_INTEGRITY' | 'SOCIAL_RESPONSIBILITY' | 'RELIGIOUS_FREEDOM';
-
-interface ScanRule {
-  criteria: Criteria;
-  keywords: string[];
-  // Positivo se votar SIM = alinhamento evangélico
-  simIsPositive: boolean;
-  weight: number;   // pontuação aplicada (pode ser negativa se simIsPositive=false)
-  priority: number;
-}
-
-const SCAN_RULES: ScanRule[] = [
-  // Proteção à vida
-  { criteria: 'LIFE_PROTECTION', keywords: ['aborto', 'nascituro', 'eutanasia', 'interrupcao da gravidez'], simIsPositive: false, weight: 20, priority: 5 },
-  { criteria: 'LIFE_PROTECTION', keywords: ['protecao da vida', 'direito a vida', 'crime contra a vida', 'homicidio'], simIsPositive: true, weight: 15, priority: 4 },
-  // Família
-  { criteria: 'FAMILY_VALUES', keywords: ['familia', 'casamento', 'adocao', 'menor de idade', 'crianca', 'estatuto da crianca'], simIsPositive: true, weight: 15, priority: 4 },
-  { criteria: 'FAMILY_VALUES', keywords: ['identidade de genero', 'diversidade sexual', 'homoafetiv', 'transexual'], simIsPositive: false, weight: 15, priority: 4 },
-  // Integridade moral
-  { criteria: 'MORAL_INTEGRITY', keywords: ['corrupcao', 'improbidade', 'ficha limpa', 'transparencia publica', 'lei anticorrupcao'], simIsPositive: true, weight: 15, priority: 4 },
-  { criteria: 'MORAL_INTEGRITY', keywords: ['amnistia', 'anistia', 'prescricao', 'indulto'], simIsPositive: false, weight: 12, priority: 3 },
-  // Social
-  { criteria: 'SOCIAL_RESPONSIBILITY', keywords: ['assistencia social', 'bolsa familia', 'beneficio social', 'populacao em situacao de rua'], simIsPositive: true, weight: 10, priority: 3 },
-  { criteria: 'SOCIAL_RESPONSIBILITY', keywords: ['saude publica', 'sus', 'atendimento a vitimas'], simIsPositive: true, weight: 8, priority: 2 },
-  // Liberdade Religiosa
-  // Achado real (2026-08-21): as keywords originais nunca casaram nenhuma
-  // votação nominal do Plenário desde fev/2023 — o critério vivia com 0
-  // pautas. Frases adicionais cobrem os termos que aparecem nas ementas.
-  { criteria: 'RELIGIOUS_FREEDOM', keywords: ['liberdade religiosa', 'liberdade de culto', 'discriminacao religiosa', 'intolerancia religiosa', 'expressao religiosa', 'simbolo religioso', 'perseguicao religiosa'], simIsPositive: true, weight: 20, priority: 5 },
-  { criteria: 'RELIGIOUS_FREEDOM', keywords: ['laicidade', 'ensino religioso', 'crenca', 'assistencia espiritual', 'folga religiosa'], simIsPositive: true, weight: 10, priority: 3 },
-];
 
 // ── Trimestres da 57ª legislatura ─────────────────────────────────────────────
 function quarters(): Array<[string, string]> {
@@ -75,18 +43,6 @@ async function fetchJson<T>(url: string): Promise<T | null> {
 }
 
 function sleep(ms: number) { return new Promise(r => setTimeout(r, ms)); }
-
-function normalize(s: string) {
-  return s.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
-}
-
-function matchRule(text: string): ScanRule | null {
-  const n = normalize(text);
-  for (const rule of SCAN_RULES) {
-    if (rule.keywords.some(kw => n.includes(normalize(kw)))) return rule;
-  }
-  return null;
-}
 
 type VoteType = 'YES' | 'NO' | 'ABSTENTION' | 'OBSTRUCTION' | 'ABSENT';
 
@@ -253,7 +209,7 @@ async function scanPlenario(): Promise<{ agendas: number; votes: number; checked
       if (!detail?.dados) continue;
 
       const { fullText, prop } = await getProposicaoInfo(detail.dados);
-      const rule = matchRule(`${v.descricao ?? ''} ${v.proposicaoObjeto ?? ''} ${fullText}`);
+      const rule = matchScanRule(`${v.descricao ?? ''} ${v.proposicaoObjeto ?? ''} ${fullText}`);
       if (!rule) continue;
 
       process.stdout.write(`   ✓ ${v.id} (${v.data.slice(0,10)}) → ${rule.criteria}\n`);
@@ -274,12 +230,16 @@ async function scanPlenario(): Promise<{ agendas: number; votes: number; checked
       if (existingAgenda) {
         const needsTitle = Boolean(enrichedTitle) && existingAgenda.title !== enrichedTitle;
         const needsDescription = Boolean(enrichedDescription) && existingAgenda.description !== enrichedDescription;
-        if (needsTitle || needsDescription) {
+        const needsKeywords = existingAgenda.keywords.join(',') !== rule.keywords.join(',');
+        const needsRulesVersion = existingAgenda.rules_version !== SCAN_RULES_VERSION;
+        if (needsTitle || needsDescription || needsKeywords || needsRulesVersion) {
           await prisma.keyAgenda.update({
             where: { id: existingAgenda.id },
             data: {
               ...(enrichedTitle ? { title: enrichedTitle } : {}),
               ...(enrichedDescription ? { description: enrichedDescription } : {}),
+              ...(needsKeywords ? { keywords: rule.keywords } : {}),
+              ...(needsRulesVersion ? { rules_version: SCAN_RULES_VERSION } : {}),
             },
           });
           process.stdout.write(`   ↻ agenda enriquecida com ementa\n`);
@@ -295,6 +255,7 @@ async function scanPlenario(): Promise<{ agendas: number; votes: number; checked
             source: 'CAMARA', source_id: v.id,
             source_url: `${BASE}/votacoes/${v.id}`,
             keywords: rule.keywords, status: 'ACTIVE', priority: rule.priority,
+            rules_version: SCAN_RULES_VERSION,
           },
         });
         agendas++;
@@ -328,6 +289,29 @@ async function main() {
   console.log(`   Key agendas criadas:       ${result.agendas}`);
   console.log(`   Votos individuais salvos:  ${result.votes}`);
   console.log(`${'─'.repeat(60)}`);
+
+  // Trilha de auditoria (2026-09-16): syncs de votos NUNCA gravavam SyncLog
+  // — ficavam invisíveis no histórico público e no /last-sync. Agora entram
+  // como VOTES, permitindo verificar frescor de votações de verdade.
+  await prisma.syncLog.create({
+    data: {
+      sync_type: 'VOTES',
+      source: 'CAMARA',
+      status: 'SUCCESS',
+      start_time: new Date(),
+      end_time: new Date(),
+      records_processed: result.checked,
+      records_inserted: result.agendas + result.votes,
+      records_updated: 0,
+      records_failed: 0,
+      details: {
+        action: 'sync_votes_camara',
+        checked: result.checked,
+        agendasCreated: result.agendas,
+        votesSaved: result.votes,
+      },
+    },
+  });
 
   if (result.votes > 0) {
     console.log('\n💡 Próximo passo: pnpm scores:recalculate');

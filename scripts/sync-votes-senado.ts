@@ -8,47 +8,12 @@
  * O código do parlamentar (codigoParlamentar) equivale ao legislature_id no nosso DB.
  */
 import { PrismaClient } from '@prisma/client';
+import { SCAN_RULES_VERSION, matchScanRule, type ScanRule } from './lib/scan-rules';
 
 const prisma = new PrismaClient();
 const SENADO_API = 'https://legis.senado.leg.br/dadosabertos/votacao';
 
-// ── Critérios e keywords (mesmos do sync-votes.ts da Câmara) ──────────────────
-type Criteria = 'LIFE_PROTECTION' | 'FAMILY_VALUES' | 'MORAL_INTEGRITY' | 'SOCIAL_RESPONSIBILITY' | 'RELIGIOUS_FREEDOM';
-
-interface ScanRule {
-  criteria: Criteria;
-  keywords: string[];
-  simIsPositive: boolean;
-  weight: number;
-  priority: number;
-}
-
-const SCAN_RULES: ScanRule[] = [
-  { criteria: 'LIFE_PROTECTION', keywords: ['aborto', 'nascituro', 'eutanasia', 'interrupcao da gravidez'], simIsPositive: false, weight: 20, priority: 5 },
-  { criteria: 'LIFE_PROTECTION', keywords: ['protecao da vida', 'direito a vida', 'crime contra a vida', 'homicidio'], simIsPositive: true, weight: 15, priority: 4 },
-  { criteria: 'FAMILY_VALUES', keywords: ['familia', 'casamento', 'adocao', 'menor de idade', 'crianca', 'estatuto da crianca'], simIsPositive: true, weight: 15, priority: 4 },
-  { criteria: 'FAMILY_VALUES', keywords: ['identidade de genero', 'diversidade sexual', 'homoafetiv', 'transexual'], simIsPositive: false, weight: 15, priority: 4 },
-  { criteria: 'MORAL_INTEGRITY', keywords: ['corrupcao', 'improbidade', 'ficha limpa', 'transparencia publica', 'lei anticorrupcao'], simIsPositive: true, weight: 15, priority: 4 },
-  { criteria: 'MORAL_INTEGRITY', keywords: ['amnistia', 'anistia', 'prescricao', 'indulto'], simIsPositive: false, weight: 12, priority: 3 },
-  { criteria: 'SOCIAL_RESPONSIBILITY', keywords: ['assistencia social', 'bolsa familia', 'beneficio social', 'populacao em situacao de rua'], simIsPositive: true, weight: 10, priority: 3 },
-  { criteria: 'SOCIAL_RESPONSIBILITY', keywords: ['saude publica', 'sus', 'atendimento a vitimas'], simIsPositive: true, weight: 8, priority: 2 },
-  { criteria: 'RELIGIOUS_FREEDOM', keywords: ['liberdade religiosa', 'liberdade de culto', 'discriminacao religiosa', 'intolerancia religiosa', 'expressao religiosa', 'simbolo religioso', 'perseguicao religiosa'], simIsPositive: true, weight: 20, priority: 5 },
-  { criteria: 'RELIGIOUS_FREEDOM', keywords: ['laicidade', 'ensino religioso', 'crenca', 'assistencia espiritual', 'folga religiosa'], simIsPositive: true, weight: 10, priority: 3 },
-];
-
 // ── Helpers ───────────────────────────────────────────────────────────────────
-function normalize(s: string) {
-  return s.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
-}
-
-function matchRule(text: string): ScanRule | null {
-  const n = normalize(text);
-  for (const rule of SCAN_RULES) {
-    if (rule.keywords.some(kw => n.includes(normalize(kw)))) return rule;
-  }
-  return null;
-}
-
 type VoteType = 'YES' | 'NO' | 'ABSTENTION' | 'OBSTRUCTION' | 'ABSENT';
 
 function toVoteType(voto: string): VoteType {
@@ -131,7 +96,7 @@ async function syncVotesSenado() {
   for (const votacao of votacoes) {
     // Texto pra matching: descrição + ementa + identificação
     const matchText = `${votacao.descricaoVotacao} ${votacao.ementa} ${votacao.identificacao}`;
-    const rule = matchRule(matchText);
+    const rule = matchScanRule(matchText);
     if (!rule) continue;
 
     matched++;
@@ -152,7 +117,11 @@ async function syncVotesSenado() {
           negative_weight: -rule.weight,
           source: 'SENADO',
           source_id: sourceId,
-          keywords: [rule.criteria],
+          // Bug real (2026-09-16): gravava `[rule.criteria]` (o enum), não
+          // as keywords de verdade — impossível reclassificar no futuro e
+          // inconsistente com a Câmara. Agora: keywords reais + versão.
+          keywords: rule.keywords,
+          rules_version: SCAN_RULES_VERSION,
           status: 'ACTIVE',
           priority: rule.priority,
         },
@@ -203,6 +172,30 @@ async function syncVotesSenado() {
   console.log(`   KeyAgendas criadas: ${keyAgendasCreated}`);
   console.log(`   Votos inseridos: ${votesInserted}`);
   console.log(`\n✅ Sincronização de votos do Senado concluída.`);
+
+  // Trilha de auditoria (2026-09-16): mesmo padrão do sync de votos da
+  // Câmara — sem SyncLog, votos do Senado ficavam fora do histórico e o
+  // /last-sync não percebia envelhecimento.
+  await prisma.syncLog.create({
+    data: {
+      sync_type: 'VOTES',
+      source: 'SENADO',
+      status: 'SUCCESS',
+      start_time: new Date(),
+      end_time: new Date(),
+      records_processed: votacoes.length,
+      records_inserted: keyAgendasCreated + votesInserted,
+      records_updated: 0,
+      records_failed: 0,
+      details: {
+        action: 'sync_votes_senado',
+        checked: votacoes.length,
+        matched: matched,
+        agendasCreated: keyAgendasCreated,
+        votesSaved: votesInserted,
+      },
+    },
+  });
 }
 
 syncVotesSenado()
