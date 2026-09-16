@@ -13,7 +13,7 @@ segurança real que não existia nos outros dois.
 
 ---
 
-## 🚦 Mapa de pendências — eleição 2026 (atualizado 14/09)
+## 🚦 Mapa de pendências — eleição 2026 (atualizado 16/09)
 
 > Checklist executável do que falta até o 1º turno (04/10). Alt: guardar
 > este mapa e só ticar aqui. Legenda: 🔴 bloqueador · 🔵 manual (Rilson)
@@ -98,6 +98,11 @@ segurança real que não existia nos outros dois.
       DB** (são suplentes/substitutos que `sync-camara` não traz — o banco tem
       512 deputados vs ~878 ativos na Câmara; questão de escopo dos suplentes,
       não de bug FPE). O fix cobre os 3 que existem mas estavam com flag errada.
+      **✓ APLICADO AO BANCO DE PRODUÇÃO (16/09):** `prisma db push` rodado no
+      VPS (`docker compose -f ~/hetzner-infra/bancada/docker-compose.yml exec
+      bancada-sync-worker pnpm db:push`) — "Your database is now in sync with
+      your Prisma schema" — coluna `KeyAgenda.rules_version` (`default 1.0.0`)
+      criada. FPE segue com `fpe_captured_at` real do 15/09.
 - [ ] Texto da Metodologia sobre party seed
 - [x] **Investigar 125 políticos label congelado "Aguardando Análise"
       (auditado 14/09)** — CONCLUÍDO: não é dado fabricado. O label é o
@@ -109,6 +114,48 @@ segurança real que não existia nos outros dois.
       **curadoria/UX** (~125 na vitrine "aguardando" sem votos), não de
       engenharia. Estado: AGUARDANDO decisão editorial do Rilson sobre
       exibir ou ocultar políticos sem voto.
+
+### ✅ Programas de 16/09 — confiabilidade de dados + UI honesta (FECHADO)
+
+> Resumo executivo dos trabalhos de 16/09. Detalhe por seção em
+> `docs/REPRODUCIBILITY.md` (auditada na mesma data) e nas mensagens dos
+> commits `9eb8b87`, `db73f5d`, `1be2434`, `a0edb05`, `8320a36`.
+
+- [x] **Divergência de média entre endpoints (62,3 × 63,1) eliminada** —
+      `votes/analysis` usava TODOS os scores históricos (inclusive de
+      políticos inativos/duplicados) enquanto `stats/overview` usava só a
+      última nota. Agora a fonte única é `scores.query.ts`
+      (`latestActivePoliticianScores` + `summarizeLatestScores`); os três
+      consumidores (stats/overview, votes/analysis, parties/alignment)
+      fazem as contas sobre o MESMO subconjunto. Teste de regressão
+      (2 scores/político → usa o último) incluído. Commit `9eb8b87`.
+- [x] **SCAN_RULES versionadas (fonte única)** — extraídas pra
+      `scripts/lib/scan-rules.ts` com `SCAN_RULES_VERSION=1.0.0` + helper
+      `matchScanRule`. `sync-votes` (Câmara) e `sync-votes-senado`
+      passaram a usar o mesmo módulo. Bug real no sync do Senado: gravava
+      o ENUM do critério em `keywords` em vez das keywords — corrigido.
+      Commit `db73f5d` + push de schema no banco de produção (16/09).
+- [x] **Freshness por tipo de dado** — `stats.service.ts` `lastSync()`
+      agora expõe `lastSync`/`syncType` (tipo mais antigo, que é o que a
+      UI mostra) + `freshness` (mapa `sync_type → end_time` de cada tipo);
+      `lastSyncAt`/`lastSyncLabel` no front vêm do tipo mais antigo;
+      `LastSyncBadge`/`useLastSync` reescritos; scripts gravam `SyncLog`
+      com tipo `VOTES` ao fim dos syncs de Câmara e Senado. Commit `1be2434`.
+- [x] **FPE com captura real e rastro** — `fpe_captured_at` gravado de
+      verdade, desligados removidos da flag, seed sem data hardcoded,
+      `SyncLog` registra `fpeDropped`/`capturedAt`. Commit `1be2434`.
+- [x] **Custos/qualidade** — `quality_check` casa por
+      `details.action='quality_check'` e compara `totalPoliticians` real.
+      Commit `67d3770`.
+- [x] **UI 100% honesta** — fim de contagem fabricada no perfil
+      (0 honesto + "Sem votos registrados"), card de análise com
+      `withOwnVotes` (nota estimada por partido agora é sinalizada no
+      ranking), Sobre.tsx com dados vivos em vez de hardcode '19+', e
+      `/dados` com tabela dos últimos syncs (SyncHistoryTable). Commit
+      `a0edb05`.
+- [x] **Documentação** — `docs/REPRODUCIBILITY.md` expandida com todos os
+      achados de 15-16/09 (auditoria FPE, quality-check, scores.query,
+      SCAN_RULES, bug do Senado). Commit `8320a36`.
 
 ---
 
@@ -1081,6 +1128,81 @@ processo: `tsc -b` EMITE .js no src/ (ignora `noEmit`) — usar
 `-p <projeto> --noEmit`, não `-b`. Smoke test do deploy.yml continua
 só-API (`/health`): o typecheck no CI cobre a classe do incidente;
 verificação visual headless fica no playbook manual (playbook acima).
+
+---
+
+## 🚨 Incidente 2026-09-16 — produção tela-branca em TODAS as rotas (TDZ do chunk Vite/recharts)
+
+**Sintoma:** usuário relatou "site completamente quebrado". O inspect
+mostrava `Uncaught ReferenceError: Cannot access 'P' before initialization`
+no chunk `vendor-charts-*.js`. O HTML deployado referenciava
+`vendor-charts-cOCpuilr.js` (hash bom), mas o chunk quebrava no boot.
+
+**Como foi achado/bisectado:**
+1. Baixado o chunk deployado e reproduzido o crash localmente (Chromium
+   + Playwright): a app morria em TODAS as rotas, home incluída.
+2. Build do commit `67d3770` (pré-mudança — ponto "antes" mais recente)
+   em worktree do git: **também crashava**. Ou seja, **não foi nenhuma
+   das mudanças de 15-16/09** — o bug entrou antes e foi puxado junto.
+3. Checado o histórico do `vite.config.ts`: o `manualChunks` separava
+   recharts/d3/victory num chunk próprio (`vendor-charts`). Circularidade
+   na ordem de inicialização de módulos ESM dentro desse chunk gerava a
+   TDZ (`P` é um membro de d3/recharts não inicializado) — crash no boot.
+
+**Causa raiz:** separar recharts + d3 + victory em manualChunk próprio
+combinado com ESM circular voices internos do recharts/d3 = acesso a
+let/const antes da inicialização (Temporal Dead Zone). Build verde e
+testes verdes NÃO pegaram (só explode em runtime, e o smoke de deploy só
+era `/health` da API).
+
+**Correção (`9b62b68`):** recharts/d3/victory **fora** do `manualChunks`
+na `vite.config.ts` — o bundle passou a incluir recharts no chunk
+principal. Chunk `vendor-charts` deixou de existir. Build validado com
+Playwright em Chromium: home, /ranking, /comparacao, /votacoes, /grupos,
+/metodologia, /sobre, /contato renderizando com **0 pageerror** e root
+com conteúdo (7864 chars) tanto local quanto em produção após deploy.
+
+**Lição / regra (a integrar no Playbook):** *"manualChunks NÃO isola
+bundle de visualização (recharts/d3/victory) em chunk próprio"* — se
+isolar, exigir teste de boot no browser (Playwright) que carregue a
+home; build+tests CI não cobrem esta classe de bug. Também: smoke test
+de deploy deve considerar um GET do HTML no Vercel ou headless do index
+(melhor que só `/health` da API).
+
+**Pendência documental (honestidade):** a causa raiz acima é a
+explicação mais provável (toda evidência aponta pro manualChunks de
+recharts), mas o crash foi reproduzido SEM o fix de recharts puxado; a
+evidência de que o fix era o admitido é a ausência do erro após remover o
+chunk. Se reaparecer, começar a investigação pelo
+`vendor-charts-*.js` e pela configuração do `manualChunks`.
+
+### 🧵 Achado de UI (mesma sessão 16/09) — botões do modal "Card pra imagem" vazando do dialog
+
+**Sintoma (relato do Rilson):** no modal do "Card pra imagem" (perfil de
+político), os botões "Baixar Card"/"Compartilhar Card" flutuavam por cima
+do conteúdo e não cabiam no tamanho do modal.
+
+**Causa raiz (2 camadas):**
+1. `shareButtons` em `ShareableCard.tsx` tinha `sticky top-0 ... z-10`
+   dentro de um dialog — o sticky criava contexto de stacking e deixava
+   os botões "flutuando" sobre o conteúdo.
+2. Os botões eram `flex-1` lado a lado num dialog `overflow-hidden` com
+   largura `max-w-md` (448px): em viewport estreito (mobile ~360px,
+   dialog full-width) os dois botões não encolhiam abaixo do conteúdo
+   mínimo ("Baixar Card" + "Compartilhar Card" + ícones) e extravasavam
+   o dialog pra fora da tela (medido no Playwright: x=-30 no mobile).
+
+**Correção:** removido `sticky` dos botões; `DialogContent` do
+`PoliticianProfile.tsx` sem `overflow-hidden` (deixa o wrapper interno
+`overflow-y-auto min-h-0` cuidar do scroll); botões empilham em `flex-col`
+no mobile e voltam a `flex-row` a partir de `sm` (`min-w-0` + `truncate`
+nos rótulos pra nunca forçar overflow).
+
+**Verificação (Playwright/Chromium, local build):** 1280px → ambos os
+botões dentro do dialog (448px); 360px → empilhados dentro do dialog
+(360px), `document.documentElement.scrollWidth == 360` (zero overflow
+horizontal), 0 erros de console/pageerror. Suite completa: 142 app + 29
+API verdes.
 
 ---
 

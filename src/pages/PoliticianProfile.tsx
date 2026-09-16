@@ -226,11 +226,11 @@ export function PoliticianProfile() {
                         Card pra imagem
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-4 sm:p-6 overflow-hidden">
+                    <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-4 sm:p-6">
                       <DialogHeader className="shrink-0 pb-2 border-b border-border">
                         <DialogTitle className="text-lg font-bold">Card de {politician.name}</DialogTitle>
                       </DialogHeader>
-                      <div className="overflow-y-auto max-h-[calc(90vh-120px)] py-4 flex justify-center">
+                      <div className="overflow-y-auto min-h-0 py-4 flex justify-center">
                         <ShareableCard politician={politician} type="summary" />
                       </div>
                     </DialogContent>
