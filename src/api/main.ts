@@ -5,8 +5,11 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { apiReference } from '@scalar/nestjs-api-reference';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
+import { initSentry, setupSentryErrorHandler } from './common/sentry';
 
 async function bootstrap() {
+  initSentry();
+
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule, { logger: ['error', 'warn', 'log'] });
 
@@ -62,6 +65,10 @@ async function bootstrap() {
   );
 
   const port = process.env.PORT ?? 3001;
+
+  // Guarda 500 extra do Sentry como último middleware (CEPT2-9)
+  setupSentryErrorHandler(app);
+
   await app.listen(port);
 
   logger.log(`🚀 NestJS API rodando em http://localhost:${port}`);

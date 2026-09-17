@@ -1,6 +1,8 @@
-import { usePageMeta } from '@/hooks/usePageMeta';
-import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { usePageMeta } from '@/hooks/usePageMeta';
+import { useEstimatedScores } from '@/hooks/useEstimatedScores';
+import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -28,6 +30,91 @@ import {
   Target,
   Activity
 } from 'lucide-react';
+
+function EstimatedScoresPanel() {
+  const { data, isPending, isError } = useEstimatedScores();
+
+  if (isPending) {
+    return (
+      <div className="space-y-3" aria-busy="true">
+        <Skeleton className="h-4 w-2/3" />
+        <Skeleton className="h-4 w-1/2" />
+        <Skeleton className="h-4 w-3/4" />
+      </div>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <div className="flex items-start gap-2 text-amber-700">
+        <AlertCircle className="h-4 w-4 mt-0.5" />
+        <p>
+          Não foi possível carregar a lista agora. Os números desta seção
+          vêm da API (<code className="text-xs bg-muted px-1 py-0.5 rounded">/api/stats/estimated-scores</code>) — tente novamente em instantes.
+        </p>
+      </div>
+    );
+  }
+
+  const estimated = data.estimated ?? [];
+  const shown = estimated.slice(0, 15);
+  const hidden = estimated.length - shown.length;
+
+  return (
+    <div className="space-y-5">
+      <div className="grid sm:grid-cols-3 gap-3">
+        <Card className="p-4 text-center">
+          <div className="text-2xl font-bold text-foreground">{data.totalPoliticians}</div>
+          <div className="text-xs text-muted-foreground">políticos ativos</div>
+        </Card>
+        <Card className="p-4 text-center">
+          <div className="text-2xl font-bold text-foreground">{data.withOwnVotes}</div>
+          <div className="text-xs text-muted-foreground">com voto próprio</div>
+        </Card>
+        <Card className="p-4 text-center">
+          <div className="text-2xl font-bold text-foreground">{estimated.length}</div>
+          <div className="text-xs text-muted-foreground">com nota estimada</div>
+        </Card>
+      </div>
+
+      {estimated.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          Hoje nenhum político está com nota estimada — todos já têm voto próprio registrado.
+        </p>
+      ) : (
+        <>
+          <p className="text-sm text-muted-foreground">
+            <strong className="text-foreground">{estimated.length} de {data.totalPoliticians}</strong>{' '}
+            políticos ativos ainda não têm voto próprio — a nota exibida é a média histórica do partido, não resultado de votação individual. A lista atualiza a cada sincronização.
+          </p>
+          <ul className="divide-y divide-border rounded-lg border">
+            {shown.map(p => (
+              <li key={p.id} className="flex items-center justify-between gap-2 px-3 py-2">
+                <a
+                  href={`/politicos/${p.id}`}
+                  className="flex-1 min-w-0 truncate hover:text-primary transition-colors"
+                >
+                  {p.name}
+                </a>
+                <span className="text-xs text-muted-foreground shrink-0">
+                  {p.currentParty} · {p.currentState}
+                </span>
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-slate-100 text-slate-700 border border-slate-200 shrink-0">
+                  estimada
+                </span>
+              </li>
+            ))}
+          </ul>
+          {hidden > 0 && (
+            <p className="text-sm text-muted-foreground">
+              …e mais {hidden} {hidden === 1 ? 'político' : 'políticos'} com nota estimada. Veja o ranking filtrando por "Nota estimada por partido".
+            </p>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
 
 const MetodologiaPage = () => {
   usePageMeta("Metodologia Oficial | A Bancada Evangélica", "Entenda em detalhes como é calculado o score dos 5 critérios baseados em votos nominais públicos.");
@@ -612,6 +699,28 @@ const MetodologiaPage = () => {
                 <p className="text-sm text-muted-foreground">
                   Reauditoria contínua (15/09/2026): a marcação neste site espelha a lista oficial vigente da frente 54477 (Câmara) e da composição do colegiado no Senado (codcol 2583). Como o cadastro de políticos é alimentado pelos perfis de mandato ativo, alguns <strong className="text-foreground">suplentes relacionados na lista oficial</strong> ainda não têm perfil aqui — a diferença entre a contagem oficial e a do site é de suplentes/substitutos fora do exercício, não de omissão de quem está registrado. Cada perfil marcado exibe a <strong className="text-foreground">data da última captura</strong> da filiação, e a sincronização diária atualiza os flags automaticamente.
                 </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Estimated Scores Section — CEPT2-7 (2026-09-16): viva via API */}
+      <section className="py-16 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="font-serif text-3xl font-bold text-foreground mb-4">
+                Quem tem nota estimada hoje?
+              </h2>
+              <p className="text-lg text-muted-foreground">
+                Políticos que ainda não têm voto próprio registrado recebem a estimativa pela média do partido — sempre sinalizada. Esta lista é ao vivo, direto da API.
+              </p>
+            </div>
+
+            <Card className="card-elevated">
+              <CardContent className="text-sm space-y-4">
+                <EstimatedScoresPanel />
               </CardContent>
             </Card>
           </div>

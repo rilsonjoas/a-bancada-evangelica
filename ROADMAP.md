@@ -164,14 +164,14 @@ segurança real que não existia nos outros dois.
 > 9 · Confiabilidade 6,5 · Entendimento 7**. O usuário deve entender SEMPRE
 > o que o site mostra, sem precisar do ROADMAP pra isso.
 
-**Diagnóstico completo (baseline 16/09):**
+**Diagnóstico completo (baseline 16/09, atualizado 16/09 após o lote):**
 
-| Dimensão | Nota | Motivo | Falta pra 10 |
-|---|---|---|---|
-| Coerência interna | 9 | 63,1 bate nos endpoints, fonte única em `scores.query.ts` | Contagem FPE 225 ≠ 232 (suplentes ausentes) precisa ser explicada NO SITE, não só no ROADMAP |
-| Dados verdadeiros | 9 | Zero fabricado, guard no CI, auditorias runtime | Badge "Aderência X" era exibido para políticos com 0 votos (ex.: Alan Rick mostrava "Aderência muito alta" com 0 votos) |
-| Confiabilidade | 6,5 | 2 telas-brancas (23/08 e 16/09) passaram por build+testes verdes; Sentry pausado; Uptime Kuma 2/7 monitores | Smoke test de boot no CI/browser; monitors Uptime Kuma completos; Sentry (decisão) |
-| Entendimento do usuário | 7 | Badge estimado existia, mas textos de entrada do site (home) diziam "notas exclusivamente de votos" — contradiz os 91 políticos com nota estimada | Frases da home/sobre coerentes; "Aguardando Análise" explicado ou eliminado; licença explícita |
+| Dimensão | Inicial | Após lote | Motivo | Falta pra 10 |
+|---|---|---|---|---|
+| Coerência interna | 9 | 10 | Fonte única em `scores.query.ts` (63,1 bate); FPE explicado no site (suplentes) | — |
+| Dados verdadeiros | 9 | 10 | Zero fabricado; badge honesto "Nota estimada por partido" com 0 votos (Alan Rick não mostra mais "Aderência muito alta"); label "Aguardando Análise" eliminado dos syncs | — |
+| Confiabilidade | 6,5 | 9 | Smoke test de boot no CI (pegaria Telas Brancas); Sentry integrado (rápido no VPS) | DSN do Sentry no VPS; monitores Uptime Kuma 7/7 (Rilson) |
+| Entendimento do usuário | 7 | 9,5 | Home/sobre coerentes; Metodologia explica estimativa + FPE + aba viva de estimados; licença MIT | Revalidar frases restantes em auditoria de leitura |
 
 **Itens do plano (checklist executável):**
 
@@ -187,35 +187,54 @@ segurança real que não existia nos outros dois.
       mostrava `licenseInfo: null`; README declarava MIT mas o arquivo
       não existia — sem arquivo, a licença não vale). Agora público +
       licenciado.
-- [ ] **CEPT2-4 · Home/hero fala a verdade** — `Ranking.tsx(:264)` diz
+- [x] **CEPT2-4 · Home/hero fala a verdade** — `Ranking.tsx(:264)` dizia
       "Notas calculadas exclusivamente a partir de votos nominais…
       o voto registrado é o único dado", mas ~91 políticos têm nota
-      estimada por partido. Reformular para incluir a estimativa SEM
-      perder a força da mensagem. (⚙️ agente)
-- [ ] **CEPT2-5 · FPE no site** — a página Metodologia/Grupos deve dizer
-      "a marcação FPE espelha a fonte oficial; X dos 232 membros da Câmara
-      estão no cadastro (restam suplentes n~o trazidos pelo sync)" — hoje a
-      contagem 225×232 só é explicada no ROADMAP. (⚙️ agente)
-- [ ] **CEPT2-6 · Smoke test de boot no CI** — Playwright/Chromium que
-      carrega as rotas principais e falha se houver pageerror (teria
-      pegado o TDZ do recharts). Ligado no ci.yml. (⚙️ agente)
-- [ ] **CEPT2-7 · Aba de estimativas na Metodologia** — seção curta
-      listando "quem tem nota estimada hoje" (vivo, via API) pra qualquer
-      um conferir. (⚙️ agente)
-- [ ] **CEPT2-8 · "Aguardando Análise" fora da UI** — o label existe nos
-      syncs (`performance_label`) mas não é explicado; o front já não o
-      exibe (usa os helpers de performance ≥ CEPT2-1). Decisão editorial do
-      Rilson: eliminar o label dos syncs (virar a estimativa direto) OU
-      manter interno sem UI. (🔵 Rilson + ⚙️)
-- [ ] **CEPT2-9 · Sentry** — ativar 1 sessão de avaliação vs manter pausado
-      (reconfirmado pausado em 15/09). Recomendação: ativar — é a classe
-      de bug (tela branca) que build+tests não pegam. (🟠 decisão Rilson)
+      estimada por partido. Reformulado SEM perder a força da mensagem:
+      "Notas calculadas a partir de votos nominais públicos… Quem ainda
+      não votou recebe estimativa pelo histórico do partido, sempre
+      sinalizada no perfil." Validado em prod. (⚙️ agente)
+- [x] **CEPT2-5 · FPE no site** — página Metodologia agora tem seção
+      "Reauditoria contínua (15/09/2026)": a marcação espelha a lista
+      oficial da frente 54477 (Câmara) e codcol 2583 (Senado); suplentes
+      relacionados na lista oficial podem ainda não ter perfil no site
+      (diferença é de suplentes fora do exercício, não omissão). Validado
+      em prod. (⚙️ agente)
+- [x] **CEPT2-6 · Smoke test de boot no CI** — `e2e/boot-smoke.spec.ts`:
+      Playwright/Chromium carrega home + metodologia/comparacao/grupos/sobre
+      contra o BUILD local (vite preview) e falha se houver pageerror (teria
+      pegado o TDZ do recharts). Novo job `boot-smoke` no ci.yml, após
+      `pnpm build`. Validado localmente: 2 specs verdes. (⚙️ agente)
+- [x] **CEPT2-7 · Aba de estimativas na Metodologia** — seção viva
+      "Quem tem nota estimada hoje?" via novo endpoint
+      `GET /api/stats/estimated-scores` (mesma fonte única
+      `latestActivePoliticianScores`); painel com contadores (ativos × com
+      voto × estimados) e lista nominal (15 + resumo), linkando ao perfil.
+      Hook `useEstimatedScores` + 2 novos testes de API (31 total).
+      Estado de erro honesto quando a API não responde. (⚙️ agente)
+- [x] **CEPT2-8 · "Aguardando Análise" fora da UI** — decisão do Rilson
+      (a): ELIMINAR o label dos syncs (2026-09-16). `sync-camara` e
+      `sync-senado` agora gravam `performance_label = 'Nota estimada por
+      partido'` com descrição honesta ("Sem voto próprio registrado, a
+      nota é a média histórica de aderência do partido…") — o político sem
+      voto vira estimativa direto, coerente com os helpers do front.
+- [x] **CEPT2-9 · Sentry** — decisão do Rilson: ATIVAR (2026-09-16).
+      `src/api/common/sentry.ts`: init condicionado a `SENTRY_DSN` (sem o
+      DSN, inerte — zero custo; dev/testes intactos), `captureException` no
+      `AllExceptionsFilter` (500+), `setupExpressErrorHandler` como último
+      middleware, traces 10%. Pendencias: Rilson preenche SENTRY_DSN no VPS
+      (e SENTRY_RELEASE opcional) e reinicia o serviço — antes disso nada
+      é enviado. `.env.example` documentado.
 - [ ] **CEPT2-10 · Uptime Kuma** — criar os 5 monitores faltantes
       (`SCORES`, `CURATION_QUEUE`, raiz do front, `/health` API, pautas)
-      para ter 7/7. (🔵 Rilson, login da UI)
-- [ ] **CEPT2-11 · Nota no csv/hashes** — após CEPT2-4/5/8, conferir se o
-      CSV acessível em `/dados` continua coerente com a história contada
-      (hashes de referência em REPRODUCIBILITY §11). (⚙️ + verificação)
+      para ter 7/7. Rilson disse que já tem alguns monitores e pode ativar
+      o resto (2026-09-16). (🔵 Rilson, login da UI)
+- [x] **CEPT2-11 · Nota no csv/hashes** — conferido em prod (2026-09-16):
+      CSV do ranking (`/api/politicians/export/csv`) é numérico puro — não
+      expõe `performance_label`, nada incoerente após o label honesto;
+      CSV de votos (`export/votes/csv`) com `X-Content-SHA256` íntegro
+      (hash do header === sha256sum local). REPRODUCIBILITY §11 sem
+      divergência.
 
 ---
 

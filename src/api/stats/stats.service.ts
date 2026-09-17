@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { latestActivePoliticianScores, summarizeLatestScores } from '../scores/scores.query';
+import {
+  latestActivePoliticianScores,
+  summarizeLatestScores,
+  isEstimatedScore,
+} from '../scores/scores.query';
 
 @Injectable()
 export class StatsService {
@@ -38,6 +42,36 @@ export class StatsService {
         camara: houseStats.find(s => s.current_house === 'CAMARA')?._count ?? 0,
         senado: houseStats.find(s => s.current_house === 'SENADO')?._count ?? 0,
       },
+    };
+  }
+
+  /**
+   * CEPT2-7 (2026-09-16): quem tem "nota estimada por partido" hoje.
+   * Mesma fonte única de notas (latestActivePoliticianScores) — nunca uma
+   * query paralela. Permite à Metodologia listar, vivo, quantos e quais
+   * políticos ainda não têm voto próprio registrado.
+   */
+  async estimatedScores() {
+    const actives = await latestActivePoliticianScores(this.prisma);
+    const summary = summarizeLatestScores(actives);
+
+    const estimated = actives
+      .filter(p => isEstimatedScore(p.score))
+      .map(p => ({
+        id: p.id,
+        name: p.name,
+        currentParty: p.currentParty,
+        currentState: p.currentState,
+        currentHouse: p.currentHouse,
+        estimatedScore: p.score?.overall_score ?? null,
+      }));
+
+    return {
+      totalPoliticians: actives.length,
+      withOwnVotes: summary.withOwnVotes,
+      estimatedCount: estimated.length,
+      averageScore: summary.averageScore,
+      estimated,
     };
   }
 

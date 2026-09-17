@@ -7,6 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { captureException } from '../sentry';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -29,6 +30,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     if (status >= 500) {
       this.logger.error(`${request.method} ${request.url} → ${status}`, exception);
+      captureException(exception);
     }
 
     response.status(status).json({ error: message, statusCode: status });

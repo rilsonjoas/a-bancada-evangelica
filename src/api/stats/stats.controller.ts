@@ -13,6 +13,12 @@ export class StatsController {
     return this.stats.overview();
   }
 
+  @Get('estimated-scores')
+  @ApiOperation({ summary: 'Políticos com nota estimada por partido (sem voto próprio registrado) — CEPT2-7' })
+  estimatedScores() {
+    return this.stats.estimatedScores();
+  }
+
   @Get('last-sync')
   @ApiOperation({ summary: 'Data/hora da última sincronização bem-sucedida' })
   lastSync() {

@@ -427,8 +427,8 @@ const senadorCompleto = {
           religious_freedom: 60,
           overall_score: 58, // Média ponderada inicial
           performance_level: 'AVERAGE',
-          performance_label: 'Aguardando Análise',
-          performance_description: 'Político recém-adicionado, aguardando coleta de dados de votação'
+          performance_label: 'Nota estimada por partido',
+          performance_description: 'Sem voto próprio registrado, a nota é a média histórica de aderência do partido — pode não refletir as escolhas individuais do parlamentar'
         }
       });
     }

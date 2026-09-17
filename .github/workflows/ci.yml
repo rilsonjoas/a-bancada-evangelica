@@ -59,6 +59,51 @@ jobs:
           fi
           echo "Sem fallbacks fabricados — OK."
 
+  boot-smoke:
+    name: Smoke test de boot (browser)
+    needs: lint-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build frontend (produção)
+        run: pnpm build
+
+      - name: Install Playwright (Chromium)
+        run: npx playwright install chromium --with-deps
+
+      - name: Sobe o preview do build
+        run: |
+          pnpm preview --port 4173 > /tmp/preview.log 2>&1 &
+          PID=$!
+          for i in $(seq 1 30); do
+            if curl -s -o /dev/null http://localhost:4173/; then break; fi
+            sleep 1
+          done
+          echo "preview pid=$PID"
+        env:
+          # IA: sem DB real — o preview do SPA serve o HTML estático; os
+          # erros de runtime (ex.: TDZ do recharts) aparecem no browser
+          # mesmo sem a API. É exatamente isso que o smoke test quer pegar.
+          VITE_API_URL: http://localhost:4173/api-none
+
+      - name: Roda o smoke test de boot
+        run: npx playwright test e2e/boot-smoke.spec.ts --config=playwright.config.ts
+        env:
+          E2E_BOOT_URL: http://localhost:4173
+
   docker-api:
     name: Build & Push API
     needs: lint-test
