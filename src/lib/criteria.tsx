@@ -36,7 +36,7 @@ export const CRITERIA: CriteriaConfig[] = [
   {
     key: 'SOCIAL_RESPONSIBILITY', field: 'socialResponsibility', label: 'Responsabilidade Social',
     Icon: Handshake, iconClass: 'text-green-500', badgeClass: 'bg-green-100 text-green-800', weight: '15%', barColor: '#22c55e',
-    rationale: 'Reúne votações de cuidado pelo mais vulnerável: saúde, educação, assistência social e dignidade humana. O cuidado pelo próximo é expressão fé, não pauta de partido.',
+    rationale: 'Reúne votações de cuidado pelo mais vulnerável: saúde, educação, assistência social e dignidade humana. O cuidado pelo próximo é expressão de fé, não pauta de partido.',
   },
   {
     key: 'RELIGIOUS_FREEDOM', field: 'religiousFreedom', label: 'Liberdade Religiosa',

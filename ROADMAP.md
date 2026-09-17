@@ -171,7 +171,7 @@ segurança real que não existia nos outros dois.
 | Coerência interna | 9 | 10 | Fonte única em `scores.query.ts` (63,1 bate); FPE explicado no site (suplentes) | — |
 | Dados verdadeiros | 9 | 10 | Zero fabricado; badge honesto "Nota estimada por partido" com 0 votos (Alan Rick não mostra mais "Aderência muito alta"); label "Aguardando Análise" eliminado dos syncs | — |
 | Confiabilidade | 6,5 | 10 | Smoke test de boot no CI (pegaria Telas Brancas); **Sentry ATIVO no VPS** (17/09, log "Sentry ativo (env=production)"); push monitors prioritários (`SCORES`, `CURATION_QUEUE`) respondendo `{"ok":true}` | — |
-| Entendimento do usuário | 7 | 9,5 | Home/sobre coerentes; Metodologia explica estimativa + FPE + aba viva de estimados; licença MIT | Revalidar frases restantes em auditoria de leitura |
+| Entendimento do usuário | 7 | 10 | Home/sobre coerentes; Metodologia explica estimativa + FPE + aba viva de estimados; licença MIT; auditoria de leitura completa (12/09–17/09): frases literais, jargão técnico, prazos unificados (15 dias), tooltips de 'Aderência'/'Consistência', distinção AUSENTE/ABSTENÇÃO, CTA de doação sem 'Ministério' | — |
 
 **Itens do plano (checklist executável):**
 

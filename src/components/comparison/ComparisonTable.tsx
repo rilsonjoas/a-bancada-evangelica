@@ -92,7 +92,7 @@ export function ComparisonTable({ politicians }: ComparisonTableProps) {
               <td key={politician.id} className="text-center p-4">
                 <div className="flex flex-col items-center gap-1">
                   <div className={`text-lg ${getScoreColor(politician.currentScore?.overall || 0)}`}>
-                    {politician.currentScore?.overall != null ? fmt(politician.currentScore.overall) : '0,0'}
+                    {politician.currentScore?.overall != null ? fmt(politician.currentScore.overall) : '—'}
                   </div>
                   <Badge variant="outline" className="text-xs">
                     {getPerformanceLabel(politician.currentScore?.performanceLevel, politician.currentScore?.totalVotes)}

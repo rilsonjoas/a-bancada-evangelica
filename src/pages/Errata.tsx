@@ -238,7 +238,7 @@ export function Errata() {
                   <span className="text-muted-foreground">Envie o link do diário da Câmara, Senado ou TSE que comprova a divergência.</span>
                 </div>
                 <div className="p-3 rounded-lg bg-muted/40 border border-border/60">
-                  <strong className="text-foreground block font-medium mb-1">2. Análise em até 48h úteis</strong>
+                  <strong className="text-foreground block font-medium mb-1">2. Análise em até 15 dias</strong>
                   <span className="text-muted-foreground">Revisamos o banco de dados e recalculamos a pontuação se a divergência for confirmada.</span>
                 </div>
                 <div className="p-3 rounded-lg bg-muted/40 border border-border/60">

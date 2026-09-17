@@ -258,7 +258,7 @@ sha256sum bancada-evangelica-votacoes.csv
         <div className="space-y-2 pt-4 border-t border-border text-sm">
           <h2 className="font-semibold text-base text-foreground">Como citar esses dados</h2>
           <p className="leading-relaxed">
-            A Bancada Evangélica{location.pathname}. Acesso em {today}. Dados
+            A Bancada Evangélica — Dados Abertos. Acesso em {today}. Dados
             provenientes de votações nominais públicas da Câmara dos Deputados e do
             Senado Federal. Para detalhes de cálculo, consulte a{' '}
             <a href="/metodologia" className="underline hover:text-primary transition-colors">Metodologia</a>.

@@ -68,7 +68,8 @@ describe("PoliticianCard", () => {
 
   it("renders the consistency percentage", () => {
     renderWithRouter(<PoliticianCard politician={mockPolitician} />);
-    expect(screen.getByText("85% consistência")).toBeInTheDocument();
+    expect(screen.getByText(/85%/)).toBeInTheDocument();
+    expect(screen.getByText("consistência")).toBeInTheDocument();
   });
 
   it("renders house badge", () => {

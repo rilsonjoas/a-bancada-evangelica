@@ -14,6 +14,7 @@ export const POLITICAL_GLOSSARY: Record<string, string> = {
   notaGeral: "Pontuação de 0 a 100 baseada na aderência dos votos registrados às 5 pautas da metodologia. Não avalia a pessoa, fé ou caráter.",
   notaEstimada: "Quando o parlamentar esteve ausente ou participou de poucas votações classificadas, a nota é estimativa pela média histórica do partido.",
   consistência: "Percentual de votações presenciais onde o parlamentar manteve o posicionamento em relação à sua média geral.",
+  aderência: "Medida de quanto os votos registrados do parlamentar acompanham os critérios da metodologia. Quanto maior, mais próximo do padrão considerado alinhado.",
 };
 
 export const PoliticalTooltip: React.FC<PoliticalTooltipProps> = ({ term, explanation, className = "" }) => {

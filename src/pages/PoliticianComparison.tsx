@@ -271,7 +271,7 @@ export function PoliticianComparison() {
                       {[
                         { key: 'lifeProtection', label: 'Proteção à Vida' },
                         { key: 'familyValues', label: '👨‍👩‍👧‍👦 Valores Familiares' },
-                        { key: 'moralIntegrity', label: 'Integridade Moral Moral' },
+                        { key: 'moralIntegrity', label: 'Integridade Moral' },
                         { key: 'socialResponsibility', label: '🤝 Responsabilidade Social' },
                         { key: 'religiousFreedom', label: 'Liberdade Religiosa' }
                       ].map(criterion => {

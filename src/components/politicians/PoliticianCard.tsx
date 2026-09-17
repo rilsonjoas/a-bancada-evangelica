@@ -114,6 +114,9 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
               >
                 {performanceBadge.label}
               </Badge>
+              {politician.scores.totalVotes != null && politician.scores.totalVotes > 0 && (
+                <PoliticalTooltip term="O que significa?" explanation={POLITICAL_GLOSSARY.aderência} className="text-[10px]" />
+              )}
               {politician.isFpeMember && (
                 <FpeTierChip
                   tier={politician.fpe?.tier}
@@ -154,7 +157,7 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
                 <div className="text-xs sm:text-sm font-bold text-foreground">
                   {formatScore(politician.scores.religiousFreedom)}
                 </div>
-                <div className="text-[10px] font-medium leading-tight text-muted-foreground">Religião</div>
+                <div className="text-[10px] font-medium leading-tight text-muted-foreground">Liberdade Relig.</div>
               </div>
             </div>
 
@@ -173,9 +176,13 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
                     antigo vinha de um fallback do sync-worker antigo que
                     preservava lixo (100%) no banco */}
                 <span>
-                  {politician.scores.totalVotes > 0
-                    ? `${formatConsistency(politician.scores.consistencyScore)} consistência`
-                    : 'sem votações registradas'}
+                  {politician.scores.totalVotes > 0 ? (
+                    <>
+                      {formatConsistency(politician.scores.consistencyScore)} <PoliticalTooltip term="consistência" explanation={POLITICAL_GLOSSARY.consistência} />
+                    </>
+                  ) : (
+                    'sem votações registradas'
+                  )}
                 </span>
               </div>
               {politician.scores.totalVotes > 0 && (

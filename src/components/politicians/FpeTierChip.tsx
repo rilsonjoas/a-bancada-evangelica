@@ -19,7 +19,7 @@ const TIER_LABEL: Record<string, string> = {
 
 const TIER_DESC: Record<string, string> = {
   REGISTRADO: 'Integrante confirmado na lista oficial da Frente Parlamentar Evangélica.',
-  AUTODECLARADO: 'Filho auto-declarado integrante da bancada, sem confirmação em lista oficial.',
+  AUTODECLARADO: 'Filiado auto-declarado integrante da bancada, sem confirmação em lista oficial.',
   IMPRENSA: 'Identificado pela imprensa como integrante, sem confirmação oficial própria.',
 };
 

@@ -192,7 +192,7 @@ export function KeyAgendaCard({ agenda }: KeyAgendaCardProps) {
                 ) : (
                   <>
                     <Users className="w-4 h-4 mr-1.5" />
-                    Ver como cada deputado votou nesta pauta ({agenda.totalVotes})
+                    Ver como cada parlamentar votou nesta pauta ({agenda.totalVotes})
                   </>
                 )}
               </Button>
@@ -205,7 +205,7 @@ export function KeyAgendaCard({ agenda }: KeyAgendaCardProps) {
                   <div className="relative flex-1">
                     <Search className="w-4 h-4 absolute left-3 top-2.5 text-muted-foreground" />
                     <Input
-                      placeholder="Buscar por deputado, partido ou estado (ex: SP)..."
+                      placeholder="Buscar por parlamentar, partido ou estado (ex: SP)..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="pl-9 text-xs h-9 bg-background"
@@ -287,10 +287,12 @@ export function KeyAgendaCard({ agenda }: KeyAgendaCardProps) {
                                 ? "bg-emerald-100 text-emerald-800 border-emerald-300"
                                 : isNao
                                 ? "bg-rose-100 text-rose-800 border-rose-300"
+                                : (v.voteType as string) === "ABSENT"
+                                ? "bg-slate-100 text-slate-600 border-slate-300"
                                 : "bg-amber-100 text-amber-800 border-amber-300"
                             }`}
                           >
-                            {isSim ? "VOTOU SIM" : isNao ? "VOTOU NÃO" : "ABSTENÇÃO"}
+                            {isSim ? "VOTOU SIM" : isNao ? "VOTOU NÃO" : (v.voteType as string) === "ABSENT" ? "AUSENTE" : "ABSTENÇÃO"}
                           </Badge>
                         </div>
                       );

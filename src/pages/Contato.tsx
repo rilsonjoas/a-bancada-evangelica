@@ -66,7 +66,7 @@ const ContatoPage = () => {
     },
     {
       question: "Como posso contestar uma avaliação?",
-      answer: "Entre em contato conosco apresentando documentação que comprove inconsistências. Temos um processo rigoroso de revisão para correções."
+      answer: "Entre em contato apresentando documentação que comprove a inconsistência. Analisamos em até 15 dias e publicamos a correção na Errata pública, com data e motivo."
     },
     {
       question: "O projeto tem ligação com partidos políticos?",
@@ -78,7 +78,7 @@ const ContatoPage = () => {
     },
     {
       question: "Como garantem a imparcialidade das avaliações?",
-      answer: "Nossa metodologia é transparente, baseada em critérios objetivos e revisada por uma equipe multidisciplinar de cristãos comprometidos com a verdade."
+      answer: "Nossa metodologia é pública e baseada em critérios objetivos, todos detalhados na página de Metodologia. O projeto é independente, sem vínculo partidário, e qualquer pessoa pode verificar o código e os dados."
     }
   ];
 
@@ -135,7 +135,7 @@ const ContatoPage = () => {
                     </div>
                     <div>
                       <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
-                        Email *
+                        E-mail *
                       </label>
                       <Input
                         id="email"
@@ -189,7 +189,7 @@ const ContatoPage = () => {
                   </Button>
                   
                   <p className="text-xs text-muted-foreground text-center">
-                    Responderemos em até 48 horas úteis. Todos os campos são obrigatórios.
+                    Responderemos em até 15 dias. Todos os campos são obrigatórios.
                   </p>
                 </form>
               </CardContent>
@@ -210,7 +210,7 @@ const ContatoPage = () => {
                       <Mail className="h-4 w-4 text-primary" />
                     </div>
                     <div>
-                      <h4 className="font-sans text-sm font-bold text-foreground">Email Principal</h4>
+                      <h4 className="font-sans text-sm font-bold text-foreground">E-mail Principal</h4>
                       <a
                         href="mailto:abancada@narniano.com"
                         className="text-sm text-muted-foreground hover:text-primary transition-colors"
@@ -294,11 +294,11 @@ const ContatoPage = () => {
           <div className="max-w-4xl mx-auto">
             <BookOpen className="h-12 w-12 text-primary mx-auto mb-6" />
             <h2 className="font-serif text-3xl font-bold text-foreground mb-4">
-              Fortaleça este Ministério
+              Apoie a transparência parlamentar
             </h2>
             <p className="text-lg text-muted-foreground leading-relaxed mb-8">
-              Compartilhe nosso trabalho, ore por nossa missão e ajude a construir 
-              um Brasil com líderes íntegros e compromissados com os valores do Reino.
+              Compartilhe nosso trabalho e ajude a construir um Brasil com líderes
+              íntegros e compromissados com o bem público.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
               <Button

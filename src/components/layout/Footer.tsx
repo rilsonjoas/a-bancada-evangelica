@@ -81,7 +81,7 @@ const Footer: React.FC = () => {
               </li>
               <li>
                 <Link to="/comparacao" className="text-slate-300 hover:text-white transition-colors">
-                  Comparador de Votações
+                  Comparação
                 </Link>
               </li>
               <li>
@@ -91,7 +91,7 @@ const Footer: React.FC = () => {
               </li>
               <li>
                 <Link to="/grupos" className="text-slate-300 hover:text-white transition-colors">
-                  Grupos de Votação (KMeans)
+                  Grupos de Votação
                 </Link>
               </li>
             </ul>
@@ -166,7 +166,7 @@ const Footer: React.FC = () => {
                   rel="noopener noreferrer"
                   className="text-slate-300 hover:text-white transition-colors inline-flex items-center gap-1"
                 >
-                  TSE Receitas <ExternalLink className="h-3 w-3 text-slate-500" />
+                  DivulgaCandContas (TSE) <ExternalLink className="h-3 w-3 text-slate-500" />
                 </a>
               </li>
             </ul>

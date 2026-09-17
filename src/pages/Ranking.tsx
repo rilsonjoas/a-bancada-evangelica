@@ -261,14 +261,14 @@ const RankingPage = () => {
               </h1>
 
               <p className="text-base sm:text-lg text-primary-foreground/90 leading-relaxed max-w-xl">
-                Notas calculadas a partir de <strong>votos nominais públicos</strong> na Câmara e no Senado. Sem simpatia — o voto registrado é o único dado. Quem ainda não votou recebe <strong>estimativa pelo histórico do partido</strong>, sempre sinalizada no perfil.
+                Notas calculadas a partir de <strong>votos nominais públicos</strong> na Câmara e no Senado, sem qualquer avaliação pessoal ou partidária. Quem ainda não votou recebe <strong>estimativa pelo histórico do partido</strong>, sempre sinalizada no perfil.
               </p>
 
               {/* Três passos compactos */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
                 {[
-                  "1. Voto nominal em ata",
-                  "2. 5 Critérios objetivos",
+                  "1. Voto registrado em plenário",
+                  "2. 5 critérios objetivos",
                   "3. Dados 100% públicos",
                 ].map((passo, i) => (
                   <div key={i} className="bg-white/10 rounded-lg px-3 py-2 text-xs font-medium text-white/90 border border-white/10 flex items-center gap-2">
@@ -297,7 +297,7 @@ const RankingPage = () => {
             <div className="lg:col-span-5">
               <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/15 shadow-2xl space-y-4">
                 <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                  <span className="text-xs font-bold uppercase tracking-wider text-amber-400">PAINEL AO VIVO</span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-amber-400">Atualizado por sincronização dos dados públicos</span>
                   <span className="text-[11px] text-white/70">Congresso Nacional</span>
                 </div>
 

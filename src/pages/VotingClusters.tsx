@@ -175,7 +175,7 @@ function PartyAlignmentChart() {
         <p className="text-sm text-muted-foreground">
           {isError
             ? 'Serviço indisponível'
-            : 'Dados de pontuação ainda não calculados. Execute os scripts de sincronização primeiro.'}
+            : 'Os dados de alinhamento ainda não estão disponíveis.'}
         </p>
       </div>
     );
@@ -258,9 +258,9 @@ export default function VotingClusters() {
           </div>
           <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">Grupos de Votação</h1>
           <p className="text-muted-foreground max-w-3xl mb-3 leading-relaxed">
-            Quando organizamos os parlamentares pelo jeito que eles votam — sem olhar partido nem religião —
-            surgem <strong>grupos naturais</strong>: deputados e senadores que votam juntos, tema a tema. É uma radiografia
-            do comportamento real de voto, além dos rótulos de campanha.
+            Agrupamos os parlamentares pelo padrão real das votações, sem considerar partido ou religião.
+            O resultado são <strong>grupos de votação</strong>: deputados e senadores que costumam votar juntos,
+            tema a tema — uma visão estatística do comportamento registrado, não uma opinião sobre cada um.
           </p>
           {/* Nota técnica para quem quiser profundidade */}
           <details className="max-w-3xl text-sm text-muted-foreground">
@@ -313,7 +313,7 @@ export default function VotingClusters() {
             <AlertCircle className="w-8 h-8 text-muted-foreground" />
             <p className="font-semibold text-foreground">Agrupamento indisponível</p>
             <p className="text-sm text-muted-foreground max-w-sm">
-              A análise de clusters KMeans requer um serviço Python separado que ainda está sendo implantado.
+              A análise de grupos de votação está temporariamente indisponível.
               Os dados de alinhamento por partido acima estão disponíveis normalmente.
             </p>
           </div>
