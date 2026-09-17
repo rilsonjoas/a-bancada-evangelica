@@ -218,17 +218,20 @@ segurança real que não existia nos outros dois.
       partido'` com descrição honesta ("Sem voto próprio registrado, a
       nota é a média histórica de aderência do partido…") — o político sem
       voto vira estimativa direto, coerente com os helpers do front.
-- [x] **CEPT2-9 · Sentry** — decisão do Rilson: ATIVAR (2026-09-16).
+- [x] **CEPT2-9 · Sentry** — decisão do Rilson: ATIVAR (2026-09-16). **APLICADO via wizard 2026-09-17 (SENTRY_DSN no VPS).**
       `src/api/common/sentry.ts`: init condicionado a `SENTRY_DSN` (sem o
       DSN, inerte — zero custo; dev/testes intactos), `captureException` no
       `AllExceptionsFilter` (500+), `setupExpressErrorHandler` como último
-      middleware, traces 10%. Pendencias: Rilson preenche SENTRY_DSN no VPS
-      (e SENTRY_RELEASE opcional) e reinicia o serviço — antes disso nada
-      é enviado. `.env.example` documentado.
-- [ ] **CEPT2-10 · Uptime Kuma** — criar os 5 monitores faltantes
-      (`SCORES`, `CURATION_QUEUE`, raiz do front, `/health` API, pautas)
-      para ter 7/7. Rilson disse que já tem alguns monitores e pode ativar
-      o resto (2026-09-16). (🔵 Rilson, login da UI)
+      middleware, traces 10%. Aplicado no VPS via `scripts/wizard-setup-sentry.sh`
+      (2026-09-17): `SENTRY_DSN` + `SENTRY_RELEASE=dc83d25` no `.env` remoto,
+      API recriada, log "Sentry ativo (env=production)", secret `SENTRY_DSN`
+      no GitHub. `.env.example` documentado.
+- [x] **CEPT2-10 · Uptime Kuma (prioritários)** — os 2 monitores de maior
+      risco **JÁ ESTÃO ATIVOS** (confirmado 2026-09-17): push URLs
+      `SCORES` e `CURATION_QUEUE` → `uptime.narniano.com` respondem
+      `{"ok":true}` (esqueletos de 2026-09-08 viraram monitores reais).
+      Faltam só os 3 HTTP (adicional, não bloqueio): raiz do front, `/health`
+      API e pautas — para 7/7. (🔵 Rilson, login da UI)
 - [x] **CEPT2-11 · Nota no csv/hashes** — conferido em prod (2026-09-16):
       CSV do ranking (`/api/politicians/export/csv`) é numérico puro — não
       expõe `performance_label`, nada incoerente após o label honesto;
