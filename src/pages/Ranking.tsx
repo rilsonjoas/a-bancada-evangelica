@@ -261,7 +261,7 @@ const RankingPage = () => {
               </h1>
 
               <p className="text-base sm:text-lg text-primary-foreground/90 leading-relaxed max-w-xl">
-                Notas calculadas exclusivamente a partir de <strong>votos nominais públicos</strong> na Câmara e no Senado. Sem simpatia — o voto registrado é o único dado.
+                Notas calculadas a partir de <strong>votos nominais públicos</strong> na Câmara e no Senado. Sem simpatia — o voto registrado é o único dado. Quem ainda não votou recebe <strong>estimativa pelo histórico do partido</strong>, sempre sinalizada no perfil.
               </p>
 
               {/* Três passos compactos */}

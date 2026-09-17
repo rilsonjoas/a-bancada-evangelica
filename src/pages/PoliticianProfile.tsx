@@ -17,6 +17,7 @@ import { ShareableCard } from '@/components/social/ShareableCard';
 import { FpeTierChip } from '@/components/politicians/FpeTierChip';
 import { CRITERIA, CRITERIA_BY_KEY } from '@/lib/criteria';
 import { fmt } from '@/lib/format';
+import { getPerformanceBadgeColor, getPerformanceLabel, ESTIMATED_LABEL } from '@/lib/performance';
 import { buildVoteSourceLink } from '@/lib/sources';
 import { LastSyncBadge } from '@/components/LastSyncBadge';
 import { NewsSection } from '@/components/news/NewsSection';
@@ -62,16 +63,6 @@ export function PoliticianProfile() {
       </div>
     );
   }
-
-  const getPerformanceBadge = (level: string) => {
-    const variants = {
-      EXCELLENT: 'bg-green-100 text-green-800',
-      GOOD: 'bg-blue-100 text-blue-800',
-      AVERAGE: 'bg-yellow-100 text-yellow-800',
-      POOR: 'bg-red-100 text-red-800'
-    };
-    return variants[level as keyof typeof variants] || variants.AVERAGE;
-  };
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return 'text-green-600';
@@ -184,8 +175,8 @@ export function PoliticianProfile() {
 
               <div className="flex flex-col items-end gap-2.5">
                 <div className="text-right">
-                  <Badge className={`text-base font-semibold px-3.5 py-1 ${getPerformanceBadge(politician.currentScore?.performanceLevel || 'AVERAGE')}`}>
-                    {getPerformanceLevelDescription(politician.currentScore?.performanceLevel || 'AVERAGE').label}
+                  <Badge className={`text-base font-semibold px-3.5 py-1 ${getPerformanceBadgeColor(politician.currentScore?.performanceLevel, politician.currentScore?.totalVotes)}`}>
+                    {getPerformanceLabel(politician.currentScore?.performanceLevel, politician.currentScore?.totalVotes)}
                   </Badge>
                 </div>
 
@@ -304,12 +295,21 @@ export function PoliticianProfile() {
                    'Este político está sendo avaliado com base em 5 critérios: Proteção à Vida (30%), Defesa da Família (25%), Integridade Moral (20%), Responsabilidade Social (15%) e Liberdade Religiosa (10%).'}
                 </p>
                 {(() => {
+                  const hasVotes = (politician.currentScore?.totalVotes ?? 0) > 0;
                   const lvl = getPerformanceLevelDescription(politician.currentScore?.performanceLevel || 'AVERAGE');
-                  if (!lvl.description) return null;
+                  if (hasVotes) {
+                    if (!lvl.description) return null;
+                    return (
+                      <div className="mt-3 p-3 bg-gray-50 rounded-lg border text-sm text-gray-600">
+                        <span className="font-medium">{lvl.label}:</span>{' '}
+                        {lvl.description}
+                      </div>
+                    );
+                  }
                   return (
                     <div className="mt-3 p-3 bg-gray-50 rounded-lg border text-sm text-gray-600">
-                      <span className="font-medium">{lvl.label}:</span>{' '}
-                      {lvl.description}
+                      <span className="font-medium">{ESTIMATED_LABEL}:</span>{' '}
+                      sem voto próprio registrado, a nota é a média histórica de aderência do partido — pode não refletir as escolhas individuais do parlamentar.
                     </div>
                   );
                 })()}

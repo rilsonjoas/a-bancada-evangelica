@@ -8,6 +8,7 @@ import { APIPolitician } from '@/types/politician';
 import { cn } from '@/lib/utils';
 import { PoliticalTooltip, POLITICAL_GLOSSARY } from '@/components/common/PoliticalTooltip';
 import { FpeTierChip } from '@/components/politicians/FpeTierChip';
+import { getPerformanceBadgeColor, getPerformanceLabel } from '@/lib/performance';
 
 interface PoliticianCardProps {
   politician: APIPolitician;
@@ -30,20 +31,13 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
     return 'destructive';
   };
 
-  const getPerformanceBadge = (level: string) => {
-    const badges = {
-      'EXCELLENT': { variant: 'default', label: 'Aderência muito alta', color: 'bg-green-100 text-green-800' },
-      'GOOD': { variant: 'secondary', label: 'Aderência alta', color: 'bg-yellow-100 text-yellow-800' },
-      'AVERAGE': { variant: 'outline', label: 'Aderência moderada', color: 'bg-orange-100 text-orange-800' },
-      'POOR': { variant: 'destructive', label: 'Aderência baixa', color: 'bg-red-100 text-red-800' },
-    };
-    return badges[level as keyof typeof badges] || badges.AVERAGE;
-  };
-
   const formatScore = (score: number) => score.toFixed(0);
   const formatConsistency = (score: number) => `${(score * 100).toFixed(0)}%`;
 
-  const performanceBadge = getPerformanceBadge(politician.scores.performanceLevel);
+  const performanceBadge = {
+    label: getPerformanceLabel(politician.scores.performanceLevel, politician.scores.totalVotes),
+    color: getPerformanceBadgeColor(politician.scores.performanceLevel, politician.scores.totalVotes),
+  };
 
   return (
     <Card className="card-elevated hover:shadow-elevated transition-all duration-300 group">

@@ -4,6 +4,7 @@ import { CRITERIA, CriteriaLabel } from '@/lib/criteria';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { fmt } from '@/lib/format';
+import { getPerformanceLabel } from '@/lib/performance';
 
 interface ComparisonTableProps {
   politicians: Array<{
@@ -94,7 +95,7 @@ export function ComparisonTable({ politicians }: ComparisonTableProps) {
                     {politician.currentScore?.overall != null ? fmt(politician.currentScore.overall) : '0,0'}
                   </div>
                   <Badge variant="outline" className="text-xs">
-                    {politician.currentScore?.performanceLabel || 'Sem dados'}
+                    {getPerformanceLabel(politician.currentScore?.performanceLevel, politician.currentScore?.totalVotes)}
                   </Badge>
                   {getRankIcon(politician, 'overall')}
                 </div>

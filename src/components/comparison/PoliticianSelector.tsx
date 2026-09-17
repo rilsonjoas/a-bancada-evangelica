@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { usePoliticianSearch } from '@/hooks/usePoliticianSearch';
+import { getPerformanceBadgeColor, getPerformanceLabel } from '@/lib/performance';
 
 interface PoliticianSelectorProps {
   excludeIds: number[];
@@ -19,16 +20,6 @@ export function PoliticianSelector({ excludeIds, onSelect, onClose }: Politician
   const filteredPoliticians = searchResults?.politicians.filter(
     politician => !excludeIds.includes(politician.id)
   ) || [];
-
-  const getPerformanceBadge = (level: string) => {
-    const variants = {
-      EXCELLENT: 'bg-green-100 text-green-800',
-      GOOD: 'bg-blue-100 text-blue-800',
-      AVERAGE: 'bg-yellow-100 text-yellow-800',
-      POOR: 'bg-red-100 text-red-800'
-    };
-    return variants[level as keyof typeof variants] || variants.AVERAGE;
-  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -98,8 +89,8 @@ export function PoliticianSelector({ excludeIds, onSelect, onClose }: Politician
                       <div className="text-lg font-bold text-blue-600">
                         {politician.scores.overall.toFixed(1)}
                       </div>
-                      <Badge className={`text-xs ${getPerformanceBadge(politician.scores.performanceLevel)}`}>
-                        {politician.scores.performanceLabel}
+                      <Badge className={`text-xs ${getPerformanceBadgeColor(politician.scores.performanceLevel, politician.scores.totalVotes)}`}>
+                        {getPerformanceLabel(politician.scores.performanceLevel, politician.scores.totalVotes)}
                       </Badge>
                     </div>
                   </div>

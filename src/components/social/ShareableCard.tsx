@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { API_BASE_URL } from '@/lib/apiClient';
 import type { PoliticianDetail } from '@/hooks/usePoliticianDetail';
 import { fmt } from '@/lib/format';
+import { getPerformanceLabel } from '@/lib/performance';
 
 interface ShareableCardProps {
   // Reusa o tipo real do hook em vez de duplicar a forma do currentScore
@@ -164,7 +165,7 @@ export function ShareableCard({ politician, type = 'summary' }: ShareableCardPro
                 isProud ? 'bg-[#b49a60] text-[#1e293b]' : 'bg-slate-600 text-slate-100'
               }`}
             >
-              {politician.currentScore?.performanceLabel || 'Sem dados'}
+{getPerformanceLabel(politician.currentScore?.performanceLevel, politician.currentScore?.totalVotes)}
             </span>
           </div>
 
@@ -298,7 +299,7 @@ export function ShareableCard({ politician, type = 'summary' }: ShareableCardPro
               isProud ? 'bg-[#b49a60] text-[#1e293b]' : 'bg-slate-600 text-slate-100'
             }`}
           >
-            {politician.currentScore?.performanceLabel || 'Sem dados'}
+            {getPerformanceLabel(politician.currentScore?.performanceLevel, politician.currentScore?.totalVotes)}
           </span>
         </div>
 

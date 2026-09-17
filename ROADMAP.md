@@ -157,6 +157,66 @@ segurança real que não existia nos outros dois.
       achados de 15-16/09 (auditoria FPE, quality-check, scores.query,
       SCAN_RULES, bug do Senado). Commit `8320a36`.
 
+### 🎯 Programa "Nota 10" — 16/09: coerência, verdade e entendimento do usuário
+
+> Autoavaliação honesta de 16/09 (dimensões de confiança) e o plano para
+> subir cada uma a 10. Estado inicial: **Coerência 9 · Dados verdadeiros
+> 9 · Confiabilidade 6,5 · Entendimento 7**. O usuário deve entender SEMPRE
+> o que o site mostra, sem precisar do ROADMAP pra isso.
+
+**Diagnóstico completo (baseline 16/09):**
+
+| Dimensão | Nota | Motivo | Falta pra 10 |
+|---|---|---|---|
+| Coerência interna | 9 | 63,1 bate nos endpoints, fonte única em `scores.query.ts` | Contagem FPE 225 ≠ 232 (suplentes ausentes) precisa ser explicada NO SITE, não só no ROADMAP |
+| Dados verdadeiros | 9 | Zero fabricado, guard no CI, auditorias runtime | Badge "Aderência X" era exibido para políticos com 0 votos (ex.: Alan Rick mostrava "Aderência muito alta" com 0 votos) |
+| Confiabilidade | 6,5 | 2 telas-brancas (23/08 e 16/09) passaram por build+testes verdes; Sentry pausado; Uptime Kuma 2/7 monitores | Smoke test de boot no CI/browser; monitors Uptime Kuma completos; Sentry (decisão) |
+| Entendimento do usuário | 7 | Badge estimado existia, mas textos de entrada do site (home) diziam "notas exclusivamente de votos" — contradiz os 91 políticos com nota estimada | Frases da home/sobre coerentes; "Aguardando Análise" explicado ou eliminado; licença explícita |
+
+**Itens do plano (checklist executável):**
+
+- [x] **CEPT2-1 · Badge honesto no card/perfil** — com 0 votos, mostro
+      "Nota estimada por partido" (cor neutra) no card do ranking, perfil,
+      comparador, seletor e card de imagem; com votos, mantenho os níveis
+      de aderência. Helper central `src/lib/performance.ts` (fonte única).
+      Validado no browser: Alan Rick (0 votos) → "Nota estimada por
+      partido"; Tarcísio (71 votos) → "Aderência baixa".
+- [x] **CEPT2-2 · Metodologia explica o badge** — texto "Perfis nessa
+      situação são marcados com o badge 'Nota estimada por partido'…".
+- [x] **CEPT2-3 · Licença real no repo** — `LICENSE` MIT criado (GitHub
+      mostrava `licenseInfo: null`; README declarava MIT mas o arquivo
+      não existia — sem arquivo, a licença não vale). Agora público +
+      licenciado.
+- [ ] **CEPT2-4 · Home/hero fala a verdade** — `Ranking.tsx(:264)` diz
+      "Notas calculadas exclusivamente a partir de votos nominais…
+      o voto registrado é o único dado", mas ~91 políticos têm nota
+      estimada por partido. Reformular para incluir a estimativa SEM
+      perder a força da mensagem. (⚙️ agente)
+- [ ] **CEPT2-5 · FPE no site** — a página Metodologia/Grupos deve dizer
+      "a marcação FPE espelha a fonte oficial; X dos 232 membros da Câmara
+      estão no cadastro (restam suplentes n~o trazidos pelo sync)" — hoje a
+      contagem 225×232 só é explicada no ROADMAP. (⚙️ agente)
+- [ ] **CEPT2-6 · Smoke test de boot no CI** — Playwright/Chromium que
+      carrega as rotas principais e falha se houver pageerror (teria
+      pegado o TDZ do recharts). Ligado no ci.yml. (⚙️ agente)
+- [ ] **CEPT2-7 · Aba de estimativas na Metodologia** — seção curta
+      listando "quem tem nota estimada hoje" (vivo, via API) pra qualquer
+      um conferir. (⚙️ agente)
+- [ ] **CEPT2-8 · "Aguardando Análise" fora da UI** — o label existe nos
+      syncs (`performance_label`) mas não é explicado; o front já não o
+      exibe (usa os helpers de performance ≥ CEPT2-1). Decisão editorial do
+      Rilson: eliminar o label dos syncs (virar a estimativa direto) OU
+      manter interno sem UI. (🔵 Rilson + ⚙️)
+- [ ] **CEPT2-9 · Sentry** — ativar 1 sessão de avaliação vs manter pausado
+      (reconfirmado pausado em 15/09). Recomendação: ativar — é a classe
+      de bug (tela branca) que build+tests não pegam. (🟠 decisão Rilson)
+- [ ] **CEPT2-10 · Uptime Kuma** — criar os 5 monitores faltantes
+      (`SCORES`, `CURATION_QUEUE`, raiz do front, `/health` API, pautas)
+      para ter 7/7. (🔵 Rilson, login da UI)
+- [ ] **CEPT2-11 · Nota no csv/hashes** — após CEPT2-4/5/8, conferir se o
+      CSV acessível em `/dados` continua coerente com a história contada
+      (hashes de referência em REPRODUCIBILITY §11). (⚙️ + verificação)
+
 ---
 
 ## P0 — Segurança

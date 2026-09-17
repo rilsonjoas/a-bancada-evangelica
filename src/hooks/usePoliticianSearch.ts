@@ -12,6 +12,7 @@ interface PoliticianSearchResult {
     overall: number;
     performanceLevel: string;
     performanceLabel: string;
+    totalVotes: number;
   };
 }
 

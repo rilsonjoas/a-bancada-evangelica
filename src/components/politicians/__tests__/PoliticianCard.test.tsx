@@ -92,4 +92,31 @@ describe("PoliticianCard", () => {
     renderWithRouter(<PoliticianCard politician={mockPolitician} />);
     expect(screen.getByText("42")).toBeInTheDocument();
   });
+
+  it("shows honest estimated badge instead of trust level when totalVotes is 0", () => {
+    const withoutVotes: APIPolitician = {
+      ...mockPolitician,
+      scores: { ...mockPolitician.scores, totalVotes: 0, overall: 78, performanceLevel: "GOOD", performanceLabel: "Aderência alta" },
+    };
+    renderWithRouter(<PoliticianCard politician={withoutVotes} />);
+    expect(screen.getByText("Nota estimada por partido")).toBeInTheDocument();
+    expect(screen.queryByText("Aderência alta")).not.toBeInTheDocument();
+    expect(screen.queryByText("Aderência moderada")).not.toBeInTheDocument();
+  });
+
+  it("shows 'Sem dados' badge when politician has no score at all", () => {
+    const noScore: APIPolitician = {
+      ...mockPolitician,
+      scores: {
+        ...mockPolitician.scores,
+        performanceLevel: "GOOD",
+        performanceLabel: "Aderência alta",
+        totalVotes: undefined as unknown as number,
+        overall: 0,
+      },
+    };
+    renderWithRouter(<PoliticianCard politician={noScore} />);
+    expect(screen.getByText("Sem dados")).toBeInTheDocument();
+    expect(screen.queryByText("Aderência alta")).not.toBeInTheDocument();
+  });
 });

@@ -12,6 +12,7 @@ import { usePoliticianSearch } from '@/hooks/usePoliticianSearch';
 import { PoliticianSelector } from '@/components/comparison/PoliticianSelector';
 import { ComparisonChart } from '@/components/comparison/ComparisonChart';
 import { ComparisonTable } from '@/components/comparison/ComparisonTable';
+import { getPerformanceBadgeColor, getPerformanceLabel } from '@/lib/performance';
 
 export function PoliticianComparison() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -45,16 +46,6 @@ export function PoliticianComparison() {
     if (score >= 60) return 'text-blue-600';
     if (score >= 40) return 'text-yellow-700';
     return 'text-red-600';
-  };
-
-  const getPerformanceBadge = (level: string) => {
-    const variants = {
-      EXCELLENT: 'bg-green-100 text-green-800',
-      GOOD: 'bg-blue-100 text-blue-800',
-      AVERAGE: 'bg-yellow-100 text-yellow-800',
-      POOR: 'bg-red-100 text-red-800'
-    };
-    return variants[level as keyof typeof variants] || variants.AVERAGE;
   };
 
   const compareScores = (politician1: ComparisonPolitician, politician2: ComparisonPolitician, criterion: string) => {
@@ -167,8 +158,8 @@ export function PoliticianComparison() {
                       <div className={`text-3xl font-bold ${getScoreColor(politician.currentScore?.overall || 0)}`}>
                         {politician.currentScore?.overall?.toFixed(1) || '0.0'}
                       </div>
-                      <Badge className={`${getPerformanceBadge(politician.currentScore?.performanceLevel || 'AVERAGE')}`}>
-                        {politician.currentScore?.performanceLabel || 'Sem dados'}
+                      <Badge className={`${getPerformanceBadgeColor(politician.currentScore?.performanceLevel, politician.currentScore?.totalVotes)}`}>
+                        {getPerformanceLabel(politician.currentScore?.performanceLevel, politician.currentScore?.totalVotes)}
                       </Badge>
                     </div>
 

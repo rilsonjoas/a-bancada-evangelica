@@ -394,7 +394,9 @@ const MetodologiaPage = () => {
                       Consequência honesta: enquanto um parlamentar tem poucos votos registrados ou
                       análise de gastos pendente, a nota dele é uma <strong>estimativa parcial</strong> —
                       herança partidária ajustada pelo que já se sabe. Perfis nessa situação são marcados
-                      no site. A estimativa vira medição conforme mais votações nominais são incorporadas.
+                      com o badge <strong>"Nota estimada por partido"</strong> (cor neutra) no perfil e no
+                      ranking, em vez dos níveis de aderência. A estimativa vira medição conforme mais
+                      votações nominais são incorporadas.
                     </p>
                     <p>
                       <strong>Caso real: Integridade Moral sem despesa analisada ainda.</strong> Quando não
@@ -605,7 +607,10 @@ const MetodologiaPage = () => {
                   <a href="/errata" className="underline hover:text-primary transition-colors">Errata pública</a>.
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Última auditoria: 25 de agosto de 2026, cruzando nome a nome contra a lista oficial da frente 54477 (Câmara). Dos 208 deputados já marcados antes da auditoria, 207 flags estavam corretos (99,5% de precisão; 1 falso positivo removido). Mais importante: a auditoria também <strong className="text-foreground">encontrou 4 membros ativos que estavam faltando</strong> — incluindo <strong className="text-foreground">Silas Câmara, presidente da própria frente</strong> — e marcou 22 membros oficiais da Câmara hoje inativos (licença, suplência ou vacância; flag é filiação declarada, não exercício do mandato). Total corrigido na Câmara: <strong className="text-foreground">232 membros</strong> (idêntico à lista oficial), sendo 210 em exercício. Somando os <strong className="text-foreground">15 senadores em exercício</strong> marcados via composição da frente no Senado (codcol 2583), o total geral de membros da FPE nas duas casas é <strong className="text-foreground">247</strong> (225 em exercício + 22 inativos, todos da Câmara — nenhum senador inativo hoje).
+                  Auditoria base: 25 de agosto de 2026, cruzando nome a nome contra a lista oficial da frente 54477 (Câmara). Dos 208 deputados já marcados antes da auditoria, 207 flags estavam corretos (99,5% de precisão; 1 falso positivo removido). Mais importante: a auditoria também <strong className="text-foreground">encontrou 4 membros ativos que estavam faltando</strong> — incluindo <strong className="text-foreground">Silas Câmara, presidente da própria frente</strong> — e marcou 22 membros oficiais da Câmara hoje inativos (licença, suplência ou vacância; flag é filiação declarada, não exercício do mandato).
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Reauditoria contínua (15/09/2026): a marcação neste site espelha a lista oficial vigente da frente 54477 (Câmara) e da composição do colegiado no Senado (codcol 2583). Como o cadastro de políticos é alimentado pelos perfis de mandato ativo, alguns <strong className="text-foreground">suplentes relacionados na lista oficial</strong> ainda não têm perfil aqui — a diferença entre a contagem oficial e a do site é de suplentes/substitutos fora do exercício, não de omissão de quem está registrado. Cada perfil marcado exibe a <strong className="text-foreground">data da última captura</strong> da filiação, e a sincronização diária atualiza os flags automaticamente.
                 </p>
               </CardContent>
             </Card>
