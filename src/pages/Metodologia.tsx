@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { usePageMeta } from '@/hooks/usePageMeta';
 import { useEstimatedScores } from '@/hooks/useEstimatedScores';
+import { LastSyncBadge } from '@/components/LastSyncBadge';
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -658,6 +659,7 @@ const MetodologiaPage = () => {
                   <p>
                     Usamos <strong className="text-foreground">exclusivamente fontes oficiais</strong>:
                   </p>
+                  <LastSyncBadge />
                   <ul className="space-y-2">
                     <li className="flex items-start space-x-2">
                       <span className="text-primary mt-0.5">•</span>

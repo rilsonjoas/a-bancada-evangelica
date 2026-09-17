@@ -9,12 +9,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import PoliticianCard from '@/components/politicians/PoliticianCard';
 import { usePoliticians, usePoliticiansStats } from '@/hooks/usePoliticians';
-import { Search, Filter, TrendingUp, Users, Award, BookOpen, BarChart3, Loader2, Church, SlidersHorizontal, ArrowRight } from 'lucide-react';
+import { Search, Filter, TrendingUp, Users, Award, BookOpen, BarChart3, Loader2, Church, SlidersHorizontal, ArrowRight, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { APIPolitician } from '@/types/politician';
 import { Slider } from '@/components/ui/slider';
 import { CRITERIA } from '@/lib/criteria';
 import { LastSyncBadge } from '@/components/LastSyncBadge';
+import { useLastSync } from '@/hooks/useLastSync';
 import { fmt } from '@/lib/format';
 
 const CRITERIA_LEVELS: Array<{ key: 'EXCELLENT' | 'GOOD' | 'AVERAGE' | 'POOR'; label: string }> = [
@@ -87,6 +88,7 @@ const HighlightsSection: React.FC = () => {
 
 const RankingPage = () => {
   usePageMeta("Ranking de Parlamentares | A Bancada Evangélica", "Acompanhe a pontuação e os votos nominais de todos os parlamentares na Câmara e no Senado.");
+  const { lastSyncLabel, label } = useLastSync();
   const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') ?? '');
   const [selectedState, setSelectedState] = useState('all');
@@ -296,8 +298,13 @@ const RankingPage = () => {
             {/* Coluna Direita: Painel de Métricas 2x2 */}
             <div className="lg:col-span-5">
               <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/15 shadow-2xl space-y-4">
-                <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                  <span className="text-xs font-bold uppercase tracking-wider text-amber-400">Atualizado por sincronização dos dados públicos</span>
+                <div className="flex items-center justify-between border-b border-white/10 pb-3 gap-2 flex-wrap">
+                  <span className="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                    <Clock className="h-3.5 w-3.5" />
+                    {lastSyncLabel
+                      ? `Dados de ${label ?? ''} atualizados em ${lastSyncLabel}`
+                      : 'Atualizado por sincronização dos dados públicos'}
+                  </span>
                   <span className="text-[11px] text-white/70">Congresso Nacional</span>
                 </div>
 
@@ -579,6 +586,7 @@ const RankingPage = () => {
             </Card>
           ) : (
             <div className="space-y-4">
+              <LastSyncBadge />
               {/* Como ler a nota — lente watchdog: escopo honesto e explícito */}
               <div className="rounded-xl border border-border bg-muted/40 px-5 py-4 text-sm leading-relaxed text-muted-foreground">
                 <strong className="text-foreground">Como ler a nota:</strong> média ponderada
@@ -645,10 +653,6 @@ const RankingPage = () => {
           </div>
         </div>
       </section>
-
-      <div className="container mx-auto px-4 py-6">
-        <LastSyncBadge />
-      </div>
     </div>
   );
 };

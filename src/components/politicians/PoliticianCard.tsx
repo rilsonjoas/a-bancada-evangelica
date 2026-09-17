@@ -187,7 +187,15 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
               </div>
               {politician.scores.totalVotes > 0 && (
                 <div>
-                  <span className="font-medium">{politician.scores.totalVotes}</span> votações
+                  {politician.scores.totalVotes < 5 ? (
+                    <span className="font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5 text-[11px] leading-none inline-block" title="Poucos votos classificados — a nota é uma base frágil, confira os votos no perfil.">
+                      Base frágil ({politician.scores.totalVotes} vota{politician.scores.totalVotes !== 1 ? 'ções' : 'ção'})
+                    </span>
+                  ) : (
+                    <>
+                      <span className="font-medium">{politician.scores.totalVotes}</span> votações
+                    </>
+                  )}
                 </div>
               )}
             </div>

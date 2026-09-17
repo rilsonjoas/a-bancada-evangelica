@@ -41,7 +41,7 @@ export function Errata() {
           <Card className="card-elevated">
             <CardContent className="pt-6">
               <p className="text-sm text-muted-foreground">
-                Última atualização: 08 de setembro de 2026. Todo dado publicado nesta
+                Última atualização: 17 de setembro de 2026. Todo dado publicado nesta
                 plataforma pode ser auditado conforme a{' '}
                 <Link to="/metodologia" className="text-blue-600 hover:underline">
                   Metodologia
@@ -88,15 +88,16 @@ export function Errata() {
             <CardContent className="space-y-3 text-muted-foreground leading-relaxed">
               <p>
                 Não há, neste momento, nenhum dado conhecido como incorreto e não
-                corrigido. Todos os valores publicados refletem a última auditoria
-                automática e manual do pipeline.
+                corrigido. Todos os valores publicados passaram pela última verificação
+                automática e pela revisão manual dos dados.
               </p>
               <div className="flex items-center gap-2 rounded-lg bg-green-50 border border-green-200 p-3 dark:bg-green-950/30 dark:border-green-800">
                 <CheckCircle className="h-4 w-4 text-green-600 shrink-0" />
                 <p className="text-sm">
-                  <strong className="text-foreground">Última auditoria:</strong> 08 de setembro de
-                  2026 — motor de cálculo das notas revisado e corrigido (ver histórico abaixo).
-                  Auditoria anterior, 25 de agosto de 2026 — cruzamento da lista de membros da
+                  <strong className="text-foreground">Última auditoria:</strong> 17 de setembro de
+                  2026 — auditoria de leitura dos textos públicos (ver histórico abaixo).
+                  Auditoria anterior, 08 de setembro de 2026 — motor de cálculo das notas
+                  revisado e corrigido; 25 de agosto de 2026 — cruzamento da lista de membros da
                   Frente Parlamentar Evangélica com a lista oficial da Câmara (frente 54477).
                 </p>
               </div>
@@ -113,56 +114,105 @@ export function Errata() {
             <CardContent className="space-y-3">
               <div className="rounded-lg border border-border p-4 space-y-2">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <Badge variant="secondary">2026-09-08</Badge>
+                  <Badge variant="secondary">2026-09-17</Badge>
                   <span className="font-semibold text-foreground">
-                    Correção no motor de cálculo das notas (afetou a maioria dos parlamentares)
+                    Auditoria de leitura — revisão de todos os textos públicos do site
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  <strong className="text-foreground">O que estava errado:</strong>{' '}
-                  Dois problemas distintos no <code className="text-xs bg-secondary px-1 py-0.5 rounded">recalculate-scores.ts</code>,
-                  achados a partir de uma pergunta sobre o perfil de um senador. (1) O recálculo
-                  diário partia da nota já gravada no dia anterior, em vez do histórico fixo do
-                  partido — isso somava o total de votos de novo, todo dia, fazendo a nota só
-                  crescer ou só cair até saturar. (2) O impacto de cada voto era somado sem
-                  limite em vez de calculado por média — um parlamentar com muitos votos no
-                  mesmo critério saturava em 0 ou 100 só por volume, não por convicção real.
+                  <strong className="text-foreground">O que estava errado:</strong> erros de
+                  digitação ("Integridade Moral Moral"), frases que só faziam sentido para
+                  quem programa computadores ("Execute os scripts de sincronização primeiro"),
+                  rótulos diferentes para a mesma coisa ("TSE Receitas" em um lugar,
+                  "DivulgaCandContas" em outro) e prazo de resposta de contestação diferente
+                  em páginas diferentes (48 horas em um lugar, 15 dias em outro).
                 </p>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  <strong className="text-foreground">Impacto medido:</strong> antes da correção,
-                  98% dos deputados com voto estavam com nota travada em 0 ou 100 em "Defesa da
-                  Família", 100% em "Responsabilidade Social". Depois: 0% e 1%. Notas de 495 dos
-                  595 parlamentares mudaram nesta correção — a maioria dessas notas nunca
-                  refletiu voto real, era artefato do bug.
+                  <strong className="text-foreground">Correção:</strong> revisão completa dos
+                  textos. Prazo de contestação unificado em 15 dias. Quando um parlamentar não
+                  comparece à sessão, o site agora mostra <strong className="text-foreground">"AUSENTE"</strong>
+                  em vez de "ABSTENÇÃO" — o Congresso registra as duas situações e nós as
+                  tratamos como o que são. Perfis com pouquíssimos votos classificados (menos
+                  de 5) recebem o aviso de <strong className="text-foreground">"Base frágil"</strong>.
+                  E o ranking passou a informar a data real da última atualização dos dados.
+                </p>
+              </div>
+              <div className="rounded-lg border border-border p-4 space-y-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge variant="secondary">2026-09-16</Badge>
+                  <span className="font-semibold text-foreground">
+                    Indicador de "consistência" inventado para quem não tinha votos
+                  </span>
+                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  <strong className="text-foreground">O que estava errado:</strong> parlamentares
+                  sem nenhuma votação registrada apareciam com "100% de consistência" — um
+                  número que não vinha de nada real, era gerado automaticamente pelo sistema
+                  antigo.
                 </p>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  <strong className="text-foreground">Correção:</strong> a base de cada critério
-                  agora é sempre o histórico do partido recalculado do zero (nunca lido de volta
-                  do banco), e o impacto do voto é a média de todos os votos do parlamentar
-                  naquele critério, não a soma. Motor coberto por testes de regressão
-                  (<code className="text-xs bg-secondary px-1 py-0.5 rounded">scripts/__tests__/scoring.test.ts</code>)
-                  provando as duas propriedades que faltavam: idempotência (rodar N vezes dá o
-                  mesmo resultado) e independência de volume de voto.
+                  <strong className="text-foreground">Correção:</strong> sem votações, não há
+                  consistência a exibir, e o site mostra "sem votações registradas". Preferimos
+                  não informar a mostrar número inventado.
                 </p>
               </div>
               <div className="rounded-lg border border-border p-4 space-y-2">
                 <div className="flex items-center gap-2 flex-wrap">
                   <Badge variant="secondary">2026-09-08</Badge>
                   <span className="font-semibold text-foreground">
-                    89 parlamentares nunca tinham sido semeados com o histórico do partido
+                    Erro no cálculo das notas (afetou centenas de parlamentares)
+                  </span>
+                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  <strong className="text-foreground">O que estava errado:</strong> encontramos,
+                  a partir de uma pergunta sobre o perfil de um senador, dois erros no
+                  cálculo das notas. (1) O recálculo diário partia da nota do dia anterior em
+                  vez do histórico fixo do partido — na prática, os votos eram contados de
+                  novo todos os dias, e a nota só crescia ou só caía até estagnar. (2) O efeito
+                  de cada voto era somado sem limite em vez de transformado em média — alguém
+                  com muitos votos no mesmo tema estagnava em 0 ou 100 só pelo volume, não
+                  pela posição real.
+                </p>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  <strong className="text-foreground">Impacto medido:</strong> antes da
+                  correção, 98% dos deputados com voto estavam com nota travada em 0 ou 100 em
+                  "Defesa da Família" e 100% em "Responsabilidade Social". Depois, 0% e 1%.
+                  As notas de 495 dos 595 parlamentares mudaram nesta correção — a maioria delas
+                  nunca tinha refletido voto real, era consequência de um erro na conta.
+                </p>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  <strong className="text-foreground">Correção:</strong> a nota de cada tema
+                  agora parte sempre do histórico do partido calculado do zero, e o efeito de
+                  cada voto é a média de todos os votos no tema, não a soma. O novo cálculo é
+                  protegido por testes que garantem: repetir várias vezes dá o mesmo resultado,
+                  e votos em grande quantidade não inflam a nota.
+                  <span className="block mt-2 text-xs text-muted-foreground/70">
+                    Detalhe de auditoria: <code className="text-xs bg-secondary px-1 py-0.5 rounded">recalculate-scores.ts</code>,{' '}
+                    <code className="text-xs bg-secondary px-1 py-0.5 rounded">scripts/__tests__/scoring.test.ts</code>
+                  </span>
+                </p>
+              </div>
+              <div className="rounded-lg border border-border p-4 space-y-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge variant="secondary">2026-09-08</Badge>
+                  <span className="font-semibold text-foreground">
+                    89 parlamentares nunca tinham recebido o histórico do próprio partido
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   <strong className="text-foreground">O que estava errado:</strong> 81 senadores
-                  e 8 deputados (todos adicionados ao banco depois da única vez que o script de
-                  semeadura por partido rodou — entre eles Silas Câmara, presidente da própria
-                  Frente Parlamentar Evangélica) estavam com os 5 critérios no valor-padrão bruto
-                  do banco (idêntico pra qualquer partido), não no histórico real do partido dele.
+                  e 8 deputados (todos incorporados ao projeto depois da única sessão em que o
+                  histórico dos partidos foi carregado — entre eles Silas Câmara, presidente da
+                  própria Frente Parlamentar Evangélica) ficaram sem esse histórico: a nota
+                  deles usava um valor genérico, igual para qualquer partido, em vez dos dados
+                  reais do partido.
                 </p>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  <strong className="text-foreground">Correção:</strong> os 89 foram semeados com
-                  o histórico real do próprio partido. Script determinístico e comitado:
-                  {' '}<code className="text-xs bg-secondary px-1 py-0.5 rounded">scripts/fix-never-seeded-scores.ts</code>.
+                  <strong className="text-foreground">Correção:</strong> os 89 receberam o
+                  histórico real do próprio partido.
+                  <span className="block mt-2 text-xs text-muted-foreground/70">
+                    Detalhe de auditoria: <code className="text-xs bg-secondary px-1 py-0.5 rounded">scripts/fix-never-seeded-scores.ts</code>
+                  </span>
                 </p>
               </div>
               <div className="rounded-lg border border-border p-4 space-y-2">
@@ -180,10 +230,10 @@ export function Errata() {
                   consta como signatário da frente.
                 </p>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  <strong className="text-foreground">Correção:</strong> o flag de membro
+                  <strong className="text-foreground">Correção:</strong> a marcação de membro
                   passou a usar 3 fontes combinadas (lista oficial, autodeclaração e
                   imprensa), com a fonte registrada por parlamentar. 21 membros oficiais
-                  inativos foram mantidos (filiação ≠ exercício).
+                  inativos foram mantidos (ser membro não é o mesmo que estar em exercício).
                 </p>
               </div>
             </CardContent>
@@ -239,7 +289,7 @@ export function Errata() {
                 </div>
                 <div className="p-3 rounded-lg bg-muted/40 border border-border/60">
                   <strong className="text-foreground block font-medium mb-1">2. Análise em até 15 dias</strong>
-                  <span className="text-muted-foreground">Revisamos o banco de dados e recalculamos a pontuação se a divergência for confirmada.</span>
+                  <span className="text-muted-foreground">Conferimos o dado com a fonte e recalculamos a pontuação se a divergência for confirmada.</span>
                 </div>
                 <div className="p-3 rounded-lg bg-muted/40 border border-border/60">
                   <strong className="text-foreground block font-medium mb-1">3. Publicação pública</strong>
