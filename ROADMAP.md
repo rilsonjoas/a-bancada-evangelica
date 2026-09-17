@@ -164,13 +164,13 @@ segurança real que não existia nos outros dois.
 > 9 · Confiabilidade 6,5 · Entendimento 7**. O usuário deve entender SEMPRE
 > o que o site mostra, sem precisar do ROADMAP pra isso.
 
-**Diagnóstico completo (baseline 16/09, atualizado 16/09 após o lote):**
+**Diagnóstico completo (baseline 16/09, atualizado 17/09 com Sentry no VPS):**
 
-| Dimensão | Inicial | Após lote | Motivo | Falta pra 10 |
+| Dimensão | Inicial | Atual | Motivo | Falta pra 10 |
 |---|---|---|---|---|
 | Coerência interna | 9 | 10 | Fonte única em `scores.query.ts` (63,1 bate); FPE explicado no site (suplentes) | — |
 | Dados verdadeiros | 9 | 10 | Zero fabricado; badge honesto "Nota estimada por partido" com 0 votos (Alan Rick não mostra mais "Aderência muito alta"); label "Aguardando Análise" eliminado dos syncs | — |
-| Confiabilidade | 6,5 | 9 | Smoke test de boot no CI (pegaria Telas Brancas); Sentry integrado (rápido no VPS) | DSN do Sentry no VPS; monitores Uptime Kuma 7/7 (Rilson) |
+| Confiabilidade | 6,5 | 10 | Smoke test de boot no CI (pegaria Telas Brancas); **Sentry ATIVO no VPS** (17/09, log "Sentry ativo (env=production)"); push monitors prioritários (`SCORES`, `CURATION_QUEUE`) respondendo `{"ok":true}` | — |
 | Entendimento do usuário | 7 | 9,5 | Home/sobre coerentes; Metodologia explica estimativa + FPE + aba viva de estimados; licença MIT | Revalidar frases restantes em auditoria de leitura |
 
 **Itens do plano (checklist executável):**
@@ -230,8 +230,10 @@ segurança real que não existia nos outros dois.
       risco **JÁ ESTÃO ATIVOS** (confirmado 2026-09-17): push URLs
       `SCORES` e `CURATION_QUEUE` → `uptime.narniano.com` respondem
       `{"ok":true}` (esqueletos de 2026-09-08 viraram monitores reais).
-      Faltam só os 3 HTTP (adicional, não bloqueio): raiz do front, `/health`
-      API e pautas — para 7/7. (🔵 Rilson, login da UI)
+      **Decisão 2026-09-17: não criar os 3 HTTP restantes** (raiz do front,
+      `/health` API e pautas) — fora do escopo por decisão do Rilson; os 2
+      prioritários cobrem o risco de "dado errado exposto". 7/7 não é meta
+      mais. (encaminhado 17/09)
 - [x] **CEPT2-11 · Nota no csv/hashes** — conferido em prod (2026-09-16):
       CSV do ranking (`/api/politicians/export/csv`) é numérico puro — não
       expõe `performance_label`, nada incoerente após o label honesto;
