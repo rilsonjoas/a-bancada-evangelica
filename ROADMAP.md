@@ -171,7 +171,7 @@ segurança real que não existia nos outros dois.
 | Coerência interna | 9 | 10 | Fonte única em `scores.query.ts` (63,1 bate); FPE explicado no site (suplentes) | — |
 | Dados verdadeiros | 9 | 10 | Zero fabricado; badge honesto "Nota estimada por partido" com 0 votos (Alan Rick não mostra mais "Aderência muito alta"); label "Aguardando Análise" eliminado dos syncs | — |
 | Confiabilidade | 6,5 | 10 | Smoke test de boot no CI (pegaria Telas Brancas); **Sentry ATIVO no VPS** (17/09, log "Sentry ativo (env=production)"); push monitors prioritários (`SCORES`, `CURATION_QUEUE`) respondendo `{"ok":true}` | — |
-| Entendimento do usuário | 7 | 10 | Home/sobre coerentes; Metodologia explica estimativa + FPE + aba viva de estimados; licença MIT; auditoria de leitura completa (12/09–17/09): frases literais, jargão técnico, prazos unificados (15 dias), tooltips de 'Aderência'/'Consistência', distinção AUSENTE/ABSTENÇÃO, CTA de doação sem 'Ministério' | — |
+| Entendimento do usuário | 7 | 10 | Home/sobre coerentes; Metodologia explica estimativa + FPE + aba viva de estimados; licença MIT; auditoria de leitura completa (12/09–17/09): frases literais, jargão técnico, prazos unificados (15 dias), tooltips de 'Aderência'/'Consistência', distinção AUSENTE/ABSTENÇÃO, CTA de doação sem 'Ministério'; auditoria de confiança do leitor (17/09): recência real (Ranking/Metodologia), selo 'Base frágil' <5 votos, Errata em linguagem de cidadão | — |
 
 **Itens do plano (checklist executável):**
 
@@ -240,6 +240,16 @@ segurança real que não existia nos outros dois.
       CSV de votos (`export/votes/csv`) com `X-Content-SHA256` íntegro
       (hash do header === sha256sum local). REPRODUCIBILITY §11 sem
       divergência.
+- [x] **CEPT2-12 · Auditoria de confiança do leitor (17/09)** — recência
+      real exposta: data da última sincronização (tipo mais antigo, honesto)
+      no painel do hero do Ranking e na seção "Nossa fonte" da Metodologia
+      (DadosAbertos já tinha `LastSyncStatus` com stale-check). Perfis com
+      menos de 5 votações classificadas exibem selo "Base frágil" no card
+      (antes só dentro do perfil). Errata reescrita em linguagem de cidadão:
+      entradas de histórico (17/09 auditoria de leitura, 16/09 consistência
+      inventada, 08/09 motor de notas + 89 sem histórico, 25/08 FPE) sem
+      jargão de dev — nomes de arquivos movidos para nota discreta "Detalhe
+      de auditoria". Rótulo "Base frágil" sem tooltip de jargão.
 
 ---
 
