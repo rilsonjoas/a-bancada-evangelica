@@ -404,25 +404,39 @@ export function PoliticianProfile() {
                       <div key={criteriaKey} className={`flex items-center justify-between p-3 rounded-lg ${lowConfidence ? 'bg-yellow-50 border border-yellow-200' : 'bg-white border border-gray-100'}`}>
                         <div className="flex items-center gap-2">
                           <span className="font-medium text-sm">{label}</span>
-                          {lowConfidence && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs text-yellow-700 bg-yellow-100 rounded-full">
-                              <span className="w-1.5 h-1.5 rounded-full bg-yellow-500" aria-hidden="true" />
-                              {count === 0 ? 'Sem votos registrados' : `Base frágil (${count} voto${count !== 1 ? 's' : ''})`}
-                            </span>
-                          )}
-                        </div>
-                        <span className="font-mono text-lg font-semibold text-gray-900">
-                          {count} votaç{count !== 1 ? 'ões' : 'ão'}
+                      {lowConfidence && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs text-yellow-700 bg-yellow-100 rounded-full">
+                          <span className="w-1.5 h-1.5 rounded-full bg-yellow-500" aria-hidden="true" />
+                          {count === 0 ? 'Sem votos registrados' : `Base frágil (${count} voto${count !== 1 ? 's' : ''})`}
                         </span>
-                      </div>
-                    );
-                  })}
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-lg font-semibold text-gray-900">
+                        {count} votaç{count !== 1 ? 'ões' : 'ão'}
+                      </span>
+                      {/* 0 honesto (achado 2026-09-16): sem votos no tema, a
+                          nota do gráfico ACIMA vem da média histórica do
+                          partido — não de votos próprios. Explicitar para o
+                          usuário não achar que o gráfico contradiz a base. */}
+                      {count === 0 && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs text-slate-600 bg-slate-100 rounded-full">
+                          <Info className="w-3.5 h-3.5" aria-hidden="true" />
+                          nota vem da média do partido
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
                 </div>
               <p className="text-sm text-muted-foreground border-t pt-3 leading-relaxed">
                 <strong>Como ler:</strong> cada nota por critério é calculada a partir das
                 votações nominais que se encaixam naquele tema. Acima de 5 votações, a
                 base é considerada sólida; abaixo disso, a nota reflete uma amostra
-                pequena e deve ser interpretada com cautela. <a href="/metodologia" className="text-primary hover:underline">Ver metodologia</a>.
+                pequena e deve ser interpretada com cautela. Sem votações no tema, a
+                nota exibida vem da média histórica do partido (estimativa) — nunca
+                de número inventado. <a href="/metodologia" className="text-primary hover:underline">Ver metodologia</a>.
               </p>
             </CardContent>
           </Card>

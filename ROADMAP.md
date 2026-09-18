@@ -171,7 +171,14 @@ segurança real que não existia nos outros dois.
 | Coerência interna | 9 | 10 | Fonte única em `scores.query.ts` (63,1 bate); FPE explicado no site (suplentes) | — |
 | Dados verdadeiros | 9 | 10 | Zero fabricado; badge honesto "Nota estimada por partido" com 0 votos (Alan Rick não mostra mais "Aderência muito alta"); label "Aguardando Análise" eliminado dos syncs | — |
 | Confiabilidade | 6,5 | 10 | Smoke test de boot no CI (pegaria Telas Brancas); **Sentry ATIVO no VPS** (17/09, log "Sentry ativo (env=production)"); push monitors prioritários (`SCORES`, `CURATION_QUEUE`) respondendo `{"ok":true}` | — |
-| Entendimento do usuário | 7 | 10 | Home/sobre coerentes; Metodologia explica estimativa + FPE + aba viva de estimados; licença MIT; auditoria de leitura completa (12/09–17/09): frases literais, jargão técnico, prazos unificados (15 dias), tooltips de 'Aderência'/'Consistência', distinção AUSENTE/ABSTENÇÃO, CTA de doação sem 'Ministério'; auditoria de confiança do leitor (17/09): recência real (Ranking/Metodologia), selo 'Base frágil' <5 votos, Errata em linguagem de cidadão | — |
+| Entendimento do usuário | 7 | 10 | Home/sobre coerentes; Metodologia explica estimativa + FPE + aba viva de estimados; licença MIT; auditoria de leitura completa (12/09–17/09): frases literais, jargão técnico, prazos unificados (15 dias), tooltips de 'Aderência'/'Consistência', distinção AUSENTE/ABSTENÇÃO, CTA de doação sem 'Ministério';       auditoria de confiança do leitor (17/09): recência real (Ranking/Metodologia), selo 'Base frágil' <5 votos, Errata em linguagem de cidadão | — |
+      ≥ clareza de base por critério (17/09, mesmo tema): no perfil, quando um
+      critério tem 0 votos, o "Como ler" agora diz explicitamente que a nota
+      do gráfico ACIMA vem da média histórica do partido — nunca de votos
+      próprios. Isso evita que o leitor ache que o gráfico contradiz a base
+      ("Sem votos registrados" com nota 78 não é incoerência, é estimativa
+      partidária honesta). Card/Ranking/Comparador já usavam o helper
+      compartilhado — sem lacuna. | — |
 
 **Itens do plano (checklist executável):**
 
