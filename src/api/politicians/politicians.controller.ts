@@ -155,6 +155,66 @@ export class PoliticiansController {
   }
 
   /**
+   * HTML mínimo com as meta tags do parlamentar (og:title/description/
+   * image), pra bot de preview de link (WhatsApp/Facebook/Telegram/X).
+   * O front é SPA no Vercel (SEO via useEffect, não roda em bot sem JS);
+   * vercel.json reescreve /politicos/:id pra cá só quando o User-Agent
+   * bate com bot conhecido (mesmo achado/padrão do biblia-na-arte,
+   * 2026-09-19 — ver hetzner-infra/PADRAO-DE-ENGENHARIA.md, checklist
+   * "preview de link em app compartilhável"). Navegador de verdade nunca
+   * bate aqui.
+   */
+  @Get(':id/share')
+  @ApiOperation({ summary: 'HTML com meta tags do parlamentar — só pra bots de preview de link' })
+  async share(@Param('id', ParseIntPipe) id: number, @Res() res: Response) {
+    const FRONTEND_URL = 'https://a-bancada-evangelica.vercel.app';
+    const API_URL = 'https://api-bancada.narniano.com';
+    const escapeHtml = (v: string) =>
+      v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+    const targetUrl = `${FRONTEND_URL}/politicos/${id}`;
+    let title = 'A Bancada Evangélica — Transparência Parlamentar';
+    let description = 'Scores de alinhamento evangélico, votos reais e gastos de cada parlamentar.';
+    let image = `${FRONTEND_URL}/og-image.png`;
+
+    try {
+      const p = await this.politicians.findOne(id);
+      const score = p.currentScore?.overall ?? 0;
+      title = `${p.name} (${p.currentParty}-${p.currentState}) — Nota ${score}/100 | A Bancada Evangélica`;
+      description = `Como ${p.name} vota nos temas que importam pra fé evangélica: proteção à vida, defesa da família, integridade moral e mais. Nota geral: ${score}/100 (${p.currentScore?.performanceLabel ?? 'sem dados'}).`;
+      if (p.photoUrl) image = `${API_URL}/api/politicians/${id}/photo`;
+    } catch {
+      // parlamentar não encontrado — cai pras meta tags genéricas acima
+    }
+
+    const html = `<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>${escapeHtml(title)}</title>
+<meta property="og:site_name" content="A Bancada Evangélica">
+<meta property="og:type" content="profile">
+<meta property="og:title" content="${escapeHtml(title)}">
+<meta property="og:description" content="${escapeHtml(description)}">
+<meta property="og:image" content="${escapeHtml(image)}">
+<meta property="og:url" content="${escapeHtml(targetUrl)}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${escapeHtml(title)}">
+<meta name="twitter:description" content="${escapeHtml(description)}">
+<meta name="twitter:image" content="${escapeHtml(image)}">
+<meta http-equiv="refresh" content="0; url=${escapeHtml(targetUrl)}">
+<link rel="canonical" href="${escapeHtml(targetUrl)}">
+</head>
+<body>
+<p>Redirecionando para <a href="${escapeHtml(targetUrl)}">${escapeHtml(title)}</a>…</p>
+</body>
+</html>`;
+
+    res.setHeader('Cache-Control', 'public, max-age=600, stale-while-revalidate=120');
+    res.type('html').send(html);
+  }
+
+  /**
    * Proxy same-origin das fotos institucionais (Câmara/Senado).
    * Motivo real (2026-08-21): html2canvas descarta imagens cross-origin
    * mesmo com useCORS — os servidores do parlamento não mandam headers
