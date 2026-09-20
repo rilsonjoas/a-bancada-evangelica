@@ -1132,12 +1132,12 @@ dado verdadeiro (proporção de votos com posição definida), não bug.
 - [ ] **🟠 Monitoramento**: Sentry pausado (zero erro em runtime) + push
       monitors `SCORES` e `CURATION_QUEUE` não criados no Uptime Kuma
       (2/7 — docs/PLANO-OPERACAO-SUSTENTAVEL.md:84-85). Criar antes do pico.
-- [ ] **🟠 Recálculo de scores em produção** — o código de rótulos neutros
-      está commitado, mas o banco ainda tem os labels antigos ("Testemunho
-      Fiel" etc.) até o worker `recalculate-scores.ts` rodar. O sync de
-      SCORES roda diariamente às 05h (capturado 14/09/2026 às 05:00:02,
-      API ainda exibia label antigo) — confirmar que a primeira execução
-      após o deploy propaga os novos labels pra UI.
+- [x] **🟠 Recálculo de scores em produção** ✅ (confirmado 2026-09-20) —
+      checado ao vivo via API antes de enviar o pitch de imprensa: os 595
+      políticos retornam só rótulos neutros ("Aderência
+      alta/moderada/baixa/muito alta"), zero label antigo tipo "Testemunho
+      Fiel" restante, `lastCalculation` mais antigo entre todos é
+      2026-09-19T05:00:02 — o sync das 05h já cobriu 100% da base.
 
 ### Formato viral já construído: ShareableCard
 
