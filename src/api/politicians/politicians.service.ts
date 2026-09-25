@@ -14,6 +14,28 @@ const CRITERIA_FIELD_MAP: Record<string, string> = {
   religiousFreedom: 'religious_freedom',
 };
 
+/**
+ * Enum do banco → campo do front, para `votesPerCriteria`.
+ *
+ * O `criteria` de `key_agendas` é o ENUM do Postgres (`FAMILY_VALUES`), mas a
+ * tela lê `politician.votesPerCriteria[criteria.field]`, e `field` é
+ * camelCase (`familyValues`). São dois vocabulários e ninguém traduzia entre
+ * eles: o card "Base de Cálculo por Critério" mostrava 0 para todos os
+ * parlamentares desde 2026-08-27 (achado 2026-09-25).
+ *
+ * Traduzir aqui — e não na view — porque o enum é o identificador canônico
+ * do critério (é o que está no banco, no `SCAN_RULES` e nos pesos) e porque
+ * qualquer consumidor novo da API precisa do mesmo dado sem saber desse
+ * detalhe.
+ */
+const CRITERIA_FIELD_BY_KEY: Record<CriteriaType, string> = {
+  LIFE_PROTECTION: 'lifeProtection',
+  FAMILY_VALUES: 'familyValues',
+  MORAL_INTEGRITY: 'moralIntegrity',
+  SOCIAL_RESPONSIBILITY: 'socialResponsibility',
+  RELIGIOUS_FREEDOM: 'religiousFreedom',
+};
+
 @Injectable()
 export class PoliticiansService {
   constructor(private readonly prisma: PrismaService) {}
@@ -228,7 +250,20 @@ export class PoliticiansService {
           { count: number; totalImpact: number; votes: number; subjects: Set<string> }
         >;
         for (const v of votes) {
-          const criteria = v.key_agenda.criteria as string;
+          // ACHADO REAL 2026-09-25 (segunda vez, mesmo dia): a API devolvia
+          // a chave do ENUM (`FAMILY_VALUES`) e a UI sempre procurou a chave
+          // do FIELD (`familyValues`). Nunca casaram — o card "Base de
+          // Cálculo" mostrava 0 para TODOS os parlamentares desde que foi
+          // criado (H2, 2026-08-27), e ninguém percebeu porque zero é
+          // plausível de relance.
+          //
+          // O conserto pode ser aqui (traduzir) ou na UI (traduzir). Faço
+          // AQUI porque `votesPerCriteria` é público e documentado como
+          // "por critério" — o nome do enum é o identificador canônico do
+          // critério, e o campo camelCase é detalhe de view. Traduzir na API
+          // também deixa a soma por critério disponível para outros
+          // consumidores sem que cada um precise saber do enum.
+          const criteria = CRITERIA_FIELD_BY_KEY[v.key_agenda.criteria as CriteriaType] ?? v.key_agenda.criteria;
           if (!acc[criteria]) {
             acc[criteria] = { count: 0, totalImpact: 0, votes: 0, subjects: new Set() };
           }

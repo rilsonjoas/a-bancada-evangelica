@@ -166,13 +166,7 @@ describe('PoliticiansService.findOne — votesPerCriteria', () => {
           .mockResolvedValueOnce({ _sum: { net_value: 1000 }, _count: { id: 10 } })
           .mockResolvedValueOnce({ _sum: { net_value: 0 }, _count: { id: 0 } }),
       },
-      // groupBy não é mais usado por findOne (o somatório virou um
-      // findMany) — fica aqui só para o mock não quebrar se algum teste
-      // ainda o referenciar.
-      vote: {
-        findMany: vi.fn().mockResolvedValue([]),
-        groupBy: vi.fn(),
-      } as unknown as { findMany: ReturnType<typeof vi.fn> },
+      vote: { findMany: vi.fn().mockResolvedValue([]) },
     };
     service = new PoliticiansService(prisma as unknown as PrismaService);
   });
@@ -186,7 +180,7 @@ describe('PoliticiansService.findOne — votesPerCriteria', () => {
     ]);
 
     const r = await service.findOne(42);
-    const social = r.votesPerCriteria.SOCIAL_RESPONSIBILITY;
+    const social = r.votesPerCriteria.socialResponsibility;
     expect(social.count).toBe(3);
     expect(social.votes).toBe(3);
     expect(social.totalImpact).toBe(8);
@@ -202,7 +196,7 @@ describe('PoliticiansService.findOne — votesPerCriteria', () => {
     ]);
 
     const r = await service.findOne(42);
-    const social = r.votesPerCriteria.SOCIAL_RESPONSIBILITY;
+    const social = r.votesPerCriteria.socialResponsibility;
     expect(social.count).toBe(2);   // 2 assuntos
     expect(social.votes).toBe(4);   // 4 linhas de voto
     expect(social.totalImpact).toBe(20);
@@ -214,8 +208,8 @@ describe('PoliticiansService.findOne — votesPerCriteria', () => {
       voto(10, 'MORAL_INTEGRITY', 'PL 1/2024'),
     ]);
     const r = await service.findOne(42);
-    expect(r.votesPerCriteria.FAMILY_VALUES.count).toBe(1);
-    expect(r.votesPerCriteria.MORAL_INTEGRITY.count).toBe(1);
+    expect(r.votesPerCriteria.familyValues.count).toBe(1);
+    expect(r.votesPerCriteria.moralIntegrity.count).toBe(1);
   });
 
   it('não devolve entrada para critério sem voto', async () => {
@@ -223,7 +217,7 @@ describe('PoliticiansService.findOne — votesPerCriteria', () => {
       voto(10, 'FAMILY_VALUES', 'PL 1/2024'),
     ]);
     const r = await service.findOne(42);
-    expect(r.votesPerCriteria.FAMILY_VALUES).toBeDefined();
-    expect(r.votesPerCriteria.RELIGIOUS_FREEDOM).toBeUndefined();
+    expect(r.votesPerCriteria.familyValues).toBeDefined();
+    expect(r.votesPerCriteria.religiousFreedom).toBeUndefined();
   });
 });
