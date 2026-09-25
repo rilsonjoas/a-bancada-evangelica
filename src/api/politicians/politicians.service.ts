@@ -202,27 +202,51 @@ export class PoliticiansService {
         });
         return { agg, suspicious };
       }),
-      // H2 (2026-08-27): votos por critério para transparência de base de cálculo
-      this.prisma.vote.groupBy({
-        by: ['key_agenda_id'],
+      // H2 (2026-08-27): votos por critério para transparência de base de
+      // cálculo.
+      //
+      // ACHADO REAL 2026-09-25: o reduce() sobrescrevia em vez de SOMAR. Com
+      // groupBy por key_agenda_id, um parlamentar com 41 votos em
+      // RESPONSABILITY_SOCIAL (em ~10 pautas distintas) recebia
+      // count=1 — a ÚLTIMA pauta do grupo, não a soma. A UI mostrava
+      // "1 votação" para quem votou 41 vezes, e a proveniência da nota
+      // ficava errada nos dois sentidos: a base exibida e o cálculo de
+      // proveniência da nota que depende dela.
+      //
+      // Além disso: a contagem de base passou a contar ASSUNTOS (titles
+      // distintos), não linhas de pauta, para ficar coerente com a média
+      // por assunto do motor de scoring (recalculate-scores.ts).
+      this.prisma.vote.findMany({
         where: { politician_id: id },
-        _count: { id: true },
-        _sum: { applied_score: true },
-      }).then(groups => {
-        // Mapear key_agenda_id -> criteria via key_agenda
-        // Para simplificar, buscar as agendas envolvidas
-        const agendaIds = groups.map(g => g.key_agenda_id);
-        return this.prisma.keyAgenda.findMany({
-          where: { id: { in: agendaIds } },
-          select: { id: true, criteria: true },
-        }).then(agendas => {
-          const map = new Map(agendas.map(a => [a.id, a.criteria]));
-          return groups.reduce((acc, g) => {
-            const criteria = map.get(g.key_agenda_id);
-            if (criteria) acc[criteria] = { count: g._count.id, totalImpact: g._sum.applied_score ?? 0 };
-            return acc;
-          }, {} as Record<string, { count: number; totalImpact: number }>);
-        });
+        select: {
+          applied_score: true,
+          key_agenda: { select: { criteria: true, title: true } },
+        },
+      }).then(votes => {
+        const acc = {} as Record<
+          string,
+          { count: number; totalImpact: number; votes: number; subjects: Set<string> }
+        >;
+        for (const v of votes) {
+          const criteria = v.key_agenda.criteria as string;
+          if (!acc[criteria]) {
+            acc[criteria] = { count: 0, totalImpact: 0, votes: 0, subjects: new Set() };
+          }
+          const a = acc[criteria];
+          a.count += 1;
+          a.votes += 1;
+          a.totalImpact += v.applied_score ?? 0;
+          a.subjects.add(v.key_agenda.title ?? v.key_agenda.criteria);
+        }
+        return Object.fromEntries(
+          Object.entries(acc).map(([criteria, a]) => [
+            criteria,
+            // `count` é o que a UI usa como "base de cálculo" → número de
+            // ASSUNTOS, que é o que de fato sustenta a nota agora. `votes`
+            // fica disponível para o texto explicar a diferença.
+            { count: a.subjects.size, totalImpact: a.totalImpact, votes: a.votes },
+          ]),
+        );
       }),
     ]);
 

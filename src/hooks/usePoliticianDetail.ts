@@ -70,7 +70,15 @@ export interface PoliticianDetail {
     riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
   };
   // H2 (2026-08-27): votos por critério
-  votesPerCriteria?: Record<string, { count: number; totalImpact: number }>;
+  /**
+   * Base de cálculo por critério.
+   *
+   * `count` = número de ASSUNTOS distintos (títulos de pauta únicos) — é o
+   * que sustenta a nota agora que a média é por assunto, e é o que a UI
+   * mostra. `votes` = linhas de voto, que pode ser bem maior quando a mesma
+   * proposição foi votada em várias sessões.
+   */
+  votesPerCriteria?: Record<string, { count: number; totalImpact: number; votes?: number }>;
   /** Financiamento de campanha (TSE 2022) — transparência pura,
    * NÃO afeta a nota. null = sem receita declarada no dataset. */
   campaignFinance: {

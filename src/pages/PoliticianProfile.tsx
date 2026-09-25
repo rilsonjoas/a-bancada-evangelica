@@ -415,11 +415,21 @@ export function PoliticianProfile() {
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="font-mono text-lg font-semibold text-gray-900">
-                              {count} votaç{count !== 1 ? 'ões' : 'ão'}
+                              {count} assunto{count !== 1 ? 's' : ''}
                             </span>
                             {count === 0 && (
                               <span className="text-xs text-muted-foreground">
                                 (não mede esta pessoa)
+                              </span>
+                            )}
+                            {/* A mesma proposição pode ser votada em várias
+                                sessões, e aí o número de votos é maior que o
+                                de assuntos. Sem dizer isso, o usuário conta
+                                as linhas em /votacoes e não bate com o
+                                número aqui. */}
+                            {(vp?.votes ?? 0) > count && count > 0 && (
+                              <span className="text-xs text-muted-foreground" title="A mesma proposição foi voting em mais de uma sessão">
+                                ({vp?.votes} votos)
                               </span>
                             )}
                           </div>
@@ -434,12 +444,16 @@ export function PoliticianProfile() {
                   })}
               </div>
               <p className="text-sm text-muted-foreground border-t pt-3 leading-relaxed">
-                <strong>Como ler:</strong> cada nota por critério é calculada a partir das
-                votações nominais que se encaixam naquele tema. Acima de 5 votações, a
-                base é considerada sólida; abaixo disso, a nota reflete uma amostra
-                pequena e deve ser interpretada com cautela. Sem votações no tema, a
-                nota exibida vem da média histórica do partido (estimativa) — nunca
-                de número inventado. <a href="/metodologia" className="text-primary hover:underline">Ver metodologia</a>.
+                <strong>Como ler:</strong> cada nota por critério é calculada a partir
+                das votações nominais sobre os <em>assuntos</em> que se encaixam
+                naquele tema — um assunto é um projeto de lei ou uma emenda à
+                Constituição, não cada vez que ele foi voting. Se a mesma
+                proposição passou por várias sessões, ela conta uma vez, com a
+                média de tudo que foi voted nela. Acima de 5 assuntos a base é
+                considerada sólida; abaixo disso a nota reflete amostra pequena e
+                deve ser lida com cautela. Sem assunto nenhum no tema, a nota vem
+                da média histórica do partido — nunca de número inventado.{' '}
+                <a href="/metodologia" className="text-primary hover:underline">Ver metodologia</a>.
               </p>
               {/* Proveniência em linguagem direta (auditoria 2026-09-25): os
                   critérios sem voto medido (Proteção à Vida 30% + Liberdade
