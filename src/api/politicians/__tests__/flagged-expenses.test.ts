@@ -126,7 +126,14 @@ describe('PoliticiansService.flaggedExpenses', () => {
  * scoring.
  */
 describe('PoliticiansService.findOne — votesPerCriteria', () => {
-  let prisma: Record<string, unknown>;
+  // Tipado explicitamente: `Record<string, unknown>` deixa `prisma.vote`
+  // como unknown e quebra o typecheck (o CI roda tsc -p tsconfig.api.json,
+  // que é mais estrito que o build da Vite).
+  let prisma: {
+    politician: { findUnique: ReturnType<typeof vi.fn> };
+    expense: { aggregate: ReturnType<typeof vi.fn> };
+    vote: { findMany: ReturnType<typeof vi.fn> };
+  };
   let service: PoliticiansService;
 
   const voto = (
@@ -159,17 +166,20 @@ describe('PoliticiansService.findOne — votesPerCriteria', () => {
           .mockResolvedValueOnce({ _sum: { net_value: 1000 }, _count: { id: 10 } })
           .mockResolvedValueOnce({ _sum: { net_value: 0 }, _count: { id: 0 } }),
       },
+      // groupBy não é mais usado por findOne (o somatório virou um
+      // findMany) — fica aqui só para o mock não quebrar se algum teste
+      // ainda o referenciar.
       vote: {
         findMany: vi.fn().mockResolvedValue([]),
         groupBy: vi.fn(),
-      },
+      } as unknown as { findMany: ReturnType<typeof vi.fn> },
     };
     service = new PoliticiansService(prisma as unknown as PrismaService);
   });
 
   it('SOMA as pautas do mesmo critério em vez de sobrescrever', async () => {
     // A regressão: 3 pautas distintas de RESPONSABILIDADE_SOCIAL.
-    (prisma.vote.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([
+    prisma.vote.findMany.mockResolvedValue([
       voto(10, 'SOCIAL_RESPONSIBILITY', 'PL 1/2024'),
       voto(-10, 'SOCIAL_RESPONSIBILITY', 'PL 2/2024'),
       voto(8, 'SOCIAL_RESPONSIBILITY', 'PL 3/2024'),
@@ -184,7 +194,7 @@ describe('PoliticiansService.findOne — votesPerCriteria', () => {
 
   it('conta ASSUNTOS distintos quando a mesma proposição foi voting várias vezes', async () => {
     // Mesmo título, 3 sessões — o caso real do acervo.
-    (prisma.vote.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([
+    prisma.vote.findMany.mockResolvedValue([
       voto(10, 'SOCIAL_RESPONSIBILITY', 'PL 2159/2021'),
       voto(10, 'SOCIAL_RESPONSIBILITY', 'PL 2159/2021'),
       voto(10, 'SOCIAL_RESPONSIBILITY', 'PL 2159/2021'),
@@ -199,7 +209,7 @@ describe('PoliticiansService.findOne — votesPerCriteria', () => {
   });
 
   it('separa critérios diferentes', async () => {
-    (prisma.vote.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([
+    prisma.vote.findMany.mockResolvedValue([
       voto(10, 'FAMILY_VALUES', 'PL 1/2024'),
       voto(10, 'MORAL_INTEGRITY', 'PL 1/2024'),
     ]);
@@ -209,7 +219,7 @@ describe('PoliticiansService.findOne — votesPerCriteria', () => {
   });
 
   it('não devolve entrada para critério sem voto', async () => {
-    (prisma.vote.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([
+    prisma.vote.findMany.mockResolvedValue([
       voto(10, 'FAMILY_VALUES', 'PL 1/2024'),
     ]);
     const r = await service.findOne(42);
