@@ -3,6 +3,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import fetch from 'node-fetch';
 import { parseStringPromise } from 'xml2js';
+import { evaluateExpense } from './lib/expense-rules';
 
 const prisma = new PrismaClient();
 
@@ -292,6 +293,22 @@ const senadorCompleto = {
               }
             });
 
+            // Regras de suspeita: FONTE ÚNICA em scripts/lib/expense-rules.ts.
+            // Achado real (2026-09-25): este caminho NUNCA gravava
+            // suspicion_score (ficava no default 0 do schema) e usava corte
+            // R$ 100.000 contra R$ 50.000 da Câmara — o que fazia a
+            // penalidade de Integridade Moral dos senadores ser sempre
+            // só `nº_suspeitas * 3`, sem a componente de severidade.
+            const verdict = evaluateExpense({
+              net_value: g.valorReembolsado,
+              refund_value: 0,
+              expense_type: g.tipoDespesa,
+              supplier_name: g.fornecedor,
+              supplier_document: g.cpfCnpj,
+              year: g.ano,
+              source: 'SENADO',
+            });
+
             const expenseData = {
               politician_id: politician.id,
               year: g.ano,
@@ -303,10 +320,11 @@ const senadorCompleto = {
               refund_value: 0,
               supplier_name: g.fornecedor,
               supplier_document: g.cpfCnpj,
+              supplier_type: (g.cpfCnpj?.length ?? 0) === 14 ? 'COMPANY' as const : 'INDIVIDUAL' as const,
               expense_type: g.tipoDespesa,
-              is_suspicious: g.valorReembolsado > 100000,
-              suspicion_reasons: g.valorReembolsado > 100000
-                ? ['Valor muito alto para despesa mensal'] : [],
+              is_suspicious: verdict.is_suspicious,
+              suspicion_reasons: verdict.suspicion_reasons,
+              suspicion_score: verdict.suspicion_score,
             };
 
             if (existing) {

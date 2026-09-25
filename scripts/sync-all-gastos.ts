@@ -11,6 +11,7 @@
 import { PrismaClient } from '@prisma/client';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { evaluateExpense } from './lib/expense-rules';
 
 const prisma = new PrismaClient();
 const BASE = 'https://dadosabertos.camara.leg.br/api/v2';
@@ -49,20 +50,20 @@ async function syncGastosPolitico(
         const gastos = data.dados ?? [];
 
         for (const gasto of gastos) {
-          const suspicionReasons: string[] = [];
-          let suspicionScore = 0;
-
-          if (gasto.valorLiquido > 50000) {
-            suspicionReasons.push('Valor muito alto para despesa mensal'); suspicionScore += 30;
-          }
-          if (gasto.valorGlosa > 0) {
-            suspicionReasons.push('Possui valor glosado'); suspicionScore += 20;
-          }
-          if (!gasto.cnpjCpfFornecedor) {
-            suspicionReasons.push('Fornecedor sem documento identificador'); suspicionScore += 15;
-          }
-          const isSuspicious = suspicionScore > 20;
-          if (isSuspicious) suspicious++;
+          // Regras de suspeita: FONTE ÚNICA em scripts/lib/expense-rules.ts.
+          // Aqui sem baseline (o stream da API não tem visão do corpus) —
+          // a camada robusta por categoria entra depois, em
+          // `pnpm expenses:recalc`, que roda sobre o acervo inteiro.
+          const verdict = evaluateExpense({
+            net_value: gasto.valorLiquido,
+            refund_value: gasto.valorGlosa,
+            expense_type: gasto.tipoDespesa,
+            supplier_name: gasto.nomeFornecedor,
+            supplier_document: gasto.cnpjCpfFornecedor,
+            year: gasto.ano,
+            source: 'CAMARA',
+          });
+          if (verdict.is_suspicious) suspicious++;
 
           try {
             await prisma.expense.upsert({
@@ -87,9 +88,9 @@ async function syncGastosPolitico(
                 supplier_name: gasto.nomeFornecedor,
                 supplier_document: gasto.cnpjCpfFornecedor,
                 supplier_type: (gasto.cnpjCpfFornecedor?.length ?? 0) === 14 ? 'COMPANY' : 'INDIVIDUAL',
-                is_suspicious: isSuspicious,
-                suspicion_reasons: suspicionReasons,
-                suspicion_score: Math.min(suspicionScore, 100),
+                is_suspicious: verdict.is_suspicious,
+                suspicion_reasons: verdict.suspicion_reasons,
+                suspicion_score: verdict.suspicion_score,
                 source: 'CAMARA',
                 source_document_id: gasto.codDocumento.toString(),
                 document_url: gasto.urlDocumento,
@@ -97,8 +98,9 @@ async function syncGastosPolitico(
               update: {
                 gross_value: gasto.valorDocumento,
                 net_value: gasto.valorLiquido,
-                is_suspicious: isSuspicious,
-                suspicion_score: Math.min(suspicionScore, 100),
+                is_suspicious: verdict.is_suspicious,
+                suspicion_reasons: verdict.suspicion_reasons,
+                suspicion_score: verdict.suspicion_score,
               },
             });
             created++;

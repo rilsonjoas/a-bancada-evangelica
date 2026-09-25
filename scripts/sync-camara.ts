@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import fetch from 'node-fetch';
+import { evaluateExpense } from './lib/expense-rules';
 
 const prisma = new PrismaClient();
 
@@ -294,25 +295,18 @@ class CamaraSyncService {
         return;
       }
 
-      // Calcular score de suspeição básico
-      const suspicionReasons: string[] = [];
-      let suspicionScore = 0;
-
-      // Verificar valores suspeitos
-      if (gasto.valorLiquido > 50000) {
-        suspicionReasons.push('Valor muito alto para despesa mensal');
-        suspicionScore += 30;
-      }
-
-      if (gasto.valorGlosa > 0) {
-        suspicionReasons.push('Possui valor glosado');
-        suspicionScore += 20;
-      }
-
-      if (!gasto.cnpjCpfFornecedor) {
-        suspicionReasons.push('Fornecedor sem documento identificador');
-        suspicionScore += 15;
-      }
+      // Regras de suspeita: FONTE ÚNICA em scripts/lib/expense-rules.ts.
+      // Sem baseline aqui — a camada robusta por categoria roda depois,
+      // em `pnpm expenses:recalc`, sobre o acervo inteiro.
+      const verdict = evaluateExpense({
+        net_value: gasto.valorLiquido,
+        refund_value: gasto.valorGlosa,
+        expense_type: gasto.tipoDespesa,
+        supplier_name: gasto.nomeFornecedor,
+        supplier_document: gasto.cnpjCpfFornecedor,
+        year: gasto.ano,
+        source: 'CAMARA',
+      });
 
       await prisma.expense.upsert({
         where: {
@@ -330,9 +324,9 @@ class CamaraSyncService {
           refund_value: gasto.valorGlosa,
           supplier_name: gasto.nomeFornecedor,
           supplier_document: gasto.cnpjCpfFornecedor,
-          is_suspicious: suspicionScore > 20,
-          suspicion_reasons: suspicionReasons,
-          suspicion_score: Math.min(suspicionScore, 100)
+          is_suspicious: verdict.is_suspicious,
+          suspicion_reasons: verdict.suspicion_reasons,
+          suspicion_score: verdict.suspicion_score
         },
         create: {
           politician_id: politician.id,
@@ -348,9 +342,9 @@ class CamaraSyncService {
           supplier_name: gasto.nomeFornecedor,
           supplier_document: gasto.cnpjCpfFornecedor,
           supplier_type: gasto.cnpjCpfFornecedor?.length === 14 ? 'COMPANY' : 'INDIVIDUAL',
-          is_suspicious: suspicionScore > 20,
-          suspicion_reasons: suspicionReasons,
-          suspicion_score: Math.min(suspicionScore, 100),
+          is_suspicious: verdict.is_suspicious,
+          suspicion_reasons: verdict.suspicion_reasons,
+          suspicion_score: verdict.suspicion_score,
           source: 'CAMARA',
           source_document_id: gasto.codDocumento.toString(),
           document_url: gasto.urlDocumento
