@@ -53,6 +53,37 @@ export function themeBySlug(slug: string): ThemeMeta | undefined {
   return THEMES.find((t) => t.slug === slug);
 }
 
+/**
+ * Casa um termo de busca contra o catálogo de temas.
+ *
+ * POR QUE ISTO EXISTE (achado real 2026-09-25): o campo de busca da navbar
+ * consultava SÓ `usePoliticians({ search })` — nomes de parlamentar. Digitar
+ * "meio ambiente" ou "transito" não retornava nada, mesmo existindo as
+ * páginas /temas/meio-ambiente-energia e /temas/transito. Combinado com o
+ * fato de /temas não estar na navegação principal (só no rodapé), os temas
+ * eram praticamente invisíveis para quem não chega pelo Google.
+ *
+ * O catálogo é estático, então o filtro roda no cliente — sem chamada de API.
+ */
+export function matchThemes(query: string): ThemeMeta[] {
+  // Hífen vira espaço: o slug é "meio-ambiente-energia" e é o que o usuário
+  // digita depois de copiar a URL — sem isso a busca devolvia zero.
+  const norm = (s: string) =>
+    s.toLowerCase()
+      .normalize('NFD')
+      .replace(/\p{M}/gu, '')
+      .replace(/[-_/]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  const q = norm(query);
+  if (q.length < 2) return [];
+
+  return THEMES.filter((t) => {
+    const alvo = norm(`${t.label} ${t.tagline} ${t.description} ${t.slug}`);
+    return alvo.includes(q);
+  });
+}
+
 // Conta quantas pautas-chave (com voto registrado) existem por tema.
 // Só temas que existem no catálogo entram — evita tema órfão no hub.
 export function countAgendasByTheme(

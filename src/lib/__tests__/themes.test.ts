@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { THEMES, themeBySlug, countAgendasByTheme } from '../themes';
+import { THEMES, themeBySlug, countAgendasByTheme, matchThemes } from '../themes';
 
 describe('catálogo de temas (M2)', () => {
   it('tem slugs únicos', () => {
@@ -32,5 +32,38 @@ describe('catálogo de temas (M2)', () => {
     expect(counts['meio-ambiente-energia']).toBe(2);
     expect(counts['transito']).toBe(1);
     expect(counts['nao-existe']).toBeUndefined();
+  });
+});
+
+//(matchThemes foi adicionado em 2026-09-25: a busca da navbar só consultava
+// nome de parlamentar, então "meio ambiente" não retornava nada mesmo
+// existindo a página /temas/meio-ambiente-energia.)
+describe('matchThemes', () => {
+  it('casa por palavra do rótulo — o caso que motivou a função', () => {
+    expect(matchThemes('meio ambiente').map((t) => t.slug)).toContain('meio-ambiente-energia');
+  });
+
+  it('casa por palavra da tagline', () => {
+    expect(matchThemes('queimadas').map((t) => t.slug)).toContain('meio-ambiente-energia');
+    expect(matchThemes('motorista').map((t) => t.slug)).toContain('transito');
+  });
+
+  it('ignora acento e caixa', () => {
+    expect(matchThemes('MEIO AMBIENTE').length).toBe(matchThemes('meio ambiente').length);
+    expect(matchThemes('meio-ambiente').length).toBe(matchThemes('meio ambiente').length);
+  });
+
+  it('exige ao menos 2 caracteres', () => {
+    expect(matchThemes('m')).toEqual([]);
+    expect(matchThemes('  ')).toEqual([]);
+  });
+
+  it('devolve vazio quando nada casa, sem inventar resultado', () => {
+    expect(matchThemes('zzzzqqqq')).toEqual([]);
+  });
+
+  it('nunca devolve tema fora do catálogo', () => {
+    const slugs = new Set(THEMES.map((t) => t.slug));
+    for (const t of matchThemes('a')) expect(slugs.has(t.slug)).toBe(true);
   });
 });

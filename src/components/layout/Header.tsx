@@ -10,14 +10,20 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { BookOpen, BarChart3, Vote, Network, BookMarked, Info, Mail, Search, Menu, UserCircle2 } from "lucide-react";
+import { BookOpen, BarChart3, Vote, Network, BookMarked, Info, Mail, Search, Menu, UserCircle2, LayoutGrid } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePoliticians } from "@/hooks/usePoliticians";
+import { matchThemes } from "@/lib/themes";
 
 const navigation = [
   { name: "Ranking",     href: "/ranking",    icon: BookOpen },
   { name: "Comparação",  href: "/comparacao", icon: BarChart3 },
   { name: "Votações",    href: "/votacoes",   icon: Vote },
+  // /temas estava só no rodapé —combined com a busca que só olhava nome de
+  // parlamentar, os temas eram inalcançáveis de dentro do site (achado real
+  // 2026-09-25, a partir de comentário de usuário dizendo que "educação e
+  // meio ambiente não existem aqui").
+  { name: "Temas",       href: "/temas",      icon: LayoutGrid },
   { name: "Grupos",      href: "/grupos",     icon: Network },
   { name: "Metodologia", href: "/metodologia", icon: BookMarked },
   { name: "Sobre",       href: "/sobre",      icon: Info },
@@ -43,6 +49,9 @@ const Header = () => {
     limit: 5,
   });
 
+  // Temas também são buscáveis: a busca só olhava nome de parlamentar, então
+  // "meio ambiente" não retornava nada apesar de a página existir.
+  const themeResults = matchThemes(searchTerm);
   const searchResults = searchData?.politicians ?? [];
 
   const submitSearch = (e?: React.FormEvent) => {
@@ -102,9 +111,9 @@ const Header = () => {
                   autoFocus
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Buscar parlamentar..."
+                  placeholder="Buscar parlamentar ou tema..."
                   className="h-9 w-56 lg:w-64"
-                  aria-label="Buscar parlamentar"
+                  aria-label="Buscar parlamentar ou tema"
                 />
                 <Button type="submit" size="sm" variant="ghost" aria-label="Confirmar busca">
                   <Search className="h-4 w-4" />
@@ -116,39 +125,66 @@ const Header = () => {
                     <div className="text-[11px] font-semibold text-muted-foreground px-2 py-1 uppercase tracking-wider border-b border-border/50 pb-1 mb-1">
                       Sugestões de busca
                     </div>
-                    {searchResults.length === 0 ? (
+                    {searchResults.length === 0 && themeResults.length === 0 ? (
                       <div className="text-xs text-muted-foreground p-3 text-center">
-                        Nenhum parlamentar encontrado para "{searchTerm}"
+                        Nada encontrado para "{searchTerm}" — nem parlamentar nem tema
                       </div>
                     ) : (
-                      searchResults.map((p) => (
-                        <Link
-                          key={p.id}
-                          to={`/politicos/${p.id}`}
-                          onClick={() => {
-                            setSearchOpen(false);
-                            setSearchTerm("");
-                          }}
-                          className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent transition-colors text-left"
-                        >
-                          {p.photoUrl ? (
-                            <img
-                              src={p.photoUrl}
-                              alt={p.name}
-                              className="w-8 h-8 rounded-full object-cover bg-secondary flex-shrink-0"
-                            />
-                          ) : (
-                            <UserCircle2 className="w-8 h-8 text-muted-foreground flex-shrink-0" />
-                          )}
-                          <div className="min-w-0 flex-1">
-                            <p className="text-xs font-bold text-foreground truncate">{p.name}</p>
-                            <p className="text-[11px] text-muted-foreground truncate">{p.currentParty} · {p.currentState}</p>
-                          </div>
-                          <Badge variant="secondary" className="text-xs font-bold shrink-0">
-                            {p.scores.overall.toFixed(0)}
-                          </Badge>
-                        </Link>
-                      ))
+                      <>
+                        {searchResults.map((p) => (
+                          <Link
+                            key={p.id}
+                            to={`/politicos/${p.id}`}
+                            onClick={() => {
+                              setSearchOpen(false);
+                              setSearchTerm("");
+                            }}
+                            className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent transition-colors text-left"
+                          >
+                            {p.photoUrl ? (
+                              <img
+                                src={p.photoUrl}
+                                alt={p.name}
+                                className="w-8 h-8 rounded-full object-cover bg-secondary flex-shrink-0"
+                              />
+                            ) : (
+                              <UserCircle2 className="w-8 h-8 text-muted-foreground flex-shrink-0" />
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs font-bold text-foreground truncate">{p.name}</p>
+                              <p className="text-[11px] text-muted-foreground truncate">{p.currentParty} · {p.currentState}</p>
+                            </div>
+                            <Badge variant="secondary" className="text-xs font-bold shrink-0">
+                              {p.scores.overall.toFixed(0)}
+                            </Badge>
+                          </Link>
+                        ))}
+
+                        {themeResults.length > 0 && (
+                          <>
+                            <div className="text-[11px] font-semibold text-muted-foreground px-2 py-1 uppercase tracking-wider border-b border-border/50 pb-1 mb-1">
+                              Temas
+                            </div>
+                            {themeResults.map((t) => (
+                              <Link
+                                key={t.slug}
+                                to={`/temas/${t.slug}`}
+                                onClick={() => {
+                                  setSearchOpen(false);
+                                  setSearchTerm("");
+                                }}
+                                className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent transition-colors"
+                              >
+                                <t.icon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-xs font-bold text-foreground truncate">{t.label}</p>
+                                  <p className="text-[11px] text-muted-foreground truncate">{t.tagline}</p>
+                                </div>
+                              </Link>
+                            ))}
+                          </>
+                        )}
+                      </>
                     )}
                     <button
                       type="button"
@@ -202,7 +238,7 @@ const Header = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Buscar..."
                     className="h-9"
-                    aria-label="Buscar parlamentar no menu"
+                    aria-label="Buscar parlamentar ou tema no menu"
                   />
                   <Button type="submit" size="sm" aria-label="Confirmar busca">
                     <Search className="h-4 w-4" />
