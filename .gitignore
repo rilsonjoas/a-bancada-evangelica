@@ -18,6 +18,14 @@ dist-ssr
 *.local
 *.tsbuildinfo
 
+# Output gerado dos scripts de render (cards para publicação social e
+# gráficos). Regenerável com `pnpm render:charts` / `pnpm render:gt1` —
+# ver OUT_DIR em scripts/render-charts.ts e scripts/render-gt1-cards.ts.
+# NÃO confundir com docs/screenshots/, que NÃO entra aqui: o
+# preview.png de lá é a imagem de capa do README (README.md linha 21) e
+# precisa estar versionado, senão o README abre com imagem quebrada.
+imagens-publicacao/
+
 # Gerado por `pnpm docs:sync-public` (prebuild/predev) a partir de
 # docs/REPRODUCIBILITY.md — nunca editar aqui, editar a fonte em docs/.
 # Achado real 2026-09-08: o link "Ler guia de reprodutibilidade" na

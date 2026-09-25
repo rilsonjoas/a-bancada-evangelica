@@ -37,10 +37,10 @@ Resultado final: notas 0–100 por critério + nota geral + rank
 | **Câmara — Deputados** | `https://dadosabertos.camara.leg.br/api/v2/deputados` | Lista de deputados, mandatos, partido, UF | `scripts/sync-camara.ts` |
 | **Câmara — Votações** | `https://dadosabertos.camara.leg.br/api/v2/votacoes` | Votações nominais (evento, data, proposição, como cada deputado votou) | `scripts/sync-votes.ts` |
 | **Câmara — Frentes** | `https://dadosabertos.camara.leg.br/api/v2/frentes/54477/membros` | Membros oficiais da Frente Parlamentar Evangélica (FPE) | `scripts/sync-fpe-members.ts` |
-| **Câmara — Despesas** | `https://dadosabertos.camara.leg.br/api/v2/deputados/{id}/despesas` | CEAPs (gastos parlamentares) | `scripts/sync-camara.ts` (despesas) |
+| **Câmara — Despesas** | `https://dadosabertos.camara.leg.br/api/v2/deputados/{id}/despesas` | CEAP (cota parlamentar do deputado) | `scripts/sync-all-gastos.ts` (todos) · `scripts/sync-camara.ts` (por deputado) |
 | **Senado — Senadores** | `https://legis.senado.leg.br/dadosabertos/senador/lista/atual` | Lista de senadores, mandatos, partido, UF | `scripts/sync-senado.ts` |
 | **Senado — Votações** | `https://legis.senado.leg.br/dadosabertos/votacao` | Votações nominais do Senado (desde fev/2026) | `scripts/sync-votes-senado.ts` |
-| **Senado — Despesas (CEAP)** | `https://adm.senado.gov.br/adm-dadosabertos/api/v1/senadores/despesas_ceaps/{ano}` | Gastos CEAP dos senadores | `scripts/sync-all-gastos.ts` |
+| **Senado — Despesas (CEAPS)** | `https://adm.senado.gov.br/adm-dadosabertos/api/v1/senadores/despesas_ceaps/{ano}` | CEAPS (cota parlamentar do senador) | `scripts/sync-senado.ts` (subcomando `gastos`) |
 | **Senado — FPE** | `https://legis.senado.leg.br/dadosabertos/collegiado/2583/membros` | Membros da bancada evangélica no Senado (codcol=2583) | `scripts/sync-fpe-members.ts` |
 | **TSE — Prestação de contas 2022** | `https://dadosabertos.tse.jus.br/prestacao_contas/2022/` | Doações de campanha declaradas | `scripts/sync-tse-receitas.ts` + `sync-tse-candidatura.ts` |
 
@@ -58,6 +58,12 @@ Resultado final: notas 0–100 por critério + nota geral + rank
 > público via `GET /api/stats/sync-history` (corrigido em 2026-09-08:
 > este guia citava um arquivo `docs/SYNC-LOG-2026-08-27.md` que nunca
 > existiu no repositório).
+
+> **Regras de classificação de despesa**: a fonte única é
+> `scripts/lib/expense-rules.ts` (`EXPENSE_RULES_VERSION`). O método, a
+> auditoria das regras descartadas e os limites estão em
+> **`docs/DETECCAO-DESPESAS.md`**. Decisões e alternativas descartadas com
+> justificativa em **`docs/DECISOES.md`**.
 
 ---
 
@@ -129,8 +135,21 @@ Para **cada parlamentar** e **cada um dos 5 critérios**:
    extremo. A média mede tendência, não volume.
 
 Integridade Moral tem um passo extra, sempre aplicado (com ou sem voto):
-   penalidade = min(25, despesas_suspeitas_count*3 + despesa_suspeita_média*0.1)
+   penalidade = f(percentual de despesas fora do padrão)   ← PROPORCIONAL
    Score_moral = clamp0a100( seed_moral + média(applied_score de V, ou 0 se V vazio) - penalidade )
+
+   A fórmula era `min(25, despesas_suspeitas_count*3 + score_médio*0.1)`,
+   que punia VOLUME e não gravidade — medido em 2026-09-25: 31 dos 174
+   parlamentares com despesa saturavam no teto de 25 pontos (18%), e a
+   mediana era 6,01. É o mesmo defeito de saturação corrigido no item 4
+   acima, que tinha sobrado aqui. O método de detecção e a fórmula
+   exata estão em DETECCAO-DESPESAS.md §5.
+
+   ATENÇÃO ao ler a nota de Integridade Moral: despesa é só UMA das
+   componentes. A maior parte do critério vem do seed do partido e da
+   média dos votos. Uma nota alta em Integridade Moral NÃO significa
+   "gastos em ordem" — e por isso a aba de Gastos não mostra essa nota
+   (ver DECISOES.md, D3).
 ```
 
 **Duas funções de clamp diferentes, de propósito**:

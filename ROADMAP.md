@@ -1525,3 +1525,79 @@ fórmula real do código — a revisão de hoje foi manual. Se esse tipo de
 divergência se repetir, vale considerar um teste que extraia
 constantes do código (pesos, keywords) e falhe se o texto publicado
 não citar os mesmos valores.
+
+---
+
+## Pautas acumuladas — para análise futura (registrado 2026-09-25)
+
+> Origem: comentário de usuário sobre a cobertura de temas. **Registrado
+> apenas, sem implementação** — a decisão de quando e como tratar cada um
+> fica para depois. Nenhuma destas pautas foi tocada no código.
+
+Contexto que muda a análise de qualquer uma delas: em 2026-09-25 mediu-se
+que **83 "pautas-chave" no acervo são apenas 33 assuntos distintos** — a
+mesma proposição aparece várias vezes, uma por sessão de votação (até 9x
+para o PL 2159/2021). Antes de adicionar qualquer pauta nova, vale resolver
+o que isso significa para a contagem e para o peso no cálculo.
+
+| Pauta | Situação medida | O que precisa ser decidido |
+|---|---|---|
+| **Meio ambiente** | Já existe como **tema** (`meio-ambiente-energia`, 36 pautas) mas é o tema com **55 das 83 pautas** classificadas como `SOCIAL_RESPONSIBILITY` — quase todo o acervo de ambiente está contaminado pelo critério de assistência social | Separar o que é meio ambiente do que é assistência social, e reclassificar. Sem isso, "como votaram sobre ambiente" responde uma pergunta enviesada |
+| **Tecnologia** | Nenhuma pauta, nenhum tema. Palavras como "plataforma digital", "IA", "dados pessoais" não existem no `SCAN_RULES` | Definir se é tema (sem efeito na nota) ou se entra em algum critério. Marco Civil da Internet (PL 2630/2020) está classificado como `FAMILY_VALUES`, o que é discutível |
+| **PEC da blindagem** | Nenhuma PEC sobre segurança pública no acervo. As 7 PECs existentes são de assistência social e saúde | Definir o enquadramento: PEC é emenda à Constituição, muda o caso. Tratar como tema é mais honesto que forçar num critério |
+| **Outras PECs** | 7 PECs no acervo, todas `SOCIAL_RESPONSIBILITY`. Nenhuma sobre segurança pública, reforma política, imigração | Mapear quais PECs acompanhar; considerar varredura específica de PEC (hoje a varredura é do Plenário) |
+
+Ordem sugerida quando for atacar: **PEC da blindagem → tecnologia → outras
+PECs → desconectar meio ambiente de SOCIAL_RESPONSIBILITY**. O último é o
+mais importante para confiança: enquanto ambiente estiver dentro de
+"responsabilidade social", a página de ambiente é resposta parcial.
+
+Ver `docs/AUDITORIA-CALCULOS.md` §3 e §4 para o diagnóstico completo.
+
+---
+
+## Autoria de proposições — plano em fases (registrado 2026-09-25)
+
+Origem: análise de viabilidade para habilitar educação e as pautas
+acumuladas. **A varredura de comissões foi descartada por medição, não por
+estimativa** — ver `docs/AUDITORIA-CALCULOS.md` §9. Resumo do que se mediu:
+
+- `/orgaos/{id}/votacoes` de 12 comissões: **0 votações**
+- 277 votações de proposição, 39 com voto individual: **todas `[PLEN]`**
+- `idVotacao`/`ordemVotacao` (voto posicional): **0**
+- `/proposicoes/{id}/autores`: **funciona** — nome do autor, `tipo`, `proponente`
+
+Voto de comissão só existe em ata em PDF. Não vale parsear. Já `/autores`
+dá um sinal individual, auditável e disponível.
+
+- [ ] **Fase 1 — piloto de medição** (sem produto). 3 temas (educação, meio
+      ambiente, segurança pública); medir quantos deputados têm ao menos uma
+      autoria. **Critério de corte:** menos de ~40 declarações → não sustenta
+      página, para aqui. ~1h de script, fora do cron.
+- [ ] **Fase 2 — camada de autoria.** Tabela + sync + CSV em `/dados`
+- [ ] **Fase 3 — página "O que propôs"** no perfil, separada de "Votações",
+      rotulada como autoria (fato), nunca como posição. **Sem efeito na nota**
+- [ ] **Fase 4 — só se a fase 1 render:** reavaliar peso de tema na nota.
+      Decisão de produto, não de engenharia
+
+Ordem sugerida: **Fase 1 primeiro** — ela é barata e decide se as outras
+existem. Não escrever código de produto antes de medir.
+
+## Correções metodológicas pendentes (da auditoria de 2026-09-25)
+
+- [ ] **Média de voto por ASSUNTO DISTINTO, não por linha de voto.** 83
+      "pautas" são 33 assuntos; a mesma proposição aparece até 9x e hoje
+      pesa 9x na média. É a correção de maior impacto da lista
+      (`AUDITORIA-CALCULOS.md` §4).
+- [ ] **Exibir "33 assuntos em 83 sessões"** em vez de "83 pautas", e
+      agregar por proposição nas páginas de tema.
+- [ ] **Declarar 40% do peso como seed.** Proteção à Vida (30%) tem 3 pautas
+      e **0 votos**; Liberdade Religiosa (10%) tem 0 pautas e 0 votos. Dizer
+      isso no perfil e em `/metodologia` — o dado já existe
+      (`votesPerCriteria`).
+- [ ] **Separar ranking "medido" (513) de "estimado" (217, 29,7%)** ou
+      avisar com força no card.
+- [ ] **`PARTY_ALIGNMENT` com fonte auditável por valor.** É o piso da nota
+      (90,8% da variância) e hoje é tabela escrita à mão.
+- [ ] Teste que extraia pesos/keywords do código e falhe se o texto
+      publicado divergir.

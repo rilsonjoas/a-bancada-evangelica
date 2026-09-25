@@ -2,7 +2,7 @@
 
 <p align="center">
   <strong>Plataforma de transparência parlamentar com avaliação por valores cristãos</strong><br/>
-  595 parlamentares avaliados em 5 critérios — com dados reais da Câmara dos Deputados e do Senado
+  Parlamentares da 57ª legislatura avaliados em 5 critérios — com dados reais da Câmara dos Deputados e do Senado
 </p>
 
 <p align="center">
@@ -17,13 +17,17 @@
   <img src="https://img.shields.io/badge/Deploy-Hetzner%20VPS-orange?style=flat-square&logo=hetzner" />
 </p>
 
+<p align="center">
+  <img src="docs/screenshots/preview.png" alt="A Bancada Evangélica Preview" width="800" />
+</p>
+
 ---
 
 ## O que é
 
 **A Bancada Evangélica** avalia os parlamentares da 57ª legislatura (2023–2027) — 513 deputados federais da Câmara + 82 senadores — com base em 5 critérios objetivos de alinhamento com valores cristãos: proteção à vida, valores familiares, integridade moral, responsabilidade social e liberdade religiosa.
 
-A Frente Parlamentar Evangélica (FPE) é um **filtro opcional** — não um limite. O eleitor pode ver o ranking geral ou ativar o toggle "Apenas FPE" para focar nos 209 deputados que se identificam publicamente como representantes evangélicos.
+A Frente Parlamentar Evangélica (FPE) é um **filtro opcional** — não um limite. O eleitor pode ver o ranking geral ou ativar o toggle "Apenas FPE" para focar nos deputados que se identificam publicamente como representantes evangélicos (a contagem vigente, com a data da captura oficial, está em `/metodologia`).
 
 > *"O parlamentar que diz falar em nome da fé está de fato defendendo esses valores no plenário?"*
 
@@ -35,7 +39,7 @@ Parlamentar que se apresenta como representante de valores cristãos é cobrado 
 
 Isso é sobre uma coisa só: verdade sustentada por dado, não por retórica. "E tudo o que saia da minha boca revele esta verdade" vale tanto pra mim escrevendo isto quanto pra qualquer parlamentar que citei aqui — os critérios são objetivos, documentados e auditáveis, e o projeto não existe pra empurrar um partido, existe pra que o voto real fique visível.
 
-Hoje são 595 parlamentares avaliados com dado oficial da Câmara, do Senado e do TSE, metodologia publicada, sem viés partidário declarado. A visão de longo prazo não é audiência de massa — é virar a fonte que jornalista e pesquisador citam quando precisam saber, com dado, se o discurso bate com o voto. Isso se constrói com credibilidade acumulada votação a votação, não com uma campanha de lançamento.
+O projeto avalia os parlamentares da legislatura com dado oficial da Câmara, do Senado e do TSE, metodologia publicada, sem viés partidário declarado. A visão de longo prazo não é audiência de massa — é virar a fonte que jornalista e pesquisador citam quando precisam saber, com dado, se o discurso bate com o voto. Isso se constrói com credibilidade acumulada votação a votação, não com uma campanha de lançamento.
 
 ### Decisão permanente: sem anúncio, sem afiliado, sem destaque pago
 
@@ -49,7 +53,7 @@ Este projeto não roda anúncio, não tem afiliado, não vende dado nem destaque
 |---|---|
 | **Frontend** | React 18, TypeScript, Vite, TanStack Query, shadcn/ui, Tailwind CSS, Recharts |
 | **API** | NestJS 11 (IoC/DI), Prisma ORM, PostgreSQL (Hetzner VPS) |
-| **Testes** | Vitest, Testing Library (157 testes, 25 suites) |
+| **Testes** | Vitest, Testing Library (`pnpm test` · `pnpm test:api`) |
 | **Infra** | Hetzner VPS (API + Análise ML via Docker), Vercel (frontend) |
 | **Fontes de dados** | API oficial da Câmara dos Deputados, CEAP (cota parlamentar) |
 
@@ -93,15 +97,15 @@ A API segue o padrão de **módulos NestJS com injeção de dependência** — c
 
 | Feature | Detalhe |
 |---|---|
-| **Ranking** | 595 parlamentares ordenados por score, com filtros de estado, partido e casa |
-| **Filtro FPE** | Toggle "Apenas FPE" — 209 membros identificados via API da Câmara |
+| **Ranking** | Parlamentares ordenados por score, com filtros de estado, partido e casa |
+| **Filtro FPE** | Toggle "Apenas FPE" — membros identificados via API da Câmara (contagem vigente em `/metodologia`) |
 | **Perfil individual** | Score por critério, histórico de votações, análise de gastos, mandatos |
 | **Comparação** | Compare até 4 parlamentares lado a lado em todos os critérios |
-| **Análise de Votações** | 26.860 votos, 83 pautas monitoradas, ranking de alinhamento |
+| **Análise de Votações** | Votos nominais e pautas monitoradas, com ranking de alinhamento |
 | **Alinhamento por partido** | Score médio por partido com segmentação por nível |
 | **Metodologia** | Página completa explicando pesos, critérios e fontes de dados |
 | **API REST** | 10 endpoints com documentação Swagger em `/api/docs` |
-| **Testes** | 157 testes automatizados cobrindo componentes e lógica de UI + API |
+| **Testes** | Suíte automatizada cobrindo componentes, regras de scoring e API (`pnpm test`, `pnpm test:api`) |
 | **Sync automático** | Worker próprio (`sync-worker.ts`, node-cron): políticos 03h diário, gastos domingo 04h, scores 05h diário — dado não fica desatualizado numa votação importante |
 
 ### Critérios de avaliação
@@ -119,14 +123,32 @@ A API segue o padrão de **módulos NestJS com injeção de dependência** — c
 | Feature | Status |
 |---|---|
 | Análise ML de clusters de votação (KMeans/PCA) | Serviço Python separado — em implantação |
-| Sincronização completa de gastos CEAP | Script pronto (`pnpm sync:camara`), dados parciais |
+| Cobertura de despesas (hoje parcial — nem todo parlamentar tem despesa sincronizada) | Ver `docs/DETECCAO-DESPESAS.md` §6 |
 | Votos individuais para todas as pautas | PL 1904/2024 e outros tramitaram em comissão sem votação nominal disponível |
+
+### Documentação
+
+| Doc | O que resolve |
+|---|---|
+| [`docs/REPRODUCIBILITY.md`](docs/REPRODUCIBILITY.md) | Como recalcular todas as notas do zero — pipeline, fontes, fórmula de scoring |
+| [`docs/DETECCAO-DESPESAS.md`](docs/DETECCAO-DESPESAS.md) | Como o "fora do padrão" é detectado, auditoria das regras descartadas, limites |
+| [`docs/DECISOES.md`](docs/DECISOES.md) | Log de decisões: o que foi escolhido, o que foi descartado e por quê |
+| [`docs/AUDITORIA-CALCULOS.md`](docs/AUDITORIA-CALCULOS.md) | **O que a nota realmente mede** — e o que ela não sabe. Comece por aqui |
+| [`docs/GUIA-CURADORIA-DADOS.md`](docs/GUIA-CURATORIA-DADOS.md) | Como curar pauta e notícia sem fabricar número |
+| [`AGENTS.md`](AGENTS.md) | Regras de trabalho e ordem mínima de verificação |
 
 ---
 
 ## Dados reais (57ª legislatura)
 
+> **Os números abaixo são um snapshot de 2026-09-14 e envelhecem.** O valor
+> **vigente** está em [a-bancada-evangelica.vercel.app](https://a-bancada-evangelica.vercel.app)
+> e o histórico de cada sync em `/dados`. Nada aqui deve ser tratado como
+> número fixo — ver `docs/REPRODUCIBILITY.md` §7.3, que já pedia exatamente
+> isso antes de este bloco existir.
+
 ```
+Snapshot de 2026-09-14 (o número de hoje é maior — consulte o site):
 Parlamentares avaliados:   595 (513 Câmara + 82 Senado)
 Com voto próprio:          505
 Avaliados só por partido:  89
@@ -140,6 +162,18 @@ Distribuição de performance (rótulos neutros de aderência, capturado 2026-09
   Aderência moderada (45–64 pts):   146 parlamentares (24,5%)
   Aderência baixa (<45 pts):        111 parlamentares (18,7%)
 ```
+
+**Cobertura desigual entre os dados** — vale saber antes de comparar:
+
+| Dado | Cobertura |
+|---|---|
+| Votos nominais | completa |
+| Despesas (CEAP/CEAPS) | **parcial** — nem todo parlamentar tem despesa sincronizada |
+| Membros da FPE | captura datada, auditada contra a lista oficial |
+
+> Só o primeiro está completo. Gasto é o que mais sofre variação, e a
+> aba de Gastos marca explicitamente quem não tem dado — ausência de dado
+> não é gasto normal. Ver `docs/DETECCAO-DESPESAS.md` §6.
 
 ---
 
