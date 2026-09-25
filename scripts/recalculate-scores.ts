@@ -44,6 +44,7 @@
 import { PrismaClient } from '@prisma/client';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { computeExpensePenalty } from './lib/expense-rules';
 import {
   CRITERIA_KEYS,
   WEIGHTS,
@@ -140,11 +141,14 @@ async function recalculate() {
 
     // Penalidade de despesas suspeitas em moral_integrity — sempre
     // recalculada fresca a partir do dado real, nunca cumulativa.
+    // A fórmula (e por que ela é proporcional) está em
+    // scripts/lib/expense-rules.ts → computeExpensePenalty.
+    const totalExpenses = politician.expenses.length;
     const suspiciousCount = politician.expenses.filter(e => e.is_suspicious).length;
     const avgSuspicion = politician.expenses.length > 0
       ? politician.expenses.reduce((s, e) => s + (e.suspicion_score ?? 0), 0) / politician.expenses.length
       : 0;
-    const expensePenalty = Math.min(25, suspiciousCount * 3 + avgSuspicion * 0.1);
+    const expensePenalty = computeExpensePenalty({ totalExpenses, suspiciousCount, avgSuspicion });
 
     // Híbrido: parte do seed do partido (fixo), ajusta só onde há voto real.
     const life = clampScore(hasCriteriaVotes('LIFE_PROTECTION') ? seedFor('LIFE_PROTECTION') + avgDelta('LIFE_PROTECTION') : seedFor('LIFE_PROTECTION'));

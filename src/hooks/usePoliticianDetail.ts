@@ -57,12 +57,17 @@ export interface PoliticianDetail {
   expenseAnalysis: {
     totalValue: number;
     suspiciousValue: number;
-    suspiciousCount?: number;
-    /** Total de despesas analisadas — 0 = estimativa parcial (party seed) */
-    totalCount?: number;
+    suspiciousCount: number;
+    /** Total de despesas analisadas — 0 = sem dado de despesa no acervo. */
+    totalCount: number;
     suspiciousPercentage: number;
-    integrityScore: number;
-    riskLevel: string;
+    /** D6 (2026-09-25): false = sem despesa sincronizada. Ausência de dado
+     *  não é gasto normal, e a UI precisa distinguir os dois. */
+    hasExpenseData: boolean;
+    /** D3 (2026-09-25): `integrityScore` foi REMOVIDO de propósito — a API
+     *  preenchia com moral_integrity (score do critério de valores, não uma
+     *  medida de gasto) e a UI o rotulava como se fosse. Ver DECISOES.md. */
+    riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
   };
   // H2 (2026-08-27): votos por critério
   votesPerCriteria?: Record<string, { count: number; totalImpact: number }>;

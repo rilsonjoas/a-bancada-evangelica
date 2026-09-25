@@ -13,6 +13,7 @@ import { usePoliticianDetail } from '@/hooks/usePoliticianDetail';
 import { PerformanceChart } from '@/components/charts/PerformanceChart';
 import { VotingHistoryChart } from '@/components/charts/VotingHistoryChart';
 import { ExpenseAnalysisChart } from '@/components/charts/ExpenseAnalysisChart';
+import { FlaggedExpensesList } from '@/components/expenses/FlaggedExpensesList';
 import { ShareableCard } from '@/components/social/ShareableCard';
 import { FpeTierChip } from '@/components/politicians/FpeTierChip';
 import { CRITERIA, CRITERIA_BY_KEY } from '@/lib/criteria';
@@ -481,9 +482,19 @@ export function PoliticianProfile() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
+                  <span>Despesas analisadas:</span>
+                  <span className="font-semibold">
+                    {(politician.expenseAnalysis?.totalCount ?? 0).toLocaleString('pt-BR')}
+                  </span>
+                </div>
+                <div className="flex justify-between">
                   <span>Gastos fora do padrão:</span>
                   <span className="font-semibold text-red-600">
-                    R$ {politician.expenseAnalysis?.suspiciousValue?.toLocaleString('pt-BR') || '0'}
+                    {new Intl.NumberFormat('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL',
+                      maximumFractionDigits: 0,
+                    }).format(politician.expenseAnalysis?.suspiciousValue ?? 0)}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -494,8 +505,8 @@ export function PoliticianProfile() {
                 </div>
                 <div className="flex justify-between">
                   <span>Padrão geral dos gastos:</span>
-                  {(politician.expenseAnalysis?.totalCount ?? 0) === 0 ? (
-                    <span className="font-semibold text-muted-foreground">—</span>
+                  {!politician.expenseAnalysis?.hasExpenseData ? (
+                    <Badge variant="outline">Sem dados</Badge>
                   ) : (
                     <Badge variant={politician.expenseAnalysis?.riskLevel === 'HIGH' ? 'destructive' : politician.expenseAnalysis?.riskLevel === 'MEDIUM' ? 'default' : 'secondary'}>
                       {politician.expenseAnalysis?.riskLevel === 'HIGH'
@@ -506,20 +517,24 @@ export function PoliticianProfile() {
                     </Badge>
                   )}
                 </div>
-                {/* Honestidade sobre a origem da nota: sem despesas
-                    analisadas, parte dela vem da base partidária — o eleitor
-                    precisa saber que é estimativa, não medição completa. */}
-                {(politician.expenseAnalysis?.totalCount ?? 0) === 0 && (
+                {/* D6 (2026-09-25): "sem dado" é um estado próprio, distinto de
+                    "gasto normal". Só 174 dos parlamentares registrados têm
+                    despesa no acervo; sem dizer isso, ausência de dado parece
+                    despesa limpa. */}
+                {!politician.expenseAnalysis?.hasExpenseData && (
                   <p className="text-sm text-muted-foreground border-t pt-3 leading-relaxed">
-                    Análise de gastos ainda não realizada para este {politician.currentHouse === 'SENADO' ? 'senador' : 'deputado'}.
-                    Parte da nota vem da média histórica do partido (metodologia
-                    híbrida) — trate-a como <strong>estimativa parcial</strong>.
+                    <strong>Sem dados de despesa</strong> para este {politician.currentHouse === 'SENADO' ? 'senador' : 'deputado'} — a cota não
+                    está no acervo, o que <strong>não significa</strong> que o gasto
+                    esteja em ordem. A cobertura de despesas é parcial: parte da
+                    nota de Integridade Moral vem da média histórica do partido
+                    (metodologia híbrida) — trate-a como{' '}
+                    <strong>estimativa parcial</strong>.
                   </p>
                 )}
                 <div className="text-xs text-muted-foreground border-t pt-3 space-y-2 leading-relaxed bg-slate-50 p-3 rounded-md border border-slate-200">
                   <p className="flex items-start gap-1.5">
                     <Pin className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-                    <span><strong>O que esta análise mede:</strong> Avalia exclusivamente anomalias estatísticas no uso da cota parlamentar oficial (ex.: reembolsos atípicos, notas repetidas ou valores discrepantes da média da casa).</span>
+                    <span><strong>O que esta análise mede:</strong> Avalia exclusivamente anomalias estatísticas no uso da cota parlamentar oficial — despesas que caem no topo 1% da própria categoria e se afastam da mediana dela. É comparação com o conjunto, não julgamento.</span>
                   </p>
                   <p className="flex items-start gap-1.5 text-slate-600">
                     <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
@@ -722,9 +737,27 @@ export function PoliticianProfile() {
             <CardHeader>
               <CardTitle>Análise de Gastos Parlamentares</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-6">
               {politician.expenseAnalysis ? (
-                <ExpenseAnalysisChart analysis={politician.expenseAnalysis} house={politician.currentHouse} />
+                <>
+                  <ExpenseAnalysisChart analysis={politician.expenseAnalysis} house={politician.currentHouse} />
+
+                  {/* D2 (2026-09-25): a lista que torna a marcação auditável.
+                      O gráfico diz QUANTO está fora do padrão; esta lista diz
+                      QUAIS despesas e onde abrir o recibo oficial.
+                      Sem dado de despesa, o gráfico JÁ mostra o estado
+                      honesto — renderizar a lista aqui duplicaria a mesma
+                      mensagem duas vezes. */}
+                  {politician.expenseAnalysis.hasExpenseData && (
+                    <div id="gastos">
+                      <h3 className="text-lg font-semibold mb-1">Despesas marcadas</h3>
+                      <p className="text-xs text-muted-foreground mb-3">
+                        Clique numa linha para ver o motivo técnico e o documento oficial.
+                      </p>
+                      <FlaggedExpensesList politicianId={politician.id} />
+                    </div>
+                  )}
+                </>
               ) : (
                 <p className="text-gray-500 text-center py-8">
                   Análise de gastos não disponível para este político

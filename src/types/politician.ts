@@ -64,12 +64,47 @@ export interface APIPoliticianDetails extends APIPolitician {
   expenseAnalysis: {
     totalValue: number;
     suspiciousValue: number;
+    suspiciousCount: number;
+    totalCount: number;
     suspiciousPercentage: number;
-    integrityScore: number;
-    riskLevel: string;
+    // D6 (2026-09-25): false = não há despesa sincronizada para este
+    // parlamentar. Ausência de dado não é gasto normal, e a UI precisa
+    // distinguir os dois.
+    hasExpenseData: boolean;
+    // D3: `integrityScore` foi REMOVIDO de propósito. Ele era preenchido
+    // com moral_integrity (score do critério de valores, não uma medida de
+    // gasto) e a aba de Gastos o rotulava como se fosse. Ver DECISOES.md D3.
+    riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
   };
   // H2 (2026-08-27): votos por critério — base do cálculo
   votesPerCriteria?: Record<string, { count: number; totalImpact: number }>;
+}
+
+/** Resposta de GET /api/politicians/:id/expenses/flagged (D2, 2026-09-25) */
+export interface FlaggedExpense {
+  id: string;
+  year: number;
+  month: number;
+  expenseType: string | null;
+  supplierName: string | null;
+  hasSupplierDocument: boolean;
+  grossValue: number;
+  netValue: number;
+  refundValue: number | null;
+  suspicionScore: number;
+  reasons: string[];
+  /** Documento oficial publicado pela Casa. null quando não disponível. */
+  documentUrl: string | null;
+  documentNumber: string;
+  source: string;
+  isSenado: boolean;
+}
+
+export interface FlaggedExpensesResponse {
+  flagged: FlaggedExpense[];
+  totalFlagged: number;
+  totalCount: number;
+  hasExpenseData: boolean;
 }
 
 // Interface legada (mantida para compatibilidade)

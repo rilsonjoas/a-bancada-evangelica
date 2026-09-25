@@ -155,6 +155,38 @@ export class PoliticiansController {
   }
 
   /**
+   * Despesas marcadas como fora do padrão, com link para o recibo oficial.
+   *
+   * Por que existe (D2, decisão de 2026-09-25): o site afirmava uma diferença
+   * estatística e não dava como conferir — o card mostrava "R$ 260.807 fora do
+   * padrão" sem dizer quais despesas. 41.855 das 74.336 despesas têm
+   * `document_url` (o documento oficial publicado pela Casa) e 100% têm nome de
+   * fornecedor, então o dado para auditar já existe no banco. Para um projeto
+   * que se define por auditabilidade, marcar sem mostrar é incoerente.
+   *
+   * Endpoint separado (e não dentro do findOne) porque a lista só é necessária
+   * na aba Gastos e carregaria o payload do perfil à toa.
+   */
+  @Get(':id/expenses/flagged')
+  @ApiOperation({
+    summary: 'Despesas fora do padrão, com link para o documento oficial',
+    description:
+      'Retorna as despesas marcadas pela regra de detecção (mediana + MAD por ' +
+      'categoria, ver docs/DETECCAO-DESPESAS.md), com o motivo técnico e o link ' +
+      'do recibo publicado pela Casa. Marcação estatística não é acusação.',
+  })
+  @ApiParam({ name: 'id', description: 'ID do parlamentar' })
+  @ApiQuery({ name: 'limit', required: false, description: 'Máximo de itens (padrão 50, máx 200)' })
+  flaggedExpenses(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('limit') limit?: string,
+  ) {
+    const parsed = Number(limit);
+    const capped = Number.isFinite(parsed) ? Math.min(Math.max(Math.trunc(parsed), 1), 200) : 50;
+    return this.politicians.flaggedExpenses(id, capped);
+  }
+
+  /**
    * HTML mínimo com as meta tags do parlamentar (og:title/description/
    * image), pra bot de preview de link (WhatsApp/Facebook/Telegram/X).
    * O front é SPA no Vercel (SEO via useEffect, não roda em bot sem JS);

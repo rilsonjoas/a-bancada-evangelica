@@ -2,14 +2,22 @@ import React from 'react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import { fmt } from '@/lib/format';
+import { Ban } from 'lucide-react';
 
 interface ExpenseAnalysisChartProps {
   analysis: {
     totalValue: number;
     suspiciousValue: number;
     suspiciousPercentage: number;
-    integrityScore: number;
-    riskLevel: string;
+    // D3/D6 (2026-09-25): `integrityScore` saiu daqui. A API preenchia com
+    // moral_integrity (score do critério de valores, não medida de gasto) e o
+    // gráfico o rotulava como "nota que resume o padrão das despesas" —
+    // afirmação falsa, e com cor contraditória (D4). `hasExpenseData`
+    // distingue "sem dado" de "gasto normal".
+    totalCount: number;
+    suspiciousCount: number;
+    hasExpenseData: boolean;
+    riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
   };
   house?: string;
 }
@@ -50,18 +58,35 @@ export function ExpenseAnalysisChart({ analysis, house }: ExpenseAnalysisChartPr
     }
   ].filter(item => item.value > 0);
 
-  // Dados para medidor de integridade
+  // Dados para o medidor de proporção (D4, 2026-09-25).
+  //
+  // REMOVIDO o "medidor de integridade" que existia aqui. Ele desenhava
+  // analysis.integrityScore — que a API preenchia com moral_integrity, o
+  // score do critério de valores (majoritariamente seed do partido + média
+  // de votos), NÃO uma medida de gasto. Pior: a escala dizia "100 =
+  // Excelente" (nota alta = bom) enquanto a cor e o selo vinham de
+  // riskLevel, derivado da % fora do padrão (alto = ruim). Um parlamentar
+  // com 85/100 renderizava barra VERMELHA com o selo "Atípico" — duas
+  // leituras contraditórias na mesma tela. Ver DECISOES.md D3 e D4.
+  //
+  // Agora há UMA fonte de verdade: a proporção de despesas fora do padrão.
+  const pctFora = analysis.totalCount > 0
+    ? (analysis.suspiciousCount / analysis.totalCount) * 100
+    : 0;
   const integrityData = [
-    { name: 'Nota de Integridade', value: analysis.integrityScore, max: 100 }
+    { name: 'Fora do padrão', value: pctFora, max: 100 },
   ];
 
   // Cores baseadas no nível de risco
+  // Só três níveis: a API deriva riskLevel da % fora do padrão
+  // (>10 HIGH, >5 MEDIUM, resto LOW) e nunca emite um quarto estado. O
+  // ramo CRITICAL que existia aqui era código morto — o selo "Muito
+  // atípico" nunca aparecia. Removido em 2026-09-25 (D4).
   const getRiskColor = (level: string) => {
     switch (level) {
       case 'LOW': return '#10b981';
       case 'MEDIUM': return '#f59e0b';
       case 'HIGH': return '#ef4444';
-      case 'CRITICAL': return '#dc2626';
       default: return '#6b7280';
     }
   };
@@ -71,7 +96,6 @@ export function ExpenseAnalysisChart({ analysis, house }: ExpenseAnalysisChartPr
       case 'LOW': return 'Regular';
       case 'MEDIUM': return 'Atenção';
       case 'HIGH': return 'Atípico';
-      case 'CRITICAL': return 'Muito atípico';
       default: return 'Indefinido';
     }
   };
@@ -84,6 +108,26 @@ export function ExpenseAnalysisChart({ analysis, house }: ExpenseAnalysisChartPr
       maximumFractionDigits: 0,
     }).format(value);
   };
+
+  // D6 (2026-09-25): sem despesa no acervo, NÃO renderiza zeros nem selo
+  // verde. Mostrar "R$ 0" e "Padrão geral: Regular" para quem não tem dado
+  // sugere que o gasto está em ordem — que é a leitura oposta à honesta.
+  // A primeira versão do D6 só cobria o card do perfil e a lista; o gráfico
+  // continuava renderizando zeros com selo verde.
+  if (!analysis.hasExpenseData) {
+    return (
+      <div className="rounded-lg border border-dashed border-border p-8 text-center">
+        <Ban className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
+        <p className="text-sm font-semibold text-foreground">Sem dados de despesa</p>
+        <p className="text-xs text-muted-foreground mt-1 max-w-md mx-auto leading-relaxed">
+          Não há cota parlamentar sincronizada para este {house === 'SENADO' ? 'senador' : 'deputado'}.
+          Isso <strong>não significa</strong> que o gasto esteja em ordem — significa que
+          o dado não está no acervo, e a cobertura de despesas é parcial. Sem
+          dado, não há o que comparar com o padrão.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -137,9 +181,9 @@ export function ExpenseAnalysisChart({ analysis, house }: ExpenseAnalysisChartPr
         </div>
         <div className="bg-green-50 p-4 rounded-lg text-center">
           <div className="text-2xl font-bold text-green-600">
-            {fmt(analysis.integrityScore, 0)}
+            {analysis.totalCount.toLocaleString('pt-BR')}
           </div>
-          <div className="text-sm text-gray-600">Nota de Integridade</div>
+          <div className="text-sm text-gray-600">Despesas analisadas</div>
         </div>
       </div>
 
@@ -235,39 +279,47 @@ export function ExpenseAnalysisChart({ analysis, house }: ExpenseAnalysisChartPr
         </div>
       </div>
 
-      {/* Medidor de integridade */}
+      {/* Medidor da proporção (D4, 2026-09-25) */}
       <div>
-        <h3 className="text-lg font-semibold mb-4 text-center">
-          Medidor de Integridade
+        <h3 className="text-lg font-semibold mb-1 text-center">
+          Concentração das despesas marcadas
         </h3>
+        <p className="text-xs text-muted-foreground text-center mb-4 max-w-lg mx-auto">
+          Das {analysis.totalCount.toLocaleString('pt-BR')} despesas analisadas,{' '}
+          <strong>{pctFora.toFixed(1).replace('.', ',')}%</strong> caem no topo
+          1% da própria categoria. A escala vai de 0 a 20%: a partir de 20% já é
+          o máximo de alerta. O detalhe está na lista de despesas abaixo.
+        </p>
         <div className="bg-gray-50 p-6 rounded-lg">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-sm font-medium text-gray-700">Nota de Integridade</span>
+            <span className="text-sm font-medium text-gray-700">
+              % de despesas fora do padrão
+            </span>
             <span className="text-lg font-bold" style={{ color: getRiskColor(analysis.riskLevel) }}>
-              {fmt(analysis.integrityScore, 0)}/100
+              {pctFora.toFixed(1).replace('.', ',')}%
             </span>
           </div>
-          
+
           <div className="w-full bg-gray-200 rounded-full h-4 mb-4">
-            <div 
+            <div
               className="h-4 rounded-full transition-all duration-300"
-              style={{ 
-                width: `${analysis.integrityScore}%`,
+              style={{
+                width: `${Math.min(pctFora / 0.2, 1) * 100}%`,
                 backgroundColor: getRiskColor(analysis.riskLevel)
               }}
             ></div>
           </div>
 
           <div className="flex justify-between text-sm text-gray-600">
-            <span>0 - Crítico</span>
-            <span>50 - Médio</span>
-            <span>100 - Excelente</span>
+            <span>0%</span>
+            <span>10%</span>
+            <span>20%+</span>
           </div>
 
           <div className="mt-4 text-center">
-            <div 
+            <div
               className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
-              style={{ 
+              style={{
                 backgroundColor: `${getRiskColor(analysis.riskLevel)}20`,
                 color: getRiskColor(analysis.riskLevel)
               }}
@@ -285,31 +337,38 @@ export function ExpenseAnalysisChart({ analysis, house }: ExpenseAnalysisChartPr
           <div className="flex items-start gap-2">
             <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
             <div>
-              <strong>Nota de Integridade:</strong> nota de 0–100 que resume o quanto as
-              despesas deste parlamentar seguem o padrão estatístico do conjunto analisado.
+              <strong>Despesas analisadas:</strong> quantas despesas da cota
+              deste parlamentar estão no acervo. Só parte dos parlamentares tem
+              despesa sincronizada — quando não há, a aba diz
+              &ldquo;sem dados&rdquo; em vez de mostrar zero.
             </div>
           </div>
           <div className="flex items-start gap-2">
             <div className="w-2 h-2 bg-red-500 rounded-full mt-2"></div>
             <div>
-              <strong>Fora do padrão:</strong> despesas cujo valor, tipo ou fornecedor destoa
-              da referência estatística (ex.: valores muito acima do típico para a mesma categoria).
-              É um alerta para investigação — <strong>não prova nada</strong> e pode refletir
-              desde erro de digitação do próprio órgão até particularidades legítimas do mandato.
+              <strong>Fora do padrão:</strong> despesas que caem no topo 1% da
+              própria categoria <em>e</em> ao mesmo tempo em que se afastam da
+              mediana dela. É um alerta para olhar com atenção —
+              <strong> não prova nada</strong> e pode refletir desde erro de
+              digitação do próprio órgão até particularidades legítimas do
+              mandato. A lista abaixo mostra cada uma delas, com o motivo e o
+              link do recibo oficial.
             </div>
           </div>
           <div className="flex items-start gap-2">
             <div className="w-2 h-2 bg-yellow-500 rounded-full mt-2"></div>
             <div>
-              <strong>Padrão geral dos gastos:</strong> classificação derivada dos indicadores
-              acima (Regular / Atenção / Atípico).
+              <strong>Padrão geral dos gastos:</strong> classificação derivada
+              da proporção de despesas marcadas (Regular até 5%, Atenção de 5%
+              a 10%, Atípico acima de 10%).
             </div>
           </div>
           <div className="flex items-start gap-2">
             <div className="w-2 h-2 bg-gray-400 rounded-full mt-2"></div>
             <div>
-              <strong>Atenção ao zero:</strong> nenhuma despesa marcada significa apenas que
-              nada destoou dos critérios automáticos — <strong>não garante ausência de problemas</strong>.
+              <strong>Atenção ao zero:</strong> nenhuma despesa marcada significa
+              apenas que nada destoou dos critérios automáticos —
+              <strong> não garante ausência de problemas</strong>.
             </div>
           </div>
         </div>

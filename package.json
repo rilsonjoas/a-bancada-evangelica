@@ -34,6 +34,7 @@
     "sync:worker": "tsx scripts/sync-worker.ts",
     "sync:worker:list": "tsx scripts/sync-worker.ts list",
     "analyze:expenses": "tsx scripts/expense-analyzer.ts",
+    "expenses:recalc": "tsx scripts/recalc-expense-flags.ts",
     "check:progress": "tsx scripts/check-progress.ts",
     "sync:votes": "tsx scripts/sync-votes.ts",
     "scores:recalculate": "tsx scripts/recalculate-scores.ts",

@@ -272,7 +272,20 @@ export class PoliticiansService {
         suspiciousCount: expenseAgg.suspicious._count.id,
         totalCount: expenseAgg.agg._count.id,
         suspiciousPercentage: Math.round(suspiciousPct * 10) / 10,
-        integrityScore: politician.scores?.[0]?.moral_integrity ?? 0,
+        // D3 (2026-09-25): removido o `integrityScore` daqui. Ele era
+        // preenchido com moral_integrity — que é o score do critério de
+        // valores (majoritariamente seed do partido + média de votos), não
+        // uma medida de gasto. A aba de Gastos exibia isso rotulado como
+        // "nota que resume o quanto as despesas seguem o padrão", o que é
+        // afirmação falsa. Ver DECISOES.md D3.
+        //
+        // D6: hasExpenseData distingue "sem dado" de "gasto normal" — só
+        // 174 dos parlamentares registrados têm despesa no acervo.
+        hasExpenseData: expenseAgg.agg._count.id > 0,
+        // D4: uma única fonte de verdade para a leitura visual. Baseado
+        // só na proporção de despesas fora do padrão (antes a cor vinha de
+        // riskLevel e a escala mostrada vinha de integrityScore — as duas se
+        // contradiziam na mesma tela).
         riskLevel: suspiciousPct > 10 ? 'HIGH' : suspiciousPct > 5 ? 'MEDIUM' : 'LOW',
       },
       // Transparência pura — NÃO entra na pontuação (decisão de escopo:
@@ -397,5 +410,78 @@ export class PoliticiansService {
       select: { photo_url: true },
     });
     return p?.photo_url ?? null;
+  }
+
+  /**
+   * Despesas marcadas como fora do padrão, com o motivo técnico e o link do
+   * documento oficial (D2, 2026-09-25).
+   *
+   * O objetivo é auditabilidade: o aggregate diz QUANTO está fora do padrão,
+   * esta lista diz QUAIS despesas e onde conferir o recibo na fonte. Sem
+   * isso o site afirmava uma diferença estatística sem dar como verificar.
+   *
+   * Ordena por valor decrescente — o que o usuário quer ver primeiro é a
+   * despesa de maior valor, não a mais recente.
+   *
+   * `hasDocument` diz se a Casa publicou o documento daquela despesa: 56% do
+   * acervo tem (41.855 de 74.336), então o link não pode ser prometido
+   * sempre. Onde não tem, a UI mostra que não há documento disponível em vez
+   * de um link quebrado.
+   */
+  async flaggedExpenses(id: number, limit: number) {
+    const exists = await this.prisma.politician.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+    if (!exists) return { flagged: [], totalFlagged: 0, hasExpenseData: false };
+
+    const [flagged, totalFlagged, totalCount] = await Promise.all([
+      this.prisma.expense.findMany({
+        where: { politician_id: id, is_suspicious: true },
+        orderBy: { net_value: 'desc' },
+        take: limit,
+        select: {
+          id: true,
+          year: true,
+          month: true,
+          expense_type: true,
+          supplier_name: true,
+          supplier_document: true,
+          gross_value: true,
+          net_value: true,
+          refund_value: true,
+          suspicion_score: true,
+          suspicion_reasons: true,
+          document_url: true,
+          document_number: true,
+          source: true,
+        },
+      }),
+      this.prisma.expense.count({ where: { politician_id: id, is_suspicious: true } }),
+      this.prisma.expense.count({ where: { politician_id: id } }),
+    ]);
+
+    return {
+      totalFlagged,
+      totalCount,
+      hasExpenseData: totalCount > 0,
+      flagged: flagged.map((e) => ({
+        id: e.id,
+        year: e.year,
+        month: e.month,
+        expenseType: e.expense_type,
+        supplierName: e.supplier_name,
+        hasSupplierDocument: Boolean(e.supplier_document?.trim()),
+        grossValue: e.gross_value,
+        netValue: e.net_value,
+        refundValue: e.refund_value,
+        suspicionScore: e.suspicion_score,
+        reasons: e.suspicion_reasons,
+        documentUrl: e.document_url || null,
+        documentNumber: e.document_number,
+        source: e.source,
+        isSenado: e.source === 'SENADO',
+      })),
+    };
   }
 }
