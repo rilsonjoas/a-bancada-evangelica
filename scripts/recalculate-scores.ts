@@ -78,7 +78,11 @@ async function recalculate() {
     include: {
       scores: { take: 1, orderBy: { created_at: 'desc' } },
       votes: {
-        include: { key_agenda: { select: { criteria: true } } },
+        // `title` é o que colapsa as sessões da MESMA proposição: a mesma
+        // proposição é gravada como pauta distinta a cada votação, então
+        // 83 linhas correspondem a 33 assuntos (o PL 2159/2021 aparece 9x).
+        // `source_id` é a rede de segurança para pauta sem título.
+        include: { key_agenda: { select: { criteria: true, title: true, source_id: true } } },
       },
       expenses: {
         select: { suspicion_score: true, is_suspicious: true },
@@ -110,15 +114,46 @@ async function recalculate() {
     const existing = politician.scores[0];
     const base = partyBase(politician.current_party);
 
-    // Agrupar votos reais por critério.
+    // Agrupar votos reais por critério — POR ASSUNTO, não por linha de voto.
+    //
+    // Achado real 2026-09-25: key_agendas guarda 83 linhas para 33 assuntos
+    // distintos, porque a mesma proposição é gravada de novo a cada sessão
+    // de votação (o PL 2159/2021 aparece 9x). Média por LINHA de voto
+    // portanto pesa um assunto 9x contra outro: a média media "quantas
+    // vezes o projeto foi placed em votação", não "em que o parlamentar
+    // votou". Medido em produção: a diferença entre os dois métodos tem
+    // desvio médio 1,64 ponto e chega a 5,86 em um parlamentar.
+    //
+    // Aqui cada assunto entra UMA vez, com a média de seus votos. A
+    // diferença para a versão anterior é pequena em média (1,64) mas
+    //chega a 5,86 no pior caso — e o pior caso é exatamente o parlamentar
+    // que mais votou, que é quem mais sofre com o método antigo.
     const deltas: Record<CriteriaKey, number[]> = {
       LIFE_PROTECTION: [], FAMILY_VALUES: [], MORAL_INTEGRITY: [],
       SOCIAL_RESPONSIBILITY: [], RELIGIOUS_FREEDOM: [],
     };
+    // assunto -> soma dos applied_score e contagem de votos
+    const porAssunto = new Map<string, { soma: number; n: number; criteria: CriteriaKey }>();
 
     for (const vote of politician.votes) {
       const c = vote.key_agenda.criteria as CriteriaKey;
-      if (deltas[c]) deltas[c].push(vote.applied_score);
+      if (!deltas[c]) continue;
+      // A chave de assunto é o título da pauta: é o que identifica a MESMA
+      // proposição entre sessões diferentes. source_vote_id seria por
+      // sessão, que é justamente o que queremos colapsar.
+      const titulo = vote.key_agenda.title ?? vote.key_agenda.source_id ?? 'SEM_TITULO';
+      const chave = `${c}|${titulo}`;
+      const atual = porAssunto.get(chave);
+      if (atual) {
+        atual.soma += vote.applied_score;
+        atual.n += 1;
+      } else {
+        porAssunto.set(chave, { soma: vote.applied_score, n: 1, criteria: c });
+      }
+    }
+    // Cada assunto contribui com a média dos SEUS votos, uma vez só.
+    for (const { soma, n, criteria } of porAssunto.values()) {
+      deltas[criteria].push(soma / n);
     }
 
     const hasCriteriaVotes = (c: CriteriaKey) => deltas[c].length > 0;
@@ -134,6 +169,10 @@ async function recalculate() {
     // só por ter votado bastante. Média corrige isso: reflete a
     // TENDÊNCIA real do voto (alinhado, contrário, ou misto), não o
     // VOLUME de quantas vezes o tema apareceu em pauta.
+    //
+    // E a média é por ASSUNTO (a linha acima já colapsou as sessões), o
+    // que fecha a terceira camada do mesmo defeito: nem o número de
+    // sessões nem o número de votes de um assunto pesam mais que outro.
     const avgDelta = (c: CriteriaKey) => deltas[c].reduce((a, b) => a + b, 0) / deltas[c].length;
 
     // Seed do partido pra cada critério — fixo, recalculado do zero.

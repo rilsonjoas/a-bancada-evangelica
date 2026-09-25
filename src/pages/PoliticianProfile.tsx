@@ -16,7 +16,7 @@ import { ExpenseAnalysisChart } from '@/components/charts/ExpenseAnalysisChart';
 import { FlaggedExpensesList } from '@/components/expenses/FlaggedExpensesList';
 import { ShareableCard } from '@/components/social/ShareableCard';
 import { FpeTierChip } from '@/components/politicians/FpeTierChip';
-import { CRITERIA, CRITERIA_BY_KEY } from '@/lib/criteria';
+import { CRITERIA, CRITERIA_BY_KEY, CRITERIA_BY_FIELD } from '@/lib/criteria';
 import { fmt } from '@/lib/format';
 import { getPerformanceBadgeColor, getPerformanceLabel, ESTIMATED_LABEL } from '@/lib/performance';
 import { buildVoteSourceLink } from '@/lib/sources';
@@ -381,19 +381,9 @@ export function PoliticianProfile() {
               <CardTitle>Base de Cálculo por Critério</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  {[
-                    'lifeProtection',
-                    'familyValues',
-                    'moralIntegrity',
-                    'socialResponsibility',
-                    'religiousFreedom',
-                  ].map((criteriaKey) => {
-                    const label = criteriaKey === 'lifeProtection' ? 'Proteção à Vida'
-                      : criteriaKey === 'familyValues' ? 'Valores Familiares'
-                      : criteriaKey === 'moralIntegrity' ? 'Integridade Moral'
-                      : criteriaKey === 'socialResponsibility' ? 'Responsabilidade Social'
-                      : 'Liberdade Religiosa';
+              <div className="space-y-3">
+                {CRITERIA.map((c) => {
+                    const { label, weight: peso, rationale, field: criteriaKey } = c;
                     const vp = politician.votesPerCriteria?.[criteriaKey];
                     // SÓ dados reais de votos registrados — achado (2026-09-16):
                     // o código antigo FABRICAVA contagem quando o critério tinha
@@ -402,35 +392,47 @@ export function PoliticianProfile() {
                     const count = vp?.count ?? 0;
                     const lowConfidence = count === 0 || count < 5;
                     return (
-                      <div key={criteriaKey} className={`flex items-center justify-between p-3 rounded-lg ${lowConfidence ? 'bg-yellow-50 border border-yellow-200' : 'bg-white border border-gray-100'}`}>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-sm">{label}</span>
-                      {lowConfidence && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs text-yellow-700 bg-yellow-100 rounded-full">
-                          <span className="w-1.5 h-1.5 rounded-full bg-yellow-500" aria-hidden="true" />
-                          {count === 0 ? 'Sem votos registrados' : `Base frágil (${count} voto${count !== 1 ? 's' : ''})`}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-lg font-semibold text-gray-900">
-                        {count} votaç{count !== 1 ? 'ões' : 'ão'}
-                      </span>
-                      {/* 0 honesto (achado 2026-09-16): sem votos no tema, a
-                          nota do gráfico ACIMA vem da média histórica do
-                          partido — não de votos próprios. Explicitar para o
-                          usuário não achar que o gráfico contradiz a base. */}
-                      {count === 0 && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs text-slate-600 bg-slate-100 rounded-full">
-                          <Info className="w-3.5 h-3.5" aria-hidden="true" />
-                          nota vem da média do partido
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-                </div>
+                      <div key={criteriaKey} className={`p-3 rounded-lg ${count === 0 ? 'bg-slate-50 border border-slate-200' : lowConfidence ? 'bg-yellow-50 border border-yellow-200' : 'bg-white border border-gray-100'}`}>
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-sm">{label}</span>
+                            {/* O peso é o que o critério vale na nota final. Sem
+                                mostrá-lo, o usuário não consegue ponderar um
+                                critério de 30% contra um de 10%. */}
+                            <span className="text-[11px] text-muted-foreground tabular-nums">{peso} da nota</span>
+                            {count === 0 && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs text-slate-700 bg-slate-200 rounded-full">
+                                <Info className="w-3.5 h-3.5" aria-hidden="true" />
+                                sem voto medido — nota é a do partido
+                              </span>
+                            )}
+                            {count > 0 && lowConfidence && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs text-yellow-700 bg-yellow-100 rounded-full">
+                                <span className="w-1.5 h-1.5 rounded-full bg-yellow-500" aria-hidden="true" />
+                                base frágil
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-lg font-semibold text-gray-900">
+                              {count} votaç{count !== 1 ? 'ões' : 'ão'}
+                            </span>
+                            {count === 0 && (
+                              <span className="text-xs text-muted-foreground">
+                                (não mede esta pessoa)
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        {count === 0 && (
+                          <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+                            {rationale}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+              </div>
               <p className="text-sm text-muted-foreground border-t pt-3 leading-relaxed">
                 <strong>Como ler:</strong> cada nota por critério é calculada a partir das
                 votações nominais que se encaixam naquele tema. Acima de 5 votações, a
@@ -438,6 +440,25 @@ export function PoliticianProfile() {
                 pequena e deve ser interpretada com cautela. Sem votações no tema, a
                 nota exibida vem da média histórica do partido (estimativa) — nunca
                 de número inventado. <a href="/metodologia" className="text-primary hover:underline">Ver metodologia</a>.
+              </p>
+              {/* Proveniência em linguagem direta (auditoria 2026-09-25): os
+                  critérios sem voto medido (Proteção à Vida 30% + Liberdade
+                  Religiosa 10% = 40% do peso) não distinguem uma pessoa da
+                  outra. Dizer isso é mais útil que mostrar o número sozinho —
+                  e é o que sustenta a confiança no resto. */}
+              <p className="text-sm text-muted-foreground border-t pt-3 leading-relaxed">
+                <strong>Quanto desta nota vem de voto próprio:</strong>{' '}
+                {(() => {
+                  const total = (politician.currentScore?.totalVotes ?? 0);
+                  const medido = CRITERIA
+                    .filter((c) => (politician.votesPerCriteria?.[c.field]?.count ?? 0) > 0)
+                    .reduce((acc, c) => acc + Number(c.weight.replace('%', '')), 0);
+                  if (total === 0) {
+                    return ' nenhuma. Este parlamentar ainda não tem votação nominal registrada, então a nota inteira é estimativa do partido.';
+                  }
+                  return ` ${medido}% do peso da nota é medido em voto próprio deste parlamentar; os ${100 - medido}% restantes vêm do histórico do partido, porque esses critérios não tiveram votação nominal registrada.`;
+                })()}{' '}
+                <a href="/metodologia" className="text-primary hover:underline">Entender a metodologia</a>
               </p>
             </CardContent>
           </Card>

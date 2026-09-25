@@ -172,3 +172,108 @@ describe('regressão: média em vez de soma (achado real 2026-09-08, #2)', () =>
     expect(average([10, -10])).toBe(0);
   });
 });
+
+// ============================================================
+// Regressão: média por ASSUNTO, não por linha de voto
+// (achado real 2026-09-25, correção de 2026-09-25)
+// ============================================================
+//
+// key_agendas guarda 83 linhas para 33 assuntos distintos: a mesma
+// proposição é gravada de novo a cada sessão de votação (o PL 2159/2021
+// aparece 9x). Média por LINHA de voto pesa um assunto 9x contra outro —
+// a média media "quantas vezes o projeto foi colocado em votação", não
+// "em que o parlamentar votou". Medido em produção: desvio médio 1,64
+// ponto entre os dois métodos, chegando a 5,86 no pior caso, e o pior
+// caso é o parlamentar que mais votou.
+//
+// A correção: colapsar as sessões da mesma proposição pelo título da
+// pauta, e cada assunto entra UMA vez na média, com a média dos seus votos.
+interface VotoComPauta {
+  applied_score: number;
+  key_agenda: { criteria: string; title: string | null; source_id: string | null };
+}
+
+/** Reproduz o agrupamento de recalculate-scores.ts. */
+function mediasPorAssunto(votes: VotoComPauta[]): number[] {
+  const porAssunto = new Map<string, { soma: number; n: number }>();
+  for (const v of votes) {
+    const titulo = v.key_agenda.title ?? v.key_agenda.source_id ?? 'SEM_TITULO';
+    const chave = `${v.key_agenda.criteria}|${titulo}`;
+    const atual = porAssunto.get(chave);
+    if (atual) {
+      atual.soma += v.applied_score;
+      atual.n += 1;
+    } else {
+      porAssunto.set(chave, { soma: v.applied_score, n: 1 });
+    }
+  }
+  return [...porAssunto.values()].map((a) => a.soma / a.n);
+}
+
+/** O que o motor fazia antes: média crua de todas as linhas. */
+function mediaPorLinha(votes: VotoComPauta[]): number {
+  return votes.reduce((a, b) => a + b.applied_score, 0) / votes.length;
+}
+
+const pauta = (titulo: string, score: number, criteria = 'FAMILY_VALUES') => ({
+  applied_score: score,
+  key_agenda: { criteria, title: titulo, source_id: `src-${titulo}` },
+});
+
+describe('regressão: média por assunto, não por linha de voto (2026-09-25)', () => {
+  it('um assunto com 9 sessões pesa como 1 assunto, não como 9', () => {
+    const titulo = 'PL 2159/2021 — licenciamento ambiental';
+    // 9 sessões do MESMO projeto, todas favoráveis (+10)
+    const votes = Array.from({ length: 9 }, () => pauta(titulo, 10));
+    // ...mais um assunto distinto, contrário (-10)
+    votes.push(pauta('PL 999/2024 — outro assunto', -10));
+
+    // Média por linha: 9 favoráveis puxam o contrário para perto do topo
+    const porLinha = mediaPorLinha(votes);
+    expect(porLinha).toBeCloseTo(8, 10); // (9*10 - 10)/10
+
+    // Média por assunto: 2 assuntos, +10 e -10 → 0. O Contrary pesa igual.
+    const porAssunto = mediasPorAssunto(votes);
+    expect(porAssunto).toHaveLength(2);
+    expect(porAssunto.sort((a, b) => b - a)).toEqual([10, -10]);
+  });
+
+  it('os dois métodos coincidem quando cada assunto teve UMA sessão só', () => {
+    // Sem duplicidade de pauta, não há o que colapsar — a correção não
+    // pode mudar o resultado de quem não é afetado pelo problema.
+    const votes = [pauta('A', 10), pauta('B', -10), pauta('C', 15)];
+    const media = mediasPorAssunto(votes).reduce((a, b) => a + b, 0) / 3;
+    expect(media).toBeCloseTo(mediaPorLinha(votes), 10);
+  });
+
+  it('votos mistos no mesmo assunto viram a média interna dele', () => {
+    const titulo = 'PL 2630/2020 — Marco Civil';
+    const votes = [pauta(titulo, 15), pauta(titulo, -15), pauta(titulo, 15)];
+    const porAssunto = mediasPorAssunto(votes);
+    expect(porAssunto).toHaveLength(1);
+    expect(porAssunto[0]).toBeCloseTo(5, 10); // (+15-15+15)/3
+  });
+
+  it('a ordem dos votos não altera o resultado', () => {
+    const a = [pauta('A', 10), pauta('A', 10), pauta('B', -10)];
+    const b = [pauta('B', -10), pauta('A', 10), pauta('A', 10)];
+    expect(mediasPorAssunto(a).sort()).toEqual(mediasPorAssunto(b).sort());
+  });
+
+  it('pauta sem título cai no source_id em vez de colapsar todas', () => {
+    // Sem título, usar a string vazia fundiria assuntos diferentes num só
+    // — daí o fallback para source_id, que é único por sessão.
+    const votes = [
+      { applied_score: 10, key_agenda: { criteria: 'FAMILY_VALUES', title: null, source_id: 's1' } },
+      { applied_score: -10, key_agenda: { criteria: 'FAMILY_VALUES', title: null, source_id: 's2' } },
+    ];
+    expect(mediasPorAssunto(votes)).toHaveLength(2);
+  });
+
+  it('critérios diferentes nunca se fundem, mesmo com o mesmo título', () => {
+    // Uma proposição pode, em tese, virar pauta em dois critérios; o
+    // agrupamento inclui o critério na chave justamente para isso.
+    const votes = [pauta('Mesmo título', 10, 'FAMILY_VALUES'), pauta('Mesmo título', -10, 'MORAL_INTEGRITY')];
+    expect(mediasPorAssunto(votes)).toHaveLength(2);
+  });
+});
