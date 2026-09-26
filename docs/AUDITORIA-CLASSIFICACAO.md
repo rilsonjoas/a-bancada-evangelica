@@ -237,3 +237,80 @@ Não é ruído de medição; é o dado.
 `NUMBERS_FROZEN = true` (segunda vez, motivo novo). A nota é o produto: um
 número com cara de medição, calculado sobre 9,5% de dado correto, convence
 mais do que informa — e é exatamente o oposto do propósito do site.
+
+---
+
+## 12. Correção de um número meu (13,8%, não 9,5%)
+
+A medição da §10 estava **subestimada por um bug no meu próprio script**. Eu
+mapeava `SOCIAL_RESPONSIBILITY` para `'SOCIAL_RESP'` — que não existe no
+enum `CriteriaType`. Duas consequências:
+
+- ao gravar, o Prisma rejeitava com `Expected CriteriaType`;
+- na medição, **toda pauta SOCIAL que continuava SOCIAL era contada como
+  "mudou de critério"**, porque `'SOCIAL_RESP' !== 'SOCIAL_RESPONSIBILITY'`.
+
+`matchScanRule` já devolve o valor do enum. Mapeamento não era necessário.
+Corrigido (commit `5e408bf`).
+
+**Medição corrigida, com `SCAN_RULES` 1.2.0:**
+
+```
+Pautas: 83 | mantem 14 | mudam 0 | deixam de casar 69
+Votos:  26860
+  mantem ............ 3705 (13.8%)
+  mudam de criterio . 0 (0.0%)
+  param de contar ... 23155 (86.2%)
+```
+
+O 9,5% que reportei antes era pessimista. E o "muda de critério" era **zero**:
+toda pauta que ainda casa, continua no mesmo critério. Nenhuma realoca — só
+69 deixam de contar. Reclassificação aplicada em 2026-09-26.
+
+## 13. O que restou de dado medido, por critério
+
+| Critério | peso | pautas | votos | parlamentares com voto |
+|---|---|---|---|---|
+| Valores Familiares | 25% | 7 | 2.559 | 468 |
+| Responsabilidade Social | 15% | 3 | 1.146 | 487 |
+| **Integridade Moral** | **20%** | **0** | **0** | — |
+| **Proteção à Vida** | **30%** | **0** | **0** | — |
+| **Liberdade Religiosa** | **10%** | **0** | **0** | — |
+
+**Só 2 dos 5 critérios têm dado medido. 60% do peso da nota (Vida +
+Liberdade Religiosa + Moral) ficou sem medição depois da limpeza.**
+
+## 14. Resíduo: palavra inteira ainda não é o bastante
+
+Das 5 proposições que sobreviveram, 4 fazem sentido:
+
+| pauta | critério | voto |
+|---|---|---|
+| PEC 383/2017 — recursos mínimos para assistência social | Social | 823 ✅ |
+| PL 3914/2023 — Estatuto da Criança (Lei 8.069) | Família | 724 ✅ |
+| PL 4364/2020 — Política Nacional de Cuidado Integral | Social | 323 ✅ |
+| PL 2275/2022 — prevenção e primeiros socorros | Família | 388 ⚠️ |
+
+E uma **não**:
+
+| pauta | critério | voto |
+|---|---|---|
+| **MPV 1268/2024 — Abre crédito extraordinário** | **Valores Familiares** | **1.447** ❌ |
+
+É um **decreto orçamentário**. Casa `familia` porque o decreto menciona
+"família de servidores" — e essa é uma correspondência de PALAVRA INTEIRA,
+legítima, que ainda assim é do assunto errado. São 1.447 votos: **39% de todo
+o dado que sobreviveu à limpeza**.
+
+**Por que a arquitetura atual não resolve isso.** O sync casa contra quatro
+campos concatenados, entre eles a descrição longa da proposição, que é
+documento administrativo cheio de palavras de uso geral. Correspondência de
+palavra em texto administrativo não separa assunto de vocabulário.
+
+**A correção de raiz, que ainda não foi feita:** casar contra a **ementa**
+(objeto oficial da proposição), e não contra descrição administrativa. E
+onde a ementa não existe, **não classificar** — em vez de tentar adivinhar.
+
+**Por isso o recálculo de nota NÃO foi rodado.** Com 39% do dado sobrevivente
+vindo de um decreto orçamentário, recalcular agora produziria uma nota
+correta-em-cima-de-dado-errado — o mesmo erro de ontem, com nome novo.

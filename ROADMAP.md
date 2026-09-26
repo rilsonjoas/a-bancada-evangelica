@@ -1679,3 +1679,38 @@ só então texto.
 Ver `docs/PLANO-CONSISTENCIA.md`. Fecha o ciclo: garante que código e texto
 publicado não divirjam de novo — os 4 bugs de 2026-09-25 passaram por
 typecheck, lint, 198 testes e build.
+
+## P0 — Casar contra a EMENTA, não contra descrição administrativa
+
+**Medido 2026-09-26** (`docs/AUDITORIA-CLASSIFICACAO.md` §14). Depois da
+fronteira de palavra (1.1.0) e das exclusões de contexto (1.2.0), sobraram
+5 proposições com dado. Quatro fazem sentido. Uma não:
+
+> **MPV 1268/2024 — "Abre crédito extraordinário"**, classificada como
+> **Valores Familiares**, com **1.447 votos** — 39% de todo o dado
+> sobrevivente. Casa `familia` porque o decreto menciona "família de
+> servidores": correspondência de palavra INTEIRA, legítima, e ainda assim do
+> assunto errado.
+
+O sync casa contra quatro campos concatenados, um deles a descrição
+administrativa da proposição. Correspondência de palavra em texto
+administrativo não separa assunto de vocabulário.
+
+- [ ] Casar contra a **ementa** (objeto oficial), não contra descrição
+- [ ] Onde não há ementa: **não classificar**, em vez de adivinhar
+- [ ] Reclassificar e remedir
+- [ ] **Só então** recalcular a nota e decidir os pesos
+
+**O recálculo foi deliberadamente adiado.** Recalcular agora daria nota
+correta em cima de dado errado — o mesmo erro de ontem com nome novo.
+Os números seguem congelados.
+
+**Dado medido que resta hoje (2 de 5 critérios):**
+
+| Critério | peso | pautas | votos |
+|---|---|---|---|
+| Valores Familiares | 25% | 7 | 2.559 |
+| Responsabilidade Social | 15% | 3 | 1.146 |
+| Integridade Moral | 20% | 0 | 0 |
+| Proteção à Vida | 30% | 0 | 0 |
+| Liberdade Religiosa | 10% | 0 | 0 |
