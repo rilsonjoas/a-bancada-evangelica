@@ -69,9 +69,26 @@ Resultado final: notas 0–100 por critério + nota geral + rank
 
 ## 3. Classificação de votações → Pautas-chave
 
+> **P0 corrigido em 2026-09-26 — o casamento era por SUBSTRING.**
+> Até `SCAN_RULES` 1.0.0, `matchScanRule` usava `n.includes(k)`, e a keyword
+> `sus` (sistema de saúde) é substring de `sustentavel`, `consumo`,
+> `consumidor`, `construcao`, `resultado`, `suspeita`, `suspensao`. O
+> **PL 2159/2021 — licenciamento ambiental** foi classificado como
+> "Responsabilidade Social" e virou a maior pauta do sistema (2.872 votos).
+> **67,4% de todos os votos do banco (18.104 de 26.860) entraram por essa
+> regra.** A 1.1.0 casa por **palavra inteira**
+> (`(?<![a-z0-9])…(?![a-z0-9])`). Análise completa e pendências abertas em
+> **`docs/AUDITORIA-CLASSIFICACAO.md`**.
+
+> **Ainda aberto (P0, sentido e não substring):** `prescricao` e `anistia`
+> casam por palavra inteira mas no assunto errado — "PL 2597/2024 — contratos
+> de seguro privado" casa `prescricao` (prescrição é palavra corrente em
+> direito securitário) e "PL 5122/2023 — liquidação de dívidas" casa
+> `anistia` (anistia de dívida, não política). Exige contexto, não fronteira.
+
 Cada votação nominal é cruzada com **palavras-chave** dos 5 critérios. Se houver match, a votação vira uma **pauta-chave** (KeyAgenda), com um **peso fixo** (`weight`) e um sinal (`simIsPositive`) que decide se votar SIM soma ou subtrai.
 
-**Regras reais** (`SCAN_RULES`, definidas em `scripts/lib/scan-rules.ts` — fonte ÚNICA, criada em 2026-09-16; este guia citava `scripts/sync-votes.ts` como dono das regras até 16/09, quando cada sync mantinha **sua própria cópia** e as duas cópias divergiram. Agora `sync-votes.ts` (Câmara) e `sync-votes-senado.ts` importam o mesmo módulo, e cada pauta-chave grava `rules_version = SCAN_RULES_VERSION` (hoje `1.0.0`) para que reclassificações futuras saibam quais pautas foram classificadas por qual conjunto de regras):
+**Regras reais** (`SCAN_RULES`, definidas em `scripts/lib/scan-rules.ts` — fonte ÚNICA, criada em 2026-09-16; este guia citava `scripts/sync-votes.ts` como dono das regras até 16/09, quando cada sync mantinha **sua própria cópia** e as duas cópias divergiram. Agora `sync-votes.ts` (Câmara) e `sync-votes-senado.ts` importam o mesmo módulo, e cada pauta-chave grava `rules_version = SCAN_RULES_VERSION` (hoje `1.1.0`) para que reclassificações futuras saibam quais pautas foram classificadas por qual conjunto de regras):
 
 | Critério | Peso | Keywords reais (`SCAN_RULES`) | SIM é positivo? |
 |----------|------|-------------------------------|------------------|
@@ -483,7 +500,7 @@ Qualquer discrepância entre este guia e o código = bug. Reporte.*
 
 | Regra | Versão | Onde mora | Onde é documentada |
 |---|---|---|---|
-| `SCAN_RULES` | 1.0.0 | `scripts/lib/scan-rules.ts` | seção 3 deste guia |
+| `SCAN_RULES` | **1.1.0** | `scripts/lib/scan-rules.ts` | seção 3 deste guia |
 | `EXPENSE_RULES` | 2.0.0 | `scripts/lib/expense-rules.ts` | `docs/DETECCAO-DESPESAS.md` |
 | `SCORE_FORMULA` | **1.2.0** | `scripts/lib/scoring.ts` | seção 5 deste guia |
 

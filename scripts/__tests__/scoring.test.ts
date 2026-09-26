@@ -19,6 +19,7 @@ import {
   CONSISTENCY_MAX_POINTS,
   type CriteriaKey,
 } from '../lib/scoring';
+import { matchScanRule } from '../lib/scan-rules';
 
 describe('partyBase / isKnownParty', () => {
   it('retorna o seed real de um partido conhecido', () => {
@@ -531,5 +532,103 @@ describe('performanceLabel — faixas alcançáveis', () => {
       expect(rotulosProibidos.test(label)).toBe(false);
       expect(rotulosProibidos.test(description)).toBe(false);
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Classificação de pauta por palavra inteira (P0, 2026-09-26)
+// ---------------------------------------------------------------------------
+//
+// ACHADO QUE MOTIVOU ESTE BLOCO: `matchScanRule` casava por SUBSTRING, e a
+// keyword `sus` (sistema de saúde) é substring de `sustentavel`. O PL
+// 2159/2021, que é sobre LICENCIAMENTO AMBIENTAL, foi classificado como
+// "Responsabilidade Social" e virou a maior pauta do sistema (2.872 votos).
+// 67,4% de todos os votos do banco entraram por essa regra.
+//
+// O teste abaixo falha no código de hoje. É esse o ponto: ele tem que estar
+// vermelho antes da correção, para não ser decoração depois dela.
+describe('matchScanRule — fronteira de palavra (P0)', () => {
+  const casar = (t: string) => matchScanRule(t);
+
+  it('NÃO classifica "sustentável" como saúde', () => {
+    // Este é o caso real do PL 2159/2021.
+    const texto = 'Dispõe sobre o licenciamento ambiental e o desenvolvimento sustentável do país';
+    expect({ texto, criterio: casar(texto)?.criteria ?? null })
+      .toMatchObject({ criterio: null });
+  });
+
+  it.each([
+    ['consumo de energia', 'consumo'],
+    ['construção civil', 'construcao'],
+    ['resultados do programa', 'resultado'],
+    ['suspeita de irregularidade', 'suspeita'],
+    ['suspensão do contrato', 'suspensao'],
+  ])('NÃO casa "%s" (contém "sus" dentro de "%s")', (texto) => {
+    const r = casar(texto);
+    // Pode casar outro critério legítimo, mas nunca SOCIAL por causa de "sus".
+    expect({ texto, viaSus: r?.keywords?.includes('sus') ?? false })
+      .toMatchObject({ viaSus: false });
+  });
+
+  it('AINDA casa quando a palavra é a mesma', () => {
+    // A correção tem que manter o acerto, não desligar a regra.
+    const r = casar('Reforma do Sistema Único de Saúde e a saúde pública no Brasil');
+    expect({ criterio: r?.criteria }).toMatchObject({ criterio: 'SOCIAL_RESPONSIBILITY' });
+  });
+
+  it('keyword composta continua casando inteira', () => {
+    // Sem "família"/"criança" no texto: Valores Familiares vem ANTES de
+    // Responsabilidade Social na ordem das regras, e casaria primeiro. Isso
+    // é comportamento correto, não bug — o fixture é que estava sujo.
+    const r = casar('Expande o programa de assistência social e o benefício social em territórios vulneráveis');
+    expect({ criterio: r?.criteria }).toMatchObject({ criterio: 'SOCIAL_RESPONSIBILITY' });
+  });
+});
+
+/**
+ * O número que decide se o site pode voltar a publicar nota: quantos dos
+ * 26.860 votos do banco ainda caem no MESMO critério depois da correção.
+ *
+ * Este teste é propositalmente verbose sobre um dado pequeno e fixo (a
+ * lista real de pautas com mais votos, medida em 2026-09-26). Ele não
+ * substitui uma reclassificação completa — substitui a surpresa. Se alguém
+ * mexer nas SCAN_RULES e quebrar a classificação, o CI falha na hora em vez
+ * de a nota mudar sozinha em produção três dias depois.
+ */
+describe('sobrevivência das pautas à correção (medição 2026-09-26)', () => {
+  // [critério atual no banco, título real, o que a keyword `sus` pegou]
+  const CASOS = [
+    ['SOCIAL_RESPONSIBILITY', 'PL 2159/2021 — Dispõe sobre o licenciamento ambiental e o desenvolvimento sustentável', 'sus dentro de "sustentavel"'],
+    ['SOCIAL_RESPONSIBILITY', 'PL 327/2021 — Dispõe sobre a Política Nacional da Transição Energética', 'sus dentro de "sustentavel"'],
+    ['SOCIAL_RESPONSIBILITY', 'PL 3899/2012 — Institui a Política Nacional de Estímulo à Produção', 'sus dentro de "consumo"'],
+    ['SOCIAL_RESPONSIBILITY', 'PL 420/2025 — Institui o Programa Nacional de Infraestruturas Sustentáveis', 'sus dentro de "sustentaveis"'],
+    ['FAMILY_VALUES', 'PL 5122/2023 — Dispõe sobre a liquidação, anistia, renegociação e rebate de dívidas', 'familia (família do devedor)'],
+    ['FAMILY_VALUES', 'MPV 1268/2024 — Abre crédito extraordinário em favor dos Ministérios', 'familia (família de servidores)'],
+  ] as const;
+
+  it.each(CASOS)(
+    '"%s" NÃO sobrevive no MESMO critério depois da correção',
+    (criterioNoBanco, titulo, motivo) => {
+      const r = matchScanRule(titulo);
+      // A propriedade honesta é "saiu do balde errado", não "virou null".
+      //
+      // "PL 5122/2023 — liquidação, anistia e rebate de dívidas" tem a
+      // palavra `anistia` INTEIRA no título, então a fronteira de palavra
+      // não a impede: ela sai de Valores Familiares e cai em Integridade
+      // Moral, por `anistia`. Errado por SENTIDO, não por substring — é o
+      // item 7.2 da auditoria (P0, ainda aberto). Aqui a garantia é só que
+      // ela não fica parada no balde errado.
+      expect(
+        { titulo, criterioNoBanco, criterioAgora: r?.criteria ?? null, saiu: (r?.criteria ?? null) !== criterioNoBanco, motivo },
+        'continua no mesmo critério errado depois da correção',
+      ).toMatchObject({ saiu: true });
+    },
+  );
+
+  it('ninguma das pautas com a keyword `sus` deveria continuar em SOCIAL', () => {
+    // Trava de regressão: se alguém reintroduzir substring, este falha.
+    const texto = 'Programa Nacional de Infraestruturas Sustentáveis e Consumo de Energia';
+    expect({ criterio: matchScanRule(texto)?.criteria ?? null })
+      .toMatchObject({ criterio: null });
   });
 });

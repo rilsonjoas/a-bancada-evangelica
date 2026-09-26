@@ -244,19 +244,25 @@ describe('1.3 fórmulas declaradas × código', () => {
     expect(REPRODUTIVIDADE).toMatch(/30\s*\/\s*25\s*\/\s*20\s*\/\s*15\s*\/\s*10/);
   });
 
-  it('os pesos citados em REPRODUCIBILITY.md batem com o motor, um a um', () => {
-    // A doc escreve o rótulo ("**Proteção à Vida** (30%)"), não a chave do
-    // enum. Casa pelo rótulo, que é o que o leitor vê.
-    const docPlain = REPRODUTIVIDADE.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
+  it('os pesos citados na TABELA de REPRODUCIBILITY.md batem com o motor, um a um', () => {
+    // Lê a TABELA, não a prosa. Antes este teste varria qualquer menção ao
+    // rótulo do critério nos 200 caracteres seguintes, e um parágrafo
+    // explicativo mentioning "Responsabilidade Social (67,4%)" fazia ele ler
+    // 67% onde a tabela diz 15%. Documento que tem tabela tem que ser lido
+    // pela tabela — senão o teste valida a frase em vez do dado.
     for (const c of CRITERIA) {
       const pct = Math.round(WEIGHTS[c.key as keyof typeof WEIGHTS] * 100);
       const rotulo = normalizar(c.label);
-      const i = docPlain.indexOf(rotulo);
-      expect({ crit: c.label, achou: i >= 0, motivo: 'REPRODUCIBILITY.md não menciona o critério' })
-        .toMatchObject({ achou: true });
-      const janela = REPRODUTIVIDADE.slice(i, i + 200).replace(/\p{M}/gu, '');
-      expect({ crit: c.label, pesoNaDoc: janela.match(/\d+%/)?.[0], pesoNoMotor: `${pct}%` })
-        .toMatchObject({ pesoNaDoc: `${pct}%` });
+      // linha de tabela: | **Rótulo** (NN%) |
+      const linha = REPRODUTIVIDADE.split('\n').find(
+        (l) => l.trim().startsWith('|') && normalizar(l).includes(rotulo),
+      );
+      expect({ crit: c.label, achouLinha: !!linha, motivo: 'REPRODUCIBILITY.md não tem linha de tabela para o critério' })
+        .toMatchObject({ achouLinha: true });
+      // o regex captura só o número ("30"), então compara com String(pct)
+      const pesoNaLinha = linha!.match(/\((\d+)%\)/)?.[1];
+      expect({ crit: c.label, pesoNaDoc: pesoNaLinha, pesoNoMotor: pct })
+        .toMatchObject({ pesoNaDoc: String(pct) });
     }
   });
 
