@@ -545,7 +545,7 @@ const MetodologiaPage = () => {
                         do que pesava</strong> (a ordem dos partidos continua valendo — só a distância
                         entre eles diminuiu). Resultado medido nos 504 parlamentares que têm voto
                         próprio registrado: a parte da variação explicada pelo partido caiu de{' '}
-                        <strong className="text-foreground">91% para 42%</strong>. Hoje a nota é
+                        <strong className="text-foreground">91% para 38%</strong>. Hoje a nota é
                         majoritariamente determinada pelo voto da pessoa.
                       </p>
                       <p className="text-sm text-muted-foreground leading-relaxed mt-2">

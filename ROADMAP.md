@@ -1615,7 +1615,7 @@ Plano em **`docs/PLANO-PESO-INDIVIDUAL.md`**. Fórmula final: **`SCORE_FORMULA_V
 |---|---|---|---|---|---|
 | antes (M0) | ×1 | 100% | — | — | **91,4%** |
 | chute do plano | ×3 | 50% | — | — | *58% (a simulação previa 49,4% e errou)* |
-| **agora (1.2.0)** | **×3** | **20%** | **K=4** | **±3** | **41,6%** |
+| **agora (1.2.0)** | **×3** | **20%** | **K=4** | **±3** | **37,6%** *(medido em produção; a simulação previa 41,6%)* |
 
 - [x] **M0** — `SCORE_FORMULA_VERSION`, gravada em `politician_scores` e no `SyncLog`
 - [x] **M4** — decomposição da nota visível no perfil, gravada no recálculo (`score_breakdown`)
@@ -1642,7 +1642,7 @@ registrado aqui.
 **Erro de método que vale registrar:** a simulação do plano não tinha o
 ruído individual nem a penalidade de despesa, e por isso previa 49,4% onde
 o real era 58%. Medir no dado antes de escolher a constante foi o que
-separou 58% de 41,6%.
+separou 58% dos 37,6% medidos em produção.
 
 **Testes que sustentam:** `src/__tests__/consistencia-publica.test.ts` (29)
 e `scripts/__tests__/scoring.test.ts` (53, incluindo o par de constantes

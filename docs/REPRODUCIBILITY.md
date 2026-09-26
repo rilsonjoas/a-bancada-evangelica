@@ -201,11 +201,15 @@ fração da variância da nota explicada pela média do partido):
 | | variância partidária |
 |---|---|
 | Antes (`VOTE_WEIGHT_MULT=1`, `SEED_SHRINK=1`) | **91,4%** |
-| Agora (`3.0` / `0.2` + confiança) | **41,6%** |
+| Agora (`3.0` / `0.2` + confiança) | **37,6%** |
 
 Ou seja: a nota passou a ser majoritariamente determinada pelo voto da
-pessoa, não pelo partido. `eta²` de 41,6% significa que 58,4% da variação
+pessoa, não pelo partido. `eta²` de 37,6% significa que 62,4% da variação
 entre notas é **dentro** do partido — voto próprio, coerência e gasto.
+
+> 37,6% é a **medição feita em produção** depois do recálculo de 2026-09-26.
+> A simulação em SQL previa 41,6%; a diferença vem de a simulação
+> aproximar a ordem de clamp/arredondamento. A tabela acima é medição.
 
 > **A simulação do plano errou.** `PLANO-PESO-INDIVIDUAL.md` previa 49,4%
 > para o par original (`3.0` / `0.5`). Medido no dado real esse par dá 58%.

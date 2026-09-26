@@ -109,7 +109,8 @@ export const SCORE_FORMULA_VERSION = '1.2.0';
  *
  * M1c (medido em 2026-09-26 sobre os 504 parlamentares com voto real, e
  * não na simulação do plano — ela errava): a variância explicada pelo
- * partido cai de 91,4% para 41,6%.
+ * partido cai de 91,4% para 37,6% (medido em produção; a simulação em SQL
+ * previa 41,6% porque aproximava a ordem de clamp/arredondamento).
  */
 export const VOTE_WEIGHT_MULT = 3.0;
 
@@ -120,10 +121,10 @@ export const VOTE_WEIGHT_MULT = 3.0;
  * Medido no dado real (504 parlamentares com voto), com VOTE_WEIGHT_MULT 3
  * e a confiança do M2 já dentro:
  *
- *   s=0.40 → 74,7% da variância ainda é partido
- *   s=0.30 → 63,4%
- *   s=0.25 → 54,3%
- *   s=0.20 → 41,6%  ← adotado
+ *   s=0.40 → 74,7% da variância ainda é partido  (simulação)
+ *   s=0.30 → 63,4%  (simulação)
+ *   s=0.25 → 54,3%  (simulação)
+ *   s=0.20 → 37,6%  ← adotado (medido em produção)
  *
  * 0,20 é o ponto em que o voto próprio passa a pesar MAIS que a herança
  * partidária, que era o pedido. A ordem dos partidos continua preservada:
@@ -132,7 +133,7 @@ export const VOTE_WEIGHT_MULT = 3.0;
  *
  * O plano chutava 0,5 e prometia ~50%. O chute dava 58% — a simulação do
  * plano não tinha o jitter individual nem a penalidade de despesa, e por
- * isso errava. Medir antes de escolher é o que separou os 58% dos 41,6%.
+ * isso errava. Medir antes de escolher é o que separou os 58% dos 37,6%.
  */
 export const SEED_SHRINK = 0.2;
 

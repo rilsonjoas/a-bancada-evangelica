@@ -357,7 +357,7 @@ Medido nos 504 parlamentares com voto real, com a confiança do M2 já dentro:
 | 0,40 | 74,7% |
 | 0,30 | 63,4% |
 | 0,25 | 54,3% |
-| **0,20** | **41,6%** |
+| **0,20** | **37,6%** *(medido em produção)* |
 
 O plano chutava 0,5 e prometia 49,4%. **O chute errava**: no dado real, 0,5
 dá 58%. A simulação do plano não tinha o ruído individual (±8) nem a
@@ -372,6 +372,8 @@ continua preservada — só a distância entre eles diminuiu.
 contra o M1c na métrica de variância partidária: sozinha ela empurra de 46,8%
 para 74,7%. As duas metas não podem ser persiguitas com o mesmo número, e a
 resposta foi compensar o `SEED_SHRINK`, não escolher uma das duas.
+
+Medido em produção depois do recálculo: **37,6%** (a simulação previa 41,6%).
 
 ## 2026-09-26 — M3: a "consistência" media a coisa errada
 
