@@ -683,3 +683,57 @@ describe('exclusões de contexto (P0, sentido)', () => {
     expect({ criterio: r?.criteria }).toMatchObject({ criterio: 'SOCIAL_RESPONSIBILITY' });
   });
 });
+
+/**
+ * Pauta arquivada não pode continuar contando voto (2026-09-26).
+ *
+ * A reclassificação manda para ARCHIVED a pauta que parou de casar com as
+ * SCAN_RULES — mas o VOTO continua gravado no banco, por rastro. Sem o
+ * filtro, arquivar não exclui nada: o voto continuaria entrando na nota e
+ * no `total_votes`, e o perfil anunciaria "17 votações" quando só 2
+ * contam. O badge de "estimativa por partido" se apoia justamente nesse
+ * número.
+ */
+describe('pauta arquivada não conta', () => {
+  type Voto = { applied_score: number; key_agenda: { criteria: string; title: string; source_id: string | null; status: string } };
+
+  // Réplica do laço de deltas de scripts/recalculate-scores.ts
+  function pontosDe(votes: Voto[]): { deltas: Record<string, number[]>; total: number } {
+    const deltas: Record<string, number[]> = {};
+    let total = 0;
+    for (const v of votes) {
+      if (v.key_agenda.status !== 'ACTIVE') continue;
+      const c = v.key_agenda.criteria;
+      (deltas[c] ??= []).push(v.applied_score);
+      total += 1;
+    }
+    return { deltas, total };
+  }
+
+  const pauta = (status: string) => ({ criteria: 'FAMILY_VALUES', title: 'PL X', source_id: '1', status });
+
+  it('voto de pauta arquivada não entra nos deltas', () => {
+    const { deltas } = pontosDe([
+      { applied_score: 15, key_agenda: pauta('ACTIVE') },
+      { applied_score: -15, key_agenda: pauta('ARCHIVED') },
+    ]);
+    expect({ deltasFAMILY: deltas.FAMILY_VALUES }).toMatchObject({ deltasFAMILY: [15] });
+  });
+
+  it('voto de pauta arquivada não entra no total (o perfil Announces o total)', () => {
+    const { total } = pontosDe([
+      { applied_score: 15, key_agenda: pauta('ACTIVE') },
+      { applied_score: 15, key_agenda: pauta('ARCHIVED') },
+    ]);
+    expect({ total }).toMatchObject({ total: 1 });
+  });
+
+  it('pauta arquivada por completo zera a base, como se nunca tivesse voting', () => {
+    const { deltas, total } = pontosDe([
+      { applied_score: 15, key_agenda: pauta('ARCHIVED') },
+      { applied_score: -15, key_agenda: pauta('ARCHIVED') },
+    ]);
+    expect({ total, temFAMILY: Boolean(deltas.FAMILY_VALUES) })
+      .toMatchObject({ total: 0, temFAMILY: false });
+  });
+});

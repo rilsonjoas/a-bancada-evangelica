@@ -91,7 +91,7 @@ async function recalculate() {
         // proposição é gravada como pauta distinta a cada votação, então
         // 83 linhas correspondem a 33 assuntos (o PL 2159/2021 aparece 9x).
         // `source_id` é a rede de segurança para pauta sem título.
-        include: { key_agenda: { select: { criteria: true, title: true, source_id: true } } },
+        include: { key_agenda: { select: { criteria: true, title: true, source_id: true, status: true } } },
       },
       expenses: {
         select: { suspicion_score: true, is_suspicious: true },
@@ -145,6 +145,12 @@ async function recalculate() {
     const porAssunto = new Map<string, { soma: number; n: number; criteria: CriteriaKey }>();
 
     for (const vote of politician.votes) {
+      // Pauta ARQUIVADA não conta. Uma pauta que parou de casar com as
+      // SCAN_RULES foi para ARCHIVED (o estado que o enum define como "não
+      // monitora mais"), mas o VOTO continua gravado — e sem este filtro os
+      // votos de uma pauta arquivada continuariam entrando na nota, que é
+      // exatamente o que a arquivamento veio resolver.
+      if (vote.key_agenda.status !== 'ACTIVE') continue;
       const c = vote.key_agenda.criteria as CriteriaKey;
       if (!deltas[c]) continue;
       // A chave de assunto é o título da pauta: é o que identifica a MESMA
@@ -260,7 +266,11 @@ async function recalculate() {
     // `existing?.consistency_score` — lixo congelado da fórmula quebrada do
     // sync-worker antigo (100% pra quem nunca votou) voltava a cada recálculo.
     // Sem votos NÃO existe consistência medida: grava 0; a UI exibe "—".
-    const totalVotes = politician.votes.length;
+    // Só voto de pauta ATIVA. Contar a pauta arquivada aqui faria o perfil
+    // anunciar "17 votações" quando só 2 entram na nota — e o badge de
+    // "estimativa por partido" se apoia neste número.
+    const votosAtivos = politician.votes.filter(v => v.key_agenda.status === 'ACTIVE');
+    const totalVotes = votosAtivos.length;
 
     // M3: a consistência agora é POSIÇÃO, não cobertura de dado.
     //
@@ -270,7 +280,7 @@ async function recalculate() {
     // cadastro, não sobre a pessoa. Agora é: das votações pontuadas, em que
     // direção fui? Positivo é o lado alinhado, então a taxa de positivos é a
     // coerência entre assuntos.
-    const scoredVotes = politician.votes.filter(v => v.applied_score !== 0);
+    const scoredVotes = votosAtivos.filter(v => v.applied_score !== 0);
     const alignedVotes = scoredVotes.filter(v => v.applied_score > 0).length;
     const consistency = scoredVotes.length > 0
       ? alignedVotes / scoredVotes.length
@@ -286,7 +296,7 @@ async function recalculate() {
     const perf = performanceLabel(overall);
 
 
-    if (politician.votes.length > 0) hybridUpdated++;
+    if (totalVotes > 0) hybridUpdated++;
 
     // H6: capturar diff antes/depois (overall_score) para o histórico.
     const prevOverall = existing?.overall_score ?? null;
@@ -329,7 +339,7 @@ async function recalculate() {
           overall_score: overall, performance_level: perf.level,
           performance_label: perf.label, performance_description: perf.description,
           consistency_score: consistency,
-          total_votes: politician.votes.length,
+          total_votes: totalVotes,
         },
         update: {
           life_protection: life, family_values: family,
@@ -340,7 +350,7 @@ async function recalculate() {
           // Achado real (2026-08-22): a coluna nunca era atualizada por este
           // motor — ficava congelada da criação (509 ativos com votos reais
           // exibindo "0 votações"; a UI e qualquer verificação lixo liam 0).
-          total_votes: politician.votes.length,
+          total_votes: totalVotes,
           last_calculation: new Date(),
           // M0: com que fórmula esta nota foi calculada.
           formula_version: SCORE_FORMULA_VERSION,
