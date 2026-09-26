@@ -118,7 +118,11 @@ export class VotesService {
       totalVotes,
       activePoliticians,
       withOwnVotes,
-      totalAgendas: agendas.length,
+      // Conta só o que é EXPOSTO. A lista abaixo é filtrada por
+      // `totalVotes > 0`, então anunciar `agendas.length` (83) enquanto só
+      // 75 pautas aparecem é o site dizendo "temos 83 pautas" e mostrando 75.
+      // Em 2026-09-26 eram 8 pautas sem voto nenhum no banco.
+      totalAgendas: agendas.filter(a => agendaVoteMap.has(a.id)).length,
       averageScore: avgScore,
       agendaByCriteria,
       voteByCriteria,

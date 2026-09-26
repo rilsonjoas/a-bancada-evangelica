@@ -632,3 +632,54 @@ describe('sobrevivência das pautas à correção (medição 2026-09-26)', () =>
       .toMatchObject({ criterio: null });
   });
 });
+
+/**
+ * Falso positivo de SENTIDO (2026-09-26, `SCAN_RULES` 1.2.0).
+ *
+ * A fronteira de palavra (1.1.0) resolveu o falso positivo de SUBSTRING,
+ * mas não o de SENTIDO: `anistia` e `prescricao` são palavras inteiras
+ * legítimas fora de integridade moral. Estas listas são o contexto medido
+ * no acervo real — não é palavra que "parece"、湿 arbitrária.
+ */
+describe('exclusões de contexto (P0, sentido)', () => {
+  it('anistia de DÍVIDA não é Integridade Moral', () => {
+    // Caso real: PL 5122/2023, 1.632 votos, entrava aqui.
+    const texto = 'Dispõe sobre a liquidação, anistia, renegociação e rebate de dívidas';
+    const r = matchScanRule(texto);
+    expect({ criterio: r?.criteria ?? null }).toMatchObject({ criterio: null });
+  });
+
+  it('prescrição em CONTRATO DE SEGURO não é Integridade Moral', () => {
+    // Caso real: PL 2597/2024, 359 votos, casava `prescricao`.
+    const texto = 'Estabelece normas gerais em contratos de seguro privado e.processos de prescrição';
+    const r = matchScanRule(texto);
+    expect({ criterio: r?.criteria ?? null }).toMatchObject({ criterio: null });
+  });
+
+  it('anistia de CRIME POLÍTICO continua entrando', () => {
+    // A exclusão não pode virar um "não classifica nunca". O sinal que
+    // queremos é anistia de repressão, e ela tem que continuar entrando.
+    const texto = 'Concede anistia a presos políticos dà ditadura militar';
+    const r = matchScanRule(texto);
+    expect({ criterio: r?.criteria, sinal: r?.simIsPositive })
+      .toMatchObject({ criterio: 'MORAL_INTEGRITY' });
+  });
+
+  it('corrupção e improbidade seguem entrando, sem exclusão', () => {
+    for (const texto of [
+      'requer investigação de corrupção na conduta do agente público',
+      'medidas de combate à improbidade administrativa',
+    ]) {
+      expect({ texto, criterio: matchScanRule(texto)?.criteria })
+        .toMatchObject({ criterio: 'MORAL_INTEGRITY' });
+    }
+  });
+
+  it('a exclusão não afeta os outros critérios', () => {
+    // Se a exclusão fosse global, "liquidação de dívidas" pararia de ser
+    // classificável por qualquer regra. Ela é DA REGRA, não do texto.
+    const texto = 'Dispõe sobre a liquidação, anistia, renegociação e rebate de dívidas, e streamline a assistência social';
+    const r = matchScanRule(texto);
+    expect({ criterio: r?.criteria }).toMatchObject({ criterio: 'SOCIAL_RESPONSIBILITY' });
+  });
+});

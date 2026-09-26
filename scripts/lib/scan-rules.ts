@@ -31,14 +31,33 @@ export interface ScanRule {
   simIsPositive: boolean;
   weight: number;   // pontuação aplicada (pode ser negativa se simIsPositive=false)
   priority: number;
+
+  /**
+   * Termos que DESFAZEM o casamento da regra (2026-09-26).
+   *
+   * A fronteira de palavra (1.1.0) resolveu o problema de substring, mas
+   * não o de SENTIDO: `prescricao` é palavra corrente em direito
+   * securitário e tributário, e `anistia` aparece em liquidação de
+   * dívidas. Medido: "PL 5122/2023 — liquidação, anistia, renegociação e
+   * rebate de dívidas" (1.632 votos) entrava como Integridade Moral
+   * porque o título traz `anistia`.
+   *
+   * Aqui não é adivinhação: a lista é o contexto que apareceu no acervo
+   * real, medido. Termo presente na lista => a regra não dispara, mesmo
+   * que a keyword esteja lá.
+   */
+  exclusoes?: string[];
 }
 
 /** Sobe a versão quando as regras mudarem de verdade.
  *  1.1.0 (2026-09-26): casamento por PALAVRA INTEIRA. Até 1.0.0 era substring, e
  *  `sus` casava dentro de `sustentavel` — 67,4% dos votos do banco entravam
  *  no critério errado. Ver docs/AUDITORIA-CLASSIFICACAO.md.
+ *  1.2.0 (2026-09-26): campo `exclusoes`. 1.1.0 matou o falso positivo de
+ *  SUBSTRING mas não o de SENTIDO — `anistia` em liquidação de dívidas,
+ *  `prescricao` em contrato de seguro.
  */
-export const SCAN_RULES_VERSION = '1.1.0';
+export const SCAN_RULES_VERSION = '1.2.0';
 
 export const SCAN_RULES: ScanRule[] = [
   // Proteção à vida
@@ -49,7 +68,23 @@ export const SCAN_RULES: ScanRule[] = [
   { criteria: 'FAMILY_VALUES', keywords: ['identidade de genero', 'diversidade sexual', 'homoafetiv', 'transexual'], simIsPositive: false, weight: 15, priority: 4 },
   // Integridade moral
   { criteria: 'MORAL_INTEGRITY', keywords: ['corrupcao', 'improbidade', 'ficha limpa', 'transparencia publica', 'lei anticorrupcao'], simIsPositive: true, weight: 15, priority: 4 },
-  { criteria: 'MORAL_INTEGRITY', keywords: ['amnistia', 'anistia', 'prescricao', 'indulto'], simIsPositive: false, weight: 12, priority: 3 },
+  {
+    criteria: 'MORAL_INTEGRITY',
+    keywords: ['amnistia', 'anistia', 'prescricao', 'indulto'],
+    simIsPositive: false, weight: 12, priority: 3,
+    // Contexto medido no acervo real (2026-09-26), não adivinhado:
+    //  - "PL 5122/2023 — liquidação, anistia, renegociação e rebate de
+    //    dívidas" (1.632 votos) casava `anistia` e entrava como
+    //    Integridade Moral. Anistia de DÍVIDA não é anistia de crime.
+    //  - "PL 2597/2024 — normas gerais em contratos de seguro privado"
+    //    (359 votos) casava `prescricao`. Prescrição é termo corrente em
+    //    direito securitário, não é sinal de integridade moral.
+    exclusoes: [
+      'divida', 'dividas', 'debito', 'debitos', 'liquida', 'liquidacao',
+      'parcela', 'parcelamento', 'tributar', 'tributaria', 'renegociacao',
+      'seguro privado', 'contrato de seguro', 'proviso de seguranca',
+    ],
+  },
   // Social
   { criteria: 'SOCIAL_RESPONSIBILITY', keywords: ['assistencia social', 'bolsa familia', 'beneficio social', 'populacao em situacao de rua'], simIsPositive: true, weight: 10, priority: 3 },
   { criteria: 'SOCIAL_RESPONSIBILITY', keywords: ['saude publica', 'sus', 'atendimento a vitimas'], simIsPositive: true, weight: 8, priority: 2 },
@@ -99,6 +134,11 @@ function contemPalavra(textoNormalizado: string, keyword: string): boolean {
 export function matchScanRule(text: string): ScanRule | null {
   const n = normalize(text);
   for (const rule of SCAN_RULES) {
+    // A exclusão é avaliada ANTES das keywords: se o contexto está presente,
+    // a regra não dispara, mesmo que a keyword esteja lá. Caso contrário
+    // "liquidação de dívidas com anistia" casaria `anistia` e voltaria a
+    // entrar como Integridade Moral.
+    if (rule.exclusoes?.some(x => contemPalavra(n, x))) continue;
     if (rule.keywords.some(k => contemPalavra(n, k))) return rule;
   }
   return null;
