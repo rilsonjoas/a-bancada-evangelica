@@ -186,3 +186,54 @@ número — é publicar número com cara de dado e conteúdo de chute.
 6. Paginação do sync. (P1)
 7. Reavaliar o que é voto de mérito vs procedimental. (P2)
 8. Recalibrar a fórmula, se ainda fizer sentido. (P2)
+
+---
+
+## 10. MEDIÇÃO DE SOBREVIVÊNCIA (rodada depois da correção)
+
+Rodado em produção com o classificador corrigido, comparando o critério que o
+banco gravou com o que a `SCAN_RULES` 1.1.0 devolve para o título + descrição
+armazenados. Script: `scripts/medir-sobrevivencia.ts` (não grava nada).
+
+```
+SCAN_RULES 1.1.0 — sobrevivência das pautas
+
+Pautas: 83 | mantem 11 | mudam 7 | sem regra 65
+Votos:  26860 total
+  mantem o critério ....... 2559 (9.5%)
+  mudam ou perdem .......... 24301 (90.5%)
+```
+
+**Só 9,5% dos votos do sistema estão no critério certo.**
+
+### 10.1 Maiores mudanças
+
+| votos | de | para | pauta |
+|---|---|---|---|
+| 419+413+403+397 | FAMILY_VALUES | MORAL_INTEGRITY | PL 5122/2023 — liquidação, anistia e rebate de **dívidas** |
+| 414 | SOCIAL_RESPONSIBILITY | SEM REGRA | PDL 171/2026 — Susta efeitos do Decreto 12.887/2026 |
+| 406, 379 | FAMILY_VALUES | SEM REGRA | PL 2920/2023 — Programa de Aquisição de Alimentos |
+| 402 | FAMILY_VALUES | SEM REGRA | PL 6461/2019 — Estatuto do Aprendiz |
+| 390, 382, 381, 377 | SOCIAL_RESPONSIBILITY | SEM REGRA | PL 3899/2012 — Estímulo à Produção |
+| 382 | SOCIAL_RESPONSIBILITY | SEM REGRA | PLP 233/2023 — Seguro Obrigatório |
+| 380 | SOCIAL_RESPONSIBILITY | SEM REGRA | PDL 65/2023 — Susta efeitos de Resolução |
+| 376 | SOCIAL_RESPONSIBILITY | SEM REGRA | PL 528/2020 — Lei dos Shopping Centers |
+
+### 10.2 Ressalva honesta desta medição
+
+O sync casa contra **quatro** campos concatenados (descrição da votação,
+descrição da proposição, ementa e `keywords` da API), mas no banco só
+sobrevive **título + descrição**. A medição de 9,5% é, portanto, um **piso
+otimista**: com o texto completo, parte das 65 pautas "sem regra" poderia
+casar de novo — e parte delas casaria **errado** de novo, que é o problema
+que estamos corrigindo.
+
+Ainda assim, a direção é inequívoca: das 83 pautas, só 11 continuam no
+mesmo critério, e a maior parte do acervo perde classificação por completo.
+Não é ruído de medição; é o dado.
+
+## 11. Estado do site até a reclasificación
+
+`NUMBERS_FROZEN = true` (segunda vez, motivo novo). A nota é o produto: um
+número com cara de medição, calculado sobre 9,5% de dado correto, convence
+mais do que informa — e é exatamente o oposto do propósito do site.
