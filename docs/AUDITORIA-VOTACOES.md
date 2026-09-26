@@ -149,7 +149,7 @@ Faltam três testes:
 
 Nenhuma decisão de peso deveria ser tomada antes do teste 1.
 
-## 6. Correção mínima que o bug pede
+## 6. Correção mínima que o bug pede — **FEITA em 2026-09-26**
 
 ```ts
 // scripts/sync-votes.ts — hoje
@@ -169,7 +169,10 @@ while (true) {
 }
 ```
 
-Isso é **aumentar a coleta**, não mudar a fórmula: não move nenhuma nota por
-si, e sim cria o dado que os dois critérios sem medição precisam. Deve vir
-com uma verificação de cobertura no `SyncLog`, para que a regressão não
-volte em silêncio — que foi exatamente como este bug sobreviveu 3 anos.
+Isso é **aumentar a coleta**, não mudar fórmula. Implementado como
+`scripts/lib/paginacao.ts`, com a cobertura gravada no `SyncLog` para que a
+regressão não volte em silêncio. Detalhes em `REPRODUCIBILITY.md` §6.
+
+**Ainda não medido:** o efeito real na base medida. Rodar o sync completo
+com paginação e reclassificar é o passo seguinte, e o número de assuntos
+antes/depois é o que decide se vale seguir para o D-03.

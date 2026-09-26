@@ -12,6 +12,7 @@ import { PrismaClient } from '@prisma/client';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { SCAN_RULES, SCAN_RULES_VERSION, matchScanRule, type ScanRule } from './lib/scan-rules';
+import { paginar, relatarCobertura, PAGE_SIZE, type Cobertura } from './lib/paginacao';
 
 const prisma = new PrismaClient();
 const BASE = 'https://dadosabertos.camara.leg.br/api/v2';
@@ -182,22 +183,41 @@ async function processVotacao(
 }
 
 // ── Varredura trimestral do plenário ──────────────────────────────────────────
-async function scanPlenario(): Promise<{ agendas: number; votes: number; checked: number }> {
+async function scanPlenario(): Promise<{ agendas: number; votes: number; checked: number; cobertura: Cobertura }> {
   let agendas = 0, votes = 0, checked = 0;
+  const coberturaPorPeriodo: Array<{ Existing: number; Vistas: number }> = [];
   const qs = quarters();
 
   for (const [start, end] of qs) {
     process.stdout.write(`\n📅 Varrendo PLEN ${start} → ${end} ... `);
 
-    const data = await fetchJson<{ dados: CamaraVotacaoBrief[] }>(
-      `${BASE}/orgaos/180/votacoes?dataInicio=${start}&dataFim=${end}&itens=200`
+    // PAGINAÇÃO (2026-09-26, docs/AUDITORIA-VOTACOES.md). Antes pedia
+    // `?itens=200` e nunca passava `pagina`: a API ignora itens acima de
+    // 100, então o sync via só a PRIMEIRA página de cada trimestre. Medido:
+    // 244 das 830 votações substantivas — 29% de cobertura, e piorava com
+    // o tempo porque a API ordena por data e o período recente fica no fim.
+    // Consequência já vista: 39% das nossas pautas só têm o requerimento de
+    // urgência, sem a votação de mérito.
+    const { itens: votacoes, paginas, suspeitaTruncamento } = await paginar<CamaraVotacaoBrief>(
+      async (pagina) => {
+        const data = await fetchJson<{ dados: CamaraVotacaoBrief[] }>(
+          `${BASE}/orgaos/180/votacoes?dataInicio=${start}&dataFim=${end}&itens=${PAGE_SIZE}&pagina=${pagina}`
+        );
+        return data?.dados ?? [];
+      }
     );
-    const votacoes = data?.dados ?? [];
-    process.stdout.write(`${votacoes.length} votações\n`);
+    if (suspeitaTruncamento) {
+      process.stdout.write(`\n   ⚠️  ${start}→${end}: bateu no teto de páginas, pode haver mais\n`);
+    }
+    process.stdout.write(`${votacoes.length} votações em ${paginas} página(s)\n`);
 
     // Apenas votações substantivas (têm votos individuais)
     const substantivas = votacoes.filter(v => (v.descricao ?? '').includes('Sim:'));
     process.stdout.write(`   ${substantivas.length} substantivas (com contagem Sim/Não)\n`);
+    // Guardado para o relatório de cobertura do SyncLog: o que foi visto
+    // contra o que existe. Sem isso, uma regressão de paginação aparece só
+    // como "a nota ficou estranha", e é assim que este bug sobreviveu 3 anos.
+    coberturaPorPeriodo.push({ Existing: votacoes.length, Vistas: substantivas.length });
 
     for (const v of substantivas) {
       checked++;
@@ -272,7 +292,9 @@ async function scanPlenario(): Promise<{ agendas: number; votes: number; checked
     await sleep(600); // pausa entre trimestres
   }
 
-  return { agendas, votes, checked };
+  // COBERTURA no retorno e no SyncLog: o que foi visto contra o que existe.
+  // A regressão que importa é essa, e ela precisa ficar no histórico.
+  return { agendas, votes, checked, cobertura: relatarCobertura(coberturaPorPeriodo) };
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
@@ -288,6 +310,7 @@ async function main() {
   console.log(`   Votações PLEN verificadas: ${result.checked}`);
   console.log(`   Key agendas criadas:       ${result.agendas}`);
   console.log(`   Votos individuais salvos:  ${result.votes}`);
+  console.log(`   Cobertura: ${result.cobertura.vistas} de ${result.cobertura.existentes} votações com voto (${result.cobertura.percentual}%)`);
   console.log(`${'─'.repeat(60)}`);
 
   // Trilha de auditoria (2026-09-16): syncs de votos NUNCA gravavam SyncLog
@@ -307,6 +330,9 @@ async function main() {
       details: {
         action: 'sync_votes_camara',
         checked: result.checked,
+        // Regressão de paginação aparece AQUI, e não como "a nota ficou
+        // estranha" três dias depois.
+        cobertura: { ...result.cobertura },
         agendasCreated: result.agendas,
         votesSaved: result.votes,
       },
