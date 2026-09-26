@@ -57,12 +57,22 @@ export interface ScanRule {
  *  SUBSTRING mas não o de SENTIDO — `anistia` em liquidação de dívidas,
  *  `prescricao` em contrato de seguro.
  */
-export const SCAN_RULES_VERSION = '1.3.0';
+export const SCAN_RULES_VERSION = '1.4.0';
 
 export const SCAN_RULES: ScanRule[] = [
   // Proteção à vida
-  { criteria: 'LIFE_PROTECTION', keywords: ['aborto', 'nascituro', 'eutanasia', 'interrupcao da gravidez'], simIsPositive: false, weight: 20, priority: 5 },
-  { criteria: 'LIFE_PROTECTION', keywords: ['protecao da vida', 'direito a vida', 'crime contra a vida', 'homicidio'], simIsPositive: true, weight: 15, priority: 4 },
+  // 1.4.0 (2026-09-26): `crime contra a vida` e `homicidio` SAÍRAM.
+  //
+  // Medido com a paginação corrigida: as duas puxavam 5 pautas e 1.720
+  // votos, e NENHUMA era sobre vida intrauterina — eram projetos de Código
+  // Penal (art. 121, crime hediondo) e de Lei de Execução Penal. Homicídio
+  // é crime contra pessoa JÁ NASCIDA, e保护区 à vida neste site é sobre a
+  // vida que ainda não começou.
+  //
+  // Consequência aceita: o critério fica praticamente sem dado. E isso é a
+  // verdade — ver docs/DECISOES-PRODUTO-2026-09-26.md. Melhor um critério
+  // honesto e vazio do que um critério cheio de projeto de criminal law.
+  { criteria: 'LIFE_PROTECTION', keywords: ['nascituro', 'intrauterina', 'interrupcao da gestacao', 'interrupcao voluntaria da gestacao', 'aborto', 'abortivo', 'fertilizacao assistida', 'reproducao assistida', 'direito do aborto'], simIsPositive: false, weight: 20, priority: 5 },
   // Família
   // 1.3.0 (2026-09-26): a palavra solta `familia` foi REMOVIDA.
   //

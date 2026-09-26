@@ -786,3 +786,41 @@ describe('keyword fraca `familia` removida (1.3.0)', () => {
       .toMatchObject({ temFamiliaSolta: false });
   });
 });
+
+/**
+ * 1.4.0 (2026-09-26): `homicidio` saiu de Proteção à Vida.
+ *
+ * Medido com a paginação corrigida: a palavra puxava 5 pautas e 1.720
+ * votos, e NENHUMA era sobre vida intrauterina — eram projetos de Código
+ * Penal (art. 121, "crime hediondo o homicídio") e de Lei de Execução
+ * Penal. Homicídio é crime contra pessoa JÁ NASCIDA.
+ */
+describe('homicídio não é proteção à vida (1.4.0)', () => {
+  it('projeto de Código Penal sobre homicídio NÃO é Proteção à Vida', () => {
+    for (const texto of [
+      'Altera o art. 121 do Decreto-Lei nº 2.848, de 7 de dezembro de 1940, para establecer como crime hediondo o homicídio',
+      'Altera o Código Penal para estabelecer como crime hediondo o homicídio em razão da qualidade ou de sua forma deacyjamento',
+      'Acrescenta inciso ao art. 112 da Lei nº 7.210, de 11 de julho de 1984, que trata do crime de homicídio',
+    ]) {
+      expect({ texto: texto.slice(0, 40), criterio: matchScanRule(texto)?.criteria ?? null })
+        .toMatchObject({ criterio: null });
+    }
+  });
+
+  it('aborto, nascituro e gestação intrauterina continuam sendo Vida', () => {
+    for (const texto of [
+      'regulamenta a interrupção da gestação e a possibilidade de nascimento em circumstances específicas',
+      'institui diretrizes para o direito do aborto na rede pública',
+      'dispõe sobre a proteção do nascituro',
+      'estabelece normas sobre fertilização assistida',
+    ]) {
+      expect({ texto: texto.slice(0, 38), criterio: matchScanRule(texto)?.criteria })
+        .toMatchObject({ criterio: 'LIFE_PROTECTION' });
+    }
+  });
+
+  it('só existe UMA regra de Proteção à Vida (duplicada contaria o dobro)', () => {
+    const regras = SCAN_RULES.filter((r) => r.criteria === 'LIFE_PROTECTION');
+    expect({ quantas: regras.length }).toMatchObject({ quantas: 1 });
+  });
+});

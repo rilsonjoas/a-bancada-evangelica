@@ -146,9 +146,14 @@ const INDICADORES = extrairIndicadoresPublicados();
  * um indicador NOVO sem medir, ou renomear um destes.
  */
 const INDICADORES_NAO_MEDIDOS = [
-  // Proteção à Vida (4 publicados, 4 com medição) — em 2026-09-26 os quatro
-  // indicadores vagos foram trocados pelos termos que o SCAN_RULES casa de
-  // fato. Sobrou nenhum gap aqui.
+  // Proteção à Vida — em 2026-09-26 (SCAN_RULES 1.4.0) dois indicadores
+  // viraram gap: `homicidio` saiu, e com ele as 5 pautas de Código Penal
+  // (1.720 votos) que estavam sendo contadas como vida. Conferido na
+  // fonte: a Câmara não tem votação deabulada nominal em plenária sobre
+  // aborto — de 5 proposições indexadas, só 1 tem qualquer registro no
+  // plenário. Então o gap aqui é ausência REAL, não falha nossa.
+  'Votações sobre crime contra a vida',
+  'Votações sobre direito à vida',
   // Valores Familiares (4 publicados, 2 com medição)
   //
   // "Votações sobre definição de família" caiu para gap em 2026-09-26
