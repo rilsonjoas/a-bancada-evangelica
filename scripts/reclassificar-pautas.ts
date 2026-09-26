@@ -32,12 +32,6 @@ import { matchScanRule, SCAN_RULES_VERSION } from './lib/scan-rules.js';
 const prisma = new PrismaClient();
 const aplicar = process.argv.includes('--aplicar');
 
-/** Mesmo mapeamento usado na medição: SOCIAL_RESPONSIBILITY -> SOCIAL_RESP */
-function chaveDe(criteria: string | null): string | null {
-  if (!criteria) return null;
-  return criteria === 'SOCIAL_RESPONSIBILITY' ? 'SOCIAL_RESP' : criteria;
-}
-
 async function main() {
   const agendas = await prisma.keyAgenda.findMany();
   const porVoto = await prisma.vote.groupBy({ by: ['key_agenda_id'], _count: { _all: true } });
@@ -49,7 +43,11 @@ async function main() {
 
   for (const a of agendas) {
     const r = matchScanRule(`${a.title ?? ''} ${a.description ?? ''}`);
-    const novo = chaveDe(r?.criteria ?? null);
+    // matchScanRule já devolve o valor do enum (CriteriaType). Sem mapeamento
+    // aqui: um mapeamento anterior convertia para 'SOCIAL_RESP', que não existe
+    // no enum, e fazia toda pauta SOCIAL que continuava SOCIAL ser contada
+    // como 'mudou' — subestimando a sobrevivência em 9,5% quando era maior.
+    const novo: string | null = r?.criteria ?? null;
     const v = votosDe.get(a.id) ?? 0;
 
     if (!novo) {
