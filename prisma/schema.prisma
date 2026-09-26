@@ -134,6 +134,14 @@ model KeyAgenda {
   // congelados enquanto o sync da outra casa seguia a regra nova. A versão
   // permite, no futuro, saber QUAIS pautas precisam reclassificar.
   rules_version         String   @default("1.0.0")
+
+  // D-02 (2026-09-26): o TIPO da votação e o peso que ela tem na nota.
+  // Medido: 61% das votações substantivas são procedimentais — pergunta
+  // sobre processo, não sobre o tema da proposição. Sem isso, "entra na
+  // pauta hoje?" pesava igual a "você apoia isto?". Ver
+  // scripts/lib/vote-kind.ts e docs/DECISOES-PRODUTO-2026-09-26.md.
+  voteKind        VoteKind    @default(MERIT)
+  voteKindWeight  Float       @default(1.0)
   
   // Status e metadados
   status                AgendaStatus @default(ACTIVE)
@@ -578,6 +586,14 @@ enum SourceType {
   SENADO      // API Senado Federal
   TSE         // Dados TSE
   MANUAL      // Inserção manual
+}
+
+enum VoteKind {
+  MERIT       // votação de mérito — posição sobre o assunto (peso 1,0)
+  FINAL_TEXT  // redação final — a versão que vai ao sanction (peso 1,0)
+  AMENDMENT   // emenda dentro da proposição (peso 0,7)
+  REQUEST     // requerimento — é sobre processo (peso 0,3)
+  URGENCY     // requerimento de urgência — é sobre entrar na pauta (peso 0,2)
 }
 
 enum AgendaStatus {

@@ -57,6 +57,11 @@ export function ScoreBreakdownPanel({
   const hasAnyPenalty = items.some((b) => b.penaltyPoints > 0);
   const hasAnyVote = items.some((b) => b.votePoints !== 0);
 
+  // D-02: a transparência do peso por tipo de votação é exigência da
+  // decisão, não enfeite. O peso fica detalhado por votação na aba de
+  // Votações; aqui o resumo diz que nem toda votação pesa igual.
+  const totalAssuntos = items.reduce((a, b) => a + b.subjectCount, 0);
+
   return (
     <Card>
       <CardHeader>
@@ -153,6 +158,16 @@ export function ScoreBreakdownPanel({
         </div>
 
         <div className="text-xs text-muted-foreground space-y-1.5">
+          {totalAssuntos > 0 && (
+            <p>
+              <strong>Nem toda votação pesa igual.</strong> Um requerimento de
+              urgência (peso 0,2) pergunta se o projeto entra na pauta hoje; uma
+              votação de mérito (peso 1,0) pergunta se você apoia o conteúdo.
+              Este perfil tem {totalAssuntos}{' '}
+              {totalAssuntos === 1 ? 'assunto medido' : 'assuntos medidos'}, e o
+              peso de cada tipo está na tabela de votações.
+            </p>
+          )}
           <p>
             A soma é <strong>arredondada ao ponto inteiro</strong> no fim — por
             isso as partes podem não fechar em centésimos. O que publicamos é a

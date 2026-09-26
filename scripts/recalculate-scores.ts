@@ -91,7 +91,7 @@ async function recalculate() {
         // proposição é gravada como pauta distinta a cada votação, então
         // 83 linhas correspondem a 33 assuntos (o PL 2159/2021 aparece 9x).
         // `source_id` é a rede de segurança para pauta sem título.
-        include: { key_agenda: { select: { criteria: true, title: true, source_id: true, status: true } } },
+        include: { key_agenda: { select: { criteria: true, title: true, source_id: true, status: true, voteKindWeight: true } } },
       },
       expenses: {
         select: { suspicion_score: true, is_suspicious: true },
@@ -157,13 +157,19 @@ async function recalculate() {
       // proposição entre sessões diferentes. source_vote_id seria por
       // sessão, que é justamente o que queremos colapsar.
       const titulo = vote.key_agenda.title ?? vote.key_agenda.source_id ?? 'SEM_TITULO';
+      // D-02: o peso do TIPO da votação entra aqui. Um requerimento de
+      // urgência vale 0,2 de um voto de mérito, porque pergunta "entra na
+      // pauta hoje?" e não "você apoia isto?". O peso é da sessão de
+      // votação (todos os votos de uma pauta compartilham), e por isso
+      // mora em key_agendas.
+      const pontuacao = vote.applied_score * vote.key_agenda.voteKindWeight;
       const chave = `${c}|${titulo}`;
       const atual = porAssunto.get(chave);
       if (atual) {
-        atual.soma += vote.applied_score;
+        atual.soma += pontuacao;
         atual.n += 1;
       } else {
-        porAssunto.set(chave, { soma: vote.applied_score, n: 1, criteria: c });
+        porAssunto.set(chave, { soma: pontuacao, n: 1, criteria: c });
       }
     }
     // Cada assunto contribui com a média dos SEUS votos, uma vez só.

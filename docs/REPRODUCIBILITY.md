@@ -226,6 +226,39 @@ Overall        = limita( Σ (Score_critério × Peso) + bônus_de_coerência , 0
 | `SEED_SHRINK` | **0.2** | Encolhe a herança partidária para 20% do desvio da média global (55) |
 | `CONFIDENCE_HALF_AT` | **4** | Com 4 assuntos, o voto entra com metade do peso |
 | `CONSISTENCY_MAX_POINTS` | **3** | Bônus de coerência, de −3 a +3 |
+| Peso por tipo de votação | mérito 1,0 · redação final 1,0 · emenda 0,7 · requerimento 0,3 · urgência 0,2 | Uma votação sobre processo não pesa como uma sobre o tema |
+
+### 5.2 Peso por tipo de votação (D-02, 2026-09-26)
+
+Medido no acervo: **61% das votações substantivas são procedimentais**.
+Um requerimento de urgência pergunta "entra na pauta hoje?"; um voto de
+mérito pergunta "você apoia isto?". Tratá-los igual é tratar pergunta de
+processo como posição sobre tema.
+
+| tipo | peso | o que decide | n | % |
+|---|---|---|---|---|
+| mérito | 1,0 | posição sobre o assunto | 309 | 37% |
+| redação final | 1,0 | a versão que vai ao sanction | 8 | 0% |
+| emenda a proposição | 0,7 | posição sobre parte da proposição | 111 | 13% |
+| requerimento | 0,3 | é sobre processo | 249 | 30% |
+| urgência | 0,2 | é sobre entrar na pauta | 153 | 18% |
+
+**Peso médio aplicado a uma votação: 0,602** (era 1,0 para todas).
+
+O peso mora em `key_agendas.vote_kind_weight`, e não em `votes`, porque o
+tipo é propriedade da **sessão de votação** — todos os votos de uma pauta
+vêm da mesma deliberação. Classificador: `scripts/lib/vote-kind.ts`;
+backfill: `scripts/classificar-votacoes.ts`.
+
+**Precedências do classificador, que não são óbvias** e estão em teste:
+1. "redação final" antes de "emenda" — "redação final da emenda nº 3" não é
+   emenda;
+2. "requerimento de urgência" antes de "requerimento" — os dois casam, e sem
+   a ordem o de urgência perderia o peso próprio;
+3. "Proposta de Emenda à Constituição" é a PEC **indo a voto**, ou seja
+   mérito — não é emenda dentro dela;
+4. "requerimento" ganha de "emenda" quando os dois aparecem, porque é o que
+   a Câmara formalmente classifica.
 
 **Efeito medido** (504 parlamentares com voto próprio real, `eta²` =
 fração da variância da nota explicada pela média do partido):
