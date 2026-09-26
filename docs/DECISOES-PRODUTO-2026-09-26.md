@@ -381,8 +381,33 @@ desde 2023; sobre liberdade religiosa, **nenhuma**.
 
 Motivo: Integridade Moral é, por decisão do usuário, medida por **despesa**,
 não por voto. A pauta nominal de anistia entra como registro histórico, mas
-o critério de Moral se sustenta no gasto — que é onde há 421’Assemblée
+o critério de Moral se sustenta no gasto — que é onde há 421 Assembleia
 inteira com dado.
+
+### Achado do mesmo dia: 70% das votações nominais são procedimentais
+
+O vote quality tinha sido aplicado ANTES da paginação. Quando a paginação
+trouxe 79 pautas novas, elas nasceram com `voteKind = MERIT` (o default do
+schema) — e o erro é invisível, porque MERIT é justamente o tipo que não
+reduz nada. Rodar o classificador de novo achou **47 das 153 pautas com voto
+erradas**.
+
+| tipo | peso | pautas | votos |
+|---|---|---|---|
+| Mérito | 1,0 | 61 | 22.398 |
+| Requerimento | 0,3 | 38 | 13.412 |
+| Requerimento de urgência | 0,2 | 28 | 10.369 |
+| Emenda | 0,7 | 25 | 8.525 |
+| Redação final | 1,0 | 1 | 293 |
+
+**Só 30% das votações nominais são decisão de mérito.** O resto é
+requerimento, urgência e emenda. Isso não é detalhe: é a diferença entre
+"deputado X votou a favor do projeto Y" e "deputado X pediu urgência no
+projeto Y", que são fatos completamente distintos sobre o mesmo nome.
+
+Nota recalculada: média 58,4, escala 50–64, dispersão 3,20, 504 com voto
+próprio. A escala apertou porque são 11 assuntos — a nota é honesta e
+estreita, e estreita é melhor que larga e errada.
 
 ### O método se pagou
 
