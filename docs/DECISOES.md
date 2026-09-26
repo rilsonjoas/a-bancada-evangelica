@@ -347,3 +347,89 @@ nada. A seção 1.6 prova que a allowlist absolve uma negativa e **não**
 absolve uma promessa, que o splitter acha frases, e que o normalizador tira
 acento. Se a regra de detecção quebrar, o 1.6 falha antes de o 1.5 virar
 falso-verde.
+
+## 2026-09-26 — M1c: seed a 20%, não 50% (a meta do plano não era alcançável no 50%)
+
+Medido nos 504 parlamentares com voto real, com a confiança do M2 já dentro:
+
+| `SEED_SHRINK` | % da variância que é partido |
+|---|---|
+| 0,40 | 74,7% |
+| 0,30 | 63,4% |
+| 0,25 | 54,3% |
+| **0,20** | **41,6%** |
+
+O plano chutava 0,5 e prometia 49,4%. **O chute errava**: no dado real, 0,5
+dá 58%. A simulação do plano não tinha o ruído individual (±8) nem a
+penalidade de despesa.
+
+**Por que 0,20 e não 0,25.** O pedido foi o voto próprio pesar *mais* que o
+partido. 0,25 deixa o partido na maioria (54,3%). 0,20 entrega 58,4% da
+variação dentro do partido, que é o pedido. A ordem entre os partidos
+continua preservada — só a distância entre eles diminuiu.
+
+**O que M2 custou.** A confiança (que encolhe o voto de quem tem pouco) joga
+contra o M1c na métrica de variância partidária: sozinha ela empurra de 46,8%
+para 74,7%. As duas metas não podem ser persiguitas com o mesmo número, e a
+resposta foi compensar o `SEED_SHRINK`, não escolher uma das duas.
+
+## 2026-09-26 — M3: a "consistência" media a coisa errada
+
+A coluna `consistency_score` media
+`(votos com applied_score ≠ 0) / (total de votos)` — ou seja, **cobertura
+de dado**: "das minhas votações, quantas caíram num tema que pontuamos?".
+É uma pergunta sobre o nosso cadastro, não sobre a pessoa. O nome prometia
+coerência entre assuntos; a fórmula media outra coisa. Mesma classe de erro
+do "histórico de processos judiciais" na metodologia: **rótulo que promete
+mais que o dado.**
+
+**Decisão.** Passa a medir posição — taxa de votos alinhados sobre os
+votações pontuadas — e entra na nota com ±3 pontos, escalados por
+`min(1, votos/10)`. Um voto só rende +0,3 de 100: ruído, não sinal.
+
+**Alternativas descartadas.**
+
+| Opção | Por que não |
+|---|---|
+| Deixar como estava, só corrigir o texto | O texto mentia para o lado fácil; o dado continuava errado. |
+| Premiar coerência *com o partido* | Iria na direção oposta ao pedido: reforçaria a herança partidária que o M1c existe para reduzir. |
+| Peso forte na consistência | Coerência é sinal fraco. Peso forte é inventar precisão — e o usuário pediu "modesto". |
+
+## 2026-09-26 — M5 recusado: derivar `PARTY_ALIGNMENT` dos votos
+
+O plano previa derivar a tabela de alinhamento por partido dos votos reais.
+Medi antes de decidir, três abordagens, todas ruins:
+
+1. **Média ingênua do `applied_score` normalizado** → **PT 83,9 em Valores
+   Familiares**, acima de REPUBLICANOS (61,9). Não é erro de conta: as
+   pautas de família são dominadas por projetos de proteção à infância, em que
+   quase todo mundo vota junto. "Conservador" e "esteve presente" viram a
+   mesma coisa.
+2. **Desvio em relação à média da câmara** → PSOL em 265 em Integridade
+   Moral, e sete partidos batendo exatamente −90,4 (votaram igual na única
+   pauta que existe naquele critério).
+3. **Amostra por partido** → Integridade Moral tem 359 votos para 20
+   partidos: ~18 por partido.
+
+**Decisão: M5 não entra.** A tabela permanece, e a `/metodologia` passou a
+dizer que é **estimativa editorial** — que é a verdade — em vez de citar
+fontes que não sustentam cada valor.
+
+**Por que não "deixar para depois".** As três falhas não são falta de
+esforço, são falta de dado. Integridade Moral nunca vai ter votos suficientes;
+não há versão futura desse código que conserte com os dados de hoje.
+
+**Consequência aceita, e é a maior pendência do projeto:** Proteção à Vida
+(30%) e Liberdade Religiosa (10%) não têm pauta-chave nenhuma. São 40% do
+peso sem base medida, e agora isso está escrito na página pública.
+
+## 2026-09-26 — Timeout de teste: 5s → 15s
+
+`MatchPage.test.tsx` falhou 1 de 10 rodadas da suíte completa, com 6/6
+passando isolado. Timeout de 5s (default) com 24 arquivos em paralelo.
+
+**Decisão:** `testTimeout: 15s` em `vite.config.ts`.
+
+**Alternativa descartada:** marcar o arquivo como lento. Não resolve — o
+problema é a máquina de CI, não o teste. Falso vermelho treina a ignorar o
+build, e o build é a última coisa que ainda é confiável aqui.

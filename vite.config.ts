@@ -53,6 +53,12 @@ export default defineConfig(({ mode }) => ({
     environment: "jsdom",
     setupFiles: "./src/test/setup.ts",
     css: false,
+    // 5s (default) estourava em MatchPage sob carga: 24 arquivos em
+    // paralelo. Falhou 1 de 10 rodadas com 6/6 passando isolado — ou seja,
+    // flake, não regressão. Timeout curto demais vira falso vermelho, e
+    // falso vermelho treina a ignorar o build. 15s cobre a máquina lenta
+    // de CI sem mascarar hang de verdade.
+    testTimeout: 15000,
     exclude: ["e2e/**", "node_modules/**", "src/api/**/__tests__/**", "src/api/**/*.test.ts"],
   },
 }));

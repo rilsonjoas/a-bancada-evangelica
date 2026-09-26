@@ -13,6 +13,10 @@ import {
   SEED_SHRINK,
   SCORE_FORMULA_VERSION,
   VOTE_WEIGHT_MULT,
+  voteConfidence,
+  consistencyBonus,
+  CONFIDENCE_HALF_AT,
+  CONSISTENCY_MAX_POINTS,
   type CriteriaKey,
 } from '../lib/scoring';
 
@@ -299,8 +303,33 @@ describe('M0 — SCORE_FORMULA_VERSION', () => {
   it('as constantes default são a identidade — M0 não muda behavior', () => {
     // M0 só cria as âncoras. Se o default já mudasse a nota, o recálculo
     // do dia 25 moveria o ranking sem ninguém ter pedido.
-    expect(VOTE_WEIGHT_MULT).toBe(1);
-    expect(SEED_SHRINK).toBe(1);
+    // Obsoleto desde M1c (2026-09-26): o default NÃO é mais a identidade.
+    // O teste de verdade agora é o de regressão abaixo, que fixa o par
+    // medido. Este fica só como registro de que M0 foi inerte.
+    expect(1).toBe(1);
+  });
+
+  // ── M1c/M2/M3: o par medido, fixado em teste ────────────────────────────
+  it('o par de constantes em produção é o que foi medido, não um chute', () => {
+    // Estes valores vieram de medir a variância partidária nos 504
+    // parlamentares com voto real (ver PLANO-PESO-INDIVIDUAL.md). Fixar
+    // em teste é o que impede alguém de "ajustar para 0,5 porque parece
+    // mais justo" sem medir o efeito.
+    expect(VOTE_WEIGHT_MULT).toBe(3.0);
+    expect(SEED_SHRINK).toBe(0.2);
+  });
+
+  it('o voto pesa mais que o partido, e a ordem dos partidos sobrevive', () => {
+    // O ponto do M1c: SEED_SHRINK < 1 encolhe a herança partidária sem
+    // apagar a ordem entre partidos.
+    expect(SEED_SHRINK).toBeLessThan(1);
+    expect(SEED_SHRINK).toBeGreaterThan(0);
+    const alto = shrinkSeed(85);
+    const baixo = shrinkSeed(25);
+    expect(alto).toBeGreaterThan(baixo);
+    // E o encolhimento realmente puxa para a média global.
+    expect(alto).toBeLessThan(85);
+    expect(baixo).toBeGreaterThan(25);
   });
 });
 
@@ -365,5 +394,80 @@ describe('decomposição da nota (M4)', () => {
   // nota de outra — que é o modo de falha que o M0 existe para impedir.
   it('a decomposição carrega a mesma versão da fórmula que a nota', () => {
     expect(SCORE_FORMULA_VERSION).toMatch(/^\d+\.\d+\.\d+$/);
+  });
+});
+
+
+// ---------------------------------------------------------------------------
+// M2 — confiança por base de assuntos
+// ---------------------------------------------------------------------------
+describe('voteConfidence (M2)', () => {
+  it('zero assuntos é zero confiança — e nunca é negativo', () => {
+    expect(voteConfidence(0)).toBe(0);
+    expect(voteConfidence(-3)).toBe(0);
+  });
+
+  it('monótona: mais assunto, mais confiança', () => {
+    for (let n = 0; n < 40; n++) {
+      expect(voteConfidence(n + 1)).toBeGreaterThanOrEqual(voteConfidence(n));
+    }
+  });
+
+  it('nunca chega a 1 (base finita nunca vira certeza absoluta)', () => {
+    for (const n of [1, 4, 10, 100, 10_000]) {
+      expect(voteConfidence(n)).toBeLessThan(1);
+    }
+  });
+
+  it('metade do peso no número declarado de assuntos', () => {
+    // K = 4 → 4 assuntos dão exatamente 50%. O número é legível de
+    // propósito: é o que a página de metodologia explica ao usuário.
+    expect(voteConfidence(CONFIDENCE_HALF_AT)).toBeCloseTo(0.5, 10);
+  });
+
+  it('um assunto só não vira nota sozinho', () => {
+    expect(voteConfidence(1)).toBeCloseTo(0.2, 10);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// M3 — coerência entre assuntos
+// ---------------------------------------------------------------------------
+describe('consistencyBonus (M3)', () => {
+  it('sem voto pontuado, não move nota', () => {
+    expect(consistencyBonus(0, 0)).toBe(0);
+    expect(consistencyBonus(5, 0)).toBe(0);
+  });
+
+  it('100% coerente dá o bônus cheio, 0% dá o bônus cheio invertido', () => {
+    expect(consistencyBonus(20, 20)).toBeCloseTo(CONSISTENCY_MAX_POINTS, 10);
+    expect(consistencyBonus(0, 20)).toBeCloseTo(-CONSISTENCY_MAX_POINTS, 10);
+  });
+
+  it('metade coerente não dá nem bônus nem penalidade', () => {
+    expect(consistencyBonus(10, 20)).toBeCloseTo(0, 10);
+  });
+
+  it('um voto só não move a nota de forma relevante (base de evidência)', () => {
+    // Uma votação NÃO dá zero — a curva é contínua de propósito. O que
+    // não pode é dar um bônus de verdade: 1 voto = 10% da evidência, e o
+    // melhor caso (voto alinhadíssimo) rende +0,3 de 100. Ruído, não sinal.
+    const umVoto = consistencyBonus(1, 1);
+    expect(umVoto).toBeGreaterThan(0);
+    expect(umVoto).toBeLessThan(CONSISTENCY_MAX_POINTS * 0.15);
+  });
+
+  it('o bônus é modesto: nunca passa de ±3 pontos', () => {
+    for (const [a, s] of [[0, 5], [3, 5], [50, 100], [100, 100], [1, 3]]) {
+      expect(Math.abs(consistencyBonus(a, s))).toBeLessThanOrEqual(CONSISTENCY_MAX_POINTS);
+    }
+  });
+
+  it('a base de evidência cresce até 10 votos e satura', () => {
+    // 5 votos = metade do bônus; 10+ = bônus inteiro.
+    const cinco = consistencyBonus(5, 5) / CONSISTENCY_MAX_POINTS;
+    const dez = consistencyBonus(10, 10) / CONSISTENCY_MAX_POINTS;
+    expect(cinco).toBeCloseTo(0.5, 10);
+    expect(dez).toBeCloseTo(1, 10);
   });
 });

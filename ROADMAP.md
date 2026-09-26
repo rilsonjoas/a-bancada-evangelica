@@ -1604,36 +1604,50 @@ existem. Não escrever código de produto antes de medir.
 
 ---
 
-## Peso do voto individual vs. partido (M0–M5) — plano aprovado 2026-09-25
+## Peso do voto individual vs. partido (M0–M5) — CONCLUÍDO 2026-09-26
 
 Origem: pedido do Rilson — *"eu prefiro que o posicionamento pessoal do
 congressista valha bem mais que o partido, bem mais mesmo."*
 
-Plano completo e simulação medida em **`docs/PLANO-PESO-INDIVIDUAL.md`**.
-Medido no acervo real antes de codar (504 parlamentares com voto):
+Plano em **`docs/PLANO-PESO-INDIVIDUAL.md`**. Fórmula final: **`SCORE_FORMULA_VERSION = 1.2.0`**.
 
-| Cenário | voto × | seed | % da variância que é partido |
-|---|---|---|---|
-| hoje | ×1 | 100% | **91,8%** |
-| dobrar voto sozinho | ×2 | 100% | 88,0% |
-| **M1c triplicar + seed 50%** | ×3 | 50% | **49,4%** |
+| | voto | seed | confiança | bônus coerência | % da variância que é partido |
+|---|---|---|---|---|---|
+| antes (M0) | ×1 | 100% | — | — | **91,4%** |
+| chute do plano | ×3 | 50% | — | — | *58% (a simulação previa 49,4% e errou)* |
+| **agora (1.2.0)** | **×3** | **20%** | **K=4** | **±3** | **41,6%** |
 
-- [ ] **M0** — `SCORE_FORMULA_VERSION` (a fórmula de score não tem versão
-      própria hoje; `PARTY_ALIGNMENT` pode mudar sem âncora). Gravada em
-      `politician_scores` e no `details` do `SyncLog`
-- [ ] **M4** — decomposição da nota visível ("40 do partido + 18 do seu voto
-      − 3 de despesa"). Risco zero, não muda nota
-- [ ] **M1c** — delta ×3 + seed a 50% do desvio da média
-- [ ] **M2** — confiança encolhe base fraca, **medida isolada depois de M1c**
-      (na simulação, confiança antes de encolher o seed empurra a variância
-      de volta pro partido)
-- [ ] **M3** — consistência entra na nota (Rilson escolheu (b), com peso)
-- [ ] **M5** — derivar `PARTY_ALIGNMENT` do voto real, só depois de ver M1–M4
+- [x] **M0** — `SCORE_FORMULA_VERSION`, gravada em `politician_scores` e no `SyncLog`
+- [x] **M4** — decomposição da nota visível no perfil, gravada no recálculo (`score_breakdown`)
+- [x] **M1c** — voto ×3 + seed a 20% do desvio da média global
+- [x] **M2** — confiança por base de assuntos (`n/(n+4)`)
+- [x] **M3** — coerência entre assuntos na nota (±3 pontos)
+- [x] **M5** — **recusado, com medição** (ver abaixo)
 
-**Requisito de aceitação de cada passo:** o usuário tem que ler, em
-linguagem leiga, de onde veio cada ponto da nota dele. Tabela de
-obrigação em `PLANO-PESO-INDIVIDUAL.md` §4. Nenhuma fórmula entra com texto
-velho — `/metodologia`, README e demais páginas são atualizados junto.
+**M5 recusado, e por quê.** Derivar `PARTY_ALIGNMENT` dos votos reais foi
+medido antes de decidir, e as três tentativas foram ruins: (1) a média
+ingênua dá **PT 83,9 em Valores Familiares**, acima do Republicanos, porque
+o acervo é dominado por votos de consenso; (2) medir o desvio em relação à
+câmara amplifica ruído (PSOL chega a 265 em Integridade Moral); (3)
+Integridade Moral tem 359 votos para 20 partidos — amostra pequena demais.
+Publicar um número derivado assim custaria mais em credibilidade do que
+renderia em precisão. A tabela foi mantida e **passou a ser declarada como
+estimativa editorial** na `/metodologia`. Detalhe em `docs/REPRODUCIBILITY.md` §5.1.
+
+**Achado que sobrou e é a maior pendência do projeto:** Proteção à Vida (30%)
+e Liberdade Religiosa (10%) **não têm nenhuma pauta-chave** — 40% do peso da
+nota sem base medida. Está declarado na `/metodologia` para o usuário e
+registrado aqui.
+
+**Erro de método que vale registrar:** a simulação do plano não tinha o
+ruído individual nem a penalidade de despesa, e por isso previa 49,4% onde
+o real era 58%. Medir no dado antes de escolher a constante foi o que
+separou 58% de 41,6%.
+
+**Testes que sustentam:** `src/__tests__/consistencia-publica.test.ts` (29)
+e `scripts/__tests__/scoring.test.ts` (53, incluindo o par de constantes
+medido fixado em teste para ninguém "ajustar para 0,5 porque parece mais
+justo" sem medir o efeito).
 
 **Sem entrada de errata** (decisão do Rilson): projeto novo, nada
 divulgado a público geral ainda. Ordem: código → teste → verificação →

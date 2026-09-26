@@ -172,9 +172,90 @@ estimativa de partido (ver Metodologia, seção "Limitações").
 
 ## 5. Nota geral (ponderada) + Ranking
 
+**Fórmula em produção: `SCORE_FORMULA_VERSION = 1.2.0`** (2026-09-26).
+
+Três parcelas, nesta ordem:
+
 ```
-Overall = Σ (Score_critério_i × Peso_i)   // pesos: 30/25/20/15/10 = 100%
+1. seed   = encolhe(average_do_partido_no critério, SEED_SHRINK) + ruído(±8)
+2. voto   = média_por_assunto(desvio_do_parlamentar_vs_média_do_partido)
+            × VOTE_WEIGHT_MULT
+            × confiança(nº de assuntos)
+3. gasto  = penalidade das despesas fora do padrão (só Integridade Moral)
+
+Score_critério = limita( seed + voto − gasto , 0 , 100 )
+Overall        = limita( Σ (Score_critério × Peso) + bônus_de_coerência , 0 , 100 )
 ```
+
+| Constante | Valor | O que faz |
+|---|---|---|
+| Pesos | 30/25/20/15/10 | Soma 100% |
+| `VOTE_WEIGHT_MULT` | **3.0** | Multiplica o desvio do voto próprio |
+| `SEED_SHRINK` | **0.2** | Encolhe a herança partidária para 20% do desvio da média global (55) |
+| `CONFIDENCE_HALF_AT` | **4** | Com 4 assuntos, o voto entra com metade do peso |
+| `CONSISTENCY_MAX_POINTS` | **3** | Bônus de coerência, de −3 a +3 |
+
+**Efeito medido** (504 parlamentares com voto próprio real, `eta²` =
+fração da variância da nota explicada pela média do partido):
+
+| | variância partidária |
+|---|---|
+| Antes (`VOTE_WEIGHT_MULT=1`, `SEED_SHRINK=1`) | **91,4%** |
+| Agora (`3.0` / `0.2` + confiança) | **41,6%** |
+
+Ou seja: a nota passou a ser majoritariamente determinada pelo voto da
+pessoa, não pelo partido. `eta²` de 41,6% significa que 58,4% da variação
+entre notas é **dentro** do partido — voto próprio, coerência e gasto.
+
+> **A simulação do plano errou.** `PLANO-PESO-INDIVIDUAL.md` previa 49,4%
+> para o par original (`3.0` / `0.5`). Medido no dado real esse par dá 58%.
+> A simulação não tinha o ruído individual nem a penalidade de despesa. A
+> tabela acima é medição, não previsão — e é por isso que os valores finais
+> divergem do plano.
+
+### 5.1 Por que `PARTY_ALIGNMENT` NÃO é derivado dos votos (M5 recusado)
+
+`PARTY_ALIGNMENT` é uma tabela escrita à mão, com a fonte declarada como
+"DIAP, FPE, análises do JRN/Estadão e histórico de votações". **Nenhum valor
+individualmente verificável existe para ela.** O plano previa derivá-la dos
+votos reais (M5). Medi antes de decidir, e as três tentativas foram ruins:
+
+| Critério | Votos gravados | Partidos |
+|---|---|---|
+| Responsabilidade Social | 19.250 | 21 |
+| Valores Familiares | 7.251 | 21 |
+| Integridade Moral | **359** | 20 |
+| Proteção à Vida | **0** | — |
+| Liberdade Religiosa | **0** | — |
+
+**1. A média ingênua produz absurdo.** Média do `applied_score` normalizado
+dá **PT 83,9 em Valores Familiares**, acima de REPUBLICANOS (61,9). Não é
+erro de conta: o conjunto de pautas de família é dominado por projetos de
+proteção à infância, em que quase todo mundo vota junto. "Conservador" e
+"esteve presente" viram a mesma coisa, e o número não distingue nada.
+
+**2. A versão por desvio da câmara amplifica ruído.** Medindo o quanto o
+partido se afasta da média da câmara em cada votação, os valores explodem:
+PSOL chega a 265 em Integridade Moral, e sete partidos batem exatamente
+−90,4 — todos votaram igual em cima da única pauta que injurem.
+
+**3. Amostra por partido é pequena demais.** Integridade Moral tem 359 votos
+para 20 partidos: ~18 por partido. Isso não estima posição de partido, estima
+o voto de um punhado de_ARMADO parliamentary.
+
+**Decisão: M5 não entra.** Manter a tabela, mas **declarar que é estimativa
+editorial** — o que é a verdade — em vez de citar fontes que não sustentam
+cada valor. Derivar custaria mais em credibilidade do que rende em precisão.
+
+> Pendência real: **Proteção à Vida (30%) e Liberdade Religiosa (10%) não têm
+> pauta-chave nenhuma** — 40% do peso sem base medida. Isso é a lacuna mais
+> grave que resta, e está em `ROADMAP.md`.
+
+**Ruído individual (±8):** `individualNoise(id, critério)` é pseudoaleatório
+e determinístico pelo ID. Existe para que dois parlamentares do mesmo partido
+nunca tenham seed idêntica. Contribui com no máximo ±8 por critério — bem
+abaixo do sinal de voto depois do M1c, então não é o que sustenta a
+variância dentro do partido.
 
 **Ranking**: ordenação decrescente por `Overall`. Empates quebrados por `Total_votos` (mais votos = melhor rank).
 
@@ -193,16 +274,30 @@ cards da UI.
 
 ## 6. Consistência
 
-**Corrigido em 2026-09-08** — a fórmula anterior (desvio-padrão entre os
-5 critérios) não é a real; nunca foi verificada contra o código.
+**Isto estava errado até 2026-09-26, e o nome mentia.**
+
+A fórmula que este guia descrevia até ontem:
 
 ```
 Consistência = (nº de votos com applied_score ≠ 0) / (total de votos registrados)
 ```
-- Mede **participação real**: SIM/NÃO conta, abstenção/ausência/obstrução não
-- 100% = o parlamentar se posicionou em toda votação relevante que apareceu
-- 0% = só absteve/faltou, ou não tem voto nenhum registrado (`totalVotes = 0` → consistência sempre 0, exibida como "—" no perfil, nunca como 0% — ver achado 2026-08-22 em `recalculate-scores.ts`)
-- **Não** mede o quão parecidos os 5 critérios são entre si — isso não é o que a palavra "consistência" descreve aqui
+
+media **cobertura de dado** — "das minhas votações, quantas caíram num tema
+que nós pontuamos?". É uma pergunta sobre o nosso cadastro, não sobre a
+pessoa, e a coluna se chamava `consistency_score`.
+
+**Agora mede posição (M3):**
+
+```
+Consistência = (votações alinhadas) / (votações pontuadas)      // campo exibido
+Bônus        = (taxa − 0,5) × 2 × 3 × min(1, votações/10)     // ±3 pontos
+```
+
+- `applied_score > 0` é o lado alinhado (o sinal já vem aplicado no sync)
+- Alinhar em vida, família e religião conta como coerente; alternar conta como incoerente
+- 10 votos pontuados = bônus inteiro. Abaixo disso o bônus cai proporcionalmente
+- Sem voto pontuado: consistência 0 e bônus 0. A UI exibe "—", nunca 0% (achado 2026-08-22, mantido)
+- O bônus entra **somado por fora** dos cinco critérios: é um sinal transversal, não um sexto critério
 
 ---
 
@@ -378,3 +473,17 @@ guarde os headers você mesmo.
 
 *Este guia é parte da Onda A2 — Auditabilidade Pública (H3, 2026-08-27).  
 Qualquer discrepância entre este guia e o código = bug. Reporte.*
+---
+
+## 9. Versões das regras (o que era, o que é)
+
+| Regra | Versão | Onde mora | Onde é documentada |
+|---|---|---|---|
+| `SCAN_RULES` | 1.0.0 | `scripts/lib/scan-rules.ts` | seção 3 deste guia |
+| `EXPENSE_RULES` | 2.0.0 | `scripts/lib/expense-rules.ts` | `docs/DETECCAO-DESPESAS.md` |
+| `SCORE_FORMULA` | **1.2.0** | `scripts/lib/scoring.ts` | seção 5 deste guia |
+
+A versão da fórmula é gravada em `politician_scores.formula_version` a cada
+recálculo e exposta pela API no perfil de cada parlamentar. Duas notas com
+versões diferentes são, por definição, notas de regras diferentes — é isso que
+torna a auditoria possível depois de uma recalibração.

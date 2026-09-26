@@ -59,6 +59,8 @@ import {
   performanceLabel,
   shrinkSeed,
   type CriteriaKey,
+  voteConfidence,
+  consistencyBonus,
 } from './lib/scoring.js';
 
 const prisma = new PrismaClient();
@@ -211,8 +213,13 @@ async function recalculate() {
     // Com 1.0 é a identidade. A função existe para que a multiplicação
     // aconteça num lugar só — os cinco critérios compartilham a mesma
     // alavanca, e um `× 3` esquecido em uma linha seria invisível.
+    //
+    // M2: o peso cai conforme a base de assuntos. Um voto só não é
+    // descartado — a pessoa votou — mas entra com menos força que dezesseis.
     const applyVote = (c: CriteriaKey) =>
-      hasCriteriaVotes(c) ? avgDelta(c) * VOTE_WEIGHT_MULT : 0;
+      hasCriteriaVotes(c)
+        ? avgDelta(c) * VOTE_WEIGHT_MULT * voteConfidence(deltas[c].length)
+        : 0;
 
     const life = clampScore(seedFor('LIFE_PROTECTION') + applyVote('LIFE_PROTECTION'));
     const family = clampScore(seedFor('FAMILY_VALUES') + applyVote('FAMILY_VALUES'));
@@ -247,9 +254,6 @@ async function recalculate() {
         subject_count: deltas[c].length,
       };
     });
-    const overall = overallScore(scores);
-
-    const perf = performanceLabel(overall);
 
     // Consistência: recalcula se tem votos; ZERADO se não tem.
     // Achado real (2026-08-22): o fallback antigo preservava
@@ -257,9 +261,30 @@ async function recalculate() {
     // sync-worker antigo (100% pra quem nunca votou) voltava a cada recálculo.
     // Sem votos NÃO existe consistência medida: grava 0; a UI exibe "—".
     const totalVotes = politician.votes.length;
-    const consistency = totalVotes > 0
-      ? politician.votes.filter(v => v.applied_score !== 0).length / totalVotes
+
+    // M3: a consistência agora é POSIÇÃO, não cobertura de dado.
+    //
+    // Antes (medida errada, ver `consistencyBonus`): contava votos com
+    // applied_score != 0 sobre o total. Isso respondia "quantas das minhas
+    // votações caíram num tema que pontuamos?" — pergunta sobre o nosso
+    // cadastro, não sobre a pessoa. Agora é: das votações pontuadas, em que
+    // direção fui? Positivo é o lado alinhado, então a taxa de positivos é a
+    // coerência entre assuntos.
+    const scoredVotes = politician.votes.filter(v => v.applied_score !== 0);
+    const alignedVotes = scoredVotes.filter(v => v.applied_score > 0).length;
+    const consistency = scoredVotes.length > 0
+      ? alignedVotes / scoredVotes.length
       : 0;
+    // ±3 pontos no máximo, e só depois de 10 votos pontuados. Um voto só
+    // não move nota.
+    const bonus = consistencyBonus(alignedVotes, scoredVotes.length);
+
+    // M3: a coerência entra somada por fora dos cinco critérios — é um sinal
+    // transversal, não um sexto critério com peso próprio.
+    const overall = clampScore(overallScore(scores) + bonus);
+
+    const perf = performanceLabel(overall);
+
 
     if (politician.votes.length > 0) hybridUpdated++;
 

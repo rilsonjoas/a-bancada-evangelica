@@ -532,27 +532,76 @@ const MetodologiaPage = () => {
                         Quanto pesa o partido, quanto pesa o voto — em números
                       </h5>
                       <p className="text-sm text-muted-foreground leading-relaxed">
-                        Isto é a parte que um método costuma esconder, então vamos dizer na cara:
-                        <strong className="text-foreground"> hoje a nota é majoritariamente do
-                        partido.</strong> Medimos isso, não é impressão: cerca de{' '}
-                        <strong className="text-foreground">92% da variação entre as notas</strong> se
-                        explica pelo partido, e só uma fração pelo voto próprio registrado até agora.
+                        Isto é a parte que um método costuma esconder, então vamos dizer na cara.
+                        <strong className="text-foreground"> Antes, a nota era quase toda do
+                        partido.</strong> Medimos, não é impressão: <strong className="text-foreground">91%
+                        da variação entre as notas</strong> se explicava pela média do partido, e o
+                        voto próprio da pessoa mal aparecia no resultado.
                       </p>
                       <p className="text-sm text-muted-foreground leading-relaxed mt-2">
-                        A causa é estrutural, e vale ser explícito: a média do partido varia cerca de{' '}
-                        <strong className="text-foreground">70 pontos</strong> entre um partido e outro,
-                        enquanto o voto próprio registrado move a nota em cerca de{' '}
-                        <strong className="text-foreground">24 pontos</strong>. Quem discorda de um
-                        partido, hoje, perde para a média do próprio partido. Isso é um defeito
-                        conhecido, está documentado em{' '}
-                        <code className="text-xs bg-secondary px-1 py-0.5 rounded">docs/AUDITORIA-CALCULOS.md</code>{' '}
-                        e está sendo corrigido: estamos recalibrando a fórmula para que o voto próprio
-                        pese mais que a herança partidária. Enquanto isso não estiver pronto, os números
-                        agregados ficam congelados em vez de publicados com uma explicação velha.
+                        <strong className="text-foreground"> Mudamos isso.</strong> O voto próprio
+                        agora pesa <strong className="text-foreground">3 vezes</strong> o que pesava, e
+                        a herança partidária foi reduzida a <strong className="text-foreground">20%
+                        do que pesava</strong> (a ordem dos partidos continua valendo — só a distância
+                        entre eles diminuiu). Resultado medido nos 504 parlamentares que têm voto
+                        próprio registrado: a parte da variação explicada pelo partido caiu de{' '}
+                        <strong className="text-foreground">91% para 42%</strong>. Hoje a nota é
+                        majoritariamente determinada pelo voto da pessoa.
                       </p>
                       <p className="text-sm text-muted-foreground leading-relaxed mt-2">
-                        A nota também é marcada com a versão da fórmula que a produziu, para que não
-                        exista dúvida sobre qual regra foi aplicada.
+                        Dois cuidados, porque um número sozinho não conta a história:
+                      </p>
+                      <ul className="text-sm text-muted-foreground leading-relaxed mt-1 space-y-1.5 list-disc list-inside">
+                        <li>
+                          <strong className="text-foreground">Quem votou pouco pesa menos.</strong>{' '}
+                          Com 4 assuntos, o voto próprio entra com metade do peso; com 1, com um quinto.
+                          Não é para desqualificar quem votou pouco — é para não tratar uma única
+                          votação como se fosse um histórico.
+                        </li>
+                        <li>
+                          <strong className="text-foreground">Ser coerente rende até 3 pontos.</strong>{' '}
+                          Das votações que avaliamos, em que direção a pessoa foi? Alinhar em vários
+                          assuntos conta como coerente; ficar alternando conta como incoerente. O peso
+                          é pequeno de propósito — coerência é um sinal fraco ao lado de voto e gasto.
+                        </li>
+                      </ul>
+                      <p className="text-sm text-muted-foreground leading-relaxed mt-2">
+                        Cada nota carrega a <strong className="text-foreground">versão da fórmula</strong>{' '}
+                        que a produziu, e cada perfil mostra a conta aberta. O detalhamento de como
+                        cada número foi medido está em{' '}
+                        <code className="text-xs bg-secondary px-1 py-0.5 rounded">docs/REPRODUCIBILITY.md</code>.
+                      </p>
+                    </div>
+                    <div className="mt-3 rounded-lg border border-red-300/60 bg-red-50/50 p-4">
+                      <h5 className="font-semibold text-foreground text-sm mb-2">
+                        Onde esta nota ainda não é medida
+                      </h5>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        Ser honesto aqui não é confortável, mas é o que separa isto de uma nota
+                        medida de um número com cara de nota. Hoje{' '}
+                        <strong className="text-foreground">dois dos cinco critérios — Proteção à
+                        Vida (30%) e Liberdade Religiosa (10%) — não têm nenhuma votação
+                        registrada</strong> que os sistema consiga classificar. Isso é{' '}
+                        <strong className="text-foreground">40% do peso da nota</strong> sem base
+                        medida.
+                      </p>
+                      <p className="text-sm text-muted-foreground leading-relaxed mt-2">
+                        O que aparece nesses dois critérios hoje é{' '}
+                        <strong className="text-foreground">estimativa editorial</strong>: um valor
+                        escrito à mão por partido, que representa o histórico conhecido do partido
+                        nesses temas. Não é medido no nosso banco, e a página de cada parlamentar
+                        deixa isso explícito: o voto próprio aparece como zero justamente porque não
+                        existe para ser medido.
+                      </p>
+                      <p className="text-sm text-muted-foreground leading-relaxed mt-2">
+                        Tentamos derivar esses valores dos votos gravados e{' '}
+                        <strong className="text-foreground">não fizemos</strong>, porque o resultado
+                        seria pior que a estimativa. Os registros de votação que temos não separam
+                        quem é realmente alinhado de quem apenas estava presente, e há um critério com
+                        pouquíssimos votos para estimar a posição de um partido. Publicar
+                        um número derivado que desse ao PT nota alta em valores familiares seria
+                        exatamente o tipo de coisa que este site não quer ser. A medida completa está
+                        em <code className="text-xs bg-secondary px-1 py-0.5 rounded">docs/REPRODUCIBILITY.md</code>.
                       </p>
                     </div>
                     <p className="text-sm leading-relaxed">
