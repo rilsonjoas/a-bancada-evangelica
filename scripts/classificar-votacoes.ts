@@ -27,11 +27,16 @@ async function main() {
     select: { key_agenda_id: true, voting_description: true },
   });
   for (const v of votos) {
-    const atual = porAgenda.get(v.key_agenda_id);
-    if (!atual) {
-      porAgenda.set(v.key_agenda_id, { desc: v.voting_description, tipos: new Set() });
+    // Cuidado real: a primeira vez que uma pauta aparece, `get` devolve
+    // undefined e o `.tipos` estoura. Criar e usar a MESMA referência é o
+    // que resolve — usar uma no `if` e outra no `add` perde o que foi
+    // acumulado antes.
+    let entrada = porAgenda.get(v.key_agenda_id);
+    if (!entrada) {
+      entrada = { desc: v.voting_description, tipos: new Set<string>() };
+      porAgenda.set(v.key_agenda_id, entrada);
     }
-    atual.tipos.add(classificarVotacao(v.voting_description));
+    entrada.tipos.add(classificarVotacao(v.voting_description));
   }
 
   // Precedência quando a mesma proposição teve mérito e emenda: a mais

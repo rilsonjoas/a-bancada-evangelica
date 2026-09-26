@@ -187,3 +187,69 @@ que errou de 49,4% para 58%.
 3. **Integridade Moral por gasto** (D-03) — depois de resolver a pendência
 4. **Ranking por desvio** (D-06) e **formulação neutra** no perfil
 5. **Rastreamento de comissões** (D-05) e **educação política** (D-07)
+
+---
+
+## Resultado medido do D-02 (aplicado 2026-09-26)
+
+Classificação aplicada em produção e nota recalculada.
+
+| tipo | peso | pautas com voto | das quais ativas |
+|---|---|---|---|
+| mérito | 1,0 | 30 | 4 |
+| redação final | 1,0 | 1 | 0 |
+| emenda a proposição | 0,7 | 15 | 1 |
+| requerimento | 0,3 | 19 | 3 |
+| urgência | 0,2 | 10 | 2 |
+
+**399 de 595 notas mudaram.**
+
+### A base restante, sujeito por sujeito
+
+Dos 8 assuntos que ainda sustentam a nota:
+
+| critério | tipo | peso | assuntos |
+|---|---|---|---|
+| Valores Familiares | mérito | 1,0 | 1 |
+| Valores Familiares | requerimento | 0,3 | 1 |
+| Valores Familiares | urgência | 0,2 | 1 |
+| Proteção à Vida | mérito | 1,0 | 1 |
+| Responsabilidade Social | mérito | 1,0 | 2 |
+| Responsabilidade Social | emenda | 0,7 | 1 |
+| Responsabilidade Social | requerimento | 0,3 | 1 |
+| Responsabilidade Social | urgência | 0,2 | 1 |
+
+**Metade da base restante é procedimental.** Não foi o peso que encolheu o
+sinal — foi a revelação de que metade do que tínhamos era o tipo mais fraco
+de evidência.
+
+### O achado que o D-02 expôs (e que é da paginação)
+
+**29 das 75 pautas com voto (39%) não têm NENHUMA votação de mérito.** A
+única votação que capturamos delas foi o requerimento de urgência.
+
+Confirmado em dois casos que já conhecíamos como sendo de mérito:
+
+> "PL 2275/2022 — Dispõe sobre medidas para prevenção e primeiros socorros"
+> `Aprovado o Requerimento de Urgência (Art. 155 do RICD). Sim: 401;` — e só.
+
+> "PL 4364/2020 — Política Nacional de Cuidado Integral"
+> `Aprovado o Requerimento de Urgência (Art. 155 do RICD). Sim: 366;` — e só.
+
+Ou seja: **a gente capturou a votação processual e perdeu a de mérito.** Não
+por erro de classificação, mas porque o bug de paginação (§
+`AUDITORIA-VOTACOES.md`) fez o sync nunca alcançar a página onde a votação
+de mérito estava.
+
+**Consequência:** o peso por tipo não é um ajuste de nerdagem. Ele tornará
+visível, na nota, que a maior parte do nosso dado é fraco. E a correção
+desse dado é a **paginação**, que agora é segura de fazer porque o
+classificador está certo.
+
+### O que fazer com isso
+
+Nada. Está registrado, e é honesto publicar assim. O caminho é:
+1. paginação (já é a pendência da auditoria de votações);
+2. com a página certa alcançada, reclassificar e remedir;
+3. só então avaliar se o D-02 produz a separação entre pessoas que a nota
+   precisa ter.
