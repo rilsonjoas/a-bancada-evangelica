@@ -1744,6 +1744,30 @@ de prevenção — sinal posicional mais fraco que votação de mérito.
       urgência, 30% requerimento de retirada)
 - [ ] **P1** Cobertura do Senado (acervo é 100% Câmara)
 
+## Decisões de produto de 2026-09-26
+
+**Arquivo próprio: `docs/DECISOES-PRODUTO-2026-09-26.md`** — approved pelo
+Rilson, com o que foi escolhido, o que foi recusado e o que cada escolha
+custou. Resumo do que muda na fórmula:
+
+| critério | peso | medido por |
+|---|---|---|
+| Proteção à Vida | 30% | voto — **sem dado** |
+| Valores Familiares | 20% | voto (2 assuntos) |
+| **Integridade Moral** | **25%** | **gasto — nunca voto** |
+| Responsabilidade Social | 15% | voto (3 assuntos) |
+| Liberdade Religiosa | 10% | voto — **sem dado** |
+
+Mais: peso por qualidade de votação (mérito 1,0 / emenda 0,7 / requerimento
+0,3 / urgência 0,2, visível ao usuário); desvio nunca penaliza, só se
+exibe com o critério nomeado; camada "acompanhada" fora da ordenação;
+rastreamento de comissões; e educação política como função do site.
+
+**Pendência que bloqueia a codificação:** 421 dos 595 ativos (71%) não têm
+nenhuma despesa registrada. Com a Moral em 25% medida só por gasto, esses
+421 ficam com **65% da nota vinda de estimativa de partido** — a mesma
+armadilha que acabamos de desmontar, com outro nome. Precisa de decisão.
+
 ## Registro do dia 2026-09-26 — índice
 
 O raciocínio completo, as medições e as possibilidades de futuro estão em
