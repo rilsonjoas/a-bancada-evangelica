@@ -89,19 +89,27 @@ Resultado final: notas 0–100 por critério + nota geral + rank
 > **`exclusoes`** à regra: contexto presente DESFAZ o casamento. A lista não
 > é chute — é o contexto que apareceu no acervo real, medido.
 >
+> **1.3.0 — a palavra solta `familia` saiu de Valores Familiares.** Medido:
+> "MPV 1268/2024 — Abre crédito extraordinário" (1.447 votos, 39% do dado
+> sobrevivente) casava `familia` e entrava como Valores Familiares. A
+> ementa oficial diz "Agricultura Familiar" e "Família e Combate à Fome" —
+> é decreto orçamentário. **Trocar o local do casamento (ementa em vez de
+> descrição) não resolvia**, porque a palavra está na ementa oficial, em
+> sentido administrativo. O que resolve é trocar a KEYWORD.
+>
 > **Ainda aberto (P1):** `totalAgendas` na API contava 83 pautas e só 75
 > apareciam (8 sem voto). Corrigido. E as pautas arquivadas continuam no
-> banco, por rastro — o que exige que o cálculo de score as EXCLUA.
+> banco, por rastro — o cálculo de score agora as EXCLUI.
 
 Cada votação nominal é cruzada com **palavras-chave** dos 5 critérios. Se houver match, a votação vira uma **pauta-chave** (KeyAgenda), com um **peso fixo** (`weight`) e um sinal (`simIsPositive`) que decide se votar SIM soma ou subtrai.
 
-**Regras reais** (`SCAN_RULES`, definidas em `scripts/lib/scan-rules.ts` — fonte ÚNICA, criada em 2026-09-16; este guia citava `scripts/sync-votes.ts` como dono das regras até 16/09, quando cada sync mantinha **sua própria cópia** e as duas cópias divergiram. Agora `sync-votes.ts` (Câmara) e `sync-votes-senado.ts` importam o mesmo módulo, e cada pauta-chave grava `rules_version = SCAN_RULES_VERSION` (hoje `1.2.0`) para que reclassificações futuras saibam quais pautas foram classificadas por qual conjunto de regras):
+**Regras reais** (`SCAN_RULES`, definidas em `scripts/lib/scan-rules.ts` — fonte ÚNICA, criada em 2026-09-16; este guia citava `scripts/sync-votes.ts` como dono das regras até 16/09, quando cada sync mantinha **sua própria cópia** e as duas cópias divergiram. Agora `sync-votes.ts` (Câmara) e `sync-votes-senado.ts` importam o mesmo módulo, e cada pauta-chave grava `rules_version = SCAN_RULES_VERSION` (hoje `1.3.0`) para que reclassificações futuras saibam quais pautas foram classificadas por qual conjunto de regras):
 
 | Critério | Peso | Keywords reais (`SCAN_RULES`) | SIM é positivo? |
 |----------|------|-------------------------------|------------------|
 | **Proteção à Vida** (30%) | 20 | `aborto`, `nascituro`, `eutanasia`, `interrupcao da gravidez` | Não (votar SIM nessas pautas é contrário) |
 | | 15 | `protecao da vida`, `direito a vida`, `crime contra a vida`, `homicidio` | Sim |
-| **Valores Familiares** (25%) | 15 | `familia`, `casamento`, `adocao`, `menor de idade`, `crianca`, `estatuto da crianca` | Sim |
+| **Valores Familiares** (25%) | 15 | `casamento`, `adocao`, `menor de idade`, `crianca`, `estatuto da crianca`, `direito da crianca`, `violencia contra a crianca` | Sim |
 | | 15 | `identidade de genero`, `diversidade sexual`, `homoafetiv`, `transexual` | Não |
 | **Integridade Moral** (20%) | 15 | `corrupcao`, `improbidade`, `ficha limpa`, `transparencia publica`, `lei anticorrupcao` | Sim |
 | | 12 | `amnistia`, `anistia`, `prescricao`, `indulto` | Não |
@@ -507,7 +515,7 @@ Qualquer discrepância entre este guia e o código = bug. Reporte.*
 
 | Regra | Versão | Onde mora | Onde é documentada |
 |---|---|---|---|
-| `SCAN_RULES` | **1.2.0** | `scripts/lib/scan-rules.ts` | seção 3 deste guia |
+| `SCAN_RULES` | **1.3.0** | `scripts/lib/scan-rules.ts` | seção 3 deste guia |
 | `EXPENSE_RULES` | 2.0.0 | `scripts/lib/expense-rules.ts` | `docs/DETECCAO-DESPESAS.md` |
 | `SCORE_FORMULA` | **1.2.0** | `scripts/lib/scoring.ts` | seção 5 deste guia |
 

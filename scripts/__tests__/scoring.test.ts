@@ -19,7 +19,7 @@ import {
   CONSISTENCY_MAX_POINTS,
   type CriteriaKey,
 } from '../lib/scoring';
-import { matchScanRule } from '../lib/scan-rules';
+import { matchScanRule, SCAN_RULES } from '../lib/scan-rules';
 
 describe('partyBase / isKnownParty', () => {
   it('retorna o seed real de um partido conhecido', () => {
@@ -735,5 +735,54 @@ describe('pauta arquivada não conta', () => {
     ]);
     expect({ total, temFAMILY: Boolean(deltas.FAMILY_VALUES) })
       .toMatchObject({ total: 0, temFAMILY: false });
+  });
+});
+
+/**
+ * Keyword fraca: `familia` solta (1.3.0, 2026-09-26).
+ *
+ * Medido: "MPV 1268/2024 — Abre crédito extraordinário" (1.447 votos, 39%
+ * do dado sobrevivente) entrava como Valores Familiares. A ementa oficial
+ * diz "Agricultura Familiar" e "Família e Combate à Fome" — é decreto
+ * orçamentário. Trocar o local do casamento não resolvia, porque a palavra
+ * está na ementa oficial, em sentido administrativo.
+ *
+ * A correção é na KEYWORD, não no local: os termos específicos cobrem o que
+ * é família e nenhum deles aparece em decreto orçamentário.
+ */
+describe('keyword fraca `familia` removida (1.3.0)', () => {
+  it('decreto orçamentário NÃO é Valores Familiares', () => {
+    const texto = 'Abre crédito extraordinário em favor dos Ministérios do Desenvolvimento Agrário e Agricultura Familiar, e da Secretaria de Família e Combate à Fome';
+    const r = matchScanRule(texto);
+    expect({ criterio: r?.criteria ?? null }).toMatchObject({ criterio: null });
+  });
+
+  it('ECA continua Valores Familiares (Estatuto da Criança)', () => {
+    const texto = 'Acrescenta artigo à Lei 8.069, que dispõe sobre o Estatuto da Criança e do Adolescente, para instituir o crime de violência patrimonial contra a criança';
+    const r = matchScanRule(texto);
+    expect({ criterio: r?.criteria }).toMatchObject({ criterio: 'FAMILY_VALUES' });
+  });
+
+  it('menor de idade e casamento continuam funcionando', () => {
+    for (const texto of [
+      'criminaliza o trabalho do menor de idade em condições perigosas',
+      'institui o registro civil de casamento e união estável',
+    ]) {
+      expect({ texto, criterio: matchScanRule(texto)?.criteria })
+        .toMatchObject({ criterio: 'FAMILY_VALUES' });
+    }
+  });
+
+  it('adocão continua funcionando', () => {
+    const texto = 'institui o cadastro nacional de adotantes e o período de convivência para adoção';
+    expect({ criterio: matchScanRule(texto)?.criteria })
+      .toMatchObject({ criterio: 'FAMILY_VALUES' });
+  });
+
+  it('`familia` não está mais na lista de keywords de Valores Familiares', () => {
+    // Trava de regressão: reintroduzir a palavra solta desfaz a 1.3.0.
+    const regra = SCAN_RULES.find(r => r.criteria === 'FAMILY_VALUES' && r.simIsPositive);
+    expect({ temFamiliaSolta: regra!.keywords.includes('familia') })
+      .toMatchObject({ temFamiliaSolta: false });
   });
 });

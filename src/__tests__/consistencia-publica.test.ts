@@ -149,7 +149,13 @@ const INDICADORES_NAO_MEDIDOS = [
   // Proteção à Vida (4 publicados, 4 com medição) — em 2026-09-26 os quatro
   // indicadores vagos foram trocados pelos termos que o SCAN_RULES casa de
   // fato. Sobrou nenhum gap aqui.
-  // Valores Familiares (4 publicados, 3 com medição)
+  // Valores Familiares (4 publicados, 2 com medição)
+  //
+  // "Votações sobre definição de família" caiu para gap em 2026-09-26
+  // (SCAN_RULES 1.3.0): a única keyword que o media era a palavra solta
+  // `familia`, que também pegava "Agricultura Familiar" em decreto
+  // orçamentário. Preferimos declarar o gap a voltar a medir errado.
+  'Votações sobre definição de família',
   'Defesa da educação familiar',
   'Combate à erotização infantil',
   // Integridade Moral — indicadores reescritos em 2026-09-26 para descrever

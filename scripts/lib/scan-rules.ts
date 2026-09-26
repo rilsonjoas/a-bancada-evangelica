@@ -57,14 +57,29 @@ export interface ScanRule {
  *  SUBSTRING mas não o de SENTIDO — `anistia` em liquidação de dívidas,
  *  `prescricao` em contrato de seguro.
  */
-export const SCAN_RULES_VERSION = '1.2.0';
+export const SCAN_RULES_VERSION = '1.3.0';
 
 export const SCAN_RULES: ScanRule[] = [
   // Proteção à vida
   { criteria: 'LIFE_PROTECTION', keywords: ['aborto', 'nascituro', 'eutanasia', 'interrupcao da gravidez'], simIsPositive: false, weight: 20, priority: 5 },
   { criteria: 'LIFE_PROTECTION', keywords: ['protecao da vida', 'direito a vida', 'crime contra a vida', 'homicidio'], simIsPositive: true, weight: 15, priority: 4 },
   // Família
-  { criteria: 'FAMILY_VALUES', keywords: ['familia', 'casamento', 'adocao', 'menor de idade', 'crianca', 'estatuto da crianca'], simIsPositive: true, weight: 15, priority: 4 },
+  // 1.3.0 (2026-09-26): a palavra solta `familia` foi REMOVIDA.
+  //
+  // Medido: "MPV 1268/2024 — Abre crédito extraordinário" (1.447 votos, 39%
+  // de todo o dado que sobreviveu à limpeza) casava `familia` e entrava como
+  // Valores Familiares. A ementa oficial diz "Agricultura Familiar" e
+  // "Família e Combate à Fome" — é um decreto orçamentário, e `família` é
+  // vocabulário administrativo comum em lei brasileira.
+  //
+  // Trocar o LOCAL do casamento (ementa em vez de descrição) não resolvia:
+  // a palavra está na ementa oficial, em sentido administrativo. O que
+  // resolve é trocar a KEYWORD: os termos específicos abaixo cobrem o que é
+  // mesmo família, e nenhum deles aparece em decreto orçamentário.
+  //
+  // Custo: cai a sensitividade. Com 2.559 votos em 7 pautas,o recall já é o
+  // gargalo do critério — e nesse regime, precisão vale mais que cobertura.
+  { criteria: 'FAMILY_VALUES', keywords: ['casamento', 'adocao', 'menor de idade', 'crianca', 'estatuto da crianca', 'direito da crianca', 'violencia contra a crianca'], simIsPositive: true, weight: 15, priority: 4 },
   { criteria: 'FAMILY_VALUES', keywords: ['identidade de genero', 'diversidade sexual', 'homoafetiv', 'transexual'], simIsPositive: false, weight: 15, priority: 4 },
   // Integridade moral
   { criteria: 'MORAL_INTEGRITY', keywords: ['corrupcao', 'improbidade', 'ficha limpa', 'transparencia publica', 'lei anticorrupcao'], simIsPositive: true, weight: 15, priority: 4 },
