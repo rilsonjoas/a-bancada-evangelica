@@ -38,7 +38,8 @@ import { join } from 'node:path';
 import { SCAN_RULES, SCAN_RULES_VERSION } from '../../scripts/lib/scan-rules';
 import { WEIGHTS, CRITERIA_KEYS, SCORE_FORMULA_VERSION } from '../../scripts/lib/scoring';
 import { EXPENSE_RULES_VERSION } from '../../scripts/lib/expense-rules';
-import { CRITERIA } from '../../src/lib/criteria';
+import { CRITERIA, SCORE_BANDS, scoreBand } from '../../src/lib/criteria';
+import { performanceLabel } from '../../scripts/lib/scoring';
 
 // src/__tests__/ -> src/ -> raiz do repo. Dois níveis, não três.
 const raiz = join(__dirname, '..', '..');
@@ -292,6 +293,77 @@ describe('1.3 fórmulas declaradas × código', () => {
     // descreve um cálculo diferente do que roda.
     const docTem20 = /20\s*%/.test(REPRODUTIVIDADE) || /20\s*%/.test(METODOLOGIA);
     expect(docTem20).toBe(true);
+  });
+});
+
+// ===========================================================================
+// 1.7 — FAIXAS DA UI × FAIXAS DA API
+// ===========================================================================
+
+/**
+ * Achado real (2026-09-26): `PoliticianCard`, `ComparisonTable` e
+ * `performanceLabel` tinham TRÊS conjuntos de limiares diferentes — 80/60/40
+ * em dois componentes, 80/65/45 na API. Nenhum teste comparava os três.
+ *
+ * Depois do M1c a escala encolheu (amplitude real 50–68), e com os limiares
+ * antigos duas das quatro cores ficaram mortas e duas faixas da API viraram
+ * uninhabited. A nota ficou 540 de 595 no meio.
+ */
+describe('1.7 faixas da UI × faixas da API', () => {
+  const MAPA = {
+    excellent: 'EXCELLENT',
+    good: 'GOOD',
+    average: 'AVERAGE',
+    poor: 'POOR',
+  } as const;
+
+  it('os cortes do front são exatamente os da API', () => {
+    // O corte é INCLUSIVO: 65 é excellent, 64,99 é good.
+    expect({ v: performanceLabel(SCORE_BANDS.excellent).level })
+      .toMatchObject({ v: 'EXCELLENT' });
+    expect({ v: performanceLabel(SCORE_BANDS.excellent - 0.01).level })
+      .toMatchObject({ v: 'GOOD' });
+    expect({ v: performanceLabel(SCORE_BANDS.good).level })
+      .toMatchObject({ v: 'GOOD' });
+    expect({ v: performanceLabel(SCORE_BANDS.good - 0.01).level })
+      .toMatchObject({ v: 'AVERAGE' });
+    expect({ v: performanceLabel(SCORE_BANDS.average).level })
+      .toMatchObject({ v: 'AVERAGE' });
+    expect({ v: performanceLabel(SCORE_BANDS.average - 0.01).level })
+      .toMatchObject({ v: 'POOR' });
+  });
+
+  it('scoreBand e performanceLabel concordam em TODA a escala 0–100, nota por nota', () => {
+    // Esta é a amarra. Percorrer as 101 notas é o que garante que os dois
+    // lados não voltem a divergir em silêncio quando alguém mexer num corte.
+    const divergencias: string[] = [];
+    for (let nota = 0; nota <= 100; nota++) {
+      const front = MAPA[scoreBand(nota)];
+      const api = performanceLabel(nota).level;
+      if (front !== api) divergencias.push(`nota ${nota}: front=${front} api=${api}`);
+    }
+    expect(divergencias, divergencias.join('\n')).toEqual([]);
+  });
+
+  it('as faixas estão ordenadas e a escala inteira é coberta', () => {
+    expect({
+      ordenado:
+        SCORE_BANDS.excellent > SCORE_BANDS.good && SCORE_BANDS.good > SCORE_BANDS.average,
+    }).toMatchObject({ ordenado: true });
+    expect({ min: scoreBand(0), max: scoreBand(100) })
+      .toMatchObject({ min: 'poor', max: 'excellent' });
+  });
+
+  it('as quatro faixas são alcançáveis na escala real da 1.2.0 (50–68)', () => {
+    // Se a fórmula encolher mais a escala (ou alargar), a faixa
+    // correspondente tem que continuar habitável — senão "muito alta" é
+    //fiction de novo, que foi exatamente o que a 1.2.0 quase deixou.
+    const AMOSTRA = [50, 54, 55, 59, 60, 64, 65, 68];
+    const ordem = ['poor', 'average', 'good', 'excellent'] as const;
+    const vistas = [...new Set(AMOSTRA.map(scoreBand))].sort(
+      (a, b) => ordem.indexOf(a) - ordem.indexOf(b),
+    );
+    expect({ faixas: vistas }).toMatchObject({ faixas: [...ordem] });
   });
 });
 

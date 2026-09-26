@@ -94,13 +94,30 @@ describe('overallScore', () => {
 });
 
 describe('performanceLabel', () => {
+  // Cortes RECALIBRADOS em 2026-09-26 com a fórmula 1.2.0: 65 / 60 / 55.
+  // Antes eram 80 / 65 / 45, medidos para uma escala que ia de 30 a 88. Com o
+  // seed do partido encolhido para 20%, a amplitude real virou 50–68 e as
+  // faixas antigas deixaram "muito alta" e "baixa" vazias.
   it.each([
-    [85, 'EXCELLENT'], [80, 'EXCELLENT'],
-    [79, 'GOOD'], [65, 'GOOD'],
-    [64, 'AVERAGE'], [45, 'AVERAGE'],
-    [44, 'POOR'], [0, 'POOR'],
+    [68, 'EXCELLENT'], [65, 'EXCELLENT'],
+    [64, 'GOOD'], [60, 'GOOD'],
+    [59, 'AVERAGE'], [55, 'AVERAGE'],
+    [54, 'POOR'], [50, 'POOR'],
   ])('score %i vira nível %s', (score, level) => {
     expect(performanceLabel(score).level).toBe(level);
+  });
+
+  // Fronteiras: o corte é inclusivo. É aqui que bug de off-by-one mora.
+  it.each([
+    [65, 'EXCELLENT'], [64.99, 'GOOD'],
+    [60, 'GOOD'], [59.99, 'AVERAGE'],
+    [55, 'AVERAGE'], [54.99, 'POOR'],
+  ])('fronteira em %i', (score, level) => {
+    expect(performanceLabel(score).level).toBe(level);
+  });
+
+  it('nota acima do máximo real continua caindo no topo, sem estourar', () => {
+    expect(performanceLabel(100).level).toBe('EXCELLENT');
   });
 });
 
@@ -469,5 +486,50 @@ describe('consistencyBonus (M3)', () => {
     const dez = consistencyBonus(10, 10) / CONSISTENCY_MAX_POINTS;
     expect(cinco).toBeCloseTo(0.5, 10);
     expect(dez).toBeCloseTo(1, 10);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Faixas de aderência recalibradas (2026-09-26)
+// ---------------------------------------------------------------------------
+describe('performanceLabel — faixas alcançáveis', () => {
+  // Com os cortes antigos (80/65/45) e a fórmula 1.2.0, "muito alta" e
+  // "baixa" viraram faixas mortas: 0 pessoas em cada. Este teste existe para
+  // que a próxima mudança de fórmula não repita isso em silêncio.
+  const N = 12; // nº de parcelas: 5 critérios + bônus de coerência
+  it('a escala da nota cabe dentro das quatro faixas', () => {
+    // A amplitude real medida em produção com a 1.2.0 foi 50–68. Qualquer
+    // faixa precisa ser alcançável dentro dela.
+    for (const score of [50, 55, 60, 65, 68]) {
+      expect({ score, nivel: performanceLabel(score).level }).toMatchObject({
+        nivel: expect.any(String),
+      });
+    }
+  });
+
+  it('os quatro níveis são distinguíveis dentro da faixa real', () => {
+    const real = [50, 56, 61, 66];
+    const niveis = real.map((s) => performanceLabel(s).level);
+    // Esperado de baixo para cima: POOR, AVERAGE, GOOD, EXCELLENT
+    expect(niveis).toEqual(['POOR', 'AVERAGE', 'GOOD', 'EXCELLENT']);
+  });
+
+  it('a nota máxima possível ainda pode chegar ao topo', () => {
+    // Sanidade: a faixa superior não pode estar acima do que a fórmula
+    // consegue produzir, senão "muito alta" éfiction.
+    const maxSeed = 55 + (98 - 55) * SEED_SHRINK + 8; // seed encolhido + ruído
+    const maxComBonus = maxSeed + CONSISTENCY_MAX_POINTS;
+    expect(performanceLabel(maxComBonus).level).toBe('EXCELLENT');
+  });
+
+  it('os rótulos continuam neutros — nada de julgamento moral sobre a pessoa', () => {
+    // Achado de 2026-09-14: a API expunha labels como "Guardião da Fé" e
+    // "Precisa Crescer", que viravam print de ataque pessoal. Não volta.
+    const rotulosProibidos = /guardi[ãa]o|precisa crescer|her[óo]i|p[ãa]o fiel|pecador/i;
+    for (const score of [0, 40, 55, 60, 65, 100]) {
+      const { label, description } = performanceLabel(score);
+      expect(rotulosProibidos.test(label)).toBe(false);
+      expect(rotulosProibidos.test(description)).toBe(false);
+    }
   });
 });

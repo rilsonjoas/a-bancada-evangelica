@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { scoreBand } from '@/lib/criteria';
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -17,18 +18,16 @@ interface PoliticianCardProps {
 
 const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => {
   const [imageError, setImageError] = useState(false);
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return 'score-excellent';
-    if (score >= 60) return 'score-good';
-    if (score >= 40) return 'score-average';
-    return 'score-poor';
-  };
+  // Cortes vêm de SCORE_BANDS (fonte única) — ver src/lib/criteria.tsx.
+  const getScoreColor = (score: number) => `score-${scoreBand(score)}`;
 
   const getScoreBadgeVariant = (score: number) => {
-    if (score >= 80) return 'default';
-    if (score >= 60) return 'secondary';
-    if (score >= 40) return 'outline';
-    return 'destructive';
+    switch (scoreBand(score)) {
+      case 'excellent': return 'default';
+      case 'good': return 'secondary';
+      case 'average': return 'outline';
+      default: return 'destructive';
+    }
   };
 
   const formatScore = (score: number) => score.toFixed(0);

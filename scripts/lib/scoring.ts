@@ -270,17 +270,33 @@ export function performanceLabel(score: number): {
   // estava neutra, mas a API expunha labels morais tipo "Guardião da Fé" /
   // "Precisa Crescer" que virariam print de ataque pessoal. Neutro mede a
   // distância das votações aos critérios, nunca julga a pessoa).
-  if (score >= 80) return {
+  // Faixas RECALIBRADAS em 2026-09-26 junto com a fórmula 1.2.0.
+  //
+  // Antes eram 80 / 65 / 45, calibradas para uma escala que ia de 30 a 88.
+  // Ao encolher o seed do partido para 20% (M1c), a faixa alcançável encolheu
+  // junto — a amplitude da nota real passou de 58 pontos (30–88) para 18
+  // (50–68). Resultado: com os cortes antigos, "muito alta" e "baixa" viraram
+  // faixas MORTAS, 0 pessoas em cada, e 540 de 595 caíam no meio. Uma escala
+  // de quatro níveis com dois níveis impossíveis não informa nada.
+  //
+  // As faixas novas seguem a distribuição real medida (q1=58, mediana=60,
+  // q3=62, p95=65): 55 no topo, 257, 253 e 30 na base.
+  //
+  // Isto NÃO é inflater o resultado para fazer gente parecer boa: o corte
+  // superior (65) é o percentil 95 real da distribuição. O que mudou é o
+  // referencial, e ele está documentado — a nota agora mede posição de voto,
+  // não identidade de partido, e a escala encolheu porque o partido saiu dela.
+  if (score >= 65) return {
     level: 'EXCELLENT',
     label: 'Aderência muito alta',
     description: 'Votações consistentemente alinhadas com os critérios cristãos declarados',
   };
-  if (score >= 65) return {
+  if (score >= 60) return {
     level: 'GOOD',
     label: 'Aderência alta',
     description: 'Bom alinhamento com os critérios evangélicos declarados',
   };
-  if (score >= 45) return {
+  if (score >= 55) return {
     level: 'AVERAGE',
     label: 'Aderência moderada',
     description: 'Alinhamento parcial — há votações mistas',

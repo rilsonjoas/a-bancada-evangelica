@@ -435,3 +435,61 @@ passando isolado. Timeout de 5s (default) com 24 arquivos em paralelo.
 **Alternativa descartada:** marcar o arquivo como lento. Não resolve — o
 problema é a máquina de CI, não o teste. Falso vermelho treina a ignorar o
 build, e o build é a última coisa que ainda é confiável aqui.
+
+## 2026-09-26 — Faixas de aderência recalibradas (consequência do M1c)
+
+**O que aconteceu.** Encolher o seed do partido para 20% removeu a maior
+fonte de espalhamento da nota. A amplitude real saiu de **30–88** (58 pontos,
+dispersão 13,4) para **50–68** (18 pontos, dispersão 3,3).
+
+As faixas de aderência eram absolutas e estavam calibradas para a escala
+antiga: 80 / 65 / 45. Com a escala nova, "Aderência muito alta" (≥80) e
+"Aderência baixa" (<45) viraram **faixas mortas — 0 pessoas em cada**, e 540
+de 595 caíram na moderada. Uma escala de quatro níveis com dois níveis
+impossíveis não informa nada.
+
+**Decisão: recalibrar para 65 / 60 / 55**, que segue a distribuição real
+medida (q1 = 58, mediana = 60, q3 = 62, p95 = 65). Resultado: 55 no topo,
+257, 253 e 30 na base.
+
+**Isso não é inflar resultado.** O corte superior (65) é o percentil 95 real
+da distribuição — não escolhi um número que fizesse gente parecer boa.
+Escolhi o número que a distribuição real tem.
+
+**O que mudou de verdade é o referencial, e ele está documentado:** a nota
+agora mede **posição de voto**, não identidade de partido, e a escala
+encolheu porque o partido saiu dela. Quem comparava "nota 80" com "nota 70"
+agora está olhando para uma escala outra.
+
+**Achado conexo que só apareceu por causa disso:** a UI tinha **três**
+conjuntos de limiares diferentes — 80/60/40 no `PoliticianCard` e no
+`ComparisonTable`, 80/65/45 na API — e nenhum teste comparava os três. Com a
+escala encolhida, duas das quatro cores ficaram mortas também, e o ranking
+ia parecer monocromático sem ninguém saber por quê.
+
+**Correção estrutural, não só de número:** os cortes da UI foram para uma
+fonte única (`SCORE_BANDS` em `src/lib/criteria.tsx`) e o teste **1.7** do
+arquivo de consistência percorre as 101 notas de 0 a 100 comparando
+`scoreBand()` (front) com `performanceLabel()` (API). Divergir em qualquer
+nota quebra o build. É o tipo de coisa que só se descobre quando a escala
+muda — e por isso estava vazando.
+
+## 2026-09-26 — Snapshot da fórmula 1.0.0
+
+582 de 595 notas mudaram. Antes de gravar:
+
+```sql
+CREATE TABLE politician_scores_backup_1_0_0 AS SELECT * FROM politician_scores;
+```
+
+Rollback, se for preciso:
+
+```sql
+UPDATE politician_scores ps SET (...) = (SELECT (...) FROM politician_scores_backup_1_0_0 b
+                                          WHERE b.politician_id = ps.politician_id);
+```
+
+Os 135 parlamentares inativos continuam com `formula_version = 1.0.0`, e
+isso está **certo**: o rótulo diz qual fórmula produziu aquela nota, e a nota
+histórica de um parlamentar inativo não muda por recalibrar a fórmula de
+quem está em exercising. Os 595 que o site exibe estão em 1.2.0.

@@ -1,6 +1,6 @@
 import React from 'react';
 import { TrendingUp, TrendingDown, Minus, Award } from 'lucide-react';
-import { CRITERIA, CriteriaLabel } from '@/lib/criteria';
+import { CRITERIA, CriteriaLabel, scoreBand } from '@/lib/criteria';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { fmt } from '@/lib/format';
@@ -31,12 +31,14 @@ interface ComparisonTableProps {
 export function ComparisonTable({ politicians }: ComparisonTableProps) {
   const criteria = CRITERIA;
 
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-600 font-bold';
-    if (score >= 60) return 'text-blue-600 font-semibold';
-    if (score >= 40) return 'text-yellow-600 font-medium';
-    return 'text-red-600 font-bold';
-  };
+  // Cortes vêm de SCORE_BANDS (fonte única) — ver src/lib/criteria.tsx.
+  const COR_POR_FAIXA = {
+    excellent: 'text-green-600 font-bold',
+    good: 'text-blue-600 font-semibold',
+    average: 'text-yellow-600 font-medium',
+    poor: 'text-red-600 font-bold',
+  } as const;
+  const getScoreColor = (score: number) => COR_POR_FAIXA[scoreBand(score)];
 
   type ScoreField = keyof NonNullable<ComparisonTableProps['politicians'][number]['currentScore']>;
 

@@ -63,3 +63,34 @@ export function CriteriaLabel({ criteriaKey, size = 'sm' }: { criteriaKey: strin
 }
 
 export { Award };
+
+/**
+ * Cortes das faixas de aderência — FONTE ÚNICA para o front.
+ *
+ * Estes números precisam ser os mesmos de `performanceLabel()` em
+ * `scripts/lib/scoring.ts`. Antes desta constante, cada componente tinha
+ * o seu próprio limiar hardcoded (80/60/40 em `PoliticianCard`,
+ * `ComparisonTable` e `KeyAgendaCard`), e a API tinha outros (80/65/45):
+ * três lugares, três respostas, e nada testava a concordância.
+ *
+ * O teste `1.7 faixas da UI × faixas da API` em
+ * `src/__tests__/consistencia-publica.test.ts` falha se alguém mexer num
+ * lado e não no outro.
+ *
+ * Recalibrados em 2026-09-26 junto com a fórmula 1.2.0: a amplitude real da
+ * nota passou de 30–88 para 50–68, e os limiares antigos deixavam duas das
+ * quatro cores mortas.
+ */
+export const SCORE_BANDS = {
+  excellent: 65,
+  good: 60,
+  average: 55,
+} as const;
+
+/** Rótulo do nível de aderência, para texto e para cor. */
+export function scoreBand(score: number): 'excellent' | 'good' | 'average' | 'poor' {
+  if (score >= SCORE_BANDS.excellent) return 'excellent';
+  if (score >= SCORE_BANDS.good) return 'good';
+  if (score >= SCORE_BANDS.average) return 'average';
+  return 'poor';
+}
