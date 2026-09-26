@@ -143,7 +143,7 @@ export const SCAN_RULES: ScanRule[] = [
     //    Assistência Social". É transferência de dotação—orçamento— e a
     //    palavra aparece só porque o nome do órgão aparece na ementa.
     //  - "PL 1822/2024" (365 votos) garante a internação de jovens viciados
-    //    em "situação de vulnerabilidade social". É internação compelled e
+    //    em "situação de vulnerabilidade social". É internação compulsória e
     //    saúde, não política de assistência.
     // Regra: o que a proposição FAZ vale; o nome do órgão por onde passa
     // não. Por isso 'credito extraordinario' barra a regra inteira.
