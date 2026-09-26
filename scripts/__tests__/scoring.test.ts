@@ -639,7 +639,7 @@ describe('sobrevivência das pautas à correção (medição 2026-09-26)', () =>
  * A fronteira de palavra (1.1.0) resolveu o falso positivo de SUBSTRING,
  * mas não o de SENTIDO: `anistia` e `prescricao` são palavras inteiras
  * legítimas fora de integridade moral. Estas listas são o contexto medido
- * no acervo real — não é palavra que "parece"、湿 arbitrária.
+ * no acervo real — não é palavra que "parece" arbitrária.
  */
 describe('exclusões de contexto (P0, sentido)', () => {
   it('anistia de DÍVIDA não é Integridade Moral', () => {

@@ -66,7 +66,7 @@ export const SCAN_RULES: ScanRule[] = [
   // Medido com a paginação corrigida: as duas puxavam 5 pautas e 1.720
   // votos, e NENHUMA era sobre vida intrauterina — eram projetos de Código
   // Penal (art. 121, crime hediondo) e de Lei de Execução Penal. Homicídio
-  // é crime contra pessoa JÁ NASCIDA, e保护区 à vida neste site é sobre a
+  // é crime contra pessoa JÁ NASCIDA, e a proteção à vida neste site é sobre a
   // vida que ainda não começou.
   //
   // Consequência aceita: o critério fica praticamente sem dado. E isso é a
