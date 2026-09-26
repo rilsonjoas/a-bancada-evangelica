@@ -253,3 +253,84 @@ Nada. Está registrado, e é honesto publicar assim. O caminho é:
 2. com a página certa alcançada, reclassificar e remedir;
 3. só então avaliar se o D-02 produz a separação entre pessoas que a nota
    precisa ter.
+
+---
+
+## Resultado da paginação (medido 2026-09-26)
+
+Sincronização completa com paginação corrigida.
+
+| | antes | depois |
+|---|---|---|
+| pautas | 83 | **162** |
+| votos individuais | 26.860 | **54.997** |
+| sessões substantivas vistas | 244 | **838** |
+| assuntos medidos | 6 | **71** |
+
+Vida saiu de 0 para 3 assuntos e Religiosa de 0 para 2 — o que parecia
+"esses temas não são mensuráveis" era "a gente não estava coletando".
+
+### E o que a paginação expôs
+
+Com 6 assuntos os falsos positivos não apareciam. Com 71, apareceram em
+bloco, e a revisão um a um era inviável sem saber a causa. Daí a nova
+ferramenta `scripts/auditar-classificacao.ts`, que agrupa as pautas pela
+**palavra-chave que decidiu cada uma**, com o volume que cada uma carrega.
+
+O que ela mostrou, e que é o achado de hoje:
+
+| palavra | volume | o que realmente é |
+|---|---|---|
+| `assistencia social` (Social) | 6.500 votos, 17 pautas | parte PEC 383/2017 (correta), parte projeto de estágio (incidental) |
+| `homicidio` (Vida) | 1.720 votos, 5 pautas | **nenhuma** sobre vida intrauterina — todas Código Penal e Lei de Execução Penal |
+| `improbidade` (Moral) | 1.077 votos, 3 pautas | Lei 8.429 é Improbidade (correto); Lei 8.080 é o SUS (incidental) |
+| `populacao em situacao de rua` (Social) | 1.410 votos, 4 pautas | Política de Trabalho Digno — plausível |
+
+`homicidio` saiu na **SCAN_RULES 1.4.0**. Homicídio é crime contra pessoa
+**já nascida**, e proteção à vida neste site é sobre a vida que ainda não
+começou. O critério ficou sem dado — e isso é a verdade, não falha nossa.
+
+### A verificação que fecha a questão de Vida e Religião
+
+Na fonte, não por inferência:
+
+- a API de proposições da Câmara devolve **5** proposições indexadas por
+  "aborto", e **só uma** tem qualquer registro de tramitação no plenário;
+- "liberdade religiosa" e "laicidade" devolvem **zero** proposições;
+- de 829 ementas resolvidas do acervo de plenário, **zero** são sobre
+  aborto ou vida intrauterina.
+
+**O plenário da Câmara não vota esses temas em votação nominal.** Projeto
+com valor nesse país passa por comissão, e comissão não está na API
+(`/orgaos/{id}/votacoes` só responde para o 180).
+
+Isso muda o peso da decisão D-07: a camada educativa deixou de ser
+diferencial e virou **a única via** para Vida, Moral e Religiosa. O site não
+falha nesses temas — ele explica por que não pode medi-los, e mostra quem
+decidiu o destino de cada projeto.
+
+### Estado depois da reclassificação
+
+| critério | pautas | assuntos | votos |
+|---|---|---|---|
+| Responsabilidade Social | 29 | 14 | 10.867 |
+| Valores Familiares | 6 | 4 | 2.152 |
+| Integridade Moral | 4 | 4 | 1.524 |
+| **Proteção à Vida** | **0** | **0** | **0** |
+| **Liberdade Religiosa** | **0** | **0** | **0** |
+
+Nota recalculada: média 60,3, escala 50–69, 505 com voto próprio, 51,3% de
+variação partidária. 457 de 595 notas mudaram.
+
+### O que ainda está em aberto, e como vai ser atacado
+
+**22% dos votos ainda são de classificação duvidosa**, concentrados em
+`assistencia social` e nos critérios de Família. A causa é a mesma do
+`sus`: palavra-chave batendo dentro de descrição administrativa longa.
+
+A correção de raiz é casar contra o **título e a ementa**, e não contra a
+descrição do relator — que é onde a palavra incidental aparece. Isso é uma
+mudança de arquitetura do classificador, não uma troca de palavra, e é o
+próximo bloco de trabalho. A ferramenta de auditoria torna cada rodada
+mensurável: corrigir a palavra, reclassificar, e ver o volume de doubtful
+cair.
