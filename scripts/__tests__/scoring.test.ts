@@ -9,6 +9,10 @@ import {
   overallScore,
   partyBase,
   performanceLabel,
+  shrinkSeed,
+  SEED_SHRINK,
+  SCORE_FORMULA_VERSION,
+  VOTE_WEIGHT_MULT,
   type CriteriaKey,
 } from '../lib/scoring';
 
@@ -275,5 +279,61 @@ describe('regressão: média por assunto, não por linha de voto (2026-09-25)', 
     // agrupamento inclui o critério na chave justamente para isso.
     const votes = [pauta('Mesmo título', 10, 'FAMILY_VALUES'), pauta('Mesmo título', -10, 'MORAL_INTEGRITY')];
     expect(mediasPorAssunto(votes)).toHaveLength(2);
+  });
+});
+
+// ============================================================
+// M0 — versionamento da fórmula + as duas alavancas do M1c
+// (2026-09-25)
+// ============================================================
+//
+// A fórmula de score não tinha versão: `PARTY_ALIGNMENT`, os pesos e o peso
+// do delta podiam mudar sem deixar rastro, e o diff do SyncLog dizia
+// quantas notas mudaram sem dizer com que fórmula. M1c–M5 mudam a fórmula,
+// então a versão vem antes delas.
+describe('M0 — SCORE_FORMULA_VERSION', () => {
+  it('existe e está em formato de versão', () => {
+    expect(SCORE_FORMULA_VERSION).toMatch(/^\d+\.\d+\.\d+$/);
+  });
+
+  it('as constantes default são a identidade — M0 não muda behavior', () => {
+    // M0 só cria as âncoras. Se o default já mudasse a nota, o recálculo
+    // do dia 25 moveria o ranking sem ninguém ter pedido.
+    expect(VOTE_WEIGHT_MULT).toBe(1);
+    expect(SEED_SHRINK).toBe(1);
+  });
+});
+
+describe('shrinkSeed', () => {
+  it('com shrink=1 é a identidade (comportamento de hoje)', () => {
+    for (const v of [12, 30, 55, 70, 88]) {
+      expect(shrinkSeed(v, 1)).toBe(v);
+    }
+  });
+
+  it('com shrink=0 colapsa todo mundo na média global', () => {
+    for (const v of [12, 30, 55, 70, 88]) {
+      expect(shrinkSeed(v, 0)).toBe(55);
+    }
+  });
+
+  it('encolhe em direção à média, PRESERVANDO a ordem dos partidos', () => {
+    // Isso é o que importa: o seed encolhido não pode inverter quem está
+    // acima de quem, senão o ranking de partido fica sem sentido.
+    const partidos = [18, 32, 45, 58, 65, 78, 88];
+    for (const shrink of [0.5, 0.3]) {
+      const encolhidos = partidos.map(p => shrinkSeed(p, shrink));
+      for (let i = 1; i < partidos.length; i++) {
+        expect(encolhidos[i]).toBeGreaterThan(encolhidos[i - 1]);
+      }
+    }
+  });
+
+  it('o encolhimento é monotônico: quem era maior nunca fica menor', () => {
+    expect(shrinkSeed(88, 0.5)).toBeGreaterThan(shrinkSeed(18, 0.5));
+  });
+
+  it('o default usa SEED_SHRINK', () => {
+    expect(shrinkSeed(88)).toBe(shrinkSeed(88, SEED_SHRINK));
   });
 });

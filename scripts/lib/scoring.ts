@@ -85,6 +85,47 @@ export const WEIGHTS: Record<CriteriaKey, number> = {
   RELIGIOUS_FREEDOM: 0.10,
 };
 
+/**
+ * Versão da fórmula de score (M0, 2026-09-25).
+ *
+ * `SCAN_RULES_VERSION` ancora a classificação de pautas e
+ * `EXPENSE_RULES_VERSION` a detecção de gasto, mas a FÓRMULA que junta tudo
+ * não tinha versão nenhuma: `PARTY_ALIGNMENT`, os pesos e o peso do delta de
+ * voto podiam mudar sem deixar rastro, e o diff do `SyncLog` dizia quantas
+ * notas mudaram sem dizer com que fórmula cada nota foi calculada.
+ *
+ * Sobe a cada mudança real de fórmula. A sequência planned:
+ *   1.0.0 — seed cheio + delta ×1 (o estado medido: 91,8% da variância é
+ *            partido)
+ *   2.0.0 — M1c: delta ×3 + seed encolhido a 50% do desvio da média
+ *
+ * Onde o peso do voto individual mora: `VOTE_WEIGHT_MULT` e
+ * `SEED_SHRINK` abaixo, com o alvo de_medido em `PLANO-PESO-INDIVIDUAL.md`.
+ */
+export const SCORE_FORMULA_VERSION = '1.0.0';
+
+/** Multiplicador do sinal de voto antes de somar ao seed. */
+export const VOTE_WEIGHT_MULT = 1.0;
+
+/**
+ * Quanto o seed do partido conserva da sua amplitude original.
+ * 1.0 = seed intacto (só o voto pesa mais); 0 = todo partido vira a média.
+ * 0.5 = mantém metade do desvio, e a ORDEM dos partidos.
+ */
+export const SEED_SHRINK = 1.0;
+
+/** Valor de Encolhimento em direção à média global, para SEED_SHRINK < 1. */
+export const GLOBAL_MID = 55;
+
+/**
+ * Aplica o encolhimento do seed. Com SEED_SHRINK = 1 é a identidade —
+ * uma função só, para que a fórmula não bifurque em caminhos distintos
+ * conforme a constante.
+ */
+export function shrinkSeed(rawSeed: number, shrink: number = SEED_SHRINK): number {
+  return GLOBAL_MID + (rawSeed - GLOBAL_MID) * shrink;
+}
+
 export function partyBase(party: string | null | undefined): [number, number, number, number, number] {
   const key = (party ?? '').toUpperCase().trim();
   return PARTY_ALIGNMENT[key] ?? UNKNOWN_PARTY_BASE;

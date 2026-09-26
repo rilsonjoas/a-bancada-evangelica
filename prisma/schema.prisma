@@ -357,6 +357,11 @@ model PoliticianScore {
   
   // Metadados
   last_calculation        DateTime @default(now())
+  // M0 (2026-09-25): com que fórmula esta nota foi calculada. Sem isso,
+  // o diff do SyncLog diz quantas notas mudaram mas não qual fórmula as
+  // produziu — e M1c–M5 mudam a fórmula. Alinhado com SCAN_RULES_VERSION
+  // e EXPENSE_RULES_VERSION (scripts/lib/).
+  formula_version        String   @default("1.0.0")
   created_at              DateTime @default(now())
   updated_at              DateTime @updatedAt
   

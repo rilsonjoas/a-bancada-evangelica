@@ -47,6 +47,9 @@ import { pathToFileURL } from 'node:url';
 import { computeExpensePenalty } from './lib/expense-rules';
 import {
   CRITERIA_KEYS,
+  SEED_SHRINK,
+  SCORE_FORMULA_VERSION,
+  VOTE_WEIGHT_MULT,
   WEIGHTS,
   clampSeed,
   clampScore,
@@ -54,6 +57,7 @@ import {
   overallScore,
   partyBase,
   performanceLabel,
+  shrinkSeed,
   type CriteriaKey,
 } from './lib/scoring.js';
 
@@ -176,7 +180,16 @@ async function recalculate() {
     const avgDelta = (c: CriteriaKey) => deltas[c].reduce((a, b) => a + b, 0) / deltas[c].length;
 
     // Seed do partido pra cada critério — fixo, recalculado do zero.
-    const seedFor = (c: CriteriaKey) => clampSeed(base[CRITERIA_INDEX[c]] + individualNoise(politician.id, CRITERIA_INDEX[c]));
+    //
+    // `shrinkSeed` encolhe a amplitude do seed em direção à média global
+    // (M1c: SEED_SHRINK 1.0 → 0.5). Com 1.0 é a identidade, então hoje o
+    // comportamento é exatamente o de antes. Ver PLANO-PESO-INDIVIDUAL.md:
+    // o seed tem amplitude ~70 pontos contra 24 do sinal de voto, e é por
+    // isso que 91,8% da variância da nota é partido — não porque o voto
+    // pese pouco na fórmula, mas porque o outro termo é enorme.
+    const seedFor = (c: CriteriaKey) => clampSeed(
+      shrinkSeed(base[CRITERIA_INDEX[c]] + individualNoise(politician.id, CRITERIA_INDEX[c])),
+    );
 
     // Penalidade de despesas suspeitas em moral_integrity — sempre
     // recalculada fresca a partir do dado real, nunca cumulativa.
@@ -190,11 +203,19 @@ async function recalculate() {
     const expensePenalty = computeExpensePenalty({ totalExpenses, suspiciousCount, avgSuspicion });
 
     // Híbrido: parte do seed do partido (fixo), ajusta só onde há voto real.
-    const life = clampScore(hasCriteriaVotes('LIFE_PROTECTION') ? seedFor('LIFE_PROTECTION') + avgDelta('LIFE_PROTECTION') : seedFor('LIFE_PROTECTION'));
-    const family = clampScore(hasCriteriaVotes('FAMILY_VALUES') ? seedFor('FAMILY_VALUES') + avgDelta('FAMILY_VALUES') : seedFor('FAMILY_VALUES'));
-    const moral = clampScore(seedFor('MORAL_INTEGRITY') + (hasCriteriaVotes('MORAL_INTEGRITY') ? avgDelta('MORAL_INTEGRITY') : 0) - expensePenalty);
-    const social = clampScore(hasCriteriaVotes('SOCIAL_RESPONSIBILITY') ? seedFor('SOCIAL_RESPONSIBILITY') + avgDelta('SOCIAL_RESPONSIBILITY') : seedFor('SOCIAL_RESPONSIBILITY'));
-    const religious = clampScore(hasCriteriaVotes('RELIGIOUS_FREEDOM') ? seedFor('RELIGIOUS_FREEDOM') + avgDelta('RELIGIOUS_FREEDOM') : seedFor('RELIGIOUS_FREEDOM'));
+    //
+    // `applyVote` multiplica o delta por VOTE_WEIGHT_MULT (M1c: 1.0 → 3.0).
+    // Com 1.0 é a identidade. A função existe para que a multiplicação
+    // aconteça num lugar só — os cinco critérios compartilham a mesma
+    // alavanca, e um `× 3` esquecido em uma linha seria invisível.
+    const applyVote = (c: CriteriaKey) =>
+      hasCriteriaVotes(c) ? avgDelta(c) * VOTE_WEIGHT_MULT : 0;
+
+    const life = clampScore(seedFor('LIFE_PROTECTION') + applyVote('LIFE_PROTECTION'));
+    const family = clampScore(seedFor('FAMILY_VALUES') + applyVote('FAMILY_VALUES'));
+    const moral = clampScore(seedFor('MORAL_INTEGRITY') + applyVote('MORAL_INTEGRITY') - expensePenalty);
+    const social = clampScore(seedFor('SOCIAL_RESPONSIBILITY') + applyVote('SOCIAL_RESPONSIBILITY'));
+    const religious = clampScore(seedFor('RELIGIOUS_FREEDOM') + applyVote('RELIGIOUS_FREEDOM'));
 
     const scores: Record<CriteriaKey, number> = {
       LIFE_PROTECTION: life, FAMILY_VALUES: family, MORAL_INTEGRITY: moral,
@@ -270,6 +291,8 @@ async function recalculate() {
           // exibindo "0 votações"; a UI e qualquer verificação lixo liam 0).
           total_votes: politician.votes.length,
           last_calculation: new Date(),
+          // M0: com que fórmula esta nota foi calculada.
+          formula_version: SCORE_FORMULA_VERSION,
         },
       });
     }
@@ -313,10 +336,17 @@ async function recalculate() {
         records_inserted: changedCount,
         records_updated: updated,
         records_failed: 0,
-        details,
+        details: {
+          ...details,
+          // M0: sem isto o diff diz quantas notas mudaram mas não qual
+          // fórmula as produziu — e M1c–M5 mudam a fórmula.
+          formula_version: SCORE_FORMULA_VERSION,
+          vote_weight_mult: VOTE_WEIGHT_MULT,
+          seed_shrink: SEED_SHRINK,
+        },
       },
     });
-    console.log(`   📝 Diff registrado no SyncLog (${changedCount} notas alteradas de ${updated})`);
+    console.log(`   📝 Diff registrado no SyncLog (${changedCount} notas alteradas de ${updated}, fórmula ${SCORE_FORMULA_VERSION})`);
   } else {
     console.log(`   📝 [dry-run] ${changedCount} notas TERIAM mudado de ${updated} — nada gravado.`);
   }
