@@ -314,3 +314,70 @@ onde a ementa não existe, **não classificar** — em vez de tentar adivinhar.
 **Por isso o recálculo de nota NÃO foi rodado.** Com 39% do dado sobrevivente
 vindo de um decreto orçamentário, recalcular agora produziria uma nota
 correta-em-cima-de-dado-errado — o mesmo erro de ontem, com nome novo.
+
+---
+
+## 15. Estado final do dado medido (após 1.3.0 e reclassificação)
+
+Reclassificação aplicada e nota recalculada. Este é o retrato honesto do que
+o site consegue medir hoje.
+
+**Cinco assuntos. Só isso.**
+
+| Critério | peso | assuntos | pautas | votos | parlamentares |
+|---|---|---|---|---|---|
+| Responsabilidade Social | 15% | 3 | 7 | 2.593 | 501 |
+| Valores Familiares | 25% | 2 | 3 | 1.112 | 458 |
+| **Integridade Moral** | **20%** | **0** | **0** | **0** | — |
+| **Proteção à Vida** | **30%** | **0** | **0** | **0** | — |
+| **Liberdade Religiosa** | **10%** | **0** | **0** | **0** | — |
+
+Os cinco assuntos que sobraram:
+
+| critério | assunto | votos |
+|---|---|---|
+| Social | MPV 1268/2024 — abre crédito extraordinário aos Ministérios | 1.447 |
+| Social | PEC 383/2017 — recursos mínimos para assistência social (SUAS) | 823 |
+| Família | PL 3914/2023 — Estatuto da Criança: crime de violência patrimonial | 724 |
+| Família | PL 2275/2022 — prevenção e primeiros socorros, campanha "Recrutando Anjos" | 388 |
+| Social | PL 4364/2020 — Política Nacional de Cuidado Integral (Alzheimer) | 323 |
+
+**60% do peso da nota (Vida 30% + Moral 20% + Liberdade Religiosa 10%) está
+sem nenhum dado medido.** E os 40% restantes são sustentados por cinco
+assuntos — dos quais **três são dotação orçamentária ou campanha de
+prevenção**, que é sinal posicional mais fraco que votação de mérito.
+
+## 16. Party variance com o dado limpo
+
+```
+parlamentares com voto: 497
+party variance: 50,4%
+```
+
+Caiu de 91,3% para 50,4% — mas **esse número não deve ser lido como
+"corrigimos a fórmula"**. Ele mede a fórmula sobre um acervo que perdeu 86%
+dos votos. A queda de party variance aqui é majoritariamente **perda de
+dado**, não um pequeno ajuste de peso.
+
+## 17. Resposta à pergunta original
+
+A pergunta era: "Proteção à Vida e Liberdade Religiosa podem ficar de fora
+do cálculo enquanto não tivermos dados relevantes?"
+
+Resposta, agora com dado limpo: **o problema é maior do que esses dois.**
+
+| | |
+|---|---|
+| Critérios com dado medido | **2 de 5** |
+| Assuntos medidos no total | **5** |
+| Peso sem dado | **60%** |
+| Antes da limpeza (achado de 25/09) | 3 critérios, 33 assuntos, mas 67% deles classificados errado |
+
+Ou seja: a premissa "temos bastante dado, e só dois critérios escaparam" era
+falsa. Nunca tivemos. O que a auditoria de ontem encontrou como "40% sem
+base medida" era, na verdade, a ponta visível de um acervo em que **86% dos
+votos não eram do assunto que o site dizia**.
+
+A decisão de peso agora pode ser tomada sobre dado verdadeiro — e ela
+provavelmente será menor, não maior, do que se decidisse com o acervo de
+ontem.

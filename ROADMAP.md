@@ -1714,3 +1714,32 @@ Os números seguem congelados.
 | Integridade Moral | 20% | 0 | 0 |
 | Proteção à Vida | 30% | 0 | 0 |
 | Liberdade Religiosa | 10% | 0 | 0 |
+
+## P0 — Medir de verdade, ou parar de fingir que mede (2026-09-26)
+
+Estado final da limpeza de classificação. Detalhe em
+`docs/AUDITORIA-CLASSIFICACAO.md` §15–17.
+
+| Critério | peso | assuntos | votos |
+|---|---|---|---|
+| Responsabilidade Social | 15% | 3 | 2.593 |
+| Valores Familiares | 25% | 2 | 1.112 |
+| Integridade Moral | 20% | **0** | **0** |
+| Proteção à Vida | 30% | **0** | **0** |
+| Liberdade Religiosa | 10% | **0** | **0** |
+
+**2 de 5 critérios. 5 assuntos no total. 60% do peso sem dado medido.**
+
+E três dos cinco assuntos que sobraram são dotação orçamentária ou campanha
+de prevenção — sinal posicional mais fraco que votação de mérito.
+
+- [ ] **P0-a** Ampliar o escopo de Collecting: a página de pautas existe com
+      o único critério "corresponde a alguma keyword de 5 listas". A cobertura
+      de 5 assuntos em 26.860 votos não é falta de dado do Congresso — é
+      falta de assunto rastreado.
+- [ ] **P0-b** Paginação do sync (29% de cobertura hoje) — agora que o
+      classificador é preciso, trazer mais dado é seguro
+- [ ] **P0-c** Decidir o peso dos 3 critérios sem dado, com o número real
+- [ ] **P1** Separar voto de MÉRITO de voto PROCEDIMENTAL (19% são requer de
+      urgência, 30% requerimento de retirada)
+- [ ] **P1** Cobertura do Senado (acervo é 100% Câmara)
