@@ -171,3 +171,139 @@ e em como tudo funciona". Auditoria completa em `docs/AUDITORIA-CALCULOS.md`.
 - Educação: varredura de comissões **descartada por medição** (o dado não
   existe em formato estruturado). Plano alternativo com autoria de
   proposições, em 4 fases, começando por um piloto de medição.
+
+---
+
+## 2026-09-25 — Peso do voto individual sobre o partido (M0–M5)
+
+Pedido do Rilson: *"prefiro que o posicionamento pessoal do congressista
+valha bem mais que o partido, bem mais mesmo."*
+
+### A intuição está certa, e a causa é aritmética
+
+A nota é 91,8% partido porque `nota = seed + delta` onde o seed tem
+amplitude ~70 pontos e o delta tem 24. O voto não pesa pouco — o outro
+termo é enorme. E o dado não é escasso: mediana de 7 assuntos por
+critério, 72% com 5 ou mais.
+
+### Simulação medida antes de codar (acervo real, 504 parlamentares)
+
+| Cenário | voto × | seed | % partido |
+|---|---|---|---|
+| hoje | ×1 | 100% | 91,8% |
+| dobrar voto sozinho | ×2 | 100% | 88,0% |
+| dobrar + seed 50% | ×2 | 50% | 61,9% |
+| **M1c triplicar + seed 50%** | ×3 | 50% | **49,4%** |
+| triplicar + seed 30% | ×3 | 30% | 23,5% |
+| triplicar + seed 30% + confiança | ×3 | 30% | 44,6% |
+
+Duas conclusões que mudaram a ordem de execução:
+
+1. **Dobrar o voto sozinho quase não faz nada** (91,8% → 88,0%). As duas
+   alavancas precisam andar juntas.
+2. **Confiança subtrai** quando o seed já está encolhido (23,5% → 44,6%).
+   Encolher o seed dá mais peso ao voto, e voto de 1 assunto é ruído. Por
+   isso M2 entra **depois** de M1c, medida isolada — somar as duas
+   alavancas às cegas empurraria a variância de volta pro partido.
+
+### Alvo escolhido
+
+**M1c: voto ×3 + seed a 50%** → 49,4%. O voto passa a ser metade da nota,
+o partido continua pesando (não vira score individual puro) e a
+reprodutibilidade do guia continua válida com seed documentado.
+
+### M3 — consistência com peso (o Rilson escolheu (b))
+
+Consistência já era calculada e não pesava em nada. É o sinal mais
+individual que existe. Entra na nota com peso modesto.
+
+### Sem errata, e tudo junto
+
+Decisão do Rilson: projeto novo, nada divulgado a público geral, errata
+agora seria teatro. Ordem: código → teste → verificação → só então
+`/metodologia` e demais textos. **Nunca fórmula nova com texto velho** —
+seria exatamente o problema que o teste de consistência existe para evitar.
+
+### Requisito de aceitação
+
+Cada mudança entra com a explicação ao usuário, em linguagem leiga, de onde
+veio cada ponto da nota dele. Tabela de obrigação em
+`PLANO-PESO-INDIVIDUAL.md` §4. Não é nota de rodapé: é critério de
+aceitação.
+
+Plano completo: `PLANO-PESO-INDIVIDUAL.md`. Execução: `ROADMAP.md`,
+seção "Peso do voto individual vs. partido (M0–M5)".
+
+## 2026-09-26 — Congelar os números durante a recalibração (M4)
+
+**Situação.** A fórmula está sendo recalibrada (M1c–M5). O `NUMBERS_FROZEN`
+em `src/lib/release-state.ts` substitui os quatro números agregados da home
+(730 monitorados, 513 com voto próprio, 62,75 de média, 291 de aderência
+muito alta) por um aviso explicando o motivo.
+
+**Alternativas descartadas.**
+
+| Opção | Por que não |
+|---|---|
+| Congelar a página inteira | O ranking e cada perfil continuam válidos e verificáveis. Tirar tudo não protege nada. |
+| Mostrar o número novo com o texto velho | É exatamente a incoerência que a auditoria encontrou. Pior que não mostrar. |
+| Congelar só no banco | Congelar no banco impede a recalibração, que é o trabalho. Congela-se a exibição. |
+
+**Como reverter.** `NUMBERS_FROZEN = false`, no mesmo commit que atualizar
+`/metodologia` e o README. O arquivo não tem outra dependência.
+
+**Por que M4 traz texto no mesmo commit.** Decomposição visual sem a
+explicação é um número bonito que o usuário não entende de onde veio — e
+entender de onde veio é o problema do projeto. O texto da fórmula e a
+correção das afirmações falsas entraram aqui, não depois.
+
+## 2026-09-26 — Declinar de medidas que não temos (Integridade Moral)
+
+A `/metodologia` afirmava "histórico de processos judiciais, investigações
+por corrupção ou improbidade". A auditoria confirmou que não existe
+integração com STF, MP, TCU, CPI ou Conselho de Ética.
+
+**Decisão.** Descrever só o que é medido (uso da cota parlamentar) e dizer
+explicitamente que processos e investigações não são usados e por quê.
+
+**Alternativas descartadas.**
+
+| Opção | Por que não |
+|---|---|
+| Apagar o trecho sem explicar | O usuário que já leu a afirmação falso não sabe que ela foi removida. |
+| Integrar STF/MP agora | Fonte, escopo legal e taxa de acerto de identificação não existem no projeto. Seria um produto novo, não uma correção. |
+| Manter com "parcialmente" | Não existe medição parcial. Ou mede, ou não mede. |
+
+Os indicadores de Integridade Moral também foram trocados: eram 4 frases
+sobre investigações e conduta pública, e passaram a descrever as quatro
+regras de despesa que o código realmente executa.
+
+## 2026-09-26 — A decomposição é gravada, não calculada na leitura
+
+`score_breakdown` é escrito pelo `recalculate-scores.ts` no mesmo passo que
+a nota, e não é recalculado pela API na hora de ler.
+
+**Por quê.** Se a fórmula mudar, um componente recomputado na leitura
+passaria a divergir da nota gravada — e o painel mostraria as contas de uma
+fórmula com o resultado de outra. O erro seria silencioso e plausível, que é
+o pior tipo.
+
+**Consequência aceita.** A decomposição só existe depois do primeiro
+recálculo pós-M4, e o painel mostra um estado vazio honesto antes disso
+("ainda não foi registrada"), em vez de esconder a ausência.
+
+## 2026-09-26 — A soma não fecha em centésimos, e dizemos isso
+
+`clampScore` arredonda a soma para inteiro; os componentes são exibidos com
+uma casa. Um caso real do banco: 50 − 11,8 = 38,2, e a nota publicada é 38.
+
+**Decisão.** Mostrar a nota final como inteiro (é o que ela é) e escrever
+que a soma é arredondada ao ponto inteiro.
+
+**Alternativas descartadas.**
+
+| Opção | Por que não |
+|---|---|
+| Mostrar "38,2" na tabela | Falso. A nota gravada é 38. |
+| Ajustar o seed para a conta fechar | Falsifica o componente. O seed é o que é. |
+| Não mostrar casas decimais em tudo | Perde informação real: 11,8 de penalidade é o dado que o usuário quer. |

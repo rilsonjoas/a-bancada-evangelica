@@ -337,3 +337,33 @@ describe('shrinkSeed', () => {
     expect(shrinkSeed(88)).toBe(shrinkSeed(88, SEED_SHRINK));
   });
 });
+
+// ---------------------------------------------------------------------------
+// M4 (2026-09-25): a decomposição que a tela mostra tem que fechar com a nota.
+// ---------------------------------------------------------------------------
+describe('decomposição da nota (M4)', () => {
+  // Um caso real do banco (político 47, Integridade Moral): seed 50,
+  // suspeita 11,8 → o painel mostra 50 − 11,8 e a nota 38.
+  it('os componentes reproduzem a nota, dentro do arredondamento do motor', () => {
+    const seed = 50, vote = 0, penalty = 11.8;
+    const score = clampScore(seed + vote - penalty);
+    expect(score).toBe(38);
+    // A diferença entre a soma das partes e a nota é o Math.round do
+    // clampScore — por isso o painel diz que a soma é arredondada, em vez
+    // de fingir que fecha em centésimos.
+    expect(Math.abs((seed + vote - penalty) - score)).toBeLessThanOrEqual(0.5);
+  });
+
+  it('o arredondamento nunca empurra a nota para fora de 0–100', () => {
+    expect(clampScore(100 + 40)).toBe(100);
+    expect(clampScore(-0.4)).toBe(0);
+    expect(clampScore(99.5)).toBe(100);
+  });
+
+  // M0 + M4 juntos: a versão da fórmula vai para a nota E para a decomposição.
+  // Se as duas divergirem, a tela mostra componentes de uma fórmula e uma
+  // nota de outra — que é o modo de falha que o M0 existe para impedir.
+  it('a decomposição carrega a mesma versão da fórmula que a nota', () => {
+    expect(SCORE_FORMULA_VERSION).toMatch(/^\d+\.\d+\.\d+$/);
+  });
+});

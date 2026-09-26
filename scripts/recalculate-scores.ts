@@ -63,6 +63,9 @@ import {
 
 const prisma = new PrismaClient();
 
+/** Duas casas: a decomposição é exibida ao usuário, e float longo vira ruído. */
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
 const CRITERIA_INDEX: Record<CriteriaKey, number> = {
   LIFE_PROTECTION: 0,
   FAMILY_VALUES: 1,
@@ -221,6 +224,29 @@ async function recalculate() {
       LIFE_PROTECTION: life, FAMILY_VALUES: family, MORAL_INTEGRITY: moral,
       SOCIAL_RESPONSIBILITY: social, RELIGIOUS_FREEDOM: religious,
     };
+
+    // M4: grava a decomposição — de onde veio cada ponto. Sem isto a tela
+    // mostra UM número e o usuário não tem como saber que 91,8% da
+    // variância é partido (medido na auditoria). É a resposta a "por que ele
+    // tem essa nota?".
+    //
+    // Vai para o banco no mesmo recálculo da nota, e não é recalculado na
+    // leitura da API: se a fórmula mudar, um componente recomputado na
+    // leitura passaria a discordar da nota gravada.
+    const breakdown = CRITERIA_KEYS.map((c) => {
+      const seed = seedFor(c);
+      const vote = applyVote(c);
+      const penalty = c === 'MORAL_INTEGRITY' ? expensePenalty : 0;
+      return {
+        criteria: c,
+        seed_points: round2(seed),
+        vote_points: round2(vote),
+        penalty_points: round2(penalty),
+        weight: WEIGHTS[c],
+        final_score: round2(scores[c]),
+        subject_count: deltas[c].length,
+      };
+    });
     const overall = overallScore(scores);
 
     const perf = performanceLabel(overall);
@@ -295,6 +321,34 @@ async function recalculate() {
           formula_version: SCORE_FORMULA_VERSION,
         },
       });
+
+      // M4: um registro por critério, com a fórmula que o produziu.
+      for (const b of breakdown) {
+        await prisma.scoreBreakdown.upsert({
+          where: { politician_id_criteria: { politician_id: politician.id, criteria: b.criteria } },
+          create: {
+            politician_id: politician.id,
+            criteria: b.criteria,
+            seed_points: b.seed_points,
+            vote_points: b.vote_points,
+            penalty_points: b.penalty_points,
+            weight: b.weight,
+            final_score: b.final_score,
+            subject_count: b.subject_count,
+            formula_version: SCORE_FORMULA_VERSION,
+          },
+          update: {
+            seed_points: b.seed_points,
+            vote_points: b.vote_points,
+            penalty_points: b.penalty_points,
+            weight: b.weight,
+            final_score: b.final_score,
+            subject_count: b.subject_count,
+            formula_version: SCORE_FORMULA_VERSION,
+            calculated_at: new Date(),
+          },
+        });
+      }
     }
 
     updated++;

@@ -1,5 +1,6 @@
 import { usePageMeta } from '@/hooks/usePageMeta';
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { FREEZE_REASON, NUMBERS_FROZEN } from '@/lib/release-state';
 import { useSearchParams } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -9,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import PoliticianCard from '@/components/politicians/PoliticianCard';
 import { usePoliticians, usePoliticiansStats } from '@/hooks/usePoliticians';
-import { Search, Filter, TrendingUp, Users, Award, BookOpen, BarChart3, Loader2, Church, SlidersHorizontal, ArrowRight, Clock } from 'lucide-react';
+import { Search, Filter, TrendingUp, Users, Award, BookOpen, BarChart3, Loader2, Church, SlidersHorizontal, ArrowRight, Clock, Snowflake } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { APIPolitician } from '@/types/politician';
 import { Slider } from '@/components/ui/slider';
@@ -309,22 +310,52 @@ const RankingPage = () => {
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-slate-950/40 rounded-xl p-3.5 border border-white/10">
-                    <div className="text-2xl font-bold font-serif text-white">{stats.monitored}</div>
-                    <div className="text-xs text-white/80 font-medium">Parlamentares monitorados</div>
-                  </div>
-                  <div className="bg-slate-950/40 rounded-xl p-3.5 border border-white/10">
-                    <div className="text-2xl font-bold font-serif text-amber-400">{stats.withOwnVotes}</div>
-                    <div className="text-xs text-white/80 font-medium">Com votos próprios</div>
-                  </div>
-                  <div className="bg-slate-950/40 rounded-xl p-3.5 border border-white/10">
-                    <div className="text-2xl font-bold font-serif text-white">{fmt(stats.avgScore)}</div>
-                    <div className="text-xs text-white/80 font-medium">Nota média (0–100)</div>
-                  </div>
-                  <div className="bg-slate-950/40 rounded-xl p-3.5 border border-white/10">
-                    <div className="text-2xl font-bold font-serif text-emerald-400">{stats.excellentCount}</div>
-                    <div className="text-xs text-white/80 font-medium">Aderência muito alta</div>
-                  </div>
+                  {/*
+                    NUMBERS_FROZEN (2026-09-25): durante a recalibração da
+                    fórmula (M1c–M5) o banco já tem notas da fórmula nova e
+                    o texto ainda descreve a antiga. Publicar o número novo
+                    com a explicação velha seria pior que não publicar número.
+                    Ver src/lib/release-state.ts — remover no commit que
+                    atualizar /metodologia e o README.
+                  */}
+                  {NUMBERS_FROZEN ? (
+                    <div className="col-span-2 bg-slate-950/40 rounded-xl p-4 border border-white/10">
+                      <div className="flex items-start gap-2.5">
+                        <Snowflake className="w-4 h-4 text-cyan-300 shrink-0 mt-0.5" aria-hidden="true" />
+                        <div>
+                          <p className="text-sm font-semibold text-white">
+                            Números temporariamente congelados
+                          </p>
+                          <p className="text-xs text-white/75 mt-1 leading-relaxed">
+                            {FREEZE_REASON}
+                          </p>
+                          <p className="text-xs text-white/60 mt-2">
+                            O ranking e as notas de cada parlamentar continuam
+                            normais e verificáveis em cada perfil.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="bg-slate-950/40 rounded-xl p-3.5 border border-white/10">
+                        <div className="text-2xl font-bold font-serif text-white">{stats.monitored}</div>
+                        <div className="text-xs text-white/80 font-medium">Parlamentares monitorados</div>
+                      </div>
+                      <div className="bg-slate-950/40 rounded-xl p-3.5 border border-white/10">
+                        <div className="text-2xl font-bold font-serif text-amber-400">{stats.withOwnVotes}</div>
+                        <div className="text-xs text-white/80 font-medium">Com votos próprios</div>
+                      </div>
+                      <div className="bg-slate-950/40 rounded-xl p-3.5 border border-white/10">
+                        <div className="text-2xl font-bold font-serif text-white">{fmt(stats.avgScore)}</div>
+                        <div className="text-xs text-white/80 font-medium">Nota média (0–100)</div>
+                      </div>
+                      <div className="bg-slate-950/40 rounded-xl p-3.5 border border-white/10">
+                        <div className="text-2xl font-bold font-serif text-emerald-400">{stats.excellentCount}</div>
+                        <div className="text-xs text-white/80 font-medium">Aderência muito alta</div>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 <p className="text-[11px] text-white/75 leading-relaxed pt-1">

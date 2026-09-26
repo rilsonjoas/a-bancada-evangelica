@@ -57,6 +57,7 @@ model Politician {
   expense_analyses      ExpenseAnalysis[]
   scores                PoliticianScore[]
   historical_scores     HistoricalScore[]
+  score_breakdown       ScoreBreakdown[]
   disqualifications     PoliticianDisqualification[]
   campaignFinance       CampaignFinance[]
   newsMentions          NewsMention[]
@@ -369,6 +370,50 @@ model PoliticianScore {
   politician              Politician @relation(fields: [politician_id], references: [id], onDelete: Cascade)
   
   @@map("politician_scores")
+}
+
+// ========================================
+// DECOMPOSIÇÃO DA NOTA (M4, 2026-09-25)
+// ========================================
+
+/// De onde veio cada ponto da nota de um parlamentar.
+///
+/// A auditoria mediu que 91,8% da variância da nota é explicada pelo
+/// partido, mas a tela mostrava UM número só. Isto é a resposta a "por que
+/// ele tem essa nota?" — e é o que sustenta a confiança no resto.
+///
+/// Gravado no recálculo (e não calculado na leitura da API) porque precisa
+/// concordar com a fórmula daquele momento: se a fórmula mudar, um
+/// componente recalculado na leitura passaria a discordar da nota gravada.
+model ScoreBreakdown {
+  id            String @id @default(cuid())
+  politician_id Int
+  criteria      CriteriaType
+
+  /// Pontos do seed do partido, já encolhido por SEED_SHRINK.
+  seed_points    Float
+  /// Pontos do voto próprio (delta médio por assunto × VOTE_WEIGHT_MULT).
+  /// 0 quando o critério não tem voto registrado.
+  vote_points    Float
+  /// Pontos descontados por despesa fora do padrão (hoje só em
+  /// Integridade Moral; 0 nos outros).
+  penalty_points Float
+  /// Peso do critério na nota final (0.30, 0.25, …).
+  weight         Float
+  /// seed + vote − penalty, já limitado a 0–100.
+  final_score    Float
+  /// Quantos ASSUNTOS distintos sustentam o voto neste critério. É a base
+  /// real da nota (a média é por assunto) e o que o usuário precisa ver
+  /// para saber se pode confiar.
+  subject_count  Int
+
+  formula_version String    @default("1.0.0")
+  calculated_at   DateTime  @default(now())
+  politician      Politician @relation(fields: [politician_id], references: [id], onDelete: Cascade)
+
+  @@unique([politician_id, criteria])
+  @@index([politician_id])
+  @@map("score_breakdown")
 }
 
 model HistoricalScore {

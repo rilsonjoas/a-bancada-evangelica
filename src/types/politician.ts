@@ -78,6 +78,22 @@ export interface APIPoliticianDetails extends APIPolitician {
   };
   // H2 (2026-08-27): votos por critério — base do cálculo
   votesPerCriteria?: Record<string, { count: number; totalImpact: number }>;
+  // M4 (2026-09-25): de onde veio cada ponto da nota, por critério. Vem de
+  // `score_breakdown`, gravado no recálculo — é a resposta a "por que ele
+  // tem essa nota?". Ausente enquanto o primeiro recálculo pós-M4 não roda.
+  scoreBreakdown?: {
+    criteria: string;
+    seedPoints: number;
+    votePoints: number;
+    penaltyPoints: number;
+    weight: number;
+    finalScore: number;
+    subjectCount: number;
+    formulaVersion: string;
+  }[];
+  // Fórmula que produziu a nota exibida (M0). null enquanto o recálculo
+  // pós-M0 não rodar.
+  formulaVersion?: string | null;
 }
 
 /** Resposta de GET /api/politicians/:id/expenses/flagged (D2, 2026-09-25) */

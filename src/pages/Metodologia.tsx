@@ -159,14 +159,14 @@ const MetodologiaPage = () => {
       icon: Scale,
       weight: 20,
       name: 'Integridade Moral',
-      description: 'Analisamos o caráter do político: histórico de processos judiciais, investigações por corrupção ou improbidade, e o uso da cota parlamentar. Despesas que destoam do padrão estatístico do conjunto penalizam esta pontuação (diferença estatística, não acusação). A nota parte do histórico de conduta do partido nas últimas legislaturas — nunca de uma acusação presumida contra o político — e só é penalizada quando há despesa analisada fora do padrão.',
+      description: 'Esta pontuação olha para o uso da cota parlamentar, e só para isso. Cada despesa é comparada com o padrão do próprio parlamentar: o valor sai muito acima do que os colegas de partido e de estado gastam com o mesmo tipo de compra?\n\n      Despesas que destoam do padrão estatístico do conjunto descontam pontos desta pontuação. É uma diferença estatística, não uma acusação. Não dizemos que o dinheiro foi roubado: dizemos que o número se afasta do que é normal, e a diferença está nomeada, com o link do recibo oficial, para você conferir.\n\n      Não usamos histórico de processos judiciais, investigações, condenações ou operações. Não temos integração com STF, Ministério Público, TCU, CPI ou Conselho de Ética, então não publicamos nada disso.\n\n      O ponto de partida é o histórico de conduta do partido nas últimas legislaturas, nunca uma acusação presumida contra a pessoa. Descontamos apenas quando existe despesa analisada fora do padrão.',
       whyImportant: '"O justo anda na sua integridade; bem-aventurados serão os seus filhos depois dele" (Provérbios 20:7). Um líder cristão deve ser "irrepreensível" (1 Timóteo 3:2) e um bom administrador dos recursos que lhe foram confiados.',
       howItHelps: 'Esta análise ajuda a ir além do "rouba, mas faz". Avalie o caráter do político e sua conduta ética, escolhendo representantes que honrem a confiança pública.',
       indicators: [
-        'Ausência de investigações por corrupção',
-        'Gastos parlamentares dentro do padrão',
-        'Transparência no uso da cota',
-        'Conduta pública alinhada à fé'
+        'Gastos parlamentares dentro do padrão do partido e do estado',
+        'Despesas repetidas no mesmo valor e no mesmo fornecedor',
+        'Despesas sem documento ou recibo oficial',
+        'Volume de despesas muito acima da média dos colegas'
       ],
       biblicalBasis: 'Provérbios 20:7 · 1 Timóteo 3:2'
     },
@@ -497,9 +497,66 @@ const MetodologiaPage = () => {
                       uma nota explicativa aparece no card de estatísticas — em vez de escondê-la atrás
                       de um número que pareceria definitivo.
                     </p>
+                    <div className="mt-4 rounded-lg border border-amber-300/60 bg-amber-50/50 p-4">
+                      <h5 className="font-semibold text-foreground text-sm mb-2">
+                        De onde sai cada ponto, em ordem
+                      </h5>
+                      <ol className="text-sm text-muted-foreground leading-relaxed space-y-2 list-decimal list-inside">
+                        <li>
+                          <strong className="text-foreground">O partido começa a nota.</strong> Cada
+                          critério parte da média histórica do partido do parlamentar naquele critério.
+                          Isso existe para que ninguém fique sem nota por não ter votes ainda.
+                        </li>
+                        <li>
+                          <strong className="text-foreground">O voto próprio move a nota.</strong> Medimos
+                          o quanto o voto dele se afasta dessa média, e aplicamos a diferença. A média é
+                          calculada <em>por assunto</em>: quando a mesma proposição é votada em cinco
+                          sessões, conta como um assunto, não como cinco.
+                        </li>
+                        <li>
+                          <strong className="text-foreground">Gasto fora do padrão tira ponto.</strong> Só
+                          em Integridade Moral, e apenas quando existe despesa analisada.
+                        </li>
+                        <li>
+                          <strong className="text-foreground">Aí entra o peso do critério.</strong> Os cinco
+                          resultados são somados em 30/25/20/15/10 e limitados a 0–100.
+                        </li>
+                      </ol>
+                      <p className="text-sm text-muted-foreground leading-relaxed mt-3">
+                        Cada perfil tem uma tabela com essa conta aberta, critério por critério. Nada
+                        é resumo: dá para conferir de onde veio o número que está no topo da página.
+                      </p>
+                    </div>
+                    <div className="mt-3 rounded-lg border border-border bg-muted/40 p-4">
+                      <h5 className="font-semibold text-foreground text-sm mb-2">
+                        Quanto pesa o partido, quanto pesa o voto — em números
+                      </h5>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        Isto é a parte que um método costuma esconder, então vamos dizer na cara:
+                        <strong className="text-foreground"> hoje a nota é majoritariamente do
+                        partido.</strong> Medimos isso, não é impressão: cerca de{' '}
+                        <strong className="text-foreground">92% da variação entre as notas</strong> se
+                        explica pelo partido, e só uma fração pelo voto próprio registrado até agora.
+                      </p>
+                      <p className="text-sm text-muted-foreground leading-relaxed mt-2">
+                        A causa é estrutural, e vale ser explícito: a média do partido varia cerca de{' '}
+                        <strong className="text-foreground">70 pontos</strong> entre um partido e outro,
+                        enquanto o voto próprio registrado move a nota em cerca de{' '}
+                        <strong className="text-foreground">24 pontos</strong>. Quem discorda de um
+                        partido, hoje, perde para a média do próprio partido. Isso é um defeito
+                        conhecido, está documentado em{' '}
+                        <code className="text-xs bg-secondary px-1 py-0.5 rounded">docs/AUDITORIA-CALCULOS.md</code>{' '}
+                        e está sendo corrigido: estamos recalibrando a fórmula para que o voto próprio
+                        pese mais que a herança partidária. Enquanto isso não estiver pronto, os números
+                        agregados ficam congelados em vez de publicados com uma explicação velha.
+                      </p>
+                      <p className="text-sm text-muted-foreground leading-relaxed mt-2">
+                        A nota também é marcada com a versão da fórmula que a produziu, para que não
+                        exista dúvida sobre qual regra foi aplicada.
+                      </p>
+                    </div>
                     <p className="text-sm leading-relaxed">
-                      Fórmula final: soma ponderada dos 5 critérios nos pesos 30/25/20/15/10, limitada a
-                      0–100. O motor completo é código aberto:{' '}
+                      O motor completo é código aberto:{' '}
                       <code className="text-xs bg-secondary px-1 py-0.5 rounded">scripts/recalculate-scores.ts</code>.
                     </p>
                   </div>
@@ -943,9 +1000,10 @@ Glossário:
   adoção, educação e o direito dos pais na formação moral dos filhos. Base bíblica:
   Gênesis 2:24 · Provérbios 22:6.
 
-- Integridade Moral: Caráter do político: histórico de processos judiciais, investigações
-  por corrupção ou improbidade, e uso da cota parlamentar. Base bíblica: Provérbios 20:7 ·
-  1 Timóteo 3:2.
+- Integridade Moral: uso da cota parlamentar. Cada despesa é comparada com o padrão do
+  próprio parlamentar, e as que destoam descontam pontos (diferença estatística, não
+  acusação, com o recibo oficial linkado). Não usamos processos judiciais, investigações
+  ou condenações: não temos essa integração. Base bíblica: Provérbios 20:7 · 1 Timóteo 3:2.
 
 - Responsabilidade Social: Posicionamento em pautas voltadas para a justiça social:
   cuidado com os vulneráveis (pobres, órfãos, idosos), saúde pública e políticas de

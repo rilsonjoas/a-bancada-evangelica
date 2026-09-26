@@ -1601,3 +1601,46 @@ existem. Não escrever código de produto antes de medir.
       (90,8% da variância) e hoje é tabela escrita à mão.
 - [ ] Teste que extraia pesos/keywords do código e falhe se o texto
       publicado divergir.
+
+---
+
+## Peso do voto individual vs. partido (M0–M5) — plano aprovado 2026-09-25
+
+Origem: pedido do Rilson — *"eu prefiro que o posicionamento pessoal do
+congressista valha bem mais que o partido, bem mais mesmo."*
+
+Plano completo e simulação medida em **`docs/PLANO-PESO-INDIVIDUAL.md`**.
+Medido no acervo real antes de codar (504 parlamentares com voto):
+
+| Cenário | voto × | seed | % da variância que é partido |
+|---|---|---|---|
+| hoje | ×1 | 100% | **91,8%** |
+| dobrar voto sozinho | ×2 | 100% | 88,0% |
+| **M1c triplicar + seed 50%** | ×3 | 50% | **49,4%** |
+
+- [ ] **M0** — `SCORE_FORMULA_VERSION` (a fórmula de score não tem versão
+      própria hoje; `PARTY_ALIGNMENT` pode mudar sem âncora). Gravada em
+      `politician_scores` e no `details` do `SyncLog`
+- [ ] **M4** — decomposição da nota visível ("40 do partido + 18 do seu voto
+      − 3 de despesa"). Risco zero, não muda nota
+- [ ] **M1c** — delta ×3 + seed a 50% do desvio da média
+- [ ] **M2** — confiança encolhe base fraca, **medida isolada depois de M1c**
+      (na simulação, confiança antes de encolher o seed empurra a variância
+      de volta pro partido)
+- [ ] **M3** — consistência entra na nota (Rilson escolheu (b), com peso)
+- [ ] **M5** — derivar `PARTY_ALIGNMENT` do voto real, só depois de ver M1–M4
+
+**Requisito de aceitação de cada passo:** o usuário tem que ler, em
+linguagem leiga, de onde veio cada ponto da nota dele. Tabela de
+obrigação em `PLANO-PESO-INDIVIDUAL.md` §4. Nenhuma fórmula entra com texto
+velho — `/metodologia`, README e demais páginas são atualizados junto.
+
+**Sem entrada de errata** (decisão do Rilson): projeto novo, nada
+divulgado a público geral ainda. Ordem: código → teste → verificação →
+só então texto.
+
+## Fase 1 do teste de consistência (PLANO-CONSISTENCIA.md)
+
+Ver `docs/PLANO-CONSISTENCIA.md`. Fecha o ciclo: garante que código e texto
+publicado não divirjam de novo — os 4 bugs de 2026-09-25 passaram por
+typecheck, lint, 198 testes e build.

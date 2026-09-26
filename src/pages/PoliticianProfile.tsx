@@ -17,6 +17,7 @@ import { FlaggedExpensesList } from '@/components/expenses/FlaggedExpensesList';
 import { ShareableCard } from '@/components/social/ShareableCard';
 import { FpeTierChip } from '@/components/politicians/FpeTierChip';
 import { CRITERIA, CRITERIA_BY_KEY, CRITERIA_BY_FIELD } from '@/lib/criteria';
+import { ScoreBreakdownPanel } from '@/components/scores/ScoreBreakdownPanel';
 import { fmt } from '@/lib/format';
 import { getPerformanceBadgeColor, getPerformanceLabel, ESTIMATED_LABEL } from '@/lib/performance';
 import { buildVoteSourceLink } from '@/lib/sources';
@@ -283,6 +284,15 @@ export function PoliticianProfile() {
               );
             })}
           </div>
+
+          {/* M4: de onde veio cada ponto. Vem logo abaixo dos cinco numeros
+              porque e a resposta direta a "como assim, 69/100?". */}
+          {politician.scoreBreakdown && politician.scoreBreakdown.length > 0 && (
+            <ScoreBreakdownPanel
+              items={politician.scoreBreakdown}
+              formulaVersion={politician.formulaVersion}
+            />
+          )}
 
           {/* Description and Mandates */}
           <div className="grid md:grid-cols-2 gap-6">

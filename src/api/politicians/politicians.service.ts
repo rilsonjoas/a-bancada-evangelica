@@ -210,6 +210,10 @@ export class PoliticiansService {
             orderBy: { vote_date: 'desc' },
             take: 10,
           },
+          // M4: a decomposição da nota, gravada no recálculo. Permite
+          // explicar "por que ele tem essa nota" sem recalcular na leitura
+          // — e sem risco de divergir da nota gravada.
+          score_breakdown: { orderBy: { criteria: 'asc' } },
         },
       }),
       this.prisma.expense.aggregate({
@@ -369,6 +373,19 @@ export class PoliticiansService {
       // H2 (2026-08-27): votos por critério — base do cálculo da nota,
       // permite aviso de confiança quando a base é pequena.
       votesPerCriteria,
+      // M4: de onde veio cada ponto da nota, por critério. Vem do banco
+      // (gravado no recálculo), não recalculado aqui.
+      scoreBreakdown: (politician.score_breakdown ?? []).map((b) => ({
+        criteria: b.criteria as string,
+        seedPoints: b.seed_points,
+        votePoints: b.vote_points,
+        penaltyPoints: b.penalty_points,
+        weight: b.weight,
+        finalScore: b.final_score,
+        subjectCount: b.subject_count,
+        formulaVersion: b.formula_version,
+      })),
+      formulaVersion: politician.scores?.[0]?.formula_version ?? null,
     };
   }
 

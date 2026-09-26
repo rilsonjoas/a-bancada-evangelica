@@ -79,6 +79,23 @@ export interface PoliticianDetail {
    * proposição foi votada em várias sessões.
    */
   votesPerCriteria?: Record<string, { count: number; totalImpact: number; votes?: number }>;
+  /**
+   * M4 (2026-09-25): de onde veio cada ponto da nota, por critério. Vem de
+   * `score_breakdown`, gravado no recálculo — a resposta direta a "por que
+   * ele tem essa nota?". Ausente enquanto o primeiro recálculo pós-M4 não roda.
+   */
+  scoreBreakdown?: Array<{
+    criteria: string;
+    seedPoints: number;
+    votePoints: number;
+    penaltyPoints: number;
+    weight: number;
+    finalScore: number;
+    subjectCount: number;
+    formulaVersion: string;
+  }>;
+  /** Fórmula que produziu a nota exibida (M0). */
+  formulaVersion?: string | null;
   /** Financiamento de campanha (TSE 2022) — transparência pura,
    * NÃO afeta a nota. null = sem receita declarada no dataset. */
   campaignFinance: {
