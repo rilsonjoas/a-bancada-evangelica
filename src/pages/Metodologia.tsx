@@ -131,10 +131,10 @@ const MetodologiaPage = () => {
       whyImportant: 'A Bíblia ensina que a vida é um dom sagrado de Deus e que fomos criados à Sua imagem e semelhança (Gênesis 1:27). Desde o ventre materno, somos conhecidos e formados por Ele (Salmo 139:13-16). Defender a vida é um mandamento fundamental da fé.',
       howItHelps: 'Identifique quais políticos são uma barreira contra a cultura da morte e quais se posicionam ativamente para proteger os nascituros e os indefesos.',
       indicators: [
-        'Votações sobre projetos pró-vida',
-        'Projetos de lei protegendo a vida',
-        'Posicionamentos públicos sobre aborto',
-        'Defesa de políticas de adoção'
+        'Votações sobre aborto, eutanásia e interrupção da gravidez',
+        'Votações sobre proteção ao nascituro',
+        'Votações sobre crime contra a vida',
+        'Votações sobre direito à vida'
       ],
       biblicalBasis: 'Gênesis 1:27 · Salmo 139:13-16'
     },
@@ -149,7 +149,7 @@ const MetodologiaPage = () => {
       indicators: [
         'Votações sobre definição de família',
         'Defesa da educação familiar',
-        'Projetos de proteção à infância',
+        'Votações sobre o Estatuto da Criança e do Adolescente',
         'Combate à erotização infantil'
       ],
       biblicalBasis: 'Gênesis 2:24 · Provérbios 22:6'
@@ -182,7 +182,7 @@ const MetodologiaPage = () => {
         'Apoio a programas de saúde pública',
         'Defesa de políticas para vulneráveis',
         'Combate à pobreza',
-        'Assistência a populações carentes'
+        'Votações sobre assistência social e benefícios'
       ],
       biblicalBasis: 'Tiago 2:26 · Isaías 1:17 · Miquéias 6:8'
     },

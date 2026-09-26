@@ -307,3 +307,43 @@ que a soma é arredondada ao ponto inteiro.
 | Mostrar "38,2" na tabela | Falso. A nota gravada é 38. |
 | Ajustar o seed para a conta fechar | Falsifica o componente. O seed é o que é. |
 | Não mostrar casas decimais em tudo | Perde informação real: 11,8 de penalidade é o dado que o usuário quer. |
+
+## 2026-09-26 — O teste gigante (Fase 1 do PLANO-CONSISTENCIA)
+
+`src/__tests__/consistencia-publica.test.ts` — 29 testes que falham quando a
+página mente. Substitui "teste por critério" por **teste por afirmação
+publicada**: o que o texto diz tem que bater com o que o código faz.
+
+**Regra de desenho que vale mais que cada teste.** O arquivo NÃO exige que
+todo indicador vire medido — isso é decisão de produto. Exige
+**explicitude**: todo indicador sem medição tem que estar declarado em
+`INDICADORS_NAO_MEDIDOS`. Publicar indicador sem lastro continua sendo erro;
+o que muda é que agora ele é *conhecido* e versionado, e a lista só encolhe.
+
+**Os seis problemas reais que ele achou no primeiro rodar** (todos
+corrigidos no mesmo commit):
+
+| # | Achado | Correção |
+|---|---|---|
+| 1 | `expect(valor, mensagem)` não é suportado nesta versão do Vitest — a mensagem virava o valor medido e quebrava `toBeGreaterThan` | Reescrito sem o segundo argumento |
+| 2 | O splitter de frase quebrava por linha, e uma negação partida em duas virava "promessa" de processo judicial | Colapsa whitespace antes de quebrar em frase |
+| 3 | A extração comparava `moralIntegrity` com `MORAL_INTEGRITY` — o underscore fazia 4 indicadores **medidos** aparecerem como não medidos | Normaliza sem underscore |
+| 4 | O teste de peso procurava a chave do enum, mas a doc escreve o rótulo | Casa pelo rótulo |
+| 5 | A checagem de versão acusava a doc errada de defasamento | Cada regra aponta para o seu doc |
+| 6 | 4 indicadores prometiam "pro-vida", "proteção a infância", "posicionamentos públicos" e "assistência a carentes" — nenhum casava com keyword, e "posicionamentos públicos" prometia leitura de discurso que o sistema não faz | Reescritos nos termos que o código mede de fato |
+
+**Achados de conteúdo que sobraram e foram corrigidos na página:** os
+indicadores de Proteção à Vida e Valores Familiares eram vagos ou
+inexistentes como medição. Dizer "Votações sobreprojects pró-vida" não é
+mentira, mas é inútil: o usuário não descobre o que é procurado. Agora cada
+indicador nomeia o termo que o `SCAN_RULES` casa.
+
+**Regra geral sobre termo proibido:** termo dentro de crase é citação, não
+promessa. `ficha limpa` numa tabela que lista as keywords do `SCAN_RULES` é o
+registro do que o código busca — o oposto de prometer checagem de ficha limpa.
+
+**Autoteste (1.6).** Um teste de texto proibido que absolve tudo não protege
+nada. A seção 1.6 prova que a allowlist absolve uma negativa e **não**
+absolve uma promessa, que o splitter acha frases, e que o normalizador tira
+acento. Se a regra de detecção quebrar, o 1.6 falha antes de o 1.5 virar
+falso-verde.
