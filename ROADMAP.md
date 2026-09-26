@@ -1604,6 +1604,27 @@ existem. Não escrever código de produto antes de medir.
 
 ---
 
+## P0 — Paginação do sync de votações (achado 2026-09-26)
+
+**Detalhe completo em `docs/AUDITORIA-VOTACOES.md`.**
+
+O sync pede `?itens=200`; a API ignora acima de 100 e devolve 100 por
+requisição. Sem `pagina`, o sync vê **só a primeira página de cada
+trimestre**. Resultado: **29% das votações substantivas** (244 de 830) foram
+coletadas. Em 2025-05 foram 18 de 146, e como a API ordena por data, o
+período recente — o que mais importa — é o mais podre.
+
+- [ ] Paginar até esgotar (`docs/AUDITORIA-VOTACOES.md` §6)
+- [ ] Gravar **cobertura no `SyncLog`** (substantivas vistas / existentes),
+      senão o bug volta em silêncio e parece "o mundo parou de votar"
+- [ ] Reclassificar tudo com a coleta completa e **remedir** quantos critérios
+      ficam medidos — aí sim decidir o peso de Vida e Liberdade Religiosa
+- [ ] Avaliar cobertura do Senado (hoje o acervo é 100% Câmara)
+
+**Não decidir o peso dos dois critérios sem medição antes disso.** A
+conclusão "esses temas não têm votação nominal" não estava provada, e o
+acervo parcial não permite prová-la.
+
 ## Peso do voto individual vs. partido (M0–M5) — CONCLUÍDO 2026-09-26
 
 Origem: pedido do Rilson — *"eu prefiro que o posicionamento pessoal do

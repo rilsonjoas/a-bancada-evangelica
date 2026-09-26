@@ -493,3 +493,51 @@ Os 135 parlamentares inativos continuam com `formula_version = 1.0.0`, e
 isso está **certo**: o rótulo diz qual fórmula produziu aquela nota, e a nota
 histórica de um parlamentar inativo não muda por recalibrar a fórmula de
 quem está em exercising. Os 595 que o site exibe estão em 1.2.0.
+
+## 2026-09-26 — O sync nunca paginou: 71% das votações substantivas nunca foram coletadas
+
+**Descoberto na auditoria de votações** (`docs/AUDITORIA-VOTACOES.md`),
+antes de decidir o peso de Proteção à Vida e Liberdade Religiosa.
+
+`scripts/sync-votes.ts` pede `?itens=200`. A API da Câmara **ignora `itens`
+acima de 100** e devolve no máximo 100 por requisição. O sync não usa
+`pagina`, então vê **só a primeira página de cada trimestre**.
+
+| | votações substantivas |
+|---|---|
+| Vistas pelo sync | 244 |
+| Nunca vistas | 586 |
+| **Cobertura** | **29%** |
+
+E está **piorando**: em 2025-05 o sync viu 18 de 146. Como a API ordena por
+data e o período recente fica no fim da lista, **o acervo atual é o mais
+podre** — o pior cenário para um site que promete acompanhar o Congresso.
+
+**Por que isso importa para a decisão de peso.** A conclusão "Vida e
+Liberdade Religiosa não têm dados" **não estava provada** — podia ser falta
+de dado no mundo ou falta de coleta no nosso sync. Descobrimos que é, no
+mínimo, parcialmente o segundo. Nenhuma decisão de peso deveria ser tomada
+antes de corrigir a coleta.
+
+**Correção proposta** está em `AUDITORIA-VOTACOES.md` §6: paginar até
+esgotar. Aumenta a coleta, não muda fórmula — não move nota nenhuma por si,
+cria o dado que os dois critérios sem medição precisam.
+
+**Correção de uma leitura errada minha, registrada de propósito.** A
+primeira leitura foi "o sync descarta 75% das sessões, logo perde 75% dos
+votos". Errado: a maioria das 4.414 sessões é **procedural** (símbolos,
+discussão, Questão de Ordem) e nunca entraria no cálculo. O número que
+importa é 586 sessões substantivas. Publicar "75% dos votos" sem checar o
+que continha seria exatamente o erro que esta auditoria existe para evitar.
+
+## 2026-09-26 — Como esta auditoria é mantida viva
+
+O achado do sync sobreviveu 3 anos porque **ninguém mediu a cobertura**. O
+`sync-votes.ts` grava um `SyncLog` com o que processou, mas não com o que
+**deixou de ver**. Um sync que reporta só o que conseguiu fazer é
+indistinguível de um sync completo.
+
+A correção de paginação precisa vir acompanhada de **contagem de cobertura
+no `SyncLog`** (substantivas vistas / substantivas existentes). Sem isso, o
+mesmo bug volta em silêncio na próxima refatoração — e desta vez vai parecer
+que o mundo parou de votar naquilo que não medimos.
