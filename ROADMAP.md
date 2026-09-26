@@ -1743,3 +1743,38 @@ de prevenção — sinal posicional mais fraco que votação de mérito.
 - [ ] **P1** Separar voto de MÉRITO de voto PROCEDIMENTAL (19% são requer de
       urgência, 30% requerimento de retirada)
 - [ ] **P1** Cobertura do Senado (acervo é 100% Câmara)
+
+## Registro do dia 2026-09-26 — índice
+
+O raciocínio completo, as medições e as possibilidades de futuro estão em
+**`docs/REGISTRO-2026-09-26.md`**. Resumo do que ficou decidido e do que
+ainda é decisão de produto:
+
+**Corrigido e no ar:** classificação por palavra inteira (67,4% dos votos
+estavam no critério errado), exclusões de contexto, keyword fraca removida,
+reclassificação, arquivamento que exclui voto, paginação mapeada, congelamento
+dos números.
+
+**Medido e documentado:** 86% dos votos têm divergência relevante; 48% são
+procedimentais; só 5 assuntos rastreados; e o Congresso **não vota em
+plenário** os assuntos de vida, moral, religião e corrupção (4 + 3 + 0 + 0
+objetos de lei).
+
+**Comissão — a resposta:** a tramitação existe e é rica (órgão, situação,
+data, despacho), mas **não traz votação nominal**. `/orgaos/{id}/votacoes`
+só responde para o Plenário; comissão dá 404. Então comissão resolve o
+**assunto** e não o **posicionamento da pessoa** — são coisas diferentes.
+
+**Decisões que são do Rilson:**
+
+| # | decisão |
+|---|---|
+| 1 | A nota 0–100 sai, ou vira "posição por tema"? |
+| 2 | A camada "acompanhada, sem dado" entra no ranking com peso zero, ou fica fora da ordenação? |
+| 3 | Ampliar coleta para comissões (~2.000 chamadas) ou seguir só com plenário? |
+| 4 | Os 3 critérios sem dado saem do site, ou ficam visíveis marcados como "sem dado"? |
+
+**Trabalhos de dado que não dependem de decisão de produto:** peso por
+qualidade de voto (mérito > emenda > requerimento), rastreamento de
+proposições por tramitação, e a paginação do sync (agora segura, com o
+classificador preciso).
