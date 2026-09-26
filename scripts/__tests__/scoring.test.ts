@@ -19,7 +19,7 @@ import {
   CONSISTENCY_MAX_POINTS,
   type CriteriaKey,
 } from '../lib/scoring';
-import { matchScanRule, SCAN_RULES } from '../lib/scan-rules';
+import { matchScanRule, SCAN_RULES, textoParaClassificar, extrairEmenta } from '../lib/scan-rules';
 
 describe('partyBase / isKnownParty', () => {
   it('retorna o seed real de um partido conhecido', () => {
@@ -822,5 +822,65 @@ describe('homicídio não é proteção à vida (1.4.0)', () => {
   it('só existe UMA regra de Proteção à Vida (duplicada contaria o dobro)', () => {
     const regras = SCAN_RULES.filter((r) => r.criteria === 'LIFE_PROTECTION');
     expect({ quantas: regras.length }).toMatchObject({ quantas: 1 });
+  });
+});
+
+/**
+ * O QUE CLASSIFICA (1.5.0, 2026-09-26): título + ementa, nunca a descrição
+ * do relator.
+ *
+ * A raiz de quase todo falso positivo foi classificar contra texto
+ * administrativo, onde qualquer palavra aparece por acaso. Estes testes
+ * fixam a regra: se não está no título ou na ementa, não é o assunto.
+ */
+describe('o texto que classifica é título + ementa (1.5.0)', () => {
+  it('monta o texto com título e ementa, e nada mais', () => {
+    expect({ t: textoParaClassificar('PL 1/2024', 'ementa aqui') })
+      .toMatchObject({ t: 'PL 1/2024 ementa aqui' });
+  });
+
+  it('extrai a ementa como o primeiro segmento do description', () => {
+    // É assim que o sync monta o campo: [ementa, relator, votação].join(' · ')
+    expect({
+      e: extrairEmenta('Dispõe sobre licenciamento ambiental. · Parecer da comissão. · Mantido o texto.'),
+    }).toMatchObject({ e: 'Dispõe sobre licenciamento ambiental.' });
+  });
+
+  it('description sem separador é usado inteiro (melhor que nada)', () => {
+    expect({ e: extrairEmenta('Só a ementa, sem separador') })
+      .toMatchObject({ e: 'Só a ementa, sem separador' });
+    expect({ e: extrairEmenta('') }).toMatchObject({ e: '' });
+    expect({ e: extrairEmenta(null) }).toMatchObject({ e: '' });
+  });
+
+  it('licenciamento ambiental NÃO é Responsabilidade Social', () => {
+    // Caso real do PL 2159/2021: tem "desenvolvimento sustentável" no
+    // texto administrativo e NADA de social no título nem na ementa.
+    const texto = textoParaClassificar(
+      'PL 2159/2021 — Dispõe sobre o licenciamento ambiental',
+      'Dispõe sobre o licenciamento ambiental, regulamenta o inciso IV do § 1º do art. 225 da Constituição Federal. · parecer da comissão de agriculture.',
+    );
+    expect({ criterio: matchScanRule(texto)?.criteria ?? null })
+      .toMatchObject({ criterio: null });
+  });
+
+  it('a descrição do relator não entra, e é ela que traz a palavra incidental', () => {
+    // Caso real (medição 2026-09-26): um projeto sobre AGRICULTURA entrava
+    // como Responsabilidade Social porque o parecer do relator citava
+    // "assistência social" ao falar do programa deractor. A palavra é
+    // inteira e legítima — é o CONTEXTO que está errado, e contexto
+    // administrativo não é o assunto da proposição.
+    const titulo = 'PL 9.999/2024 — Dispõe sobre o Programa Nacional de Agricultura Familiar';
+    const ementa = 'Institui o Programa Nacional de Agricultura Familiar.';
+    const descricaoDoRelator =
+      'A comissão aprovou o requerimento de urgência. Relatou que o programa ' +
+      'receberá apoio da assistência social e do IBSA.';
+    const comRelator = `${titulo} ${ementa} ${descricaoDoRelator}`;
+    // Com o relator, casa — e é o falso positivo.
+    expect({ comRelator: matchScanRule(comRelator)?.criteria ?? 'nenhum' })
+      .toMatchObject({ comRelator: 'SOCIAL_RESPONSIBILITY' });
+    // Sem o relator, não casa — e é assim que tem que ser.
+    expect({ soOficial: matchScanRule(textoParaClassificar(titulo, ementa))?.criteria ?? null })
+      .toMatchObject({ soOficial: null });
   });
 });

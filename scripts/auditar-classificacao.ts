@@ -14,7 +14,7 @@
  *   npx tsx scripts/auditar-classificacao.ts --pauta  # lista por pauta
  */
 import { PrismaClient } from '@prisma/client';
-import { matchScanRule, SCAN_RULES_VERSION } from './lib/scan-rules.js';
+import { matchScanRule, SCAN_RULES_VERSION, textoParaClassificar } from './lib/scan-rules.js';
 
 const prisma = new PrismaClient();
 
@@ -48,7 +48,8 @@ async function main() {
   }
   const linhas: Linha[] = [];
   for (const a of agendas) {
-    const texto = normalizar(`${a.title ?? ''} ${a.description ?? ''}`);
+    // Título + ementa. NUNCA a descrição do relator (1.5.0).
+    const texto = normalizar(textoParaClassificar(a.title, a.description));
     const regra = matchScanRule(texto);
     const palavras = regra
       ? regra.keywords.filter((k) => contemPalavra(texto, k))

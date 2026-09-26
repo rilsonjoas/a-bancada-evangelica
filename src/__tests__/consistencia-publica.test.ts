@@ -146,7 +146,7 @@ const INDICADORES = extrairIndicadoresPublicados();
  * um indicador NOVO sem medir, ou renomear um destes.
  */
 const INDICADORES_NAO_MEDIDOS = [
-  // Proteção à Vida — em 2026-09-26 (SCAN_RULES 1.4.0) dois indicadores
+  // Proteção à Vida — em 2026-09-26 (SCAN_RULES 1.4.0 e 1.5.0) dois indicadores
   // viraram gap: `homicidio` saiu, e com ele as 5 pautas de Código Penal
   // (1.720 votos) que estavam sendo contadas como vida. Conferido na
   // fonte: a Câmara não tem votação deabulada nominal em plenária sobre

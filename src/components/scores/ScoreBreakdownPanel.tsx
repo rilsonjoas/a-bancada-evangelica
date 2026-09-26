@@ -164,8 +164,8 @@ export function ScoreBreakdownPanel({
               urgência (peso 0,2) pergunta se o projeto entra na pauta hoje; uma
               votação de mérito (peso 1,0) pergunta se você apoia o conteúdo.
               Este perfil tem {totalAssuntos}{' '}
-              {totalAssuntos === 1 ? 'assunto medido' : 'assuntos medidos'}, e o
-              peso de cada tipo está na tabela de votações.
+              {totalAssuntos === 1 ? 'assunto classificado' : 'assuntos classificados'},
+              e o peso de cada tipo está detalhado na lista de votações.
             </p>
           )}
           <p>

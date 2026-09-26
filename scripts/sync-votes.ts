@@ -11,7 +11,7 @@
 import { PrismaClient } from '@prisma/client';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { SCAN_RULES, SCAN_RULES_VERSION, matchScanRule, type ScanRule } from './lib/scan-rules';
+import { SCAN_RULES, SCAN_RULES_VERSION, matchScanRule, textoParaClassificar, type ScanRule } from './lib/scan-rules';
 import { paginar, relatarCobertura, PAGE_SIZE, type Cobertura } from './lib/paginacao';
 
 const prisma = new PrismaClient();
@@ -81,18 +81,14 @@ interface CamaraProposicao { ementa?: string; keywords?: string; ano?: number; n
 
 // ── Buscar ementa da proposição referenciada ───────────────────────────────────
 interface ProposicaoInfo {
-  /** Texto completo pra casamento de keywords (descrições + ementa + keywords) */
-  fullText: string;
-  /** Dados estruturados da proposição citada, se houver */
+  /** Dados estruturados da proposição citada, se houver.
+   *  É daqui que sai o título oficial — a única coisa, junto com a ementa,
+   *  que a classificação aceita. */
   prop: CamaraProposicao | null;
 }
 
 async function getProposicaoInfo(votacaoDetail: CamaraVotacaoDetail): Promise<ProposicaoInfo> {
   const ap = votacaoDetail.ultimaApresentacaoProposicao;
-  const parts: string[] = [
-    votacaoDetail.descricao ?? '',
-    ap?.descricao ?? '',
-  ];
 
   let prop: CamaraProposicao | null = null;
   const uri = ap?.uriProposicaoCitada;
@@ -100,8 +96,6 @@ async function getProposicaoInfo(votacaoDetail: CamaraVotacaoDetail): Promise<Pr
     const fetched = await fetchJson<{ dados: CamaraProposicao }>(uri);
     if (fetched?.dados) {
       prop = fetched.dados;
-      parts.push(prop.ementa ?? '');
-      parts.push(prop.keywords ?? '');
     }
     await sleep(200);
   }
@@ -121,13 +115,12 @@ async function getProposicaoInfo(votacaoDetail: CamaraVotacaoDetail): Promise<Pr
       const fetched = await fetchJson<{ dados: CamaraProposicao }>(alvo.uri);
       if (fetched?.dados?.ementa && !isProcedural(fetched.dados)) {
         prop = fetched.dados;
-        parts.push(prop.ementa ?? '', prop.keywords ?? '');
       }
     }
     await sleep(200);
   }
 
-  return { fullText: parts.filter(Boolean).join(' '), prop };
+  return { prop };
 }
 
 /** Título legível a partir da proposição — mata títulos crus do Plenário
@@ -228,14 +221,28 @@ async function scanPlenario(): Promise<{ agendas: number; votes: number; checked
       const detail = await fetchJson<{ dados: CamaraVotacaoDetail }>(`${BASE}/votacoes/${v.id}`);
       if (!detail?.dados) continue;
 
-      const { fullText, prop } = await getProposicaoInfo(detail.dados);
-      const rule = matchScanRule(`${v.descricao ?? ''} ${v.proposicaoObjeto ?? ''} ${fullText}`);
+      const { prop } = await getProposicaoInfo(detail.dados);
+
+      // SCAN_RULES 1.5.0: classificar SÓ pelo objeto oficial da proposição.
+      //
+      // Antes, o classificador recebia `v.descricao` (o ato: "Mantido o
+      // texto."), `v.proposicaoObjeto` e o texto concatenado de ementa +
+      // descrição do relator + descrição da votação. Duas das três peças
+      // são paperwork: a descrição do relator é o texto do relator, e ele
+      // cita palavra de qualquer assunto por passagem. Isso entrou 1.143
+      // vezes em 37 pautas que depois de lidas uma a uma eram de tema errado.
+      //
+      // O que vale é o que a matéria É: o título oficial e a ementa. Sem
+      // ementa não há objeto oficial, e sem objeto oficial não se classifica
+      // — melhor uma pauta fora do escopo do que uma pauta classificada
+      // pelo que um relator escreveu por volta.
+      const enrichedTitle = buildEnrichedTitle(prop);
+      if (!enrichedTitle) continue;
+      const rule = matchScanRule(textoParaClassificar(`${enrichedTitle} ${v.proposicaoObjeto ?? ''}`, prop?.ementa));
       if (!rule) continue;
 
       process.stdout.write(`   ✓ ${v.id} (${v.data.slice(0,10)}) → ${rule.criteria}\n`);
 
-      // Título enriquecido: "PL 1904/2024 — <ementa>" em vez de "Mantido o texto."
-      const enrichedTitle = buildEnrichedTitle(prop);
       // Descrição: ementa (contexto do que é a matéria) + o que aconteceu no Plenário
       const enrichedDescription = [
         prop?.ementa ?? '',

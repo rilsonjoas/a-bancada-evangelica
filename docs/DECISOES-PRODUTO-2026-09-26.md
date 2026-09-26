@@ -322,15 +322,70 @@ decidiu o destino de cada projeto.
 Nota recalculada: média 60,3, escala 50–69, 505 com voto próprio, 51,3% de
 variação partidária. 457 de 595 notas mudaram.
 
-### O que ainda está em aberto, e como vai ser atacado
+### A correção de raiz: casar contra título + ementa (1.5.0, feita)
 
-**22% dos votos ainda são de classificação duvidosa**, concentrados em
-`assistencia social` e nos critérios de Família. A causa é a mesma do
-`sus`: palavra-chave batendo dentro de descrição administrativa longa.
+`description` concatena três textos: ementa, descrição do relator e
+descrição da votação. Só a ementa é o objeto oficial da proposição; as
+outras duas são documento administrativo, onde qualquer palavra aparece
+por acaso. A classificação agora usa **`textoParaClassificar(titulo,
+description)`**, que fica só com o título e o primeiro segmento do
+`description` (que é a ementa, por construção do sync).
 
-A correção de raiz é casar contra o **título e a ementa**, e não contra a
-descrição do relator — que é onde a palavra incidental aparece. Isso é uma
-mudança de arquitetura do classificador, não uma troca de palavra, e é o
-próximo bloco de trabalho. A ferramenta de auditoria torna cada rodada
-mensurável: corrigir a palavra, reclassificar, e ver o volume de doubtful
-cair.
+Foi a raiz de quase todo falso positivo:
+
+| | volume que entrava no critério errado |
+|---|---|
+| `sus` dentro de "sustentável" (1.1.0) | 67,4% de todos os votos |
+| `homicidio` em projeto de Código Penal (1.4.0) | 1.720 votos |
+| descrição do relator (1.5.0) | mais 1.143 votos |
+
+### Estado depois da correção de arquitetura (1.5.0)
+
+Quatro rodadas de auditoria, cada uma mensurável. O que caiu foi falso
+positivo; o que ficou foi lido assunto por assunto.
+
+| rodada | assunto que entrava | votos que entravam errados |
+|---|---|---|
+| 1.1.0 — `sus` dentro de "sustentável" | 830 | 18.104 (67,4% de tudo) |
+| 1.2.0 — exclusões contextuais | — | — |
+| 1.3.0 — palavra solta `familia` | — | — |
+| 1.4.0 — `homicidio` (Código Penal) | 5 | 1.720 |
+| 1.5.0 — descrição do relator fora | 3 | 1.143 |
+| 1.5.0 — crédito extraordinário, Lei 8.080, `crianca` em lei ambiental | 3 | 2.938 |
+
+**Hoje: 11 assuntos, 7.330 votos, 13,3% do acervo.** Escore recalculado:
+média 58,8, escala 50–66, 504 com voto próprio.
+
+| critério | assuntos | votos |
+|---|---|---|
+| Responsabilidade Social | 7 | 5.418 |
+| Valores Familiares | 3 | 1.465 |
+| Integridade Moral | 1 | 447 |
+| Proteção à Vida | 1 | 0 |
+| Liberdade Religiosa | 0 | 0 |
+
+### Os 11 assuntos, lidos um a um
+
+✅ PEC 383/2017 (SUAS) · PEC 14/2021 (proteção social, SUS) · MPV 1164/2023
+(Bolsa Família) · PL 2245/2023 (trabalho digno) · PL 4364/2020 (cuidados) ·
+PL 424/2015 e PL 10106/2018 (Leis 8.080) · PL 3914/2023 (Estatuto da Criança) ·
+PL 1520/2021 (homicídio de criança como crime hediondo) · PL 2162/2023
+(anistia aos participantes das manifestações) · PL 2275/2022 (prevenção para
+crianças) · PL 1904/2024 (aborto equiparado a homicídio).
+
+Nenhum resto é lixo de classificação. O que resta é pouco porque o corpus
+é pouco: de 5 proposições sobre aborto, **1** chegou ao plenário nominal
+desde 2023; sobre liberdade religiosa, **nenhuma**.
+
+### E "moral" tem 1 assunto só
+
+Motivo: Integridade Moral é, por decisão do usuário, medida por **despesa**,
+não por voto. A pauta nominal de anistia entra como registro histórico, mas
+o critério de Moral se sustenta no gasto — que é onde há 421’Assemblée
+inteira com dado.
+
+### O método se pagou
+
+Cada rodada é mensurável: a auditoria por palavra-chave diz o que errou e
+quanto, a correção é uma linha, e a reclassificação mostra o saldo. É o que
+falta repetir para os quatro subjects errados.

@@ -27,7 +27,7 @@
  *   npx tsx scripts/reclassificar-pautas.ts --aplicar   # grava
  */
 import { PrismaClient } from '@prisma/client';
-import { matchScanRule, SCAN_RULES_VERSION } from './lib/scan-rules.js';
+import { matchScanRule, SCAN_RULES_VERSION, textoParaClassificar } from './lib/scan-rules.js';
 
 const prisma = new PrismaClient();
 const aplicar = process.argv.includes('--aplicar');
@@ -42,7 +42,7 @@ async function main() {
   const plano: Array<{ t: string; de: string; para: string; v: number; id: string }> = [];
 
   for (const a of agendas) {
-    const r = matchScanRule(`${a.title ?? ''} ${a.description ?? ''}`);
+    const r = matchScanRule(textoParaClassificar(a.title, a.description));
     // matchScanRule já devolve o valor do enum (CriteriaType). Sem mapeamento
     // aqui: um mapeamento anterior convertia para 'SOCIAL_RESP', que não existe
     // no enum, e fazia toda pauta SOCIAL que continuava SOCIAL ser contada

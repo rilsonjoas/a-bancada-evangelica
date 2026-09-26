@@ -57,7 +57,7 @@ export interface ScanRule {
  *  SUBSTRING mas não o de SENTIDO — `anistia` em liquidação de dívidas,
  *  `prescricao` em contrato de seguro.
  */
-export const SCAN_RULES_VERSION = '1.4.0';
+export const SCAN_RULES_VERSION = '1.5.0';
 
 export const SCAN_RULES: ScanRule[] = [
   // Proteção à vida
@@ -89,10 +89,32 @@ export const SCAN_RULES: ScanRule[] = [
   //
   // Custo: cai a sensitividade. Com 2.559 votos em 7 pautas,o recall já é o
   // gargalo do critério — e nesse regime, precisão vale mais que cobertura.
-  { criteria: 'FAMILY_VALUES', keywords: ['casamento', 'adocao', 'menor de idade', 'crianca', 'estatuto da crianca', 'direito da crianca', 'violencia contra a crianca'], simIsPositive: true, weight: 15, priority: 4 },
+  {
+    criteria: 'FAMILY_VALUES',
+    keywords: ['casamento', 'adocao', 'menor de idade', 'crianca', 'estatuto da crianca', 'direito da crianca', 'violencia contra a crianca'],
+    simIsPositive: true, weight: 15, priority: 4,
+    // `crianca` é palavra fraca: aparece em qualquer lei que mencione
+    // público infantil, mesmo quando o assunto é outro. Medido no acervo
+    // real (2026-09-26): "PL 2225/2024" (687 votos) institui política
+    // ambiental de direito de crianças e adolescentes à natureza e altera a
+    // Lei 6.938 (SISNAMA) — é meio ambiente com menção a criança, não
+    // proteção à criança. Não entra.
+    exclusoes: ['6.938', 'sistema nacional de areas de protecao', 'direito a natureza', 'estatuto da cidade'],
+  },
   { criteria: 'FAMILY_VALUES', keywords: ['identidade de genero', 'diversidade sexual', 'homoafetiv', 'transexual'], simIsPositive: false, weight: 15, priority: 4 },
   // Integridade moral
-  { criteria: 'MORAL_INTEGRITY', keywords: ['corrupcao', 'improbidade', 'ficha limpa', 'transparencia publica', 'lei anticorrupcao'], simIsPositive: true, weight: 15, priority: 4 },
+  {
+    criteria: 'MORAL_INTEGRITY',
+    keywords: ['corrupcao', 'improbidade', 'ficha limpa', 'transparencia publica', 'lei anticorrupcao'],
+    simIsPositive: true, weight: 15, priority: 4,
+    // Contexto medido no acervo real (2026-09-26):
+    //  - "PL 10106/2018 — altera a Lei 8.080 para publicar na internet a
+    //    lista de pacientes em cirurgia eletiva no SUS" (386 votos) citava
+    //    a Lei 8.429 ao falar de publicidade das listas, e `improbidade`
+    //    jogava um projeto de transparency do SUS para Integridade Moral.
+    //    Integridade Moral aqui é o QUE se pune, não onde se publica.
+    exclusoes: ['8.080', '8.429', 'cirurgia eletiva', 'procedimento eletivo', 'lista de pacientes'],
+  },
   {
     criteria: 'MORAL_INTEGRITY',
     keywords: ['amnistia', 'anistia', 'prescricao', 'indulto'],
@@ -111,7 +133,22 @@ export const SCAN_RULES: ScanRule[] = [
     ],
   },
   // Social
-  { criteria: 'SOCIAL_RESPONSIBILITY', keywords: ['assistencia social', 'bolsa familia', 'beneficio social', 'populacao em situacao de rua'], simIsPositive: true, weight: 10, priority: 3 },
+  {
+    criteria: 'SOCIAL_RESPONSIBILITY',
+    keywords: ['assistencia social', 'bolsa familia', 'beneficio social', 'populacao em situacao de rua', 'seguridade social', 'protecao social'],
+    simIsPositive: true, weight: 10, priority: 3,
+    // Contexto medido no acervo real (2026-09-26):
+    //  - "MPV 1268/2024" e "MPV 1188/2023" (1.826 votos) abrem crédito
+    //    extraordinário "em favor dos Ministérios ... do Desenvolvimento e
+    //    Assistência Social". É transferência de dotação—orçamento— e a
+    //    palavra aparece só porque o nome do órgão aparece na ementa.
+    //  - "PL 1822/2024" (365 votos) garante a internação de jovens viciados
+    //    em "situação de vulnerabilidade social". É internação compelled e
+    //    saúde, não política de assistência.
+    // Regra: o que a proposição FAZ vale; o nome do órgão por onde passa
+    // não. Por isso 'credito extraordinario' barra a regra inteira.
+    exclusoes: ['credito extraordinario', 'abertura de credito', 'vulnerabilidade social'],
+  },
   { criteria: 'SOCIAL_RESPONSIBILITY', keywords: ['saude publica', 'sus', 'atendimento a vitimas'], simIsPositive: true, weight: 8, priority: 2 },
   // Liberdade Religiosa
   // Achado real (2026-08-21): as keywords originais nunca casaram nenhuma
@@ -151,7 +188,50 @@ function contemPalavra(textoNormalizado: string, keyword: string): boolean {
 }
 
 /**
- * Testa um texto (ementa + título + descrição da proposição) contra as regras
+ * TEXTO QUE CLASSIFICA (2026-09-26) — título + ementa, e nada mais.
+ *
+ * Este é o ponto que separa ~22% de voto classificado errado de voto
+ * classificado certo. O `description` da pauta concatena três textos:
+ * ementa, descrição do relator e descrição da votação. Só a ementa é o
+ * objeto oficial da proposição; as outras duas são documento
+ * administrativo, onde qualquer palavra aparece por acaso.
+ *
+ * Foi por casar contra o texto administrativo que:
+ *  - `sus` casou com "sustentável" em licenciamento ambiental — 67,4% de
+ *    todos os votos do banco;
+ *  - `assistencia social` casou com projeto de estágio de Firms;
+ *  - `homicidio` casou com projeto de Código Penal e entrou como proteção
+ *    à vida — 1.720 votos.
+ *
+ * Regra: se não está no título ou na ementa, não é o assunto.
+ */
+/**
+ * Extrai a ementa do campo `description`.
+ *
+ * O sync monta `description` como
+ * `[ementa, descricao_da_proposicao, descricao_da_votacao].join(' · ')`,
+ * então a ementa é o primeiro segmento. Depender disso é melhor do que
+ * depender de coluna nova: o dado já está gravado nas 162 pautas, e uma
+ * coluna nova exigiria migrar o Prisma Client de toda a cadeia.
+ *
+ * Se a pauta não tiver separador, o texto inteiro é usado — é o melhor
+ * que existe, e é a ementa na maioria dos casos.
+ */
+export function extrairEmenta(description: string | null | undefined): string {
+  const d = (description ?? '').trim();
+  if (!d) return '';
+  return (d.split(' · ')[0] ?? d).trim();
+}
+
+export function textoParaClassificar(
+  titulo: string | null | undefined,
+  description: string | null | undefined,
+): string {
+  return `${titulo ?? ''} ${extrairEmenta(description)}`;
+}
+
+/**
+ * Testa um texto (título + ementa) contra as regras
  * EM ORDEM — a primeira cujo array casar decide critério, peso e sinal.
  * Null = sem regra (votação fora do escopo; entra no histórico mas não no
  * scoring).
@@ -167,4 +247,36 @@ export function matchScanRule(text: string): ScanRule | null {
     if (rule.keywords.some(k => contemPalavra(n, k))) return rule;
   }
   return null;
+}
+/**
+ * Como `matchScanRule`, mas devolve TAMBÉM a palavra que casou (e a
+ * exclusão que barrou a regra, quando for o caso).
+ *
+ * Existe porque a auditoria por palavra-chave diz "isto está errado, e
+ *provavelmente é por esta palavra aqui" — sem isso, corrigir um falso positivo é
+ * adivinhação, e adivinhação em classificador é como o `sus` dentro de
+ * "sustentável" entrou: alguém leu o sintoma e chutou a palavra.
+ */
+export interface ScanMatch {
+  rule: ScanRule;
+  keyword: string;
+  /** Preenchida quando a regra casaria mas foi barrada por exclusão. */
+  barradaPor?: string;
+}
+
+export function diagnosticarMatch(text: string): ScanMatch | null {
+  const n = normalize(text);
+  let barradas: ScanMatch | null = null;
+  for (const rule of SCAN_RULES) {
+    const exclusao = rule.exclusoes?.find(x => contemPalavra(n, x));
+    if (exclusao) {
+      if (!barradas) {
+        barradas = { rule, keyword: rule.keywords.find(k => contemPalavra(n, k)) ?? rule.keywords[0], barradaPor: exclusao };
+      }
+      continue;
+    }
+    const keyword = rule.keywords.find(k => contemPalavra(n, k));
+    if (keyword) return { rule, keyword };
+  }
+  return barradas;
 }

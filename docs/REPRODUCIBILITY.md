@@ -89,7 +89,35 @@ Resultado final: notas 0–100 por critério + nota geral + rank
 > **`exclusoes`** à regra: contexto presente DESFAZ o casamento. A lista não
 > é chute — é o contexto que apareceu no acervo real, medido.
 >
-> **1.4.0 — `homicidio` e `crime contra a vida` saíram de Proteção à Vida.**
+> **SCAN_RULES 1.5.0 — a classificação passou a casar contra título + ementa, e não
+> contra a descrição do relator.** `description` concatena três textos
+> (ementa, descrição do relator, descrição da votação); só a ementa é o
+> objeto oficial da proposição. `textoParaClassificar(titulo, description)`
+> fica com o título e o primeiro segmento de `description` — que é a ementa
+> por construção do sync. Medido no acervo: tirou mais 1.143 votos duvidosos
+> (37 → 34 assuntos; 12.435 → 11.292 votos).
+>
+> A 1.5.0 também corrigiu os falsos positivos que sobraram, todos achados
+> lendo os 17 assuntos um a um com `diagnosticarMatch()` (que devolve **qual
+> palavra casou**, não só o critério):
+> - `assistencia social` dentro do nome do órgão em MPV 1268/2024 e
+>   MPV 1188/2023 ("crédito extraordinário em favor dos Ministérios ...") —
+>   1.826 votos de orçamento que entravam como política social;
+> - `improbidade` em PL 10106/2018 (publicar lista de cirurgia eletiva no
+>   SUS, que cita a Lei 8.429) — 386 votos que entravam como Integridade
+>   Moral;
+> - `crianca` em PL 2225/2024 (política ambiental do direito de crianças à
+>   natureza, Lei 6.938) — 687 votos que entravam como Valores Familiares;
+> - `vulnerabilidade social` em PL 1822/2024 (internação de jovens) — 365
+>   votos.
+>
+> Também entraram `seguridade social` e `protecao social` como palavras do
+> critério Social, para que a PEC 14/2021 entre pelo motivo certo e não por
+> acaso de casar a sigla `SUS`.
+>
+> **Estado ao fim da 1.5.0: 11 assuntos, 7.330 votos, 13,3% do acervo.**
+>
+> **SCAN_RULES 1.4.0 — `homicidio` e `crime contra a vida` saíram de Proteção à Vida.**
 > Medido com a paginação corrigida: as duas palavras puxavam 5 pautas e
 > **1.720 votos**, e nenhuma era sobre vida intrauterina — eram projetos de
 > Código Penal (art. 121, "crime hediondo o homicídio") e de Lei de
@@ -116,7 +144,7 @@ Resultado final: notas 0–100 por critério + nota geral + rank
 
 Cada votação nominal é cruzada com **palavras-chave** dos 5 critérios. Se houver match, a votação vira uma **pauta-chave** (KeyAgenda), com um **peso fixo** (`weight`) e um sinal (`simIsPositive`) que decide se votar SIM soma ou subtrai.
 
-**Regras reais** (`SCAN_RULES`, definidas em `scripts/lib/scan-rules.ts` — fonte ÚNICA, criada em 2026-09-16; este guia citava `scripts/sync-votes.ts` como dono das regras até 16/09, quando cada sync mantinha **sua própria cópia** e as duas cópias divergiram. Agora `sync-votes.ts` (Câmara) e `sync-votes-senado.ts` importam o mesmo módulo, e cada pauta-chave grava `rules_version = SCAN_RULES_VERSION` (hoje `1.4.0`) para que reclassificações futuras saibam quais pautas foram classificadas por qual conjunto de regras):
+**Regras reais** (`SCAN_RULES`, definidas em `scripts/lib/scan-rules.ts` — fonte ÚNICA, criada em 2026-09-16; este guia citava `scripts/sync-votes.ts` como dono das regras até 16/09, quando cada sync mantinha **sua própria cópia** e as duas cópias divergiram. Agora `sync-votes.ts` (Câmara) e `sync-votes-senado.ts` importam o mesmo módulo, e cada pauta-chave grava `rules_version = SCAN_RULES_VERSION` (hoje `1.5.0`) para que reclassificações futuras saibam quais pautas foram classificadas por qual conjunto de regras):
 
 | Critério | Peso | Keywords reais (`SCAN_RULES`) | SIM é positivo? |
 |----------|------|-------------------------------|------------------|
@@ -561,7 +589,7 @@ Qualquer discrepância entre este guia e o código = bug. Reporte.*
 
 | Regra | Versão | Onde mora | Onde é documentada |
 |---|---|---|---|
-| `SCAN_RULES` | **1.4.0** | `scripts/lib/scan-rules.ts` | seção 3 deste guia |
+| `SCAN_RULES` | **1.5.0** | `scripts/lib/scan-rules.ts` | seção 3 deste guia |
 | `EXPENSE_RULES` | 2.0.0 | `scripts/lib/expense-rules.ts` | `docs/DETECCAO-DESPESAS.md` |
 | `SCORE_FORMULA` | **1.2.0** | `scripts/lib/scoring.ts` | seção 5 deste guia |
 
