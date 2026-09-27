@@ -206,17 +206,20 @@ export function PoliticianProfile() {
                   )}
                 </div>
 
-                <div className="flex gap-2">
-                  <Button onClick={shareProfile} variant="outline" size="sm">
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Compartilhar
-                  </Button>
-
+                {/* Achados 1 e 2 (2026-09-26, resolvidos 2026-09-27): os dois
+                    botões tinham peso visual idêntico (outline), então
+                    quem queria compartilhar rápido clicava no primeiro
+                    ("Compartilhar", ali do lado) e nunca via o pôster de
+                    verdade — a peça pensada pra virar Story ficava
+                    escondida atrás da escolha errada. Agora o caminho do
+                    pôster é a ação primária (cor sólida, maior); o link
+                    puro vira a opção secundária, discreta, abaixo. */}
+                <div className="flex flex-col items-end gap-2">
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button variant="outline" size="sm">
+                      <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold">
                         <ImageIcon className="w-4 h-4 mr-2" />
-                        Card pra imagem
+                        Compartilhar como Card
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-4 sm:p-6">
@@ -228,6 +231,11 @@ export function PoliticianProfile() {
                       </div>
                     </DialogContent>
                   </Dialog>
+
+                  <Button onClick={shareProfile} variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                    <Share2 className="w-4 h-4 mr-2" />
+                    Só o link
+                  </Button>
                 </div>
               </div>
             </div>

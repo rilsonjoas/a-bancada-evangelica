@@ -1802,3 +1802,101 @@ só responde para o Plenário; comissão dá 404. Então comissão resolve o
 qualidade de voto (mérito > emenda > requerimento), rastreamento de
 proposições por tramitação, e a paginação do sync (agora segura, com o
 classificador preciso).
+
+---
+
+## 📌 Compartilhamento manual (usuário → Instagram) — Achados 1 e 2 resolvidos (2026-09-27)
+
+Pedido do Rilson: nem A Bancada Evangélica, nem o Bíblia na Arte, nem o
+Teste Político estavam aproveitando o compartilhamento pro Instagram
+como poderiam — mesmo achado registrado nos três repos. Levantamento
+original de 2026-09-26; Achados 1 e 2 corrigidos no dia seguinte
+(ver a mesma seção espelhada nos outros dois ROADMAPs — Teste Político
+já fechou os dois lá também). Achado 3 fica pra depois, deliberadamente
+(exigiria trocar o próprio motor de captura do pôster).
+
+### O que já existe (`PoliticianProfile.tsx:209-231`, `ShareableCard.tsx`)
+
+Dois botões lado a lado, mesmo peso visual (os dois `variant="outline"
+size="sm"`), competindo pela mesma atenção:
+- **"Compartilhar"** (`shareProfile`) — só compartilha o LINK da página
+  via Web Share API/clipboard. Não gera nem usa a imagem.
+- **"Card pra imagem"** — abre um `Dialog` que só então renderiza o
+  `ShareableCard`: um pôster de exportação de verdade bem desenhado
+  (gradiente institucional, foto circular com anel branco, nota em
+  destaque tipográfico grande, barras dos 5 critérios, selo dourado,
+  rodapé com URL) — com botões próprios de "Baixar Card"/"Compartilhar
+  Card" **dentro** do dialog, acima do preview.
+
+### Achado 1 — o pôster bom ficava 2+ cliques escondido — RESOLVIDO (2026-09-27)
+
+A peça visual mais forte do produto (o pôster, feito sob medida pra
+"orgulho de compartilhar" — tem até 2 humores diferentes, dourado pra
+bom desempenho e neutro/respeitoso pra desempenho baixo) só aparecia
+depois de: clicar em "Card pra imagem" → abrir o dialog → só aí ver o
+preview e os botões de ação de verdade. Quem queria compartilhar rápido
+provavelmente clicava no primeiro botão ("Compartilhar", ali do lado),
+que só manda o link puro — a experiência visual pensada pra virar Story
+nunca era vista por quem usava o caminho mais óbvio.
+
+**Solução aplicada**: em vez de fundir os dois fluxos (perderia a opção
+de link puro, que ainda tem uso — ex.: mandar o perfil por WhatsApp sem
+gerar imagem), resolvido junto com o Achado 2: o botão que leva ao
+pôster virou a opção visualmente óbvia, então "o caminho mais óbvio"
+agora É o que mostra o pôster.
+
+### Achado 2 — nenhum dos dois era o primário — RESOLVIDO (2026-09-27)
+
+Contra a regra do skill `qualidade-de-interface` (§4, "uma ação
+primária por tela"): os dois botões eram visualmente idênticos
+(`outline`, mesmo tamanho), então nenhum comunicava "comece por aqui".
+
+**Solução aplicada** (`PoliticianProfile.tsx:209-238`): "Card pra
+imagem" virou **"Compartilhar como Card"** (nome verbo+resultado, regra
+do skill `qualidade-de-interface` §5) em botão sólido `bg-primary`
+(o azul institucional já usado dentro do próprio `ShareableCard`, sem
+cor nova) — ação primária clara. "Compartilhar" (link puro) virou
+`variant="ghost"`, renomeado **"Só o link"** pra deixar explícito que é
+a opção menor, empilhado abaixo do primário em vez de lado a lado (mesma
+técnica de empilhamento vertical usada no Teste Político). Verificado
+localmente contra a API de produção (leitura, sem mexer em dado real)
+em dois políticos — um em modo "orgulho" (nota ≥60, dourado) e um em
+modo neutro (nota <60) — via screenshots desktop e mobile: hierarquia
+visual clara nos dois casos, nada quebrado.
+
+### Achado 3 — pôster não está no tamanho de Story do Instagram
+
+`ShareableCard` renderiza em `w-[420px]`/`w-[480px]` (pensado pra
+preview em tela, não pra proporção 9:16 do Instagram Stories) — o
+`html2canvas` captura nessas dimensões (com `scale: 2`), então o PNG
+final sai numa proporção que não é a nativa de Story. O Bíblia na Arte
+já resolveu isso pro card dele (1080×1920 fixo, fora da tela) — vale o
+mesmo tratamento aqui.
+
+### Perguntas em aberto (compartilhadas com os outros 2 repos, não decidido aqui)
+
+- ~~Fundir os dois botões num só fluxo (o "Compartilhar" já abre indo
+  direto pro pôster, sem esconder atrás de um segundo clique)?~~ —
+  RESPONDIDO (2026-09-27): não fundido, o link puro ainda tem uso
+  próprio. Resolvido promovendo o botão certo em vez de eliminar o
+  outro. Ver Achado 1.
+- ~~Promover "Card pra imagem" a ação primária visual (cor sólida, não
+  outline) já que é a peça pensada pra viralizar, e "Compartilhar"
+  (link puro) vira a secundária?~~ — RESOLVIDO (2026-09-27). Ver
+  Achado 2.
+- Gerar o pôster já na proporção 1080×1920 fixa, fora da tela (mesmo
+  padrão do Bíblia na Arte), em vez do tamanho de preview atual? —
+  Achado 3, deliberadamente adiado (troca o motor de captura do pôster,
+  refactor maior, sem urgência frente aos dois primeiros).
+- Vale um segundo formato quadrado/feed além do Story? — em aberto,
+  só faz sentido decidir depois do Achado 3.
+- Estratégia de viralização mais ampla — o humor "orgulho" (>=60) já é
+  uma ideia boa (dá motivo pro PRÓPRIO deputado querer compartilhar);
+  dá pra ir além disso? Gamificação, comparação entre parlamentares,
+  algo que dê motivo recorrente de compartilhar de novo? — em aberto,
+  discutir com o Rilson.
+
+**Achados 1 e 2 implementados e verificados (typecheck + suíte de
+testes + screenshots desktop/mobile, dois humores do pôster) em
+2026-09-27. Achado 3 e a estratégia de viralização cross-projeto seguem
+em aberto.**
