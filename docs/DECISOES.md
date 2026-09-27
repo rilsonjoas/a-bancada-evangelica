@@ -541,3 +541,91 @@ A correção de paginação precisa vir acompanhada de **contagem de cobertura
 no `SyncLog`** (substantivas vistas / substantivas existentes). Sem isso, o
 mesmo bug volta em silêncio na próxima refatoração — e desta vez vai parecer
 que o mundo parou de votar naquilo que não medimos.
+
+## 2026-09-27 — Fila de curadoria de notícias humanamente possível
+
+**Origem**: alertas do Uptime Kuma sobre o monitor "Bancada · Fila de
+Curadoria (push)". Investigando, o problema real não era o alerta: era a
+fila. 13.783 notícias pendentes, crescendo ~350/dia, com 189 revisadas à
+mão desde 28/08. O Rilson: "não tenho como ficar fazendo esse tipo de
+revisão manualmente o tempo todo" e "42 mil notícias pendentes é irreal
+para eu manejar".
+
+### O que estava errado no desenho anterior (2026-09-08)
+
+1. **O alerta de fila grande pressupunha cadência.** Ele só serve se, ao
+   disparar, alguém vai lá curar. Sem cadência nenhuma, ele vira ruído
+   diário. O limite no `.env` de produção já tinha sido subido para 20.000
+   para calar o alerta, e mesmo assim ia estourar em 2–3 semanas.
+2. **A expiração de 120 dias contava pela data de coleta.** Com a coleta
+   aceitando notícia de até 24 meses atrás, uma matéria de 2024 coletada
+   hoje ficaria mais 120 dias na fila. No regime de ~350/dia, a fila se
+   estabilizaria perto de **~42 mil**.
+3. **O teto de 10 por parlamentar era por execução, não acumulado.** Todo
+   dia entravam até 10 novas por pessoa, sem limite no total.
+
+### Medido na fila real (snapshot 2026-09-27, 13.783 PENDING)
+
+- 590 parlamentares; mediana 20 pendentes cada, p99 = 98.
+- 71% publicado em agosto/setembro — pico de campanha (1º turno 04/10).
+- Por dentro da fila, o que não é notícia:
+
+| Regra | Itens | O que é |
+|---|---|---|
+| Ficha de candidatura | 1.452 | "Fulano 2007 - Candidato a deputado federal… \| Eleições 2026" (ND Mais, Tribuna do Paraná, Itatiaia, G1). Uma por candidato em cada site |
+| Título repetido | 763 | Mesma matéria, mesmo parlamentar, URL diferente |
+| Site de partido | 385 | "Republicanos 10", "PSB 40", "Partido dos Trabalhadores" — autopromoção, não imprensa |
+| Título só com o nome | 240 | "ROBINSON FARIA", sem conteúdo |
+
+Depois de tirar esse lixo, as outras regras: 5.596 publicadas há mais de
+30 dias e 3.681 acima do teto de 5 por parlamentar. **Sobram 1.666**,
+espalhadas por ~520 parlamentares, no máximo 5 cada.
+
+Conferência de falso positivo contra as 189 decisões humanas já tomadas:
+as regras pegariam 12. Título só com o nome: 8 de 8 já reprovadas por
+você (bate). Ficha de candidatura: 2 aprovadas (duas fichas do Claudio
+Cajado). Site de partido: 1 aprovada, 1 reprovada. As duas regras que
+contrariavam decisões anteriores foram levadas ao Rilson, que escolheu
+descartar as duas. Itens já revisados não são tocados.
+
+Amostras aleatórias de 25 fichas e 10 de cada outra regra, lidas uma a
+uma: zero notícia real pega. Perfis do tipo "quem é Fulano, candidato a…"
+e entrevistas com candidato passam de propósito (teste cobre).
+
+### Decisões
+
+| # | Decidido | Descartado | Motivo |
+|---|---|---|---|
+| F1 | **Sem alerta de fila.** O push fica sempre `up`, com a contagem na mensagem; o monitor passa a significar "a busca diária rodou" | Alerta com limite alto | Curadoria é quando houver tempo, sem cadência. Alerta sem ação esperada é ruído |
+| F2 | **Descartar o que não é notícia**, na coleta e na fila existente | Deixar a curadoria humana filtrar | 2.840 itens (20% da fila) que ninguém precisava ver |
+| F3 | **Janela de 30 dias pela data de publicação**, na coleta e na fila | 120 dias pela data de coleta | Aprovadas até hoje tinham ~11 dias entre publicação e revisão (mediana). Notícia política de 2 meses raramente vale publicar |
+| F4 | **Teto de 5 pendentes por parlamentar, acumulado** (saem as mais antigas) | 10 por execução | Limita o total a ~5 × parlamentares com notícia, qualquer que seja o volume de campanha |
+| F5 | Expirado vira `REJECTED` com **`reviewed_at` NULL** | Status `EXPIRED` novo; apagar a linha | Enum novo exige migração (risco já vivido em outro projeto). Apagar libera a URL e a mesma matéria voltaria no dia seguinte. `reviewed_at` só é escrito pela revisão humana e nunca lido — NULL distingue "saiu pela regra" de "você reprovou" |
+
+### Como verificar
+
+- `SyncLog` com `details.action = 'auto_trim_curation_queue'`: contagem por
+  regra (`counts`) e ids (`expiredIds`) de cada execução diária.
+- Reprovações humanas: `status = 'REJECTED' AND reviewed_at IS NOT NULL`.
+  Saídas automáticas: `status = 'REJECTED' AND reviewed_at IS NULL`.
+- O Uptime Kuma mostra a contagem de pendentes na mensagem do push.
+
+### Onde isso está
+
+- Regras: `scripts/lib/news-curation.ts` (fonte única — constantes
+  `CURATION_MAX_AGE_DAYS` e `CURATION_MAX_PENDING_PER_POLITICIAN`)
+- Testes: `scripts/__tests__/news-curation.test.ts`, com títulos reais da fila
+- Coleta: `scripts/sync-news.ts`; manutenção diária: `manageCurationQueue`
+  em `scripts/sync-worker.ts`
+- `CURATION_QUEUE_ALERT_THRESHOLD` e `CURATION_QUEUE_STALE_DAYS` deixaram de
+  ser lidos
+
+### Ainda aberto
+
+- **Painel mostrando lote priorizado** (item de Eixo 2 no
+  `PLANO-OPERACAO-SUSTENTAVEL.md`): hoje `/admin/noticias` mostra as 100
+  mais recentes. Ordenar por "parlamentar sem nenhuma notícia aprovada"
+  primeiro distribuiria a atenção. Não feito nesta rodada.
+- Se a lista de siglas de partido crescer (hoje só as observadas:
+  Republicanos 10, PSB 40, PSOL 50, Avante 70 e "Partido …"), acrescentar
+  em `PARTY_SOURCE_PATTERNS` com teste.

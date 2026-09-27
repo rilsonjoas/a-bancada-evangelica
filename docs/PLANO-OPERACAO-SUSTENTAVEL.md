@@ -18,10 +18,15 @@ do estado do projeto — nada aqui é aspiracional sem checar o código.
       pra colar na UI, ver seção abaixo). Os outros 5 ficam adiados por
       escolha, não esquecidos.
 - [x] Eixo 2 (código) — expiração automática (120 dias), alerta de fila
-      (>150), contagem real no painel (corrigiu undercount de UI)
+      (>150), contagem real no painel (corrigiu undercount de UI).
+      **Substituído em 2026-09-27**: sem alerta de fila; descarte do que
+      não é notícia, janela de 30 dias pela publicação e teto de 5
+      pendentes por parlamentar (`docs/DECISOES.md`, 2026-09-27)
 - [x] Eixo 2 (decisão) — **curadoria por evento, não por calendário**
       (decidido 2026-09-08, a seu pedido — nada de ritual fixo de
-      revisar toda semana; você só entra quando o alerta disparar)
+      revisar toda semana; você só entra quando o alerta disparar).
+      **Revisto em 2026-09-27**: não há alerta — você entra quando tiver
+      tempo, e a fila se mantém pequena sozinha
 - [x] Eixo 3 (documentação) — gatilhos definidos, watch list criada
 - [ ] Eixo 3 (uso contínuo) — colar link na watch list quando notar
       cobertura relevante (não é uma tarefa única, é um hábito leve)
@@ -53,13 +58,24 @@ teria feito o monitor marcar "down" a cada ~24 min em vez de ~24h. Fonte:
 
 | Variável | Nome sugerido (seu padrão) | Heartbeat Interval | Status |
 |---|---|---|---|
-| `UPTIME_KUMA_PUSH_URL_SCORES` | Bancada · Recálculo de Scores (push) | `86400` (24h) | **prioridade — esqueleto enviado 2026-09-08** |
-| `UPTIME_KUMA_PUSH_URL_CURATION_QUEUE` | Bancada · Fila de Curadoria (push) | `86400` | **prioridade — esqueleto enviado 2026-09-08** |
+| `UPTIME_KUMA_PUSH_URL_SCORES` | Bancada · Recálculo de Scores (push) | `90000` (25h) | criado; intervalo subiu de `86400` em 2026-09-27 (ver nota abaixo) |
+| `UPTIME_KUMA_PUSH_URL_CURATION_QUEUE` | Bancada · Fila de Curadoria (push) — renomear para "Busca de Notícias" | `90000` (25h) | criado; desde 2026-09-27 é só liveness da busca diária (sempre `up`), não alerta de fila |
 | `UPTIME_KUMA_PUSH_URL_POLITICIANS` | Bancada · Sync Políticos (push) | `86400` | adiado por escolha |
 | `UPTIME_KUMA_PUSH_URL_NEWS` | Bancada · Sync Notícias (push) | `86400` | adiado por escolha |
 | `UPTIME_KUMA_PUSH_URL_EXPENSES` | Bancada · Sync Gastos (push) | `604800` (7 dias) | adiado por escolha |
 | `UPTIME_KUMA_PUSH_URL_EXPENSE_ANALYSIS` | Bancada · Análise de Despesas (push) | `604800` | adiado por escolha |
 | `UPTIME_KUMA_PUSH_URL_LOG_CLEANUP` | Bancada · Limpeza de Logs (push) | `2678400` (31 dias) — checar se a versão em produção aceita; se não, usar semanal (`604800`) como aproximação | adiado por escolha |
+
+> **Nota (2026-09-27) — intervalo nunca igual ao período do job.** Com
+> `86400` num job diário, o prazo vence no mesmo segundo em que o job
+> manda o push; se o job de hoje demora 1s a mais que o de ontem, o Kuma
+> marca DOWN e volta UP segundos depois. Aconteceu em 20/09, 26/09 e 27/09
+> no de Scores (diferença de 1,4s em 27/09). Regra: período do job + folga
+> (diário → `90000`, semanal → `608400`). Os adiados acima herdam a regra
+> quando forem criados.
+>
+> Depois de mudar o `.env`, `docker compose restart` **não** recarrega as
+> variáveis — usar `docker compose up -d --force-recreate bancada-sync-worker`.
 
 Passo a passo por linha: **Add New Monitor → Push → nome da tabela →
 Heartbeat Interval da tabela → Retries `0` → Save → copiar a URL do
@@ -111,7 +127,8 @@ no que vê (porque o que é frágil é sinalizado, não escondido).
 - **Curadoria da fila de notícias** (`/admin/noticias`) — 100% humana
   por decisão de produto (nunca vai automatizar a decisão de
   aprovar/rejeitar), mas hoje sem cadência definida nem alerta se a
-  fila crescer demais.
+  fila crescer demais. *(2026-09-27: sem cadência continua sendo a
+  decisão; o que mudou é que a fila tem teto — ver Eixo 2.)*
 
 ### A lacuna que sustenta o resto do plano
 
@@ -169,12 +186,22 @@ editorializa").
   alerta abaixo disparar. O sistema já tolera isso — `PENDING` nunca
   aparece pro público, então não curar por um tempo só reduz conteúdo
   publicado, nunca publica algo errado.
-- [x] **Alerta de fila grande.** Implementado — `PENDING` > 150 dispara
-  push `UPTIME_KUMA_PUSH_URL_CURATION_QUEUE` com status=down. Falta só
-  criar o monitor no Uptime Kuma (ver "Status" no topo do documento).
-- [x] **Expiração de item esquecido.** Implementado —`PENDING` há mais
-  de 120 dias vira `REJECTED` automático (motivo em `SyncLog.details`).
-  Roda dentro do próprio job diário de notícias, sem depender de você.
+- [x] ~~**Alerta de fila grande.** Implementado — `PENDING` > 150 dispara
+  push `UPTIME_KUMA_PUSH_URL_CURATION_QUEUE` com status=down.~~
+  **Removido em 2026-09-27.** Sem cadência de curadoria, o alerta só
+  gerava ruído (o limite em produção já tinha subido para 20.000 e ia
+  estourar em semanas). O push agora é sempre `up` e confirma só que a
+  busca diária rodou.
+- [x] ~~**Expiração de item esquecido.** `PENDING` há mais de 120 dias
+  (pela data de coleta) vira `REJECTED` automático.~~ **Substituído em
+  2026-09-27** por regras que mantêm a fila revisável (medidas na fila
+  real: de 13.783 para ~1.700). Detalhe e números em `docs/DECISOES.md`:
+  - descarta o que não é notícia (ficha de candidatura, título só com o
+    nome, site de partido) e título repetido;
+  - janela de 30 dias pela **data de publicação**, na coleta e na fila;
+  - teto de 5 pendentes por parlamentar (saem as mais antigas);
+  - o que sai vira `REJECTED` com `reviewed_at` NULL (reprovação humana
+    sempre tem `reviewed_at`). Motivo e ids em `SyncLog.details`.
 - [ ] Priorização na UI da fila: já existe filtro por fonte/busca
   (`NewsCuration.tsx`) — se o volume da eleição for grande, considerar
   ordenar por "parlamentar com menos menções aprovadas ainda" primeiro,
@@ -224,8 +251,10 @@ a operação de rotina fica assim:
 
 - **Diário**: nada manual — cron cobre políticos, notícias, scores;
   Uptime Kuma avisa se algo falhar
-- **Curadoria da fila**: nenhuma cadência fixa — só quando o alerta de
-  fila grande disparar (Eixo 2). Pode passar meses sem precisar entrar.
+- **Curadoria da fila**: nenhuma cadência fixa e nenhum alerta — entra
+  quando tiver tempo (decisão 2026-09-27). A fila fica em no máximo 5
+  pendentes por parlamentar, todas com menos de 30 dias, então qualquer
+  sessão curta vê o que é atual. Pode passar meses sem precisar entrar.
 - **Quando o Watch list (Eixo 3) acumular algo relevante, ou nova
   legislatura**: revisão de `PARTY_ALIGNMENT`
 - **Trimestral**: reconfirmar que a auditoria de FPE ainda está

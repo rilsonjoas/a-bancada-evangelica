@@ -5,6 +5,14 @@ import { promisify } from 'node:util';
 import { syncCamara, CamaraSyncService } from './sync-camara';
 import { syncSenado, SenadoSyncService } from './sync-senado';
 import { runQualityChecks } from './quality-check';
+import {
+  junkReason,
+  normalizeTitle,
+  selectQueueExpirations,
+  CURATION_MAX_AGE_DAYS,
+  CURATION_MAX_PENDING_PER_POLITICIAN,
+  type PendingForTrim,
+} from './lib/news-curation';
 
 const execFileAsync = promisify(execFile);
 const prisma = new PrismaClient();
@@ -43,14 +51,12 @@ async function pingUptimeKuma(envVar: string, opts: { status?: 'up' | 'down'; ms
 
 // Eixo 2 do plano — capacidade de curadoria da fila de notícias.
 //
-// Decisão do Rilson (2026-09-08): curadoria por EVENTO (quando o alerta
-// disparar), não por calendário fixo — ele não tem como ficar revisando
-// isso com frequência, e o sistema não exige: PENDING nunca aparece pro
-// público, então não curar por um tempo só significa "menos conteúdo
-// publicado", nunca "conteúdo errado publicado". Defaults tolerantes de
-// propósito, pra alertar raramente.
-const CURATION_QUEUE_ALERT_THRESHOLD = Number(process.env.CURATION_QUEUE_ALERT_THRESHOLD ?? 150);
-const CURATION_QUEUE_STALE_DAYS = Number(process.env.CURATION_QUEUE_STALE_DAYS ?? 120);
+// Decisão do Rilson (2026-09-27, docs/DECISOES.md): curadoria quando ele
+// tiver tempo, sem alerta de fila grande. Revisar não tem cadência, então
+// avisar que a fila cresceu só gera ruído. Em vez disso a fila se mantém
+// pequena sozinha (regras em lib/news-curation.ts). PENDING nunca aparece
+// pro público: não curar significa "menos conteúdo publicado", nunca
+// "conteúdo errado publicado".
 
 interface SyncSchedule {
   name: string;
@@ -126,11 +132,9 @@ class SyncWorkerService {
           throw error;
         }
 
-        // Eixo 2 do plano (2026-09-08): a busca agora é automática, mas a
-        // decisão de aprovar/rejeitar continua 100% humana por decisão de
-        // produto — o que pode crescer sem controle é a FILA. Duas
-        // salvaguardas pra ela não virar um backlog impossível se a
-        // curadoria ficar parada um tempo:
+        // Eixo 2 do plano: a busca é automática, mas aprovar/rejeitar
+        // continua 100% humano — o que pode crescer sem controle é a FILA.
+        // Isso aqui a mantém num tamanho revisável (decisão 2026-09-27).
         await this.manageCurationQueue();
       },
       enabled: true
@@ -467,36 +471,84 @@ class SyncWorkerService {
   /**
    * Eixo 2 do PLANO-OPERACAO-SUSTENTAVEL.md — capacidade de curadoria.
    *
-   * Duas salvaguardas, nenhuma delas decide "aprovar" ou "rejeitar" no
-   * sentido editorial (isso continua exclusivamente humano, na área de
-   * curadoria) — só protegem a FILA em si de virar um problema:
+   * Mantém a fila num tamanho que uma pessoa consegue revisar (decisão
+   * 2026-09-27, docs/DECISOES.md). Nenhuma regra aprova nada nem julga
+   * conteúdo — só tira da fila:
    *
-   * 1. Expira PENDING esquecido há mais de CURATION_QUEUE_STALE_DAYS
-   *    (padrão 90) sem revisão. Sem isso, ficar semanas sem curar =
-   *    culpa acumulando sem limite; com isso, a fila se autolimpa mesmo
-   *    se a curadoria ficar parada um tempo. Motivo fica registrado no
-   *    SyncLog (details), não numa coluna nova em NewsMention — mesmo
-   *    padrão de auditoria que H6 já usa pra diff de scores, sem exigir
-   *    migração de schema.
-   * 2. Reporta a saúde da fila pro Uptime Kuma: status=down (dispara
-   *    alerta real, Telegram/e-mail) se PENDING passar de
-   *    CURATION_QUEUE_ALERT_THRESHOLD (padrão 50) — em vez de você
-   *    descobrir o backlog só quando abrir a página por acaso.
+   * 1. o que não é notícia (ficha de candidatura, título só com o nome,
+   *    site de partido) — mesmas regras da coleta, aplicadas aqui também
+   *    pra limpar o que entrou antes delas existirem;
+   * 2. título repetido pro mesmo parlamentar (mesma matéria em outra URL);
+   * 3. notícia publicada há mais de CURATION_MAX_AGE_DAYS;
+   * 4. o que passa de CURATION_MAX_PENDING_PER_POLITICIAN por parlamentar
+   *    (saem as mais antigas).
+   *
+   * O que sai vira REJECTED com reviewed_at NULL — é assim que se distingue
+   * de uma reprovação humana (que sempre carimba reviewed_at). Motivo e ids
+   * ficam no SyncLog (details), sem coluna nova nem migração de schema.
+   *
+   * O push pro Uptime Kuma é sempre status=up: o monitor só confirma que a
+   * busca diária de notícias rodou. Tamanho de fila não é mais alerta.
    */
   private async manageCurationQueue(): Promise<void> {
-    const cutoff = new Date(Date.now() - CURATION_QUEUE_STALE_DAYS * 24 * 60 * 60 * 1000);
-
     try {
-      const stale = await prisma.newsMention.findMany({
-        where: { status: 'PENDING', created_at: { lt: cutoff } },
-        select: { id: true, title: true, politician_id: true },
+      const pending = await prisma.newsMention.findMany({
+        where: { status: 'PENDING' },
+        select: {
+          id: true,
+          politician_id: true,
+          title: true,
+          source_name: true,
+          published_at: true,
+          politician: { select: { name: true } },
+        },
+        orderBy: { id: 'asc' }, // em título repetido, fica o que chegou primeiro
       });
 
-      if (stale.length > 0) {
-        await prisma.newsMention.updateMany({
-          where: { id: { in: stale.map((s) => s.id) } },
-          data: { status: 'REJECTED', reviewed_at: new Date() },
-        });
+      // Título já decidido (por você ou pela regra) não volta por outra URL.
+      const seenTitles = new Set(
+        (await prisma.newsMention.findMany({
+          where: { status: { not: 'PENDING' } },
+          select: { politician_id: true, title: true },
+        })).map((m) => `${m.politician_id}|${normalizeTitle(m.title)}`),
+      );
+
+      const removed: Record<string, number[]> = {
+        pagina_candidatura: [],
+        titulo_so_nome: [],
+        fonte_partidaria: [],
+        titulo_repetido: [],
+      };
+      const kept: PendingForTrim[] = [];
+
+      for (const n of pending) {
+        const junk = junkReason({ title: n.title, sourceName: n.source_name }, n.politician.name);
+        const key = `${n.politician_id}|${normalizeTitle(n.title)}`;
+        if (junk) {
+          removed[junk].push(n.id);
+        } else if (seenTitles.has(key)) {
+          removed.titulo_repetido.push(n.id);
+        } else {
+          seenTitles.add(key);
+          kept.push({ id: n.id, politicianId: n.politician_id, publishedAt: n.published_at });
+        }
+      }
+
+      const { tooOld, overflow } = selectQueueExpirations(kept);
+      const reasons = { ...removed, fora_da_janela: tooOld, acima_do_teto: overflow };
+      const expiredIds = Object.values(reasons).flat();
+
+      if (expiredIds.length > 0) {
+        // Em lotes: a primeira execução depois da mudança tira ~12 mil de uma vez.
+        for (let i = 0; i < expiredIds.length; i += 5000) {
+          await prisma.newsMention.updateMany({
+            // status PENDING de novo: se você revisou algo nesse meio-tempo, vale a sua decisão
+            where: { id: { in: expiredIds.slice(i, i + 5000) }, status: 'PENDING' },
+            data: { status: 'REJECTED', reviewed_at: null },
+          });
+        }
+
+        const counts = Object.fromEntries(Object.entries(reasons).map(([k, ids]) => [k, ids.length]));
 
         await prisma.syncLog.create({
           data: {
@@ -505,24 +557,28 @@ class SyncWorkerService {
             status: 'SUCCESS',
             start_time: new Date(),
             end_time: new Date(),
-            records_processed: stale.length,
-            records_updated: stale.length,
+            records_processed: pending.length,
+            records_updated: expiredIds.length,
             details: {
-              action: 'auto_expire_stale_pending',
-              reason: `PENDING sem revisão humana há mais de ${CURATION_QUEUE_STALE_DAYS} dias`,
-              expiredIds: stale.map((s) => s.id),
+              action: 'auto_trim_curation_queue',
+              rules: {
+                maxAgeDays: CURATION_MAX_AGE_DAYS,
+                maxPendingPerPolitician: CURATION_MAX_PENDING_PER_POLITICIAN,
+              },
+              counts,
+              expiredIds: reasons,
             },
           },
         });
 
-        console.log(`🗑️ ${stale.length} menções expiradas automaticamente (PENDING > ${CURATION_QUEUE_STALE_DAYS} dias)`);
+        console.log(`🗑️ ${expiredIds.length} menções tiradas da fila automaticamente:`, counts);
       }
 
       const pendingCount = await prisma.newsMention.count({ where: { status: 'PENDING' } });
-      console.log(`📋 Fila de curadoria: ${pendingCount} pendentes (limite de alerta: ${CURATION_QUEUE_ALERT_THRESHOLD})`);
+      console.log(`📋 Fila de curadoria: ${pendingCount} pendentes`);
 
       await pingUptimeKuma('UPTIME_KUMA_PUSH_URL_CURATION_QUEUE', {
-        status: pendingCount > CURATION_QUEUE_ALERT_THRESHOLD ? 'down' : 'up',
+        status: 'up',
         msg: `${pendingCount} pendentes na fila de curadoria`,
       });
     } catch (error) {

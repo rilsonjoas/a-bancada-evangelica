@@ -10,6 +10,11 @@
  *  - NÃO editorializa: guardamos título cru, link e data — o texto é da fonte.
  *  - Candidate-match por nome completo entre aspas + partido + UF, o que reduz
  *    (não elimina) homônimos; a curadoria humana decide nos PENDING.
+ *  - Só entra o que uma pessoa consegue revisar (decisão 2026-09-27,
+ *    docs/DECISOES.md): nada publicado há mais de 30 dias, nada que não seja
+ *    notícia (ficha de candidatura, título só com o nome, site de partido),
+ *    nada com título repetido pro mesmo parlamentar. Regras em
+ *    `lib/news-curation.ts`.
  *
  * Uso:
  *   pnpm sync:news                 # todos os ativos
@@ -19,7 +24,13 @@
 import { PrismaClient } from '@prisma/client';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { searchGoogleNews, isLikelyAbout, withinWindow } from './lib/google-news';
+import { searchGoogleNews, isLikelyAbout } from './lib/google-news';
+import {
+  junkReason,
+  normalizeTitle,
+  isWithinCurationWindow,
+  CURATION_MAX_PENDING_PER_POLITICIAN,
+} from './lib/news-curation';
 
 const prisma = new PrismaClient();
 
@@ -31,10 +42,6 @@ const STATE = stateIdx !== -1 ? args[stateIdx + 1] : undefined;
 
 const BATCH = 50;     // log a cada N processados
 const DELAY_MS = 300; // sleep entre requests — Google News sem key não tolera rajada
-const MAX_PER_POLITICIAN = 10; // teto por parlamentar — curadoria humana fica viável
-// Janela temporal: notícias de eleição antiga e balanços históricos enchem a
-// fila com lixo não acionável. Fica só o que ainda serve para contexto atual.
-const MAX_AGE_MONTHS = 24;
 
 async function main() {
   const where = {
@@ -54,6 +61,7 @@ async function main() {
   let inserted = 0;
   let skipped = 0;
   let failed = 0;
+  let discarded = 0;
 
   for (let i = 0; i < politicians.length; i++) {
     const p = politicians[i];
@@ -63,22 +71,35 @@ async function main() {
         party: p.current_party,
         state: p.current_state,
       };
-      const items = (await searchGoogleNews(query))
+      const relevant = (await searchGoogleNews(query))
         // Filtro anti-ruído: nome completo precisa estar no título
         .filter((item) => isLikelyAbout(query, item.title))
-        // Janela temporal: descarta balanços antigos e lixo histórico
-        .filter((item) => withinWindow(item.pubDate, MAX_AGE_MONTHS))
+        // Janela temporal: notícia velha demais pra valer a curadoria
+        .filter((item) => isWithinCurationWindow(new Date(item.pubDate)));
+      const items = relevant
+        // Não é notícia: ficha de candidatura, título só com o nome, site de partido
+        .filter((item) => !junkReason({ title: item.title, sourceName: item.source ?? '' }, p.name))
         // Google News ordena por relevância; priorizar os mais recentes
         .sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime())
-        .slice(0, MAX_PER_POLITICIAN);
+        .slice(0, CURATION_MAX_PENDING_PER_POLITICIAN);
       found += items.length;
+      discarded += relevant.length - items.length;
+
+      // Mesma matéria republicada com outra URL (agregadores, g1 vs G1):
+      // compara título normalizado contra tudo do parlamentar, inclusive o já
+      // revisado — o que você já reprovou não volta por outra URL.
+      const knownTitles = new Set(
+        (await prisma.newsMention.findMany({ where: { politician_id: p.id }, select: { title: true } }))
+          .map((m) => normalizeTitle(m.title)),
+      );
 
       for (const item of items) {
         const existing = await prisma.newsMention.findUnique({ where: { url: item.link } });
-        if (existing) {
+        if (existing || knownTitles.has(normalizeTitle(item.title))) {
           skipped++;
           continue;
         }
+        knownTitles.add(normalizeTitle(item.title));
         const publishedAt = item.pubDate ? new Date(item.pubDate) : null;
         await prisma.newsMention.create({
           data: {
@@ -116,13 +137,14 @@ async function main() {
       records_inserted: inserted,
       records_updated: skipped,
       records_failed: failed,
-      details: { itemsFound: found, inserted, skipped, failed, limit: LIMIT ?? null, state: STATE ?? null },
+      details: { itemsFound: found, discarded, inserted, skipped, failed, limit: LIMIT ?? null, state: STATE ?? null },
     },
   });
 
   console.log('');
   console.log(`✅ Itens encontrados: ${found}`);
   console.log(`   Inseridos (PENDING): ${inserted}`);
+  console.log(`   Descartados (não é notícia / teto): ${discarded}`);
   console.log(`   Já conhecidos (skip): ${skipped}`);
   console.log(`   Falhas: ${failed}`);
   if (inserted > 0) console.log('   → revise em /admin/noticias para aprovar ou rejeitar.');

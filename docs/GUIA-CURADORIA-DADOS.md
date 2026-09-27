@@ -50,3 +50,9 @@ honesto > número fabricado", aplicada a notícia em vez de voto: uma
 menção não citada errado é melhor que uma matéria errada publicada.
 Cadência e gestão da fila (alerta de fila grande, expiração de item
 esquecido) documentadas em `docs/PLANO-OPERACAO-SUSTENTAVEL.md`.
+
+*Atualização 2026-09-27:* não há mais alerta de fila grande. A fila se
+mantém pequena sozinha — o que não é notícia é descartado, a janela é de
+30 dias pela publicação e o teto é de 5 pendentes por parlamentar
+(`scripts/lib/news-curation.ts`; decisão e números em `docs/DECISOES.md`).
+Nenhuma dessas regras aprova nada: a decisão de publicar continua humana.
