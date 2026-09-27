@@ -213,7 +213,13 @@ export class PoliticiansController {
       const p = await this.politicians.findOne(id);
       const score = p.currentScore?.overall ?? 0;
       title = `${p.name} (${p.currentParty}-${p.currentState}) — Nota ${score}/100 | A Bancada Evangélica`;
-      description = `Como ${p.name} vota nos temas que importam pra fé evangélica: proteção à vida, defesa da família, integridade moral e mais. Nota geral: ${score}/100 (${p.currentScore?.performanceLabel ?? 'sem dados'}).`;
+      // Sem a faixa de aderência (2026-09-27): ver getPerformanceLabel em
+      // src/lib/performance.ts. Vida e Religião também saem do texto: não
+      // têm votação nominal medida nesta legislatura.
+      const votos = p.currentScore?.totalVotes ?? 0;
+      description = votos > 0
+        ? `Como ${p.name} vota em família, integridade moral e responsabilidade social. Nota geral ${score}/100: estimativa do partido ajustada por ${votos} votos nominais públicos.`
+        : `Nota geral ${score}/100 de ${p.name}: estimativa pela média do partido, sem voto nominal próprio registrado.`;
       if (p.photoUrl) image = `${API_URL}/api/politicians/${id}/photo`;
     } catch {
       // parlamentar não encontrado — cai pras meta tags genéricas acima

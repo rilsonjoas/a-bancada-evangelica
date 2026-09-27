@@ -66,12 +66,10 @@ export function PoliticianProfile() {
     );
   }
 
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-600';
-    if (score >= 60) return 'text-blue-600';
-    if (score >= 40) return 'text-yellow-700';
-    return 'text-red-600';
-  };
+  // Cor neutra (2026-09-27): os cortes antigos (80/60/40) nem batiam com
+  // SCORE_BANDS, e cor de "bom/ruim" dava juízo a diferenças de poucos
+  // pontos. Ver getPerformanceLabel em src/lib/performance.ts.
+  const getScoreColor = (_score: number) => 'text-gray-900';
 
   const getVoteIcon = (vote: string) => {
     switch (vote) {
@@ -93,16 +91,6 @@ export function PoliticianProfile() {
 
   const getCriteriaLabel = (criteria: string) =>
     CRITERIA_BY_KEY[criteria]?.label ?? criteria;
-
-  const getPerformanceLevelDescription = (level: string) => {
-    const map: Record<string, { label: string; range: string; description: string }> = {
-      EXCELLENT: { label: 'Aderência muito alta', range: '80–100 pts', description: 'Votos registrados aderem de forma elevada e consistente aos critérios publicados' },
-      GOOD:      { label: 'Aderência alta', range: '65–79 pts', description: 'Votos registrados aderem à maioria dos critérios publicados' },
-      AVERAGE:   { label: 'Aderência moderada', range: '45–64 pts', description: 'Votos divididos entre os critérios, ou nota estimada pela média do partido' },
-      POOR:      { label: 'Aderência baixa', range: '0–44 pts',  description: 'Votos registrados divergem da maioria dos critérios publicados' },
-    };
-    return map[level] ?? { label: 'Sem dados', range: '', description: '' };
-  };
 
   const shareProfile = () => {
     if (navigator.share) {
@@ -274,7 +262,16 @@ export function PoliticianProfile() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    {score !== null ? (
+                    {score !== null && c.semVotoMedido ? (
+                      // Passe de honestidade 2026-09-27: sem votação nominal
+                      // medida, o número seria só a semente do partido.
+                      <>
+                        <div className="text-2xl font-bold text-muted-foreground" aria-hidden="true">—</div>
+                        <p className="text-xs text-muted-foreground mt-1 leading-snug">
+                          Sem voto medido. Na nota geral entra a estimativa do partido ({fmt(score)}).
+                        </p>
+                      </>
+                    ) : score !== null ? (
                       <>
                         <div className={`text-2xl font-bold ${getScoreColor(score)}`}>{fmt(score)}</div>
                         <Progress
@@ -309,30 +306,29 @@ export function PoliticianProfile() {
                 <CardTitle>Descrição do Desempenho</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-700">
-                  {politician.currentScore?.performanceDescription ||
-                   'Este político está sendo avaliado com base em 5 critérios: Proteção à Vida (30%), Defesa da Família (25%), Integridade Moral (20%), Responsabilidade Social (15%) e Liberdade Religiosa (10%).'}
-                </p>
-                {(() => {
-                  const hasVotes = (politician.currentScore?.totalVotes ?? 0) > 0;
-                  const lvl = getPerformanceLevelDescription(politician.currentScore?.performanceLevel || 'AVERAGE');
-                  if (hasVotes) {
-                    if (!lvl.description) return null;
-                    return (
-                      <div className="mt-3 p-3 bg-gray-50 rounded-lg border text-sm text-gray-600">
-                        <span className="font-medium">{lvl.label}:</span>{' '}
-                        {lvl.description}
-                      </div>
-                    );
-                  }
-                  return (
-                    <div className="mt-3 p-3 bg-gray-50 rounded-lg border text-sm text-gray-600">
-                      <span className="font-medium">{ESTIMATED_LABEL}:</span>{' '}
-                      sem voto próprio registrado, a nota é a média histórica de aderência do partido — pode não refletir as escolhas individuais do parlamentar.
-                    </div>
-                  );
-                })()}
-                
+                {/* Até 2026-09-27 este bloco repetia a faixa de aderência
+                    ("Alinhamento parcial — há votações mistas") com cortes
+                    desatualizados (80–100, 65–79…). Agora descreve só a base
+                    da nota, que é fato verificável. */}
+                {(politician.currentScore?.totalVotes ?? 0) > 0 ? (
+                  <p className="text-gray-700">
+                    A nota combina a estimativa do partido com{' '}
+                    {politician.currentScore?.totalVotes} voto
+                    {politician.currentScore?.totalVotes === 1 ? '' : 's'} nominal
+                    {politician.currentScore?.totalVotes === 1 ? '' : 'is'} de{' '}
+                    {politician.name.split(' ')[0]} em{' '}
+                    {CRITERIA.filter((c) => !c.semVotoMedido).map((c) => c.label).join(', ')}.{' '}
+                    {CRITERIA.filter((c) => c.semVotoMedido).map((c) => c.label).join(' e ')} não
+                    têm votação nominal medida nesta legislatura e entram só pela estimativa
+                    do partido. A composição ponto a ponto está logo acima.
+                  </p>
+                ) : (
+                  <div className="p-3 bg-gray-50 rounded-lg border text-sm text-gray-600">
+                    <span className="font-medium">{ESTIMATED_LABEL}:</span>{' '}
+                    sem voto próprio registrado, a nota é a média histórica de aderência do partido — pode não refletir as escolhas individuais do parlamentar.
+                  </div>
+                )}
+
                 {politician.birthDate && (
                   <div className="mt-4 pt-4 border-t">
                     <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -403,11 +399,17 @@ export function PoliticianProfile() {
                 {CRITERIA.map((c) => {
                     const { label, weight: peso, rationale, field: criteriaKey } = c;
                     const vp = politician.votesPerCriteria?.[criteriaKey];
+                    // BUG 2026-09-27: `votesPerCriteria` conta votos de TODAS
+                    // as pautas do critério, inclusive as que a SCAN_RULES 1.5.0
+                    // tirou do escopo. Mostrava "Vida: 2 assuntos" para quem o
+                    // motor gravou 0. A base certa é a que o motor usou:
+                    // `subjectCount` do scoreBreakdown.
+                    const doMotor = politician.scoreBreakdown?.find((b) => b.criteria === c.key);
                     // SÓ dados reais de votos registrados — achado (2026-09-16):
                     // o código antigo FABRICAVA contagem quando o critério tinha
                     // 0 votos (proporção inventada de totalVotes × peso, ou
                     // defaults hardcoded 14/12/10/8/6). 0 honesto > número lindo.
-                    const count = vp?.count ?? 0;
+                    const count = doMotor ? doMotor.subjectCount : (vp?.count ?? 0);
                     const lowConfidence = count === 0 || count < 5;
                     return (
                       <div key={criteriaKey} className={`p-3 rounded-lg ${count === 0 ? 'bg-slate-50 border border-slate-200' : lowConfidence ? 'bg-yellow-50 border border-yellow-200' : 'bg-white border border-gray-100'}`}>
@@ -445,7 +447,7 @@ export function PoliticianProfile() {
                                 de assuntos. Sem dizer isso, o usuário conta
                                 as linhas em /votacoes e não bate com o
                                 número aqui. */}
-                            {(vp?.votes ?? 0) > count && count > 0 && (
+                            {!doMotor && (vp?.votes ?? 0) > count && count > 0 && (
                               <span className="text-xs text-muted-foreground" title="A mesma proposição foi voting em mais de uma sessão">
                                 ({vp?.votes} votos)
                               </span>
@@ -482,8 +484,13 @@ export function PoliticianProfile() {
                 <strong>Quanto desta nota vem de voto próprio:</strong>{' '}
                 {(() => {
                   const total = (politician.currentScore?.totalVotes ?? 0);
+                  // Mesma fonte da "Base de Cálculo" acima (subjectCount do
+                  // motor), senão os dois blocos se contradizem.
                   const medido = CRITERIA
-                    .filter((c) => (politician.votesPerCriteria?.[c.field]?.count ?? 0) > 0)
+                    .filter((c) => {
+                      const doMotor = politician.scoreBreakdown?.find((b) => b.criteria === c.key);
+                      return (doMotor ? doMotor.subjectCount : (politician.votesPerCriteria?.[c.field]?.count ?? 0)) > 0;
+                    })
                     .reduce((acc, c) => acc + Number(c.weight.replace('%', '')), 0);
                   if (total === 0) {
                     return ' nenhuma. Este parlamentar ainda não tem votação nominal registrada, então a nota inteira é estimativa do partido.';

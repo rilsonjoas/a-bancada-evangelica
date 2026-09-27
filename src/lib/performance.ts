@@ -1,36 +1,33 @@
 export type PerformanceLevel = 'EXCELLENT' | 'GOOD' | 'AVERAGE' | 'POOR';
 
-export const PERFORMANCE_LABELS: Record<PerformanceLevel, string> = {
-  EXCELLENT: 'Aderência muito alta',
-  GOOD: 'Aderência alta',
-  AVERAGE: 'Aderência moderada',
-  POOR: 'Aderência baixa',
-};
-
-export const PERFORMANCE_BADGE_COLORS: Record<PerformanceLevel, string> = {
-  EXCELLENT: 'bg-green-100 text-green-800',
-  GOOD: 'bg-blue-100 text-blue-800',
-  AVERAGE: 'bg-yellow-100 text-yellow-800',
-  POOR: 'bg-red-100 text-red-800',
-};
-
 export const ESTIMATED_LABEL = 'Nota estimada por partido';
 export const ESTIMATED_BADGE_COLOR = 'bg-slate-100 text-slate-700';
 
 /**
- * Label honesto do desempenho: sem voto próprio registrado, o político não
- * tem aderência mensurável — a nota é estimada pela média do partido.
+ * Rótulo do selo de nota — descreve a BASE da nota, não um juízo sobre ela.
+ *
+ * Até 2026-09-27 o selo dizia "Aderência alta / moderada / baixa" a partir
+ * das faixas de `SCORE_BANDS`. Tirado no passe de honestidade pré-eleição:
+ * as notas publicadas ficam entre 50 e 64 (dispersão 3,2) e 40% do peso vem
+ * de critérios sem voto medido, então a faixa separava parlamentares por
+ * diferenças que o dado não sustenta. As faixas continuam existindo no motor
+ * e na API (`performanceLevel`); só deixam de virar adjetivo na tela.
+ *
  * `totalVotes` `undefined`/`null` = sem score algum (Sem dados); `0` = score
- * de estimativa partidária (Nota estimada por partido).
+ * de estimativa partidária (Nota estimada por partido); `n` = quantos votos
+ * próprios sustentam a nota.
  */
-export function getPerformanceLabel(level?: string | null, totalVotes?: number | null): string {
+export function getPerformanceLabel(_level?: string | null, totalVotes?: number | null): string {
   if (totalVotes == null) return 'Sem dados';
   if (totalVotes === 0) return ESTIMATED_LABEL;
-  return PERFORMANCE_LABELS[(level ?? 'AVERAGE') as PerformanceLevel] ?? 'Sem dados';
+  return `${totalVotes} voto${totalVotes === 1 ? '' : 's'} próprio${totalVotes === 1 ? '' : 's'}`;
 }
 
-export function getPerformanceBadgeColor(level?: string | null, totalVotes?: number | null): string {
+/** Cor neutra do selo: nenhuma cor de "bom" ou "ruim" para faixa de nota. */
+export const MEASURED_BADGE_COLOR = 'bg-blue-50 text-blue-900 border-blue-200';
+
+export function getPerformanceBadgeColor(_level?: string | null, totalVotes?: number | null): string {
   if (totalVotes == null) return 'bg-slate-200 text-slate-600';
   if (totalVotes === 0) return ESTIMATED_BADGE_COLOR;
-  return PERFORMANCE_BADGE_COLORS[(level ?? 'AVERAGE') as PerformanceLevel] ?? PERFORMANCE_BADGE_COLORS.AVERAGE;
+  return MEASURED_BADGE_COLOR;
 }

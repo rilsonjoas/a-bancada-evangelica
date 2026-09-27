@@ -38,7 +38,9 @@ export function generatePoliticianPage(
 
   let ogDesc: string;
   if (score && score.totalVotes > 0) {
-    ogDesc = `Nota de aderência ${score.overall}/100 (${score.performanceLabel}) — baseada em ${score.totalVotes} votos nominais públicos.`;
+    // Sem rótulo de faixa (2026-09-27): ver getPerformanceLabel em
+    // src/lib/performance.ts.
+    ogDesc = `Nota ${score.overall}/100: estimativa do partido ajustada por ${score.totalVotes} votos nominais públicos. Veja de onde vem cada ponto.`;
   } else {
     const nota = score?.overall ?? '—';
     ogDesc = `Nota ${nota}/100 estimativa (média do partido). Sem votos nominais registrados.`;

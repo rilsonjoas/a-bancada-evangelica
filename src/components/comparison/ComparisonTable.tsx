@@ -1,6 +1,6 @@
 import React from 'react';
 import { TrendingUp, TrendingDown, Minus, Award } from 'lucide-react';
-import { CRITERIA, CriteriaLabel, scoreBand } from '@/lib/criteria';
+import { CRITERIA, CriteriaLabel, SEM_VOTO_MEDIDO_NOTA } from '@/lib/criteria';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { fmt } from '@/lib/format';
@@ -31,14 +31,8 @@ interface ComparisonTableProps {
 export function ComparisonTable({ politicians }: ComparisonTableProps) {
   const criteria = CRITERIA;
 
-  // Cortes vêm de SCORE_BANDS (fonte única) — ver src/lib/criteria.tsx.
-  const COR_POR_FAIXA = {
-    excellent: 'text-green-600 font-bold',
-    good: 'text-blue-600 font-semibold',
-    average: 'text-yellow-600 font-medium',
-    poor: 'text-red-600 font-bold',
-  } as const;
-  const getScoreColor = (score: number) => COR_POR_FAIXA[scoreBand(score)];
+  // Cor neutra (2026-09-27): cor por faixa dava juízo a diferença de poucos pontos.
+  const getScoreColor = (_score: number) => 'text-gray-900 font-semibold';
 
   type ScoreField = keyof NonNullable<ComparisonTableProps['politicians'][number]['currentScore']>;
 
@@ -114,7 +108,11 @@ export function ComparisonTable({ politicians }: ComparisonTableProps) {
                   <Badge variant="outline" className="text-xs">{criterion.weight}</Badge>
                 </div>
               </td>
-              {politicians.map(politician => (
+              {criterion.semVotoMedido ? (
+                <td colSpan={politicians.length} className="text-center p-4 text-xs text-muted-foreground">
+                  {SEM_VOTO_MEDIDO_NOTA}
+                </td>
+              ) : politicians.map(politician => (
                 <td key={politician.id} className="text-center p-4">
                   <div className="flex flex-col items-center gap-1">
                     <div className={`text-lg ${getScoreColor(getFieldScore(politician, criterion.field))}`}>

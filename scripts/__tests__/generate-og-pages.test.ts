@@ -39,7 +39,9 @@ describe('generatePoliticianPage', () => {
     );
 
     expect(html).toContain('<title>Maria da Silva (PT/SP) — A Bancada Evangélica</title>');
-    expect(html).toContain('content="Nota de aderência 72/100 (Aderência alta) — baseada em 45 votos nominais públicos."');
+    expect(html).toContain('content="Nota 72/100: estimativa do partido ajustada por 45 votos nominais públicos. Veja de onde vem cada ponto."');
+    // Passe de honestidade 2026-09-27: a faixa não vira adjetivo no preview.
+    expect(html).not.toContain('Aderência');
     expect(html).toContain('content="profile"');
     expect(html).toContain(`content="${BASE}/politicos/123"`);
     expect(html).toContain(`content="${API}/api/politicians/123/photo"`);

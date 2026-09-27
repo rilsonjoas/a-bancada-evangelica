@@ -47,18 +47,26 @@ describe("PoliticianCard", () => {
     expect(screen.getByText("89")).toBeInTheDocument();
   });
 
-  it("renders all five criteria scores", () => {
+  it("renders the scores of criteria with measured votes", () => {
     renderWithRouter(<PoliticianCard politician={mockPolitician} />);
-    expect(screen.getByText("90")).toBeInTheDocument();
     expect(screen.getByText("85")).toBeInTheDocument();
     expect(screen.getByText("80")).toBeInTheDocument();
     expect(screen.getByText("75")).toBeInTheDocument();
-    expect(screen.getByText("95")).toBeInTheDocument();
   });
 
-  it("renders performance badge label", () => {
+  it("does not show party-seed numbers for criteria without measured votes", () => {
+    // Passe de honestidade 2026-09-27: Vida (90) e Religião (95) são semente
+    // do partido; o card mostra "—" em vez do número.
     renderWithRouter(<PoliticianCard politician={mockPolitician} />);
-    expect(screen.getByText("Aderência muito alta")).toBeInTheDocument();
+    expect(screen.queryByText("90")).not.toBeInTheDocument();
+    expect(screen.queryByText("95")).not.toBeInTheDocument();
+    expect(screen.getAllByText("sem voto medido")).toHaveLength(2);
+  });
+
+  it("badge describes the vote base, not a judgment band", () => {
+    renderWithRouter(<PoliticianCard politician={mockPolitician} />);
+    expect(screen.getByText("42 votos próprios")).toBeInTheDocument();
+    expect(screen.queryByText(/Aderência/)).not.toBeInTheDocument();
   });
 
   it("renders the rank when provided", () => {

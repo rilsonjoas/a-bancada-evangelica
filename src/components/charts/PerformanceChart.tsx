@@ -3,6 +3,7 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Toolti
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { fmt } from '@/lib/format';
+import { CRITERIA, CRITERIA_COM_VOTO } from '@/lib/criteria';
 
 interface PerformanceChartProps {
   politician: {
@@ -30,64 +31,33 @@ export function PerformanceChart({ politician }: PerformanceChartProps) {
     );
   }
 
-  const data = [
-    {
-      subject: 'Proteção à Vida',
-      score: politician.currentScore.lifeProtection,
-      fullMark: 100,
-    },
-    {
-      subject: 'Valores Familiares',
-      score: politician.currentScore.familyValues,
-      fullMark: 100,
-    },
-    {
-      subject: 'Integridade Moral',
-      score: politician.currentScore.moralIntegrity,
-      fullMark: 100,
-    },
-    {
-      subject: 'Responsabilidade Social',
-      score: politician.currentScore.socialResponsibility,
-      fullMark: 100,
-    },
-    {
-      subject: 'Liberdade Religiosa',
-      score: politician.currentScore.religiousFreedom,
-      fullMark: 100,
-    },
-  ];
+  // Gerado de CRITERIA (2026-09-27). Antes eram dois arrays fixos, com
+  // pesos 25/20/20/10/5 que somavam 80 e não eram os da metodologia.
+  // Critério sem votação nominal medida fica fora dos gráficos: o número
+  // dele é a semente do partido, não desempenho do parlamentar.
+  const scores = politician.currentScore as unknown as Record<string, number>;
+  const data = CRITERIA_COM_VOTO.map((c) => ({
+    subject: c.label,
+    score: scores[c.field],
+    fullMark: 100,
+  }));
 
-  const barData = [
-    {
-      name: 'Proteção à Vida',
-      score: politician.currentScore.lifeProtection,
-      weight: 25,
-    },
-    {
-      name: 'Valores Familiares',
-      score: politician.currentScore.familyValues,
-      weight: 20,
-    },
-    {
-      name: 'Integridade Moral',
-      score: politician.currentScore.moralIntegrity,
-      weight: 20,
-    },
-    {
-      name: 'Responsab. Social',
-      score: politician.currentScore.socialResponsibility,
-      weight: 10,
-    },
-    {
-      name: 'Liberdade Religiosa',
-      score: politician.currentScore.religiousFreedom,
-      weight: 5,
-    },
-  ];
+  const barData = CRITERIA_COM_VOTO.map((c) => ({
+    name: c.label,
+    score: scores[c.field],
+    weight: Number(c.weight.replace('%', '')),
+  }));
+
+  const semVoto = CRITERIA.filter((c) => c.semVotoMedido).map((c) => c.label);
 
   return (
     <div className="space-y-8">
+      {semVoto.length > 0 && (
+        <p className="text-sm text-muted-foreground">
+          {semVoto.join(' e ')} não aparecem nos gráficos: não têm votação nominal
+          medida nesta legislatura, e o número deles seria só a estimativa do partido.
+        </p>
+      )}
       {/* Radar Chart */}
       <div>
         <h3 className="text-lg font-semibold mb-4 text-center">

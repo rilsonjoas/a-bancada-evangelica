@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePoliticians } from "@/hooks/usePoliticians";
 import { usePageMeta } from "@/hooks/usePageMeta";
+import { CRITERIA } from "@/lib/criteria";
 import { MATCH_QUESTIONS, sortByAffinity, type MatchAnswers, type MatchChoice, type AffinityEntry } from "@/lib/match";
 import { MatchCard } from "@/components/match/MatchCard";
 import { MatchStoryModal } from "@/components/match/MatchStoryModal";
@@ -25,7 +26,7 @@ const MatchPage = () => {
 
   usePageMeta(
     "Quem vota como você? — A Bancada Evangélica",
-    "Responda 5 perguntas e veja quais parlamentares mais se aproximam da sua visão, calculado localmente com as mesmas notas da metodologia."
+    `Responda ${MATCH_QUESTIONS.length} perguntas e veja quais parlamentares mais se aproximam da sua visão, calculado localmente com as mesmas notas da metodologia.`
   );
 
   const { data, isLoading, error } = usePoliticians({
@@ -171,10 +172,12 @@ const MatchPage = () => {
                 <p className="mt-8 text-sm text-muted-foreground max-w-2xl mx-auto text-center leading-relaxed">
                   Afinidade não é voto: é proximidade de visão sobre as pautas
                   que a metodologia acompanha. Consulte o perfil de cada um para
-                  ver a forma como votou e a consistência. Se você concordou com
-                  todos os critérios, esta ordem é exatamente a do{" "}
+                  ver a forma como votou e a consistência. As perguntas cobrem só
+                  os critérios com votação nominal medida nesta legislatura;
+                  {CRITERIA.filter((c) => c.semVotoMedido).map((c) => c.label).join(" e ")} ficaram de fora porque,
+                  sem voto medido, a nota delas é só a estimativa do partido.{" "}
                   <Link to="/metodologia" className="text-primary hover:underline font-semibold">
-                    ranking oficial
+                    Ver metodologia
                   </Link>
                   .
                 </p>

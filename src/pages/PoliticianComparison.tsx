@@ -13,6 +13,7 @@ import { PoliticianSelector } from '@/components/comparison/PoliticianSelector';
 import { ComparisonChart } from '@/components/comparison/ComparisonChart';
 import { ComparisonTable } from '@/components/comparison/ComparisonTable';
 import { getPerformanceBadgeColor, getPerformanceLabel } from '@/lib/performance';
+import { CRITERIA_COM_VOTO } from '@/lib/criteria';
 
 export function PoliticianComparison() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -41,12 +42,8 @@ export function PoliticianComparison() {
     }
   };
 
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-600';
-    if (score >= 60) return 'text-blue-600';
-    if (score >= 40) return 'text-yellow-700';
-    return 'text-red-600';
-  };
+  // Cor neutra (2026-09-27): cor por faixa dava juízo a diferença de poucos pontos.
+  const getScoreColor = (_score: number) => 'text-gray-900';
 
   const compareScores = (politician1: ComparisonPolitician, politician2: ComparisonPolitician, criterion: string) => {
     const score1 = politician1.currentScore?.[criterion] || 0;
@@ -163,42 +160,25 @@ export function PoliticianComparison() {
                       </Badge>
                     </div>
 
+                    {/* Só critérios com voto medido (2026-09-27); os demais
+                        são a estimativa do partido e não comparam pessoas. */}
                     <div className="space-y-2">
-                      <div className="flex justify-between text-xs">
-                        <span>Proteção à Vida</span>
-                        <span className="font-medium">
-                          {politician.currentScore?.lifeProtection?.toFixed(0) || '0'}
-                        </span>
-                      </div>
-                      <Progress
-                        value={politician.currentScore?.lifeProtection || 0}
-                        className="h-2"
-                        aria-label={`Proteção à Vida: ${politician.currentScore?.lifeProtection?.toFixed(0) || '0'} de 100`}
-                      />
-                      
-                      <div className="flex justify-between text-xs">
-                        <span>👨‍👩‍👧‍👦 Família</span>
-                        <span className="font-medium">
-                          {politician.currentScore?.familyValues?.toFixed(0) || '0'}
-                        </span>
-                      </div>
-                      <Progress
-                        value={politician.currentScore?.familyValues || 0}
-                        className="h-2"
-                        aria-label={`Valores Familiares: ${politician.currentScore?.familyValues?.toFixed(0) || '0'} de 100`}
-                      />
-                      
-                      <div className="flex justify-between text-xs">
-                        <span>Integridade Moral</span>
-                        <span className="font-medium">
-                          {politician.currentScore?.moralIntegrity?.toFixed(0) || '0'}
-                        </span>
-                      </div>
-                      <Progress
-                        value={politician.currentScore?.moralIntegrity || 0}
-                        className="h-2"
-                        aria-label={`Integridade Moral: ${politician.currentScore?.moralIntegrity?.toFixed(0) || '0'} de 100`}
-                      />
+                      {CRITERIA_COM_VOTO.map((c) => {
+                        const v = (politician.currentScore as unknown as Record<string, number> | undefined)?.[c.field];
+                        return (
+                          <React.Fragment key={c.key}>
+                            <div className="flex justify-between text-xs">
+                              <span>{c.label}</span>
+                              <span className="font-medium">{v?.toFixed(0) || '0'}</span>
+                            </div>
+                            <Progress
+                              value={v || 0}
+                              className="h-2"
+                              aria-label={`${c.label}: ${v?.toFixed(0) || '0'} de 100`}
+                            />
+                          </React.Fragment>
+                        );
+                      })}
                     </div>
 
                     <Link to={`/politicos/${politician.id}`}>
@@ -268,13 +248,7 @@ export function PoliticianComparison() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {[
-                        { key: 'lifeProtection', label: 'Proteção à Vida' },
-                        { key: 'familyValues', label: '👨‍👩‍👧‍👦 Valores Familiares' },
-                        { key: 'moralIntegrity', label: 'Integridade Moral' },
-                        { key: 'socialResponsibility', label: '🤝 Responsabilidade Social' },
-                        { key: 'religiousFreedom', label: 'Liberdade Religiosa' }
-                      ].map(criterion => {
+                      {CRITERIA_COM_VOTO.map((c) => ({ key: c.field, label: c.label })).map(criterion => {
                         const topPolitician = comparisonData.reduce((best, current) => {
                           const bestScore = best.currentScore?.[criterion.key] || 0;
                           const currentScore = current.currentScore?.[criterion.key] || 0;

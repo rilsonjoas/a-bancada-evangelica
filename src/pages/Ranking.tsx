@@ -14,78 +14,14 @@ import { Search, Filter, TrendingUp, Users, Award, BookOpen, BarChart3, Loader2,
 import { Link } from 'react-router-dom';
 import { APIPolitician } from '@/types/politician';
 import { Slider } from '@/components/ui/slider';
-import { CRITERIA } from '@/lib/criteria';
+import { CRITERIA, CRITERIA_COM_VOTO } from '@/lib/criteria';
 import { LastSyncBadge } from '@/components/LastSyncBadge';
 import { useLastSync } from '@/hooks/useLastSync';
 import { fmt } from '@/lib/format';
 
-const CRITERIA_LEVELS: Array<{ key: 'EXCELLENT' | 'GOOD' | 'AVERAGE' | 'POOR'; label: string }> = [
-  { key: 'EXCELLENT', label: 'Aderência muito alta' },
-  { key: 'GOOD', label: 'Aderência alta' },
-  { key: 'AVERAGE', label: 'Aderência moderada' },
-  { key: 'POOR', label: 'Aderência baixa' },
-];
-
-// ── F4 (2026-08-24): panorama com amostra de TODOS os níveis ──
-// Antes a home despejava uma lista longa ordenada pela melhor nota.
-// Agora mostra 2 perfis de cada faixa de desempenho (membros da bancada),
-// deixando claro que o método avalia todo o espectro — não só o lado bom.
-const HighlightsSection: React.FC = () => {
-  const excellent = usePoliticians({ performanceLevel: 'EXCELLENT', fpeFilter: true, sortBy: 'score', sortOrder: 'desc', limit: 2 });
-  const good = usePoliticians({ performanceLevel: 'GOOD', fpeFilter: true, sortBy: 'score', sortOrder: 'desc', limit: 2 });
-  const average = usePoliticians({ performanceLevel: 'AVERAGE', fpeFilter: true, sortBy: 'score', sortOrder: 'desc', limit: 2 });
-  const poor = usePoliticians({ performanceLevel: 'POOR', fpeFilter: true, sortBy: 'score', sortOrder: 'desc', limit: 2 });
-
-  const buckets = [
-    { level: CRITERIA_LEVELS[0], query: excellent },
-    { level: CRITERIA_LEVELS[1], query: good },
-    { level: CRITERIA_LEVELS[2], query: average },
-    { level: CRITERIA_LEVELS[3], query: poor },
-  ];
-
-  const isLoading = buckets.some(b => b.query.isLoading);
-  const total = buckets.reduce((acc, b) => acc + (b.query.data?.politicians?.length ?? 0), 0);
-  if (!isLoading && total === 0) return null;
-
-  return (
-    <section className="py-12 bg-background border-b border-border">
-      <div className="container mx-auto px-4">
-        <div className="max-w-4xl mx-auto text-center mb-10">
-          <h2 className="font-serif text-2xl font-bold text-foreground">Panorama da bancada</h2>
-          <p className="text-muted-foreground mt-3 text-sm md:text-base leading-relaxed">
-            Uma amostra fixa de <strong>todos os graus de aderência</strong> {' '}entre os membros da bancada com nota calculada — as duas notas mais
-            altas de cada faixa. Transparência é mostrar o espectro inteiro,
-            não só o lado bom.
-          </p>
-        </div>
-        {isLoading ? (
-          <div className="text-center text-muted-foreground py-8">Carregando destaques…</div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-5 gap-y-8">
-              {buckets.map(({ level, query }) =>
-                (query.data?.politicians ?? []).map((p) => (
-                  <div key={p.id} className="space-y-1.5">
-                    <span className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground px-1">
-                      Desempenho {level.label}
-                    </span>
-                    <PoliticianCard politician={p} />
-                  </div>
-                ))
-              )}
-            </div>
-            <div className="text-center mt-10">
-              <a href="#ranking-completo" className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline">
-                Ver o ranking completo e buscar qualquer parlamentar
-                <TrendingUp className="h-4 w-4" />
-              </a>
-            </div>
-          </>
-        )}
-      </div>
-    </section>
-  );
-};
+// "Panorama da bancada" (F4, 2026-08-24) removido em 2026-09-27: mostrava
+// dois perfis por faixa de aderência, e as faixas deixaram de ser exibidas
+// como juízo (ver getPerformanceLabel em src/lib/performance.ts).
 
 const RankingPage = () => {
   usePageMeta("Ranking de Parlamentares | A Bancada Evangélica", "Acompanhe a pontuação e os votos nominais de todos os parlamentares na Câmara e no Senado.");
@@ -175,16 +111,14 @@ const RankingPage = () => {
   // monitorados (todos) × com nota por votos próprios (último score de cada ativo).
   const stats = useMemo(() => {
     if (!statsData) {
-      return { monitored: 0, withOwnVotes: 0, avgScore: 0, excellentCount: 0 };
+      return { monitored: 0, withOwnVotes: 0, avgScore: 0 };
     }
 
-    const dist = statsData.performanceDistribution;
     const monitored = statsData.totalPoliticians ?? 0;
     const withOwnVotes = statsData.withOwnVotes ?? 0;
     const avgScore = statsData.averageScore ?? 0;
-    const excellentCount = dist.excellent;
 
-    return { monitored, withOwnVotes, avgScore, excellentCount };
+    return { monitored, withOwnVotes, avgScore };
   }, [statsData]);
 
   // Pesos efetivos + ranking derivado — SÓ quando o usuário aplicou
@@ -264,14 +198,14 @@ const RankingPage = () => {
               </h1>
 
               <p className="text-base sm:text-lg text-primary-foreground/90 leading-relaxed max-w-xl">
-                Notas calculadas a partir de <strong>votos nominais públicos</strong> na Câmara e no Senado, sem qualquer avaliação pessoal ou partidária. Quem ainda não votou recebe <strong>estimativa pelo histórico do partido</strong>, sempre sinalizada no perfil.
+                Cada nota parte do <strong>histórico do partido</strong> e é ajustada pelos <strong>votos nominais públicos</strong> do parlamentar na Câmara e no Senado, sem avaliação pessoal. Quem ainda não tem voto medido fica só com a estimativa do partido, sempre sinalizada no perfil.
               </p>
 
               {/* Três passos compactos */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
                 {[
                   "1. Voto registrado em plenário",
-                  "2. 5 critérios objetivos",
+                  `2. ${CRITERIA.length} critérios, ${CRITERIA_COM_VOTO.length} com voto medido`,
                   "3. Dados 100% públicos",
                 ].map((passo, i) => (
                   <div key={i} className="bg-white/10 rounded-lg px-3 py-2 text-xs font-medium text-white/90 border border-white/10 flex items-center gap-2">
@@ -351,8 +285,11 @@ const RankingPage = () => {
                         <div className="text-xs text-white/80 font-medium">Nota média (0–100)</div>
                       </div>
                       <div className="bg-slate-950/40 rounded-xl p-3.5 border border-white/10">
-                        <div className="text-2xl font-bold font-serif text-emerald-400">{stats.excellentCount}</div>
-                        <div className="text-xs text-white/80 font-medium">Aderência muito alta</div>
+                        {/* Antes: contagem de "Aderência muito alta" (0 em
+                            2026-09-27). Trocado pelo dado que o leitor precisa
+                            para calibrar a nota. */}
+                        <div className="text-2xl font-bold font-serif text-emerald-400">{CRITERIA_COM_VOTO.length} de {CRITERIA.length}</div>
+                        <div className="text-xs text-white/80 font-medium">Critérios com voto medido</div>
                       </div>
                     </>
                   )}
@@ -367,8 +304,6 @@ const RankingPage = () => {
           </div>
         </div>
       </section>
-
-      <HighlightsSection />
 
       {/* Filters Section */}
       <section className="py-6 bg-background border-b border-border">
@@ -509,6 +444,9 @@ const RankingPage = () => {
                         <label htmlFor={`w-${c.field}`} className="text-sm font-medium flex items-center gap-2">
                           <c.Icon className={`h-4 w-4 ${c.iconClass}`} />
                           {c.label}
+                          {c.semVotoMedido && (
+                            <span className="text-[11px] font-normal text-muted-foreground">(estimativa do partido)</span>
+                          )}
                         </label>
                         <span className="text-sm font-bold tabular-nums">
                           {shownWeights[c.field]} pts ·{' '}
@@ -625,6 +563,11 @@ const RankingPage = () => {
                 é ajustado pela média dos votos nominais reais daquele parlamentar.
                 Ela mede o <strong className="text-foreground">voto registrado</strong> —
                 não mede fé, discurso nem intenção.{' '}
+                {CRITERIA.filter((c) => c.semVotoMedido).map((c) => c.label).join(' e ')}{' '}
+                ainda não têm votação nominal medida nesta legislatura: entram na nota
+                pela estimativa do partido, igual para todos do mesmo partido. Por isso
+                as notas ficam numa faixa estreita, e diferença de poucos pontos não
+                separa um parlamentar do outro.{' '}
                 <Link to="/metodologia" className="underline font-medium">
                   Ver como cada critério é calculado
                 </Link>.

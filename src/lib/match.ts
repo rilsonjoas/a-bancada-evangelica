@@ -1,11 +1,19 @@
 import { SCORE_WEIGHTS } from '@/types/politician';
 import type { APIPolitician } from '@/types/politician';
+import { CRITERIA_BY_KEY } from '@/lib/criteria';
 
 /**
  * Match Eleitor (M1): afinidade calculada 100% no navegador, sem backend novo.
  * Reusa o ranking oficial (GET /api/politicians) e os pesos da metodologia
- * (SCORE_WEIGHTS). Garantia de honestidade: se o cidadão concorda com todos
- * os critérios, este ranking é IDÊNTICO ao oficial (affinity = overall).
+ * (SCORE_WEIGHTS).
+ *
+ * 2026-09-27 (passe de honestidade pré-eleição): o quiz pergunta só sobre
+ * critérios com votação nominal medida. Antes havia também Vida e Liberdade
+ * Religiosa, cuja nota é a semente do partido — e um atalho que, quando o
+ * eleitor concordava com tudo (a resposta mais comum), devolvia a nota geral,
+ * que inclui essas sementes. "Quem vota como você" virava "quem é do partido
+ * certo". Agora a afinidade é sempre a média, nos pesos da metodologia, dos
+ * critérios respondidos, e nenhum deles é estimativa de partido.
  */
 
 export type MatchChoice = 'concordo' | 'discordo' | 'neutro';
@@ -23,7 +31,7 @@ export interface MatchQuestion {
   question: string;
 }
 
-export const MATCH_QUESTIONS: MatchQuestion[] = [
+const TODAS_AS_PERGUNTAS: MatchQuestion[] = [
   {
     key: 'LIFE_PROTECTION',
     field: 'lifeProtection',
@@ -61,6 +69,11 @@ export const MATCH_QUESTIONS: MatchQuestion[] = [
   },
 ];
 
+/** Só critérios com voto medido — ver `semVotoMedido` em src/lib/criteria.tsx. */
+export const MATCH_QUESTIONS: MatchQuestion[] = TODAS_AS_PERGUNTAS.filter(
+  (q) => !CRITERIA_BY_KEY[q.key]?.semVotoMedido,
+);
+
 const round1 = (n: number) => Math.round(n * 10) / 10;
 
 function scoreFor(scores: APIPolitician['scores'], field: keyof typeof SCORE_WEIGHTS): number {
@@ -74,8 +87,8 @@ function scoreFor(scores: APIPolitician['scores'], field: keyof typeof SCORE_WEI
  * - discordo  → vale o reflexo (100 − nota)
  * - neutro    → critério sai do cálculo (pesos renormalizados)
  * Sem nenhuma resposta: retorna a nota geral (ranking oficial).
- * Todos concordando em todos os critérios: afinidade == nota geral (overall),
- * então a ordenação coincide com o ranking oficial da metodologia.
+ * Perguntas fora de MATCH_QUESTIONS (critério sem voto medido) são ignoradas
+ * mesmo que venham em `answers`.
  */
 export function affinityFor(
   scores: APIPolitician['scores'],
@@ -85,11 +98,6 @@ export function affinityFor(
     (q) => answers[q.key] && answers[q.key] !== 'neutro',
   );
   if (considered.length === 0) return scores.overall;
-
-  const allAgreeOnAll =
-    considered.length === MATCH_QUESTIONS.length &&
-    considered.every((q) => answers[q.key] === 'concordo');
-  if (allAgreeOnAll) return scores.overall;
 
   const totalWeight = considered.reduce((s, q) => s + SCORE_WEIGHTS[q.field], 0);
   let aff = 0;

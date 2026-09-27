@@ -7,6 +7,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { CRITERIA, CRITERIA_COM_VOTO } from '@/lib/criteria';
 import {
   BookOpen,
   Calculator,
@@ -204,46 +205,6 @@ const MetodologiaPage = () => {
     }
   ];
 
-  // Níveis de performance
-  const performanceLevels = [
-    {
-      icon: Star,
-      level: 'EXCELLENT',
-      label: 'Aderência muito alta',
-      range: '80 – 100 pontos',
-      color: 'bg-green-100 border-green-300 text-green-800',
-      iconColor: 'text-green-600',
-      description: 'Votos registrados aderem de forma elevada e consistente aos critérios publicados na grande maioria das votações avaliadas.'
-    },
-    {
-      icon: Award,
-      level: 'GOOD',
-      label: 'Aderência alta',
-      range: '65 – 79 pontos',
-      color: 'bg-blue-100 border-blue-300 text-blue-800',
-      iconColor: 'text-blue-600',
-      description: 'Votos registrados aderem à maioria dos critérios publicados, com divergências pontuais em critérios secundários.'
-    },
-    {
-      icon: Target,
-      level: 'AVERAGE',
-      label: 'Aderência moderada',
-      range: '45 – 64 pontos',
-      color: 'bg-yellow-100 border-yellow-300 text-yellow-800',
-      iconColor: 'text-yellow-600',
-      description: 'Votos registrados divididos entre favoráveis e contrários aos critérios, ou amostra de votações ainda insuficiente para classificação mais precisa.'
-    },
-    {
-      icon: Activity,
-      level: 'POOR',
-      label: 'Aderência baixa',
-      range: '0 – 44 pontos',
-      color: 'bg-red-100 border-red-300 text-red-800',
-      iconColor: 'text-red-600',
-      description: 'Votos registrados divergem da maioria dos critérios publicados nas votações avaliadas.'
-    }
-  ];
-
   return (
     <div className="min-h-screen bg-gradient-subtle">
       {/* Hero Section */}
@@ -317,7 +278,14 @@ const MetodologiaPage = () => {
                     <tbody>
                       {criteriosData.map((c) => (
                         <tr key={c.key} className="border-b border-border/50">
-                          <td className="py-3 px-4 font-medium">{c.name}</td>
+                          <td className="py-3 px-4 font-medium">
+                            {c.name}
+                            {CRITERIA.find((k) => k.field === c.key)?.semVotoMedido && (
+                              <span className="block text-xs font-normal text-muted-foreground">
+                                sem votação nominal medida · entra pela estimativa do partido
+                              </span>
+                            )}
+                          </td>
                           <td className="py-3 px-4 text-center">
                             <div className="flex flex-col items-center gap-1">
                               <Badge variant="secondary">{c.weight}%</Badge>
@@ -340,34 +308,39 @@ const MetodologiaPage = () => {
               </CardContent>
             </Card>
 
-            {/* Performance Levels */}
+            {/* Até 2026-09-27 aqui havia "O que cada nível de desempenho
+                significa" (Aderência muito alta / alta / moderada / baixa),
+                com cortes 80/65/45 que nem eram os do código. Substituído
+                no passe de honestidade pré-eleição. */}
             <Card className="card-elevated mb-16">
               <CardHeader>
                 <CardTitle className="font-serif text-2xl text-center">
-                  O que cada nível de desempenho significa
+                  Por que o site não rotula a nota como alta ou baixa
                 </CardTitle>
-                <p className="text-center text-sm text-muted-foreground mt-2">
-                  A pontuação geral determina o rótulo exibido no perfil de cada político
-                </p>
               </CardHeader>
-              <CardContent className="pt-2">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {performanceLevels.map((pl) => {
-                    const Icon = pl.icon;
-                    return (
-                      <div key={pl.level} className={`rounded-lg border-2 p-4 ${pl.color}`}>
-                        <div className="flex items-center gap-3 mb-2">
-                          <Icon className={`h-6 w-6 ${pl.iconColor}`} />
-                          <div>
-                            <div className="font-bold text-base">{pl.label}</div>
-                            <div className="text-xs font-semibold">{pl.range}</div>
-                          </div>
-                        </div>
-                        <p className="text-sm leading-relaxed opacity-90">{pl.description}</p>
-                      </div>
-                    );
-                  })}
-                </div>
+              <CardContent className="pt-2 space-y-4 text-muted-foreground leading-relaxed">
+                <p>
+                  Nesta legislatura, só {CRITERIA_COM_VOTO.length} dos {CRITERIA.length} critérios
+                  têm votação nominal medida ({CRITERIA_COM_VOTO.map((c) => c.label).join(', ')}).{' '}
+                  {CRITERIA.filter((c) => c.semVotoMedido).map((c) => c.label).join(' e ')} não
+                  tiveram nenhum projeto do tema votado nominalmente em plenário no acervo coletado;
+                  nesses dois, a nota de cada parlamentar é a estimativa do partido, igual para
+                  todos do mesmo partido.
+                </p>
+                <p>
+                  O resultado é uma escala estreita: quase todas as notas ficam entre 50 e 65.
+                  Um rótulo como "aderência alta" ou "baixa" separaria parlamentares por uma
+                  diferença de poucos pontos, e o dado não sustenta essa separação. Por isso o
+                  site mostra a nota, de onde ela vem ponto a ponto no perfil, e quantos votos
+                  próprios a sustentam, sem adjetivo.
+                </p>
+                <p>
+                  Projetos desses temas existem (o PL 1904/2024, sobre aborto, é um deles), mas
+                  nenhuma votação nominal deles entrou no acervo. A API da Câmara só publica voto
+                  por parlamentar das votações de plenário; o que acontece em comissão não tem
+                  voto individual publicado. Mostrar o caminho de cada projeto, com fonte
+                  oficial, está no plano do projeto.
+                </p>
               </CardContent>
             </Card>
 

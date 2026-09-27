@@ -52,7 +52,7 @@ describe("ShareableCard", () => {
 
   it("shows the real criteria count, not a stale hardcoded number", () => {
     render(<ShareableCard politician={mockPolitician} />);
-    expect(screen.getByText(/5 critérios ponderados/)).toBeInTheDocument();
+    expect(screen.getByText(/3 de 5 critérios com voto medido/)).toBeInTheDocument();
   });
 
   it("does not crash when currentScore is missing", () => {

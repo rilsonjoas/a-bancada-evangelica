@@ -15,35 +15,64 @@ export interface CriteriaConfig {
    * renderizada na página de Votações pra dar contexto a quem não é
    * analysta político (transparência > jargão). */
   rationale: string;
+  /** `true` quando o critério não tem NENHUM assunto com votação nominal
+   * medida no acervo: a nota dele é só a semente do partido, igual para
+   * quem vota de um jeito ou de outro. A tela não mostra esse número como
+   * se fosse medição do parlamentar (ver `SEM_VOTO_MEDIDO_NOTA`). */
+  semVotoMedido: boolean;
 }
+
+/**
+ * Critérios sem votação nominal medida — passe de honestidade pré-eleição
+ * (2026-09-27).
+ *
+ * Evidência, na API de produção em 2026-09-27: em `/api/votes/analysis`,
+ * `voteByCriteria` não tem nenhuma entrada para LIFE_PROTECTION nem para
+ * RELIGIOUS_FREEDOM; no `scoreBreakdown` de cada perfil esses dois critérios
+ * têm `subjectCount: 0` e `votePoints: 0`. A nota deles é 100% semente do
+ * partido. Ver docs/HISTORIA-DIFICULDADES-E-CAMINHOS.md, seção 5.
+ *
+ * A nota geral continua incluindo esses critérios pelo peso da metodologia
+ * (mudar a fórmula a uma semana da eleição seria outra rodada de mudança no
+ * ar). O que muda é que a tela diz de onde vem o número.
+ *
+ * QUANDO DESLIGAR: quando uma votação nominal do tema entrar no acervo e o
+ * recálculo gravar `subjectCount > 0`. O plano pós-eleição é derivar isto do
+ * dado em vez de fixar aqui (docs/PLANO-POS-ELEICAO.md).
+ */
+export const SEM_VOTO_MEDIDO_NOTA =
+  'Sem votação nominal medida nesta legislatura: este critério entra na nota geral pela estimativa do partido, não pelo voto do parlamentar.';
 
 export const CRITERIA: CriteriaConfig[] = [
   {
     key: 'LIFE_PROTECTION', field: 'lifeProtection', label: 'Proteção à Vida',
-    Icon: Shield, iconClass: 'text-red-500', badgeClass: 'bg-red-100 text-red-800', weight: '30%', barColor: '#ef4444',
+    Icon: Shield, iconClass: 'text-red-500', badgeClass: 'bg-red-100 text-red-800', weight: '30%', barColor: '#ef4444', semVotoMedido: true,
     rationale: 'Reúne votações sobre aborto, eutanásia e proteção ao nascituro. O voto de quem defende a vida desde a concepção é o considerado alinhado neste critério.',
   },
   {
     key: 'FAMILY_VALUES', field: 'familyValues', label: 'Valores Familiares',
-    Icon: Home, iconClass: 'text-blue-500', badgeClass: 'bg-blue-100 text-blue-800', weight: '25%', barColor: '#3b82f6',
+    Icon: Home, iconClass: 'text-blue-500', badgeClass: 'bg-blue-100 text-blue-800', weight: '25%', barColor: '#3b82f6', semVotoMedido: false,
     rationale: 'Reúne votações que afetam a família: educação dos filhos, autoridade parental e políticas de valorização da família. Alinha-se o voto que fortalece a família como instituição.',
   },
   {
     key: 'MORAL_INTEGRITY', field: 'moralIntegrity', label: 'Integridade Moral',
-    Icon: Scale, iconClass: 'text-purple-500', badgeClass: 'bg-purple-100 text-purple-800', weight: '20%', barColor: '#a855f7',
+    Icon: Scale, iconClass: 'text-purple-500', badgeClass: 'bg-purple-100 text-purple-800', weight: '20%', barColor: '#a855f7', semVotoMedido: false,
     rationale: 'Avalia a conduta do parlamentar: despesas públicas suspeitas (cota parlamentar) e votos em matérias de ética e combate à corrupção.',
   },
   {
     key: 'SOCIAL_RESPONSIBILITY', field: 'socialResponsibility', label: 'Responsabilidade Social',
-    Icon: Handshake, iconClass: 'text-green-500', badgeClass: 'bg-green-100 text-green-800', weight: '15%', barColor: '#22c55e',
+    Icon: Handshake, iconClass: 'text-green-500', badgeClass: 'bg-green-100 text-green-800', weight: '15%', barColor: '#22c55e', semVotoMedido: false,
     rationale: 'Reúne votações de cuidado pelo mais vulnerável: saúde, educação, assistência social e dignidade humana. O cuidado pelo próximo é expressão de fé, não pauta de partido.',
   },
   {
     key: 'RELIGIOUS_FREEDOM', field: 'religiousFreedom', label: 'Liberdade Religiosa',
-    Icon: Church, iconClass: 'text-amber-500', badgeClass: 'bg-amber-100 text-amber-800', weight: '10%', barColor: '#f59e0b',
+    Icon: Church, iconClass: 'text-amber-500', badgeClass: 'bg-amber-100 text-amber-800', weight: '10%', barColor: '#f59e0b', semVotoMedido: true,
     rationale: 'Reúne votações sobre liberdade de culto, proteção contra perseguição religiosa e respeito ao exercício público da fé.',
   },
 ];
+
+/** Critérios que de fato distinguem um parlamentar do outro pelo voto. */
+export const CRITERIA_COM_VOTO = CRITERIA.filter((c) => !c.semVotoMedido);
 
 export const CRITERIA_BY_KEY = Object.fromEntries(CRITERIA.map(c => [c.key, c]));
 export const CRITERIA_BY_FIELD = Object.fromEntries(CRITERIA.map(c => [c.field, c]));

@@ -135,10 +135,11 @@ describe("PoliticianProfile Page", () => {
     expect(screen.getAllByText(/PL/i).length).toBeGreaterThan(0);
   });
 
-  it("exibe a pontuação de aderência e o nível", () => {
+  it("exibe a nota e a base de votos, sem rótulo de faixa", () => {
     renderProfile();
     expect(screen.getByText(/87,3/i)).toBeInTheDocument();
-    expect(screen.getAllByText(/Aderência muito alta/i).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/Aderência muito alta/i)).not.toBeInTheDocument();
+    expect(screen.getAllByText(/votos próprios/i).length).toBeGreaterThan(0);
   });
 
   it("renderiza as abas de navegação do perfil", () => {

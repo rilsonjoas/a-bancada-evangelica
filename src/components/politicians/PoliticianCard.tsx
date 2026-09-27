@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { scoreBand } from '@/lib/criteria';
+import { CRITERIA, SEM_VOTO_MEDIDO_NOTA } from '@/lib/criteria';
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,14 @@ import { PoliticalTooltip, POLITICAL_GLOSSARY } from '@/components/common/Politi
 import { FpeTierChip } from '@/components/politicians/FpeTierChip';
 import { getPerformanceBadgeColor, getPerformanceLabel } from '@/lib/performance';
 
+const ROTULO_CURTO: Record<string, string> = {
+  LIFE_PROTECTION: 'Vida',
+  FAMILY_VALUES: 'Família',
+  MORAL_INTEGRITY: 'Moral',
+  SOCIAL_RESPONSIBILITY: 'Social',
+  RELIGIOUS_FREEDOM: 'Liberdade Relig.',
+};
+
 interface PoliticianCardProps {
   politician: APIPolitician;
   rank?: number;
@@ -18,18 +26,6 @@ interface PoliticianCardProps {
 
 const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => {
   const [imageError, setImageError] = useState(false);
-  // Cortes vêm de SCORE_BANDS (fonte única) — ver src/lib/criteria.tsx.
-  const getScoreColor = (score: number) => `score-${scoreBand(score)}`;
-
-  const getScoreBadgeVariant = (score: number) => {
-    switch (scoreBand(score)) {
-      case 'excellent': return 'default';
-      case 'good': return 'secondary';
-      case 'average': return 'outline';
-      default: return 'destructive';
-    }
-  };
-
   const formatScore = (score: number) => score.toFixed(0);
   const formatConsistency = (score: number) => `${(score * 100).toFixed(0)}%`;
 
@@ -93,8 +89,10 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
 
               {/* Overall Score */}
               <div className="flex-shrink-0 text-right pl-3 border-l border-border/40">
-                <Badge 
-                  variant={getScoreBadgeVariant(politician.scores.overall)}
+                {/* Variante neutra: cor por faixa de nota foi tirada em
+                    2026-09-27 (ver getPerformanceLabel). */}
+                <Badge
+                  variant="secondary"
                   className="font-semibold text-sm px-2.5 py-0.5"
                 >
                   {formatScore(politician.scores.overall)}
@@ -114,7 +112,7 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
                 {performanceBadge.label}
               </Badge>
               {politician.scores.totalVotes != null && politician.scores.totalVotes > 0 && (
-                <PoliticalTooltip term="O que significa?" explanation={POLITICAL_GLOSSARY.aderência} className="text-[10px]" />
+                <PoliticalTooltip term="O que significa?" explanation={POLITICAL_GLOSSARY.baseDaNota} className="text-[10px]" />
               )}
               {politician.isFpeMember && (
                 <FpeTierChip
@@ -126,39 +124,36 @@ const PoliticianCard: React.FC<PoliticianCardProps> = ({ politician, rank }) => 
               )}
             </div>
 
-            {/* Score Breakdown */}
+            {/* Score Breakdown — critério sem votação nominal medida mostra
+                "—" em vez da semente do partido (passe de honestidade
+                2026-09-27, ver `semVotoMedido` em src/lib/criteria.tsx). */}
             <div className="grid grid-cols-5 gap-1 sm:gap-2 mb-3 p-1.5 sm:p-2 bg-muted/30 rounded-lg border border-border/30">
-              <div className="text-center" title="Proteção à vida desde a concepção (0 a 100 pts)">
-                <div className="text-xs sm:text-sm font-bold text-foreground">
-                  {formatScore(politician.scores.lifeProtection)}
-                </div>
-                <div className="text-[10px] font-medium leading-tight text-muted-foreground">Vida</div>
-              </div>
-              <div className="text-center" title="Fortalecimento da família e infância (0 a 100 pts)">
-                <div className="text-xs sm:text-sm font-bold text-foreground">
-                  {formatScore(politician.scores.familyValues)}
-                </div>
-                <div className="text-[10px] font-medium leading-tight text-muted-foreground">Família</div>
-              </div>
-              <div className="text-center" title="Combate à corrupção e integridade pública (0 a 100 pts)">
-                <div className="text-xs sm:text-sm font-bold text-foreground">
-                  {formatScore(politician.scores.moralIntegrity)}
-                </div>
-                <div className="text-[10px] font-medium leading-tight text-muted-foreground">Moral</div>
-              </div>
-              <div className="text-center" title="Dignidade humana e justiça social (0 a 100 pts)">
-                <div className="text-xs sm:text-sm font-bold text-foreground">
-                  {formatScore(politician.scores.socialResponsibility)}
-                </div>
-                <div className="text-[10px] font-medium leading-tight text-muted-foreground">Social</div>
-              </div>
-              <div className="text-center" title="Proteção à liberdade de culto e expressão (0 a 100 pts)">
-                <div className="text-xs sm:text-sm font-bold text-foreground">
-                  {formatScore(politician.scores.religiousFreedom)}
-                </div>
-                <div className="text-[10px] font-medium leading-tight text-muted-foreground">Liberdade Relig.</div>
-              </div>
+              {CRITERIA.map((c) => {
+                const valor = (politician.scores as unknown as Record<string, number>)[c.field];
+                return (
+                  <div
+                    key={c.key}
+                    className="text-center"
+                    title={c.semVotoMedido ? `${c.label}: ${SEM_VOTO_MEDIDO_NOTA}` : `${c.label} (0 a 100 pts)`}
+                  >
+                    <div className={cn('text-xs sm:text-sm font-bold', c.semVotoMedido ? 'text-muted-foreground' : 'text-foreground')}>
+                      {c.semVotoMedido ? (
+                        <>
+                          <span aria-hidden="true">—</span>
+                          <span className="sr-only">sem voto medido</span>
+                        </>
+                      ) : (
+                        formatScore(valor)
+                      )}
+                    </div>
+                    <div className="text-[10px] font-medium leading-tight text-muted-foreground">{ROTULO_CURTO[c.key]}</div>
+                  </div>
+                );
+              })}
             </div>
+            <p className="-mt-2 mb-3 text-[10px] leading-tight text-muted-foreground">
+              — {CRITERIA.filter((c) => c.semVotoMedido).map((c) => ROTULO_CURTO[c.key]).join(' e ')}: sem votação nominal medida; entram na nota geral pela estimativa do partido.
+            </p>
 
             {/* Aviso Didático se a nota for estimativa */}
             {politician.scores.totalVotes === 0 && (

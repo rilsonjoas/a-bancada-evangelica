@@ -3,6 +3,7 @@ import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadius
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { fmt } from '@/lib/format';
+import { CRITERIA_COM_VOTO } from '@/lib/criteria';
 
 interface ComparisonChartProps {
   politicians: Array<{
@@ -23,44 +24,15 @@ export function ComparisonChart({ politicians }: ComparisonChartProps) {
   const reducedMotion = useReducedMotion();
   const isMobile = useIsMobile();
 
-  // Preparar dados para o gráfico radar
-  const radarData = [
-    {
-      subject: 'Proteção à Vida',
-      ...politicians.reduce((acc, politician, index) => ({
-        ...acc,
-        [`politician_${index}`]: politician.currentScore?.lifeProtection || 0
-      }), {})
-    },
-    {
-      subject: 'Valores Familiares',
-      ...politicians.reduce((acc, politician, index) => ({
-        ...acc,
-        [`politician_${index}`]: politician.currentScore?.familyValues || 0
-      }), {})
-    },
-    {
-      subject: 'Integridade Moral',
-      ...politicians.reduce((acc, politician, index) => ({
-        ...acc,
-        [`politician_${index}`]: politician.currentScore?.moralIntegrity || 0
-      }), {})
-    },
-    {
-      subject: 'Responsab. Social',
-      ...politicians.reduce((acc, politician, index) => ({
-        ...acc,
-        [`politician_${index}`]: politician.currentScore?.socialResponsibility || 0
-      }), {})
-    },
-    {
-      subject: 'Liberdade Religiosa',
-      ...politicians.reduce((acc, politician, index) => ({
-        ...acc,
-        [`politician_${index}`]: politician.currentScore?.religiousFreedom || 0
-      }), {})
-    }
-  ];
+  // Radar só com critérios de voto medido (2026-09-27): nos outros, dois
+  // parlamentares do mesmo partido têm o mesmo número por construção.
+  const radarData = CRITERIA_COM_VOTO.map((c) => ({
+    subject: c.label,
+    ...politicians.reduce((acc, politician, index) => ({
+      ...acc,
+      [`politician_${index}`]: (politician.currentScore as unknown as Record<string, number> | undefined)?.[c.field] || 0,
+    }), {}),
+  }));
 
   // Preparar dados para o gráfico de barras (pontuação geral)
   const barData = politicians.map(politician => ({

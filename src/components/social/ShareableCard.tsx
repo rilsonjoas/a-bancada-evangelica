@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { Download, Share2 } from 'lucide-react';
-import { CRITERIA } from '@/lib/criteria';
+import { CRITERIA, CRITERIA_COM_VOTO } from '@/lib/criteria';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { API_BASE_URL } from '@/lib/apiClient';
@@ -208,6 +208,20 @@ export function ShareableCard({ politician, type = 'summary' }: ShareableCardPro
               {CRITERIA.map((c) => {
                 const value =
                   (politician.currentScore?.[c.field as keyof typeof politician.currentScore] as number | undefined) ?? 0;
+                // Passe de honestidade 2026-09-27: critério sem votação
+                // nominal medida não vira barra (seria a semente do partido
+                // com cara de medição do parlamentar).
+                if (c.semVotoMedido) {
+                  return (
+                    <div key={c.key} className="flex items-center justify-between text-[13px]">
+                      <span className="flex items-center gap-2 font-medium text-gray-500">
+                        <c.Icon className={`h-4 w-4 ${c.iconClass}`} />
+                        {c.label}
+                      </span>
+                      <span className="text-[11px] font-semibold text-slate-400">sem voto medido</span>
+                    </div>
+                  );
+                }
                 return (
                   <div key={c.key}>
                     <div className="flex items-center justify-between text-[13px] mb-1.5">
@@ -235,7 +249,7 @@ export function ShareableCard({ politician, type = 'summary' }: ShareableCardPro
                 : 'Perfil público construído a partir de votos nominais registrados.'}
             </p>
             <p className="mt-4 text-center text-[12px] font-medium text-slate-500">
-              Votos nominais registrados · {CRITERIA.length} critérios ponderados
+              Votos nominais registrados · {CRITERIA_COM_VOTO.length} de {CRITERIA.length} critérios com voto medido
             </p>
             {lastCalc && (
               <p className="mt-3 text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
@@ -335,8 +349,8 @@ export function ShareableCard({ politician, type = 'summary' }: ShareableCardPro
             </p>
           </div>
 
-          <div className="mt-8 grid grid-cols-2 gap-3">
-            {CRITERIA.slice(0, 4).map((c) => {
+          <div className="mt-8 grid grid-cols-3 gap-3">
+            {CRITERIA_COM_VOTO.map((c) => {
               const value =
                 (politician.currentScore?.[c.field as keyof typeof politician.currentScore] as number | undefined) ?? 0;
               return (
@@ -355,7 +369,7 @@ export function ShareableCard({ politician, type = 'summary' }: ShareableCardPro
             Avaliação baseada em valores cristãos, apurada por votos nominais públicos.
           </p>
           <p className="mt-4 text-center text-[12px] font-medium text-slate-500">
-            Votos nominais registrados · {CRITERIA.length} critérios ponderados
+            Votos nominais registrados · {CRITERIA_COM_VOTO.length} de {CRITERIA.length} critérios com voto medido
           </p>
           {lastCalc && (
             <p className="mt-3 text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">

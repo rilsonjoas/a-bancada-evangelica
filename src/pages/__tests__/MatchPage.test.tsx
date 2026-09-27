@@ -14,7 +14,7 @@ const { MOCK_POLITICIANS } = vi.hoisted(() => ({
       photoUrl: '',
       scores: {
         lifeProtection: 95,
-        familyValues: 70,
+        familyValues: 60,
         moralIntegrity: 70,
         socialResponsibility: 70,
         religiousFreedom: 70,
@@ -51,8 +51,10 @@ const renderMatch = () =>
     </MemoryRouter>
   );
 
+// 3 perguntas desde 2026-09-27: só critérios com voto medido (Família,
+// Moral, Social). Vida e Religião são semente do partido e saíram do quiz.
 const answerAllConcordo = () => {
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 3; i++) {
     fireEvent.click(screen.getByRole('button', { name: /Concordo/ }));
   }
 };
@@ -68,12 +70,12 @@ describe('MatchPage — M1 Match Eleitor', () => {
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
       'Quem vota como você?'
     );
-    expect(screen.getByText('Pergunta 1 de 5')).toBeInTheDocument();
+    expect(screen.getByText('Pergunta 1 de 3')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Concordo/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Pular/ })).toBeInTheDocument();
   });
 
-  it('após 5 respostas, mostra o ranking por afinidade com nomes e notas', () => {
+  it('após 3 respostas, mostra o ranking por afinidade com nomes e notas', () => {
     renderMatch();
     answerAllConcordo();
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
@@ -85,23 +87,26 @@ describe('MatchPage — M1 Match Eleitor', () => {
     expect(screen.getByRole('button', { name: /Refazer o teste/ })).toBeInTheDocument();
   });
 
-  it('concordando com tudo, a ordem é a oficial (overall desc)', () => {
+  it('concordando com tudo, Vida (semente do partido) não decide a ordem', () => {
+    // A nota geral põe a Alinhada na frente (77,5 × 62) só por Vida 95 × 20.
+    // Nos critérios com voto medido a Oposta é mais alta: 80 × 65,8.
     renderMatch();
     answerAllConcordo();
     const cards = screen.getAllByRole('listitem');
-    expect(cards[0].textContent).toContain('Dep. Alinhada');
-    expect(cards[1].textContent).toContain('Dep. Oposta');
+    expect(cards[0].textContent).toContain('Dep. Oposta');
+    expect(cards[1].textContent).toContain('Dep. Alinhada');
   });
 
-  it('discordando de proteção à vida inverte a preferência', () => {
+  it('discordando de valores familiares inverte a preferência', () => {
+    // Família invertida: Alinhada 57,5 × Oposta 55.
     renderMatch();
     fireEvent.click(screen.getByRole('button', { name: /Não concordo/ }));
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 2; i++) {
       fireEvent.click(screen.getByRole('button', { name: /Concordo/ }));
     }
     const cards = screen.getAllByRole('listitem');
-    expect(cards[0].textContent).toContain('Dep. Oposta');
-    expect(cards[1].textContent).toContain('Dep. Alinhada');
+    expect(cards[0].textContent).toContain('Dep. Alinhada');
+    expect(cards[1].textContent).toContain('Dep. Oposta');
   });
 
   it('atualiza o <title> para SEO', () => {
@@ -111,18 +116,15 @@ describe('MatchPage — M1 Match Eleitor', () => {
 
   it('permite responder o quiz usando atalhos numéricos do teclado (1, 2, 3)', () => {
     renderMatch();
-    expect(screen.getByText('Pergunta 1 de 5')).toBeInTheDocument();
+    expect(screen.getByText('Pergunta 1 de 3')).toBeInTheDocument();
 
     fireEvent.keyDown(window, { key: '1' });
-    expect(screen.getByText('Pergunta 2 de 5')).toBeInTheDocument();
+    expect(screen.getByText('Pergunta 2 de 3')).toBeInTheDocument();
 
     fireEvent.keyDown(window, { key: '2' });
-    expect(screen.getByText('Pergunta 3 de 5')).toBeInTheDocument();
-
-    fireEvent.keyDown(window, { key: '3' });
-    expect(screen.getByText('Pergunta 4 de 5')).toBeInTheDocument();
+    expect(screen.getByText('Pergunta 3 de 3')).toBeInTheDocument();
 
     fireEvent.keyDown(window, { key: 'Backspace' });
-    expect(screen.getByText('Pergunta 3 de 5')).toBeInTheDocument();
+    expect(screen.getByText('Pergunta 2 de 3')).toBeInTheDocument();
   });
 });
