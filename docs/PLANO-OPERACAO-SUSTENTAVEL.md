@@ -59,7 +59,7 @@ teria feito o monitor marcar "down" a cada ~24 min em vez de ~24h. Fonte:
 | Variável | Nome sugerido (seu padrão) | Heartbeat Interval | Status |
 |---|---|---|---|
 | `UPTIME_KUMA_PUSH_URL_SCORES` | Bancada · Recálculo de Scores (push) | `90000` (25h) | criado; intervalo subiu de `86400` em 2026-09-27 (ver nota abaixo) |
-| `UPTIME_KUMA_PUSH_URL_CURATION_QUEUE` | Bancada · Fila de Curadoria (push) — renomear para "Busca de Notícias" | `90000` (25h) | criado; desde 2026-09-27 é só liveness da busca diária (sempre `up`), não alerta de fila |
+| `UPTIME_KUMA_PUSH_URL_CURATION_QUEUE` | Bancada · Busca de Notícias (push) — era "Fila de Curadoria" até 2026-09-27 | `90000` (25h) | criado; desde 2026-09-27 é só liveness da busca diária (sempre `up`), não alerta de fila |
 | `UPTIME_KUMA_PUSH_URL_POLITICIANS` | Bancada · Sync Políticos (push) | `86400` | adiado por escolha |
 | `UPTIME_KUMA_PUSH_URL_NEWS` | Bancada · Sync Notícias (push) | `86400` | adiado por escolha |
 | `UPTIME_KUMA_PUSH_URL_EXPENSES` | Bancada · Sync Gastos (push) | `604800` (7 dias) | adiado por escolha |

@@ -620,6 +620,34 @@ e entrevistas com candidato passam de propósito (teste cobre).
 - `CURATION_QUEUE_ALERT_THRESHOLD` e `CURATION_QUEUE_STALE_DAYS` deixaram de
   ser lidos
 
+### Resultado em produção (2026-09-27, commit `268861a`)
+
+Deploy às 06:11 UTC; primeira execução rodada à mão logo depois
+(`tsx scripts/sync-worker.ts run daily-news-sync`), sem esperar o cron.
+
+| | Antes | Depois |
+|---|---|---|
+| PENDING | 13.783 | **1.668** |
+| Máximo de pendentes por parlamentar | 179 | 5 |
+| Pendentes publicadas há mais de 30 dias | 5.598 | 0 |
+| Decisões humanas (63 aprovadas, 126 reprovadas) | — | intactas |
+
+Saídas pela regra: 12.121 (`REJECTED`, `reviewed_at` NULL), divididas em
+5.598 fora da janela, 3.685 acima do teto, 1.452 fichas de candidatura,
+761 títulos repetidos, 385 sites de partido e 240 títulos só com o nome.
+Bate com a medição prévia: 1.666 previstos + 6 novas coletadas no mesmo
+run daria 1.672; a diferença de 4 não foi investigada (provável efeito da
+hora do corte de 30 dias, que se moveu entre a medição e o run).
+
+Na coleta do mesmo run: 1.388 itens encontrados, 1.382 já conhecidos,
+6 inseridos, 3.180 descartados antes de entrar na fila.
+
+Uptime Kuma: o monitor foi renomeado para "Bancada · Busca de Notícias
+(push)", intervalo `90000`; recebeu `UP` às 06:19 UTC com "1668 pendentes
+na fila de curadoria". Registro do lado da infra (inclusive o falso DOWN
+do monitor de Scores): `hetzner-infra/INCIDENTES.md` (2026-09-27) e o
+checklist de monitor push em `hetzner-infra/PADRAO-DE-ENGENHARIA.md`.
+
 ### Ainda aberto
 
 - **Painel mostrando lote priorizado** (item de Eixo 2 no
