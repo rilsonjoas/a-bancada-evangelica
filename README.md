@@ -25,7 +25,7 @@
 
 ## O que é
 
-**A Bancada Evangélica** avalia os parlamentares da 57ª legislatura (2023–2027) — 513 deputados federais da Câmara + 82 senadores — com base em 5 critérios objetivos de alinhamento com valores cristãos: proteção à vida, valores familiares, integridade moral, responsabilidade social e liberdade religiosa.
+**A Bancada Evangélica** avalia os parlamentares da 57ª legislatura (2023–2027) — 513 deputados federais da Câmara + 85 senadores — com base em 5 critérios objetivos de alinhamento com valores cristãos: proteção à vida, valores familiares, integridade moral, responsabilidade social e liberdade religiosa.
 
 A Frente Parlamentar Evangélica (FPE) é um **filtro opcional** — não um limite. O eleitor pode ver o ranking geral ou ativar o toggle "Apenas FPE" para focar nos deputados que se identificam publicamente como representantes evangélicos (a contagem vigente, com a data da captura oficial, está em `/metodologia`).
 
@@ -149,7 +149,7 @@ A API segue o padrão de **módulos NestJS com injeção de dependência** — c
 
 ```
 Snapshot de 2026-09-14 (o número de hoje é maior — consulte o site):
-Parlamentares avaliados:   595 (513 Câmara + 82 Senado)
+Parlamentares avaliados:   598 (513 Câmara + 85 Senado)
 Com voto próprio:          505
 Avaliados só por partido:  89
 Votos monitorados:         26.860
@@ -216,9 +216,13 @@ pnpm dev:api            # API NestJS na :3001
 
 ### Testes
 
+**400 testes no total**, todos passando (verificado em 2026-10-15):
+
 ```bash
-pnpm test               # 32 testes (Vitest + Testing Library)
-pnpm test:coverage      # com cobertura
+pnpm test        # 340 testes em 27 arquivos (Vitest + Testing Library)
+pnpm test:api    #  42 testes em  7 arquivos (Vitest, ambiente node)
+pnpm test:e2e    #  18 testes em  5 arquivos (Playwright)
+pnpm test:coverage   # com cobertura
 ```
 
 ---

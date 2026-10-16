@@ -5,7 +5,11 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.resolve(__dirname, '../public');
-const OUT_DIR = path.join(__dirname, '../canal-x');
+const OUT_DIR = path.join(__dirname, '../imagens-publicacao');
+
+const LOGO_B64 = fs
+  .readFileSync(path.join(PUBLIC_DIR, 'marca-white.png'))
+  .toString('base64');
 
 /**
  * Gráficos de divulgação (X/Twitter) — nota média real por partido e por
@@ -54,24 +58,24 @@ async function aggregate(): Promise<{ byParty: Row[]; byState: Row[] }> {
 const ORIGIN = 'https://a-bancada-evangelica.vercel.app';
 
 function chartHTML(title: string, subtitle: string, rows: Row[], top: number, utm: string): string {
-  const sel = rows.slice(0, top);
+  const sel = rows
+    .slice(0, top)
+    .sort((a, b) => b.avg - a.avg);
   const max = Math.max(...sel.map((r) => r.avg));
   const barH = 56;
   const bars = sel
     .map((r, i) => {
-      const w = Math.max(2, Math.round((r.avg / max) * 820));
+      const pct = Math.max(5, (r.avg / max) * 100);
       return `
         <div class="bar-row">
           <div class="bar-label">${r.label}</div>
           <div class="bar-track">
-            <div class="bar-fill" style="width:${w}px"><span class="bar-val">${r.avg.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}</span></div>
+            <div class="bar-fill" style="width:${pct}%"><span class="bar-val">${r.avg.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}</span></div>
           </div>
           <div class="bar-n">${r.n} parlam.</div>
         </div>`;
     })
     .join('\n');
-
-  const totalH = 210 + sel.length * barH + 120;
 
   return `<!doctype html>
 <html lang="pt-BR">
@@ -79,9 +83,9 @@ function chartHTML(title: string, subtitle: string, rows: Row[], top: number, ut
 <meta charset="utf-8" />
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { width: 1080px; height: ${totalH}px; }
+  html, body { width: 1080px; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-  .card { width: 1080px; height: ${totalH}px; background: #ffffff; display: flex; flex-direction: column; overflow: hidden; }
+  .card { width: 1080px; background: #ffffff; display: flex; flex-direction: column; }
   .filigree { height: 14px; background: #b49a60; flex: none; }
   .head { padding: 48px 68px 32px; text-align: center; flex: none; }
   .head .selo { display: inline-block; margin: 0 auto 24px; padding: 8px 24px; border: 1px solid #b49a60; border-radius: 999px; color: #1e293b; font-size: 24px; font-weight: 700; letter-spacing: 0.2em; }
@@ -91,7 +95,7 @@ function chartHTML(title: string, subtitle: string, rows: Row[], top: number, ut
   .bar-row { display: flex; align-items: center; height: ${barH}px; gap: 16px; }
   .bar-label { width: 190px; text-align: right; font-size: 27px; font-weight: 700; color: #1e3a5f; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .bar-track { flex: 1; display: flex; align-items: center; }
-  .bar-fill { background: #1e3a5f; border-radius: 6px; min-height: 32px; display: flex; align-items: center; justify-content: flex-start; padding-left: 14px; position: relative; }
+  .bar-fill { background: #1e3a5f; border-radius: 6px; min-height: 32px; min-width: 76px; display: flex; align-items: center; justify-content: flex-start; padding-left: 14px; position: relative; }
   .bar-val { color: #ffffff; font-size: 23px; font-weight: 800; }
   .bar-n { width: 115px; font-size: 19px; font-weight: 600; color: #64748b; }
   .footer { flex: none; padding: 28px 56px; background: #0f172a; display: flex; align-items: center; justify-content: space-between; }
@@ -113,7 +117,7 @@ function chartHTML(title: string, subtitle: string, rows: Row[], top: number, ut
     <div class="body">${bars}</div>
     <div class="footer">
       <div class="brand">
-        <img src="file://${PUBLIC_DIR}/marca-white.png" alt="" />
+        <img src="data:image/png;base64,${LOGO_B64}" alt="" />
         <div>
           <div class="t">A Bancada Evangélica</div>
           <div class="s">Transparência por votos nominais</div>
@@ -135,7 +139,7 @@ async function main() {
 
   const charts: Array<{ file: string; title: string; sub: string; rows: Row[]; top: number; utm: string }> = [
     {
-      file: 'grafico-partido.png',
+      file: '01-ranking-partido.png',
       title: 'Nota média por partido',
       sub: `${byParty.length} siglas · ${byParty.reduce((a, r) => a + r.n, 0)} parlamentares monitorados`,
       rows: byParty,
@@ -143,7 +147,7 @@ async function main() {
       utm: 'ranking',
     },
     {
-      file: 'grafico-estado.png',
+      file: '02-ranking-estado.png',
       title: 'Nota média por estado',
       sub: `${byState.length} UFs · parlamentares monitorados por unidade da federação`,
       rows: byState,

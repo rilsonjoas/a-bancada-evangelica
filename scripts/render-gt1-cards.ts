@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.resolve(__dirname, '../public');
-const OUT_DIR = path.join(__dirname, '../gt1-export');
+const OUT_DIR = path.join(__dirname, '../imagens-publicacao');
 const MEMBROS_FPE = 225;
 
 const LOGO_B64 = (() => {
@@ -45,7 +45,7 @@ interface CardData {
 
 const CARDS: CardData[] = [
   {
-    arquivo: 'gt1-familia-pauta1-pl6233.png',
+    arquivo: '03-gt1-familia-pl6233.png',
     selo: 'Pa u t a · F a m í l i a',
     titulo: 'PL 6233/2023',
     pauta: 'Código Civil · atualização monetária e juros',
@@ -59,7 +59,7 @@ const CARDS: CardData[] = [
     rodapeLink: 'votacoes',
   },
   {
-    arquivo: 'gt1-familia-pauta2-pl3914.png',
+    arquivo: '04-gt1-familia-pl3914.png',
     selo: 'Pa u t a · F a m í l i a',
     titulo: 'PL 3914/2023',
     pauta: 'Violência patrimonial contra a criança',
@@ -73,7 +73,7 @@ const CARDS: CardData[] = [
     rodapeLink: 'votacoes',
   },
   {
-    arquivo: 'gt1-familia-pauta3-pl5122.png',
+    arquivo: '05-gt1-familia-pl5122.png',
     selo: 'Pa u t a · F a m í l i a',
     titulo: 'PL 5122/2023',
     pauta: 'Anistia e rebate de dívidas de crédito rural',
