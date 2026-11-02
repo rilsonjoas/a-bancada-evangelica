@@ -14,7 +14,83 @@ export interface ReceitaRow {
   NM_DOADOR: string;
   DS_ORIGEM_RECEITA: string;
   VR_RECEITA: string;
+  /** Tipo de fundo ("FUNDO ESPECIAL", "FUNDO PARTIDARIO", "OUTROS RECURSOS"). */
+  DS_FONTE_RECEITA?: string;
+  SQ_CANDIDATO?: string;
+  SG_UF?: string;
 }
+
+/**
+ * Deve esta linha do arquivo BRASIL ser lida? Só as de estados SEM arquivo
+ * próprio no zip. Achado real (2026-11-02): o zip de 2022 traz 26 arquivos por
+ * estado e nenhum do DF, então o sync por estado deixava os 8 deputados do DF
+ * sem financiamento. O BRASIL cobre o DF; as linhas dos demais estados já
+ * foram lidas dos arquivos próprios e não podem ser contadas duas vezes.
+ */
+export function lerDoBrasil(row: Pick<ReceitaRow, 'SG_UF'>, ufsComArquivoProprio: ReadonlySet<string>): boolean {
+  const uf = (row.SG_UF ?? '').trim().toUpperCase();
+  return uf.length === 2 && !ufsComArquivoProprio.has(uf);
+}
+
+/**
+ * De onde veio o dinheiro (Fase C de docs/PLANO-CONFIANCA-E-DADOS-2027.md).
+ * Categorias que não se sobrepõem, definidas por `DS_FONTE_RECEITA` (tipo de
+ * fundo) e, para o que não é fundo, por `DS_ORIGEM_RECEITA`. Medido nas
+ * receitas de 2022 de deputados federais e senadores (R$ 3,6 bi): fundo
+ * eleitoral 80,2%, pessoas físicas 8,9%, fundo partidário 6,4%, recursos
+ * próprios 2,2%, partido (outros recursos) 1,8%.
+ */
+export type FonteCategoria =
+  | 'fundo_eleitoral'
+  | 'fundo_partidario'
+  | 'partido'
+  | 'pessoas_fisicas'
+  | 'proprios'
+  | 'outros_candidatos'
+  | 'outras';
+
+export const FONTE_CATEGORIAS: ReadonlyArray<FonteCategoria> = [
+  'fundo_eleitoral',
+  'fundo_partidario',
+  'partido',
+  'pessoas_fisicas',
+  'proprios',
+  'outros_candidatos',
+  'outras',
+];
+
+const normalizar = (t: string) =>
+  (t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+
+/**
+ * Fundo vence a origem: dinheiro do FEFC ou do Fundo Partidário é "fundo"
+ * mesmo quando passou por outro candidato. O que não é fundo é classificado
+ * pela origem declarada. O que não se reconhece vai para `outras`, nunca é
+ * descartado: a soma das categorias é sempre o total arrecadado.
+ */
+export function categorizarReceita(row: Pick<ReceitaRow, 'DS_FONTE_RECEITA' | 'DS_ORIGEM_RECEITA'>): FonteCategoria {
+  const fonte = normalizar(row.DS_FONTE_RECEITA ?? '');
+  const origem = normalizar(row.DS_ORIGEM_RECEITA);
+  if (fonte.includes('fundo especial')) return 'fundo_eleitoral';
+  if (fonte.includes('fundo partidario')) return 'fundo_partidario';
+  if (origem.includes('pessoas fisicas')) return 'pessoas_fisicas';
+  if (origem.includes('proprios')) return 'proprios';
+  if (origem.includes('partido politico')) return 'partido';
+  if (origem.includes('outros candidatos')) return 'outros_candidatos';
+  return 'outras';
+}
+
+export type BySource = Record<FonteCategoria, number>;
+
+export const emptyBySource = (): BySource => ({
+  fundo_eleitoral: 0,
+  fundo_partidario: 0,
+  partido: 0,
+  pessoas_fisicas: 0,
+  proprios: 0,
+  outros_candidatos: 0,
+  outras: 0,
+});
 
 export interface TopDonor {
   name: string;
@@ -38,6 +114,10 @@ export interface CandidateAggregate {
   largestDonation: number;
   /** chave = documento do doador (ou pseudo-chave de estimados) */
   donors: Map<string, DonorAccumulator>;
+  /** Total por categoria de origem do dinheiro. */
+  bySource: BySource;
+  /** `SQ_CANDIDATO` de 2022 (liga à página oficial do candidato no TSE). */
+  sqCandidato: string | null;
 }
 
 /** Cargos que interessam ao produto. Comparação case-insensitive porque o
@@ -105,6 +185,8 @@ export function accumulateReceita(agg: CandidateAggregate, row: ReceitaRow): voi
   const amount = parseMoneyBRL(row.VR_RECEITA);
   agg.totalReceived += amount;
   agg.donationCount += 1;
+  agg.bySource[categorizarReceita(row)] += amount;
+  if (!agg.sqCandidato && row.SQ_CANDIDATO) agg.sqCandidato = row.SQ_CANDIDATO.trim();
   if (amount > agg.largestDonation) agg.largestDonation = amount;
 
   const donor = classifyDonor(row);
@@ -124,6 +206,8 @@ export function newAggregate(politicianId: number): CandidateAggregate {
     donationCount: 0,
     largestDonation: 0,
     donors: new Map(),
+    bySource: emptyBySource(),
+    sqCandidato: null,
   };
 }
 
@@ -135,6 +219,8 @@ export interface FinanceSummary {
   donorPfCount: number;
   donorPjCount: number;
   topDonors: TopDonor[];
+  bySource: BySource;
+  sqCandidato: string | null;
 }
 
 /** Fecha o agregado: contagens de doadores distintos + top 10 por valor.
@@ -165,5 +251,9 @@ export function summarize(agg: CandidateAggregate): FinanceSummary {
     donorPfCount: pf,
     donorPjCount: pj,
     topDonors,
+    bySource: Object.fromEntries(
+      FONTE_CATEGORIAS.map((c) => [c, Math.round(agg.bySource[c] * 100) / 100]),
+    ) as BySource,
+    sqCandidato: agg.sqCandidato,
   };
 }

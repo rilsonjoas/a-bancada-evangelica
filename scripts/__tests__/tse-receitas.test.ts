@@ -7,6 +7,8 @@ import {
   newAggregate,
   accumulateReceita,
   summarize,
+  categorizarReceita,
+  lerDoBrasil,
   type ReceitaRow,
 } from '../lib/tse-receitas';
 
@@ -132,5 +134,85 @@ describe('accumulateReceita + summarize', () => {
     expect(summary.totalReceived).toBe(0);
     expect(summary.donationCount).toBe(0);
     expect(summary.topDonors).toHaveLength(0);
+  });
+});
+
+describe('categorizarReceita (origem do dinheiro, Fase C)', () => {
+  const c = (fonte: string | undefined, origem: string) => categorizarReceita({ DS_FONTE_RECEITA: fonte, DS_ORIGEM_RECEITA: origem });
+
+  it.each([
+    ['FUNDO ESPECIAL', 'Recursos de partido político', 'fundo_eleitoral'],
+    ['FUNDO PARTIDARIO', 'Recursos de partido político', 'fundo_partidario'],
+    ['OUTROS RECURSOS', 'Recursos de partido político', 'partido'],
+    ['OUTROS RECURSOS', 'Recursos de pessoas físicas', 'pessoas_fisicas'],
+    ['OUTROS RECURSOS', 'Recursos próprios', 'proprios'],
+    ['OUTROS RECURSOS', 'Recursos de outros candidatos', 'outros_candidatos'],
+    ['OUTROS RECURSOS', 'Recursos de Financiamento Coletivo', 'outras'],
+    ['OUTROS RECURSOS', 'Doações pela Internet', 'outras'],
+    ['OUTROS RECURSOS', 'Rendimentos de aplicações financeiras', 'outras'],
+    ['OUTROS RECURSOS', 'Recursos de origens não identificadas', 'outras'],
+    ['#NULO', '#NULO', 'outras'],
+  ])('%s + %s -> %s', (fonte, origem, esperado) => {
+    expect(c(fonte, origem)).toBe(esperado);
+  });
+
+  it('o fundo vence a origem: FEFC repassado por outro candidato continua sendo fundo eleitoral', () => {
+    expect(c('FUNDO ESPECIAL', 'Recursos de outros candidatos')).toBe('fundo_eleitoral');
+    expect(c('FUNDO PARTIDARIO', 'Recursos de outros candidatos')).toBe('fundo_partidario');
+  });
+
+  it('ignora acento e caixa; sem fonte, decide pela origem', () => {
+    expect(c('fundo partidário', 'x')).toBe('fundo_partidario');
+    expect(c(undefined, 'RECURSOS DE PESSOAS FÍSICAS')).toBe('pessoas_fisicas');
+  });
+
+  it('origem desconhecida nunca some: vai para "outras"', () => {
+    expect(c('OUTROS RECURSOS', 'Origem inventada em 2030')).toBe('outras');
+  });
+});
+
+describe('accumulateReceita: por origem', () => {
+  const linha = (fonte: string, origem: string, valor: string, sq = '111'): ReceitaRow => ({
+    DS_CARGO: 'Deputado Federal', NR_CPF_CANDIDATO: '1', NR_CPF_CNPJ_DOADOR: '12345678000199', NM_DOADOR: 'X',
+    DS_ORIGEM_RECEITA: origem, VR_RECEITA: valor, DS_FONTE_RECEITA: fonte, SQ_CANDIDATO: sq,
+  });
+
+  it('a soma das categorias é exatamente o total arrecadado', () => {
+    const agg = newAggregate(1);
+    accumulateReceita(agg, linha('FUNDO ESPECIAL', 'Recursos de partido político', '1.000.000,50'));
+    accumulateReceita(agg, linha('OUTROS RECURSOS', 'Recursos de pessoas físicas', '250,25'));
+    accumulateReceita(agg, linha('OUTROS RECURSOS', 'Origem nova', '10,00'));
+    const s = summarize(agg);
+    expect(s.bySource.fundo_eleitoral).toBe(1000000.5);
+    expect(s.bySource.pessoas_fisicas).toBe(250.25);
+    expect(s.bySource.outras).toBe(10);
+    expect(Object.values(s.bySource).reduce((a, b) => a + b, 0)).toBeCloseTo(s.totalReceived, 2);
+  });
+
+  it('guarda o SQ_CANDIDATO da primeira linha', () => {
+    const agg = newAggregate(1);
+    accumulateReceita(agg, linha('OUTROS RECURSOS', 'Recursos próprios', '1,00', ' 160001 '));
+    accumulateReceita(agg, linha('OUTROS RECURSOS', 'Recursos próprios', '1,00', '999'));
+    expect(summarize(agg).sqCandidato).toBe('160001');
+  });
+
+  it('candidato sem linhas: tudo zero e sem SQ', () => {
+    const s = summarize(newAggregate(9));
+    expect(Object.values(s.bySource).every((v) => v === 0)).toBe(true);
+    expect(s.sqCandidato).toBeNull();
+  });
+});
+
+describe('lerDoBrasil: só estados sem arquivo próprio (achado: zip 2022 sem DF)', () => {
+  const proprios = new Set(['SP', 'RJ']);
+  it('lê o DF e ignora estados já lidos (sem contar duas vezes)', () => {
+    expect(lerDoBrasil({ SG_UF: 'DF' }, proprios)).toBe(true);
+    expect(lerDoBrasil({ SG_UF: 'SP' }, proprios)).toBe(false);
+    expect(lerDoBrasil({ SG_UF: ' rj ' }, proprios)).toBe(false);
+  });
+  it('UF vazia, ausente ou inválida não é lida', () => {
+    expect(lerDoBrasil({ SG_UF: '' }, proprios)).toBe(false);
+    expect(lerDoBrasil({}, proprios)).toBe(false);
+    expect(lerDoBrasil({ SG_UF: 'BRASIL' }, proprios)).toBe(false);
   });
 });

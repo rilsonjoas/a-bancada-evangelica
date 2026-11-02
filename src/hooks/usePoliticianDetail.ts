@@ -9,6 +9,15 @@ export interface PoliticianDetail {
   currentState: string;
   currentHouse: string;
   photoUrl: string;
+  /** Id na casa de origem (deputado na Câmara, código do senador). */
+  legislatureId?: string | null;
+  /** Redes sociais sanitizadas pela API (só perfis, https, sem rastreadores). */
+  socialLinks?: Array<{
+    platform: 'instagram' | 'x' | 'facebook' | 'youtube' | 'website';
+    label: string;
+    url: string;
+    origin: 'CAMARA' | 'SENADO' | 'TSE';
+  }>;
   isFpeMember?: boolean;
   fpe?: {
     tier?: 'REGISTRADO' | 'AUTODECLARADO' | 'IMPRENSA' | null;
@@ -96,6 +105,18 @@ export interface PoliticianDetail {
   }>;
   /** Fórmula que produziu a nota exibida (M0). */
   formulaVersion?: string | null;
+  /** Bens declarados ao TSE em 2022 (valor declarado, não de mercado). null = sem dado. */
+  assets?: {
+    electionYear: number;
+    /** null = valor acima da trava de sanidade, não exibir em destaque. */
+    total: number | null;
+    itemCount: number;
+    unverified: boolean;
+    byType: {
+      imoveis: number; moveis: number; participacoes: number; aplicacoes: number;
+      creditos: number; dinheiro: number; outros: number;
+    } | null;
+  } | null;
   /** Financiamento de campanha (TSE 2022) — transparência pura,
    * NÃO afeta a nota. null = sem receita declarada no dataset. */
   campaignFinance: {
@@ -105,6 +126,16 @@ export interface PoliticianDetail {
     largestDonation: number;
     donorPfCount: number;
     donorPjCount: number;
+    /** De onde veio o dinheiro, em reais. null = sem divisão confiável (ainda não importada ou não fecha com o total). */
+    bySource?: {
+      fundoEleitoral: number;
+      fundoPartidario: number;
+      partido: number;
+      pessoasFisicas: number;
+      proprios: number;
+      outrosCandidatos: number;
+      outras: number;
+    } | null;
     topDonors: Array<{ name: string; doc: string; amount: number; count: number }>;
   } | null;
 }

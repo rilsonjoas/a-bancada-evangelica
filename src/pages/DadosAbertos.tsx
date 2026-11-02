@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Download, ExternalLink, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { apiFetch } from '@/lib/apiClient';
 import { formatRelativeTime } from '@/lib/format';
+import { FontesDeDados } from '@/components/common/FontesDeDados';
 
 // http://192.168.0.101:3001/politicians não existe mais; API em domínio próprio
 const API_BASE_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:3001').replace(/\/$/, '');
@@ -254,6 +255,8 @@ sha256sum bancada-evangelica-votacoes.csv
             <a href="/errata" className="underline hover:text-primary transition-colors">Errata pública</a>.
           </p>
         </div>
+
+        <FontesDeDados />
 
         <div className="space-y-2 pt-4 border-t border-border text-sm">
           <h2 className="font-semibold text-base text-foreground">Como citar esses dados</h2>

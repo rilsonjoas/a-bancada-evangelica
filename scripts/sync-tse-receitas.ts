@@ -38,6 +38,7 @@ import {
   accumulateReceita,
   newAggregate,
   summarize,
+  lerDoBrasil,
 } from './lib/tse-receitas';
 
 const prisma = new PrismaClient();
@@ -71,6 +72,51 @@ function parseCsv<T>(content: string): T[] {
   }) as T[];
 }
 
+/** Acumula uma linha no agregado do político dono do CPF, se for dos nossos. */
+export function processReceitaRow(
+  row: ReceitaRow,
+  byCpf: Map<string, number>,
+  aggregates: Map<number, CandidateAggregate>
+): boolean {
+  if (!isRelevantOffice(row.DS_CARGO || '')) return false;
+  const politicianId = byCpf.get((row.NR_CPF_CANDIDATO || '').trim());
+  if (!politicianId) return false;
+  let agg = aggregates.get(politicianId);
+  if (!agg) {
+    agg = newAggregate(politicianId);
+    aggregates.set(politicianId, agg);
+  }
+  accumulateReceita(agg, row);
+  return true;
+}
+
+/**
+ * Lê o arquivo BRASIL em streaming (432 MB, não cabe como string) e acumula só
+ * os estados que não têm arquivo próprio no zip (hoje, o DF).
+ */
+async function processBrasilStream(
+  zipPath: string,
+  ufsComArquivoProprio: Set<string>,
+  byCpf: Map<string, number>,
+  aggregates: Map<number, CandidateAggregate>
+): Promise<{ rowsRead: number; rowsMatched: number }> {
+  const directory = await unzipper.Open.file(zipPath);
+  const entry = directory.files.find(f => f.path === 'receitas_candidatos_2022_BRASIL.csv');
+  if (!entry) throw new Error('receitas_candidatos_2022_BRASIL.csv não encontrado no zip');
+  const parser = entry
+    .stream()
+    .pipe(iconv.decodeStream('ISO-8859-1'))
+    .pipe(parse({ delimiter: ';', columns: true, relax_quotes: true, skip_empty_lines: true }));
+  let rowsRead = 0;
+  let rowsMatched = 0;
+  for await (const row of parser as AsyncIterable<ReceitaRow>) {
+    rowsRead++;
+    if (!lerDoBrasil(row, ufsComArquivoProprio)) continue;
+    if (processReceitaRow(row, byCpf, aggregates)) rowsMatched++;
+  }
+  return { rowsRead, rowsMatched };
+}
+
 /** Processa um CSV de receitas acumulando nos agregados dos nossos políticos. */
 export function processReceitasCsv(
   csv: string,
@@ -81,17 +127,7 @@ export function processReceitasCsv(
   let matched = 0;
 
   for (const row of rows) {
-    if (!isRelevantOffice(row.DS_CARGO || '')) continue;
-    const politicianId = byCpf.get((row.NR_CPF_CANDIDATO || '').trim());
-    if (!politicianId) continue;
-
-    matched++;
-    let agg = aggregates.get(politicianId);
-    if (!agg) {
-      agg = newAggregate(politicianId);
-      aggregates.set(politicianId, agg);
-    }
-    accumulateReceita(agg, row);
+    if (processReceitaRow(row, byCpf, aggregates)) matched++;
   }
 
   return { rowsRead: rows.length, rowsMatched: matched };
@@ -120,12 +156,25 @@ async function syncReceitas(dryRun: boolean): Promise<void> {
   let totalRows = 0;
   let totalMatched = 0;
 
+  const ufsComArquivoProprio = new Set(
+    receitasEntries.map(n => /_([A-Z]{2})\.csv$/.exec(n)?.[1]).filter((x): x is string => Boolean(x))
+  );
+
   for (const entryName of receitasEntries) {
     const csv = await readCsvEntry(RECEITAS_ZIP, entryName);
     const { rowsRead, rowsMatched } = processReceitasCsv(csv, byCpf, aggregates);
     totalRows += rowsRead;
     totalMatched += rowsMatched;
     console.log(`   ${path.basename(entryName)}: ${rowsRead} linhas, ${rowsMatched} do nossos`);
+  }
+
+  const faltantes = 27 - ufsComArquivoProprio.size;
+  if (faltantes > 0) {
+    console.log(`   ${faltantes} estado(s) sem arquivo próprio no zip; lendo do BRASIL em streaming...`);
+    const b = await processBrasilStream(RECEITAS_ZIP, ufsComArquivoProprio, byCpf, aggregates);
+    totalRows += b.rowsRead;
+    totalMatched += b.rowsMatched;
+    console.log(`   BRASIL (só estados faltantes): ${b.rowsRead} linhas varridas, ${b.rowsMatched} dos nossos`);
   }
 
   const summaries: FinanceSummary[] = [...aggregates.values()].map(summarize);
@@ -145,6 +194,9 @@ async function syncReceitas(dryRun: boolean): Promise<void> {
         `maior R$ ${s.largestDonation.toLocaleString('pt-BR')}`
       );
     }
+    const soma: Record<string, number> = {};
+    for (const x of summaries) for (const [k, v] of Object.entries(x.bySource)) soma[k] = (soma[k] ?? 0) + v;
+    console.log('   Por origem (R$ milhões):', Object.fromEntries(Object.entries(soma).map(([k, v]) => [k, Math.round(v / 1e4) / 100])));
     console.log('🔍 Modo dry-run — nada será gravado no banco.');
     return;
   }
@@ -165,6 +217,8 @@ async function syncReceitas(dryRun: boolean): Promise<void> {
         donor_pf_count: s.donorPfCount,
         donor_pj_count: s.donorPjCount,
         top_donors: s.topDonors,
+        source_breakdown: s.bySource,
+        sq_candidato: s.sqCandidato,
       },
       create: {
         politician_id: s.politicianId,
@@ -175,6 +229,8 @@ async function syncReceitas(dryRun: boolean): Promise<void> {
         donor_pf_count: s.donorPfCount,
         donor_pj_count: s.donorPjCount,
         top_donors: s.topDonors,
+        source_breakdown: s.bySource,
+        sq_candidato: s.sqCandidato,
       },
     });
     upserted++;

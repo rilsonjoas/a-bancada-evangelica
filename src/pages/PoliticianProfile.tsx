@@ -20,7 +20,11 @@ import { CRITERIA, CRITERIA_BY_KEY, CRITERIA_BY_FIELD } from '@/lib/criteria';
 import { ScoreBreakdownPanel } from '@/components/scores/ScoreBreakdownPanel';
 import { fmt } from '@/lib/format';
 import { getPerformanceBadgeColor, getPerformanceLabel, ESTIMATED_LABEL } from '@/lib/performance';
-import { buildVoteSourceLink } from '@/lib/sources';
+import { buildVoteSourceLink, buildPoliticianProfileLink } from '@/lib/sources';
+import { SourceCheck } from '@/components/common/SourceCheck';
+import { RedesSociais } from '@/components/common/RedesSociais';
+import { OrigemDosRecursos } from '@/components/common/OrigemDosRecursos';
+import { BensDeclarados } from '@/components/common/BensDeclarados';
 import { LastSyncBadge } from '@/components/LastSyncBadge';
 import { NewsSection } from '@/components/news/NewsSection';
 
@@ -161,6 +165,8 @@ export function PoliticianProfile() {
                     </div>
                   )}
                 </div>
+
+                <RedesSociais links={politician.socialLinks} />
               </div>
 
               <div className="flex flex-col items-end gap-2.5">
@@ -621,26 +627,25 @@ export function PoliticianProfile() {
                       <span>Nº de doações:</span>
                       <span className="font-semibold">{politician.campaignFinance.donationCount}</span>
                     </div>
+                    {/* Fase C (2026-11-02): "Maior doação" saiu do destaque e "jurídicas"
+                        saiu da linha de doadores. Em 2022 empresa não podia doar; o maior
+                        "doador" e as "jurídicas" eram quase sempre o diretório do partido,
+                        e o leitor entendia o contrário. A origem do dinheiro vem a seguir. */}
                     <div className="flex justify-between">
-                      <span>Maior doação:</span>
-                      <span className="font-semibold">
-                        R$ {Math.round(politician.campaignFinance.largestDonation).toLocaleString('pt-BR')}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Doadores:</span>
-                      <span className="font-semibold">
-                        {politician.campaignFinance.donorPfCount} pessoa{politician.campaignFinance.donorPfCount === 1 ? '' : 's'} física{politician.campaignFinance.donorPfCount === 1 ? '' : 's'} ·{' '}
-                        {politician.campaignFinance.donorPjCount} jurídica{politician.campaignFinance.donorPjCount === 1 ? '' : 's'}
-                      </span>
+                      <span>Pessoas físicas que doaram:</span>
+                      <span className="font-semibold">{politician.campaignFinance.donorPfCount}</span>
                     </div>
 
+                    {politician.campaignFinance.bySource && (
+                      <OrigemDosRecursos bySource={politician.campaignFinance.bySource} />
+                    )}
+
                     {politician.campaignFinance.topDonors.length > 0 && (
-                      <div className="border-t pt-3">
-                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-2">
-                        Maiores doadores
-                      </p>
-                        <ul className="space-y-1.5">
+                      <details className="border-t pt-3">
+                      <summary className="cursor-pointer text-xs font-medium uppercase tracking-wide text-muted-foreground mb-2">
+                        Maiores origens individuais (inclui o próprio partido)
+                      </summary>
+                        <ul className="mt-2 space-y-1.5">
                           {politician.campaignFinance.topDonors.slice(0, 5).map((d, i) => (
                             <li key={i} className="flex justify-between gap-3 text-sm">
                               <span className="min-w-0 truncate" title={`${d.name} · ${d.doc}`}>
@@ -653,7 +658,7 @@ export function PoliticianProfile() {
                             </li>
                           ))}
                         </ul>
-                      </div>
+                      </details>
                     )}
 
                     {/* Decisão de escopo documentada: financiamento é
@@ -669,6 +674,23 @@ export function PoliticianProfile() {
                     Este parlamentar não tem receitas registradas na prestação de contas do TSE 2022. Em geral isso ocorre porque ele{' '}
                     <strong>não disputou aquela eleição</strong> — é o caso típico de suplentes que assumiram o mandato depois —{' '}
                     ou porque nenhuma doação foi declarada.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Bens declarados (2022)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {politician.assets ? (
+                  <BensDeclarados assets={politician.assets} />
+                ) : (
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Não há bens declarados ao TSE em 2022 para este parlamentar. Em geral isso ocorre porque ele{' '}
+                    <strong>não disputou aquela eleição</strong> (é o caso típico de suplentes que assumiram depois),
+                    ou porque não declarou bens.
                   </p>
                 )}
               </CardContent>
@@ -776,6 +798,20 @@ export function PoliticianProfile() {
                   </p>
                 </div>
               )}
+
+              <SourceCheck
+                description={
+                  politician.currentHouse === 'SENADO'
+                    ? 'Mandato e votações vêm dos dados abertos do Senado Federal.'
+                    : 'Mandato e votações vêm dos dados abertos da Câmara dos Deputados.'
+                }
+                links={[
+                  buildPoliticianProfileLink({
+                    house: politician.currentHouse === 'SENADO' ? 'SENADO' : 'CAMARA',
+                    legislatureId: politician.legislatureId,
+                  }),
+                ]}
+              />
             </CardContent>
           </Card>
 

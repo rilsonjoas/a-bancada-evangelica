@@ -43,7 +43,13 @@ model Politician {
   
   // URLs e contatos
   official_page_url     String?
-  social_media_urls     Json?    // { facebook, instagram, twitter, youtube }
+  // Formato real (medido em produção em 2026-11-01), gravado pelos syncs:
+  //   Câmara: { "redes": ["https://...", ...] }   Senado: { "website": "https://..." }
+  // Regravado por inteiro a cada sync-camara/sync-senado; por isso o que vem do TSE fica em coluna própria.
+  social_media_urls     Json?
+  // Redes declaradas pelo candidato ao TSE em 2022: { "ano": 2022, "redes": ["https://...", ...] }.
+  // Gravado por scripts/sync-tse-redes.ts. URLs cruas; a API sanitiza na leitura.
+  tse_social_urls       Json?
   
   // Metadados
   created_at            DateTime @default(now())
@@ -60,6 +66,7 @@ model Politician {
   score_breakdown       ScoreBreakdown[]
   disqualifications     PoliticianDisqualification[]
   campaignFinance       CampaignFinance[]
+  assets                CandidateAsset[]
   newsMentions          NewsMention[]
   
   @@map("politicians")
@@ -302,6 +309,39 @@ model PoliticianDisqualification {
 // FINANCIAMENTO DE CAMPANHA
 // ========================================
 
+/// Bens declarados pelo candidato ao TSE (Fase D). Só agregados: a descrição
+/// livre de cada bem NÃO é guardada (minimização, e não é dado do produto).
+model CandidateAsset {
+  id             String   @id @default(cuid())
+  politician_id  Int
+  election_year  Int
+  sq_candidato   String
+
+  // Soma dos valores declarados, em reais. É o que o candidato declarou,
+  // não valor de mercado nem valor verificado.
+  total_declared Float
+  item_count     Int
+  largest_item   Float
+
+  // Total por grupo: { imoveis, moveis, participacoes, aplicacoes, creditos,
+  // dinheiro, outros }. A soma é total_declared.
+  by_type        Json
+
+  // Trava de sanidade: total > R$ 1 bi ou algum item > R$ 500 mi marca
+  // "sem verificação" e a ficha não mostra o número em destaque.
+  unverified     Boolean  @default(false)
+
+  source         SourceType @default(TSE)
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  politician Politician @relation(fields: [politician_id], references: [id], onDelete: Cascade)
+
+  @@unique([politician_id, election_year])
+  @@index([election_year])
+  @@map("candidate_assets")
+}
+
 model CampaignFinance {
   id             String   @id @default(cuid())
 
@@ -320,6 +360,15 @@ model CampaignFinance {
   // Doc mascarado na gravação (data minimização): é dado público no
   // portal do TSE, mas não há razão pra republicar documento completo.
   top_donors Json
+
+  // De onde veio o dinheiro (Fase C): total por categoria, em reais.
+  // { fundo_eleitoral, fundo_partidario, partido, pessoas_fisicas, proprios,
+  //   outros_candidatos, outras }. A soma é total_received. Nulo = ainda não
+  // reimportado com `pnpm sync:tse:receitas`.
+  source_breakdown Json?
+
+  // SQ_CANDIDATO de 2022 no TSE (para linkar a página oficial do candidato).
+  sq_candidato String?
 
   source     SourceType @default(TSE)
   created_at DateTime @default(now())

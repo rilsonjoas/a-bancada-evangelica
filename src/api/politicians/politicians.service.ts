@@ -4,6 +4,9 @@ import { PrismaService } from '../prisma/prisma.service';
 import { QueryPoliticiansDto } from './dto/query-politicians.dto';
 import { QueryRankingDto } from './dto/query-ranking.dto';
 import { groupByCountMap } from './politicians.utils';
+import { buildSocialLinks } from './social-links';
+import { toBySource } from './campaign-sources';
+import { toAssetsDto } from './assets';
 
 const CRITERIA_FIELD_MAP: Record<string, string> = {
   overall: 'overall_score',
@@ -205,6 +208,7 @@ export class PoliticiansService {
           // F10: linha do tempo em ordem cronológica inversa (mais recente primeiro)
           mandates: { orderBy: { start_date: 'desc' } },
           campaignFinance: { where: { election_year: 2022 } },
+          assets: { where: { election_year: 2022 } },
           votes: {
             include: { key_agenda: true },
             orderBy: { vote_date: 'desc' },
@@ -303,6 +307,12 @@ export class PoliticiansService {
       currentState: politician.current_state,
       currentHouse: politician.current_house,
       photoUrl: politician.photo_url,
+      // Id do parlamentar na casa de origem (Câmara: id do deputado; Senado:
+      // código do senador). A tela monta daqui o link para o perfil oficial.
+      legislatureId: politician.legislature_id ?? null,
+      // Redes sociais já sanitizadas (só perfis, sem rastreadores, https).
+      // O JSON cru de `social_media_urls` não sai da API.
+      socialLinks: buildSocialLinks(politician.current_house, politician.social_media_urls, undefined, politician.tse_social_urls),
       isFpeMember: politician.is_fpe_member ?? false,
       fpe: this.formatFpe(politician),
       email: politician.email,
@@ -351,6 +361,8 @@ export class PoliticiansService {
         // contradiziam na mesma tela).
         riskLevel: suspiciousPct > 10 ? 'HIGH' : suspiciousPct > 5 ? 'MEDIUM' : 'LOW',
       },
+      // Bens declarados ao TSE (Fase D): transparência, não entra na nota.
+      assets: toAssetsDto(politician.assets?.[0]),
       // Transparência pura — NÃO entra na pontuação (decisão de escopo:
       // doação legal não é crime). Ausência = não declarou receita pelo
       // TSE; o frontend exibe estado vazio honesto.
@@ -362,6 +374,7 @@ export class PoliticiansService {
             largestDonation: politician.campaignFinance[0].largest_donation,
             donorPfCount: politician.campaignFinance[0].donor_pf_count,
             donorPjCount: politician.campaignFinance[0].donor_pj_count,
+            bySource: toBySource(politician.campaignFinance[0].source_breakdown, politician.campaignFinance[0].total_received),
             topDonors: politician.campaignFinance[0].top_donors as Array<{
               name: string;
               doc: string;
