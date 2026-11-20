@@ -5,3 +5,17 @@ allowBuilds:
   '@swc/core': true
   esbuild: true
   prisma: true
+
+# Correções de vulnerabilidades transitivas (pnpm audit, 2026-11-20).
+# Sempre dentro da mesma major para não quebrar quem depende delas.
+# Fora daqui, de propósito: zod 3 -> 4 e react-router 6 -> 7 (majors, exigem migração).
+overrides:
+  'brace-expansion@2': '^2.1.7'
+  'minimatch@9': '^9.0.7'
+  'glob@10': '^10.5.0'
+  'nanoid@3': '^3.3.18'
+  'picomatch@2': '^2.3.2'
+  'postcss@8': '^8.5.23'
+  'postcss-selector-parser@6': '^6.1.5'
+  'source-map-js@1': '^1.2.2'
+  'yaml@2': '^2.8.3'
