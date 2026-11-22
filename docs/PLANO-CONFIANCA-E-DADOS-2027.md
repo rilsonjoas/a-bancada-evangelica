@@ -79,9 +79,9 @@ Ordem pensada para ir do mais barato e reversível ao que exige migração.
 - [x] A4. Catálogo `FONTES_DE_DADOS` (`sources.ts`) e seção "De onde vem cada dado" em `/dados`.
   **Mudança de desenho:** em vez de uma página `/fontes` nova, a seção entrou em `/dados`, que já tem CSV, trilha de auditoria, checksum e errata. Um terceiro lugar para citar fontes duplicaria o que existe. O texto não diz que "tudo é oficial": cita o Google Notícias e a estimativa pelo histórico do partido.
   **Mudança de desenho:** o bloco da ficha não é recolhido. Com uma frase e um link, recolher só esconderia a conferência.
-- [ ] A5. Links por bloco para financiamento e bens (DivulgaCandContas). Depende de guardar o `SQ_CANDIDATO` (migration, junto com a Fase C/D).
-- [ ] A6. Link de despesas (cota parlamentar). Falta achar uma URL que responda; a do Senado (`www6g.senado.leg.br/transparencia/sen/{cod}/`) deu 200, mas não conferi o conteúdo.
-- [ ] A7. SHA-256 por arquivo de fonte em `/dados`. Depende do registro de captura da Fase E.
+- [ ] A5. Links por bloco para financiamento e bens (DivulgaCandContas). O `SQ_CANDIDATO` já é guardado (Fases C e D). **Bloqueado: não consegui confirmar o padrão de URL.** O DivulgaCandContas responde 403 (Access Denied, proteção anti-robô) tanto à API REST (`/divulga/rest/v1/candidatura/buscar/...`) quanto a um navegador automatizado nesta máquina; a busca na web não achou documentação do link direto. Para destravar, só você: abrir um candidato de 2022 no navegador normal e me mandar a URL da barra de endereço (sugestão: Marina Silva, SP, `SQ_CANDIDATO` 250001613818, eleição 546). Sem isso, não se publica link nenhum.
+- [x] A6. `buildExpenseLink` + bloco "Verifique você mesmo" na aba Gastos (aparece mesmo sem dado de despesa, que é quando o leitor mais precisa). Câmara: `https://www.camara.leg.br/transparencia/gastos-parlamentares?deputado={id}`; Senado: `https://www6g.senado.leg.br/transparencia/sen/{cod}/`. **Verificado em 2026-11-02:** os 85 senadores ativos e 26 deputados de amostra respondem 200 e a página traz o nome do parlamentar certo; um id inexistente na Câmara não traz nome. A URL `/deputados/{id}/cota-parlamentar` dá 404 e não é usada. O texto diz que a marcação de gastos fora do padrão é cálculo nosso. Amostra de deputados: 26 de 513, não todos.
+- [x] A7 / E1. `pnpm registrar:fontes --gravar` (`scripts/registrar-fontes.ts`, lógica em `scripts/lib/capturas.ts`, 23 testes entre lógica e tela) calcula o SHA-256 de cada zip de `data/tse/` (inclusive subpastas) e grava `src/lib/capturas.ts` (arquivo gerado, versionado no git). `/dados` mostra a seção recolhida "Arquivos de origem e seus hashes (SHA-256)" (`ArquivosDeOrigem.tsx`): tipo, ano, data de captura, tamanho, link do TSE quando se sabe a origem, observação e o hash inteiro em linha própria (selecionável, não cortado em tela de 375 px). Primeiro registro: 13 arquivos. **Desvio do plano, de propósito:** em vez de tabela no banco, o registro é um arquivo versionado: não exige migration (menos risco de deploy), o histórico fica no git e a página não depende de endpoint novo. O texto diz que hash diferente costuma ser republicação do TSE, não adulteração (aconteceu com os de 2022), e que a lista registra o que foi baixado, não necessariamente o que já alimenta o site. Os baixados em agosto ficam sem endereço de download (não foi anotado) em vez de um palpite.
 
 **Antes do deploy:** conferir a ficha de um deputado e de um senador em produção, clicar no link do bloco e confirmar que abre o parlamentar certo. Rodar a consulta de preenchimento de `legislature_id` de novo.
 
@@ -135,12 +135,15 @@ fundo eleitoral (FEFC) 80,2%, pessoas físicas 8,9%, fundo partidário 6,4%, rec
 - Teste de mutação: 4 regras quebradas de propósito (código 97, limite do item, API vazando o total sem verificação, valor negativo somando), as 4 pegas.
 - Verificação visual com Playwright em 1100 px e 375 px, nos 4 estados (normal, sem verificação, sem dado, mobile): sem overflow.
 
-### Fase E: Ingestão 2026 e 58ª legislatura (esforço: ~1 semana, com incerteza)
-Depende da decisão ranking × ficha e do desenho da legislatura em `PLANO-POS-ELEICAO.md` (Fase 4).
-- Dez/2026–jan/2027: baixar `consulta_cand`, `bem_candidato`, `rede_social_candidato` e receitas de 2026 (e 2018 para o Senado). O TSE bloqueia IP de datacenter, então o download é manual numa rede residencial.
-- Pipeline com `DRY_RUN` obrigatório, snapshot do banco antes, e SHA-256 do zip registrado.
-- Não rodar ingestão pesada no VPS junto com builds (queda de 16/10).
-- Nenhum push ou deploy sem sua autorização.
+### Fase E: Ingestão 2026 e 58ª legislatura (levantamento feito em 2026-11-02; nada ingerido)
+Resultado completo em `docs/LEVANTAMENTO-INGESTAO-2026-11-02.md`. Em resumo:
+- O TSE já publicou 2026 (candidatura, bens, redes e prestação de contas) e 2018, e o CDN respondeu desta máquina. **O resultado já está nos dados: 513 deputados federais e 54 senadores eleitos.**
+- **Renovação:** 320 dos 513 deputados atuais foram reeleitos e há 202 rostos novos entre os eleitos; entre os 54 senadores eleitos, 14 são atuais e 40 são novos.
+- **A prestação de contas de 2026 ainda não é final** (51% "relatório financeiro", 33% "final", 15% "parcial"): não mostrar como final (decisão D1).
+- **Armadilhas achadas:** o rótulo da eleição muda de caixa entre arquivos (filtrar errado devolve zero sem erro); os arquivos de 2022 foram republicados (números das Fases C e D continuam valendo); `data/tse/2026/` aparecia como não rastreado no git (corrigido no `.gitignore`).
+- **Decisões abertas:** D1 financiamento 2026, D2 quais eleições na ficha, D3 chave para casar senadores, D4 rostos novos antes da posse (ver o levantamento).
+- Execução proposta (E1 a E6) no levantamento: registro de captura, syncs por ano sem sobrescrever 2022, senadores, service sem 2022 fixo, 2018, rostos novos. `DRY_RUN` e snapshot do banco antes de gravar; nenhuma ingestão pesada no VPS junto com builds; nenhum push ou deploy sem sua autorização.
+- Prazo duro: 01/02/2027.
 
 ### Fase F: Governança de confiança (contínua)
 - Changelog público da metodologia (aproveitando `formulaVersion`).
@@ -180,8 +183,8 @@ Legenda: **[D]** decisão sua · **[T]** trabalho técnico · **[C]** conferênc
 7. ~~**[T] B3** Linha de ícones na ficha.~~ FEITO em 2026-11-02 (só local). Conferência pré-deploy: em produção, abrir uma ficha de deputado com redes e uma de senador com site, e clicar em um link de cada.
 8. ~~**[T] B4** Script offline de auditoria de links.~~ FEITO em 2026-11-01. Nova pendência: **[C]** rodar `pnpm auditar:links` contra o banco de produção (e não só contra o snapshot) antes do deploy, e rodar de novo a cada atualização da Câmara.
 9. **[T] A5** Links de financiamento e bens para o DivulgaCandContas (depende de guardar `SQ_CANDIDATO`).
-10. **[T] A6** Link de despesas: falta uma URL oficial confirmada (a da Câmara `/cota-parlamentar` deu 404).
-11. **[T] A7** SHA-256 por arquivo de fonte em `/dados` (depende do registro de captura da Fase E).
+10. ~~**[T] A6** Link de despesas.~~ FEITO em 2026-11-02, verificado. Conferência pós-deploy: abrir a aba Gastos de um deputado e de um senador e clicar no link.
+11. ~~**[T] A7** SHA-256 por arquivo de fonte.~~ FEITO em 2026-11-02 (E1). A cada download novo: `pnpm registrar:fontes --gravar` e revisar o diff. Conferência pós-deploy: abrir `/dados`, expandir a seção e conferir 1 hash com `sha256sum`.
 12. **[T] C** Origem dos recursos de campanha por `DS_ORIGEM_RECEITA`; trocar o destaque de "maior doação".
 13. **[T] D** Bens declarados com trava de sanidade.
 14. **[T] E** Ingestão 2026 + 2018 (Senado), `DRY_RUN`, snapshot e hash. Prazo duro: 01/02/2027.
@@ -207,6 +210,11 @@ Legenda: **[D]** decisão sua · **[T]** trabalho técnico · **[C]** conferênc
 
 Alterados: `package.json` (scripts `auditar:links` e `sync:tse:redes`), `prisma/schema.prisma` (coluna `tse_social_urls`; comentário de `social_media_urls` corrigido), `src/api/politicians/politicians.service.ts`, `src/hooks/usePoliticianDetail.ts`, `src/lib/sources.ts`, `src/pages/DadosAbertos.tsx`, `src/pages/PoliticianProfile.tsx`.
 
+Novos (preparo D1-D5): `src/api/politicians/risk-level.ts`, `src/api/politicians/anos-exibidos.ts`, `src/lib/gruposBens.ts`, `src/components/common/EvolucaoBens.tsx`, `scripts/lib/senadores-tse.ts`, `scripts/lib/consulta-cand-io.ts`, `docs/TESTE-EFEMERO-SYNCS.md` e os testes `risk-level`, `anos-exibidos`, `EvolucaoBens`, `senadores-tse`; alterados: `politicians.service.ts`, `usePoliticianDetail.ts`, `BensDeclarados.tsx`, `PoliticianProfile.tsx`, `ExpenseAnalysisChart.tsx`, `DadosAbertos.tsx`, `eslint.config.js`, os três `sync-tse-*.ts`.
+Novos (E2/E3): `scripts/lib/tse-eleicao.ts`, `scripts/__tests__/tse-eleicao.test.ts`, `scripts/lib/casar-senadores.ts`, `scripts/__tests__/casar-senadores.test.ts`, `docs/SENADORES-CONFERENCIA-2026-11-02.md`; alterados: `scripts/sync-tse-redes.ts`, `scripts/sync-tse-bens.ts`, `scripts/sync-tse-receitas.ts`, `scripts/lib/capturas.ts`, `scripts/__tests__/capturas.test.ts`, `src/lib/capturas.ts` (gerado).
+Novos (E1): `scripts/registrar-fontes.ts`, `scripts/lib/capturas.ts`, `scripts/__tests__/capturas.test.ts`, `src/lib/capturas.ts` (gerado), `src/components/common/ArquivosDeOrigem.tsx`, `src/components/common/__tests__/ArquivosDeOrigem.test.tsx`; alterados: `package.json` (`registrar:fontes`), `src/pages/DadosAbertos.tsx`.
+Novos (Fase E, levantamento): `docs/LEVANTAMENTO-INGESTAO-2026-11-02.md`; alterados: `.gitignore` (`data/tse/**/*.zip`), `docs/CAPTURA-DE-FONTES.md`.
+Novos (A6/A7): `docs/CAPTURA-DE-FONTES.md`. Alterados em A6: `src/lib/sources.ts`, `src/lib/__tests__/sources.test.ts`, `src/components/common/SourceCheck.tsx` (prop `calculo`), `src/components/common/__tests__/SourceCheck.test.tsx`, `src/pages/PoliticianProfile.tsx`.
 Novos (Fase D): `scripts/sync-tse-bens.ts`, `scripts/lib/tse-bens.ts`, `scripts/__tests__/tse-bens.test.ts`, `src/api/politicians/assets.ts`, `src/components/common/BensDeclarados.tsx` e os testes `src/api/politicians/__tests__/assets.test.ts`, `src/components/common/__tests__/BensDeclarados.test.tsx`. Alterados na Fase D: `prisma/schema.prisma` (tabela `candidate_assets`), `package.json` (`sync:tse:bens`), `politicians.service.ts`, `usePoliticianDetail.ts`, `PoliticianProfile.tsx` e `politicians.campaign-sources.test.ts`.
 Novos (Fase C): `src/api/politicians/campaign-sources.ts`, `src/lib/origemRecursos.ts`, `src/components/common/OrigemDosRecursos.tsx` e os testes `src/api/politicians/__tests__/{campaign-sources,politicians.campaign-sources}.test.ts`, `src/lib/__tests__/origemRecursos.test.ts`, `src/components/common/__tests__/OrigemDosRecursos.test.tsx`. Alterados na Fase C: `scripts/lib/tse-receitas.ts`, `scripts/sync-tse-receitas.ts`, `scripts/__tests__/tse-receitas.test.ts`, `prisma/schema.prisma`, `src/api/politicians/politicians.service.ts`, `src/hooks/usePoliticianDetail.ts`, `src/pages/PoliticianProfile.tsx`.
 Novos (Fases A/B): `scripts/sync-tse-redes.ts`, `scripts/lib/tse-redes.ts`, `scripts/__tests__/tse-redes.test.ts`, `src/components/common/RedesSociais.tsx`, `src/components/common/__tests__/RedesSociais.test.tsx`, `scripts/auditar-links.ts`, `scripts/lib/auditar-links.ts`, `scripts/__tests__/auditar-links.test.ts`, `src/api/politicians/links-quebrados.ts` (gerado), `docs/PLANO-CONFIANCA-E-DADOS-2027.md`, `docs/AUDITORIA-REDES-SOCIAIS-2026-11-01.md`, `src/api/politicians/social-links.ts`, `src/components/common/SourceCheck.tsx`, `src/components/common/FontesDeDados.tsx`, e os testes `src/api/politicians/__tests__/{politicians.legislature-id,politicians.social-links,social-links}.test.ts`, `src/components/common/__tests__/{SourceCheck,FontesDeDados}.test.tsx`, `src/lib/__tests__/sources.test.ts`.
@@ -231,3 +239,42 @@ Fora desta leva: os arquivos apagados em `canal-x/` e `gt1-export/` no `git stat
 36. **[C]** Depois do `sync:tse:bens`: `SELECT count(*) FROM candidate_assets` (esperado 619), e comparar 3 fichas à mão com a página do candidato no DivulgaCandContas (total e número de bens).
 37. **[C]** Antes de subir: o Prisma lê a relação `assets` em toda ficha. Sem a tabela `candidate_assets`, a ficha de todo parlamentar quebra. O `db push` vem antes do deploy, sempre.
 38. **[D, futuro]** Evolução de bens entre eleições só quando a Fase E trouxer 2018 (Senado) e 2026. Decidir o texto antes, sem a palavra "enriquecimento".
+39. **[D, só você]** Para destravar A5: abrir um candidato de 2022 no DivulgaCandContas num navegador comum e mandar a URL da barra de endereço (ver A5 acima).
+40. **[T]** Anotar a URL exata de download dos 5 zips do TSE baixados em agosto (a do `rede_social_candidato_2022.zip` já está registrada).
+41. **[D]** D1 a D4 do `LEVANTAMENTO-INGESTAO-2026-11-02.md` (financiamento 2026 parcial; quais eleições na ficha; chave dos senadores; rostos novos antes da posse). Bloqueiam E2 a E6, mas não E1.
+42. **[T]** E1 feito. **E2 (parte técnica) feito:** `--ano` nos syncs de redes, bens e receitas, trava de prestação final (2026 recusada com 33%), sem sobrescrever outros anos. **E3 preparado, sem gravar:** `scripts/lib/casar-senadores.ts`. **E5 levantado** (2018 baixado e registrado). Faltam, dependendo de D1 a D4: E2 no service/telas (parar de fixar 2022), E3 (gravar), E4, E6, e **executar** qualquer sync contra o banco, o que não foi feito.
+43. **[C]** Conferir à mão a lista de `docs/SENADORES-CONFERENCIA-2026-11-02.md` (40 eleitos de 2026 sem ficha; 13 fichas ativas sem casamento), antes de qualquer gravação.
+44. ~~**[T]** Syncs com rótulo de eleição sem diferenciar caixa.~~ FEITO em 2026-11-02 nos syncs de redes, bens e receitas (`scripts/lib/tse-eleicao.ts`, 30 testes). O `sync-tse-candidatura.ts` (2022, rótulo com a caixa certa) não foi alterado.
+45. **[T]** Teste intermitente: `OrigemDosRecursos.test.tsx` ("a barra tem descrição textual...") falhou uma vez numa rodada completa (2,1 s) e passou nas 9 rodadas seguintes (6 isoladas e 3 completas); não consegui reproduzir. Se voltar a falhar no CI, investigar (suspeita: consulta `getByRole('img')` lenta sob carga).
+46. ~~Os syncs nunca rodaram contra um banco.~~ **Rodaram contra um banco descartável com dados públicos do TSE** (`docs/TESTE-EFEMERO-SYNCS.md`): tudo bateu. **Continuam sem rodar contra a produção.** Antes: `--dry-run` primeiro, conferir os números esperados (redes 2022: 563; bens 2022: 619; Câmara com financiamento: 502, DF incluído) e só então gravar.
+47. **[T]** Arquivo de 2018 do TSE inclui a eleição suplementar de MT (abril de 2020) com rótulos `Senador` e `Eleição Suplementar Senador - MT`; o filtro padrão perde 1 dos 54 eleitos. Tratar de propósito na hora de importar 2018.
+
+## 11. Achados de 2026-11-02 (noite): selo "Atípico" e itens menores
+
+**`riskLevel` / selo "Atípico" (item "revisar `riskLevel: HIGH`", 50 de 174) — medido em produção, somente leitura.**
+- 174 parlamentares têm despesa no acervo (74.336 despesas, 644 marcadas = 0,87%). 109 têm ao menos uma marcada.
+- A API decide o selo pela **proporção do VALOR** marcado (`suspiciousValue / totalValue`: >10% = "Atípico", >5% = "Atenção"). Mas o medidor do gráfico mostra a **proporção da CONTAGEM** (`suspiciousCount / totalCount`, "das N despesas analisadas, X% caem no topo 1% da própria categoria"). São duas medidas diferentes, e o selo e o medidor aparecem juntos.
+- Cruzando as duas nos 174: **dos 50 "Atípico" pelo valor, só 3 são "Atípico" pela contagem; 34 têm menos de 5% das despesas marcadas e 13 entre 5% e 10%.** Dos 19 "Atenção" pelo valor, 18 são "Regular" pela contagem. Média de contagem marcada: 1,46%; média de valor marcado: 8,66%; máximo de contagem: 15,65%.
+- Fragilidade: 14 dos 50 "Atípico" têm no máximo 3 despesas marcadas; 18 têm menos de 200 despesas no total. Poucas despesas grandes bastam para virar selo vermelho.
+- É o mesmo tipo de contradição que o D4 de 2026-09-25 quis eliminar ("uma única fonte de verdade"): o leitor vê "1,2%" ao lado de um selo vermelho.
+- **Feito (seguro, só texto):** os rótulos "% fora do padrão" que mostravam o valor passaram a dizer **"% do valor fora do padrão"** (aba Gastos, card e resumo), para não parecerem a mesma medida do medidor. **Não mudei quem recebe o selo.**
+- **[D5] Decisão sua:** de qual medida vem o selo. (a) pela contagem, igual ao medidor: "Atípico" cai de 50 para 3 e "Atenção" para 14; (b) pelo valor, como hoje, mas dizendo no próprio selo "pelo valor" e mostrando a contagem ao lado; (c) exigir um mínimo de despesas marcadas (por exemplo, 5) antes de qualquer selo vermelho. Recomendação: **(a)**, por coerência com o medidor e por ser a menos acusatória; (c) pode somar. Qualquer opção muda publicamente quem aparece em vermelho, por isso não decidi sozinho.
+
+**Itens menores feitos:** os dois links de `/dados` para `/errata` e `/metodologia` agora usam o roteador (não recarregam a página); o aviso de lint de um arquivo de dependência Python em `docs/security-audit/.venv` saiu (a pasta não é versionada; entrou no `ignores` do ESLint). Restam 7 avisos `react-refresh/only-export-components` em `PoliticalTooltip.tsx` e `criteria.tsx`, que são refatorações de organização de arquivos sem efeito para o leitor; deixados de propósito.
+48. **[D]** D5 acima (origem do selo "Atípico").
+
+## 12. Preparado sem decisão, desligado por padrão (2026-11-02, noite)
+Tudo abaixo mantém o comportamento atual até você virar a chave. Cada chave tem teste, e o que dá para provar contra dados reais foi provado no banco descartável.
+
+| Decisão | Chave | Onde | Como virar |
+|---|---|---|---|
+| D5 selo "Atípico" | `RISK_BASIS` (`'valor'` hoje; `'contagem'`; `'contagem_minimo'`) | `src/api/politicians/risk-level.ts` | trocar a constante e rodar os testes. Com `'contagem'`: "Atípico" 50 -> 3, "Atenção" 19 -> 14 (medido em produção) |
+| D1 financiamento exibido | `BANCADA_ANO_FINANCIAMENTO` (padrão 2022) | `src/api/politicians/anos-exibidos.ts` | só depois de a prestação 2026 ser final e importada (a trava de 95% impede importar antes) |
+| D2 bens: duas eleições | `BANCADA_ANOS_BENS` (padrão `2022`) | idem | `BANCADA_ANOS_BENS=2022,2026`; a ficha passa a mostrar "Bens declarados em cada eleição" (valores brutos lado a lado, sem diferença nem percentual) |
+| D3 senadores | `--senadores` nos três syncs | `scripts/sync-tse-*.ts` | `pnpm sync:tse:bens --ano 2022 --senadores --dry-run`, conferir a lista de `docs/SENADORES-CONFERENCIA-2026-11-02.md`, e então sem `--dry-run`. CPF de senador nunca é gravado |
+| D4 rostos novos | nada preparado | | depende do que o site deve mostrar antes da posse |
+
+- Os títulos "Financiamento de Campanha (ano)" e "Bens declarados (ano)" agora usam o ano do dado, não um 2022 fixo.
+- Valor inválido nas variáveis de ambiente da API não derruba o site: cai no padrão (2022) e avisa no log.
+- A ficha continua dizendo "2022" nos textos de estado vazio ("sem receitas registradas na prestação de contas do TSE 2022"): trocar quando D1/D2 forem decididos.
+49. **[T]** Quando D1/D2 forem decididos: revisar os textos de estado vazio que ainda dizem "2022" em `PoliticianProfile.tsx`.

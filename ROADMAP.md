@@ -260,6 +260,31 @@ segurança real que não existia nos outros dois.
 
 ---
 
+## Estado em 2026-11-21 (pós-eleição)
+
+Registro do que aconteceu depois do passe de honestidade de 27/09.
+
+**Na `main` e em produção**
+- `4437a2f` (01/11): fontes verificáveis por bloco, redes sociais, origem dos recursos e bens declarados. Detalhes e conferências em `docs/PLANO-CONFIANCA-E-DADOS-2027.md`.
+- `c551d6a`: plano de confiança e dados 2027, auditoria de redes sociais e pendências oficiais.
+- **Auditoria de dependências (20/11):** `c47de09` rodou `pnpm update` para fechar as vulnerabilidades do `pnpm audit`. O resultado ficou em 0 críticas e 1 alta (zod 3, que exige troca de major).
+- **Incidente de deploy (20/11, sem queda):** o build da imagem de `c47de09` falhou com `ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION`. O pnpm do Docker recusa versões publicadas há menos de 24 h (`@babel/runtime 7.29.15`, `@tanstack/react-query 5.108.2` e outras) e o lockfile local as tinha. A produção ficou na imagem anterior. `a902529` refez o update respeitando a janela e fixou `minimumReleaseAge: 1440` em `pnpm-workspace.yaml`, para o resultado local bater com o CI. CI/CD e Deploy VPS verdes em seguida. **Regra:** ao atualizar dependências, `pnpm update` com a janela ativa e `docker build` da imagem de produção antes do push.
+- **Falha antiga do CI (16/10):** o smoke test de boot no navegador falhou em `eea9ac7`. Os CIs seguintes passaram; não foi investigada a causa.
+
+**Só na máquina local, sem commit (preparo da Fase E, 01 a 02/11)**
+- A6 (link de despesas), A7/E1 (SHA-256 por arquivo, `pnpm registrar:fontes`), D1 a D5 (bens, evolução, nível de risco, anos exibidos), E2 (`--ano` nos syncs, trava de prestação final) e E3 (casar senadores, sem gravar).
+- Nenhum sync foi executado contra o banco de produção.
+
+**Pendente**
+1. **Importações no banco de produção:** o código de `4437a2f` foi ao ar junto com `a902529` (container no ar desde 20/11) e a ficha responde 200 (conferido em 21/11 com o id 2, só leitura), logo as colunas `tse_social_urls` e a tabela `candidate_assets` já existem. Não conferi se os syncs foram rodados. Falta confirmar e, se não foram: `sync:tse:redes`, bens e receitas em `--dry-run` e então de verdade, e `pnpm auditar:links` contra produção. Regra que continua valendo: `db push` ANTES de qualquer deploy que mude o schema.
+2. **Decisões do Rilson:** ranking × ficha, e D1 a D4 do levantamento de ingestão (financiamento 2026 ainda não final, quais eleições na ficha, chave dos senadores, rostos novos antes da posse).
+3. **Fase E:** ingestão 2026 e 2018, `legislature_id`, senadores. Prazo duro 01/02/2027. `DRY_RUN` e snapshot do banco antes de gravar; nada pesado no VPS junto com build.
+4. **A5:** links do DivulgaCandContas, bloqueados por 403; precisa de uma URL de exemplo aberta num navegador normal.
+5. **Conferências pós-deploy** listadas no plano (ficha de deputado e de senador, aba Gastos, hash em `/dados`).
+6. **Menores:** 7 avisos `react-refresh/only-export-components`; 27 links de YouTube quebrados (decisão pendente); zod 3 → 4.
+
+---
+
 ## P0 — Segurança
 
 - [x] **Remover `db_cluster-27-10-2025@05-42-20.backup.gz` do histórico

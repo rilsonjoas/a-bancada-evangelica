@@ -124,6 +124,8 @@ A API segue o padrão de **módulos NestJS com injeção de dependência** — c
 |---|---|
 | Análise ML de clusters de votação (KMeans/PCA) | Serviço Python separado — em implantação |
 | Cobertura de despesas (hoje parcial — nem todo parlamentar tem despesa sincronizada) | Ver `docs/DETECCAO-DESPESAS.md` §6 |
+| Ingestão do TSE 2026 e 2018 (Senado) e 58ª legislatura | Levantamento feito, nada ingerido; depende das decisões D1 a D4. Prazo duro 01/02/2027. Ver `docs/PLANO-CONFIANCA-E-DADOS-2027.md` |
+| Links de financiamento e bens por candidato (DivulgaCandContas) | Bloqueado: o site responde 403 a robôs e o padrão de URL não foi confirmado |
 | Votos individuais para todas as pautas | PL 1904/2024 e outros tramitaram em comissão sem votação nominal disponível |
 
 ### Documentação
@@ -134,7 +136,13 @@ A API segue o padrão de **módulos NestJS com injeção de dependência** — c
 | [`docs/DETECCAO-DESPESAS.md`](docs/DETECCAO-DESPESAS.md) | Como o "fora do padrão" é detectado, auditoria das regras descartadas, limites |
 | [`docs/DECISOES.md`](docs/DECISOES.md) | Log de decisões: o que foi escolhido, o que foi descartado e por quê |
 | [`docs/AUDITORIA-CALCULOS.md`](docs/AUDITORIA-CALCULOS.md) | **O que a nota realmente mede** — e o que ela não sabe. Comece por aqui |
-| [`docs/GUIA-CURADORIA-DADOS.md`](docs/GUIA-CURATORIA-DADOS.md) | Como curar pauta e notícia sem fabricar número |
+| [`docs/GUIA-CURADORIA-DADOS.md`](docs/GUIA-CURADORIA-DADOS.md) | Como curar pauta e notícia sem fabricar número |
+| [`docs/PLANO-POS-ELEICAO.md`](docs/PLANO-POS-ELEICAO.md) | Da nota para a ficha, tramitação e 58ª legislatura; decisão ranking × ficha |
+| [`docs/PLANO-CONFIANCA-E-DADOS-2027.md`](docs/PLANO-CONFIANCA-E-DADOS-2027.md) | Fontes verificáveis, redes, origem dos recursos, bens declarados e ingestão 2026; **estado atual do trabalho de novembro** |
+| [`docs/LEVANTAMENTO-INGESTAO-2026-11-02.md`](docs/LEVANTAMENTO-INGESTAO-2026-11-02.md) | O que o TSE já publicou de 2026 e 2018, armadilhas e decisões D1 a D4 |
+| [`docs/CAPTURA-DE-FONTES.md`](docs/CAPTURA-DE-FONTES.md) | Como registrar o SHA-256 de cada arquivo baixado (`pnpm registrar:fontes`) |
+| [`docs/SENADORES-CONFERENCIA-2026-11-02.md`](docs/SENADORES-CONFERENCIA-2026-11-02.md) | Conferência da chave para casar senadores (TSE × Senado) |
+| [`docs/TESTE-EFEMERO-SYNCS.md`](docs/TESTE-EFEMERO-SYNCS.md) | Como testar os syncs do TSE sem tocar no banco de produção |
 | [`AGENTS.md`](AGENTS.md) | Regras de trabalho e ordem mínima de verificação |
 
 ---
