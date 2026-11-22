@@ -20,7 +20,7 @@ import { CRITERIA, CRITERIA_BY_KEY, CRITERIA_BY_FIELD } from '@/lib/criteria';
 import { ScoreBreakdownPanel } from '@/components/scores/ScoreBreakdownPanel';
 import { fmt } from '@/lib/format';
 import { getPerformanceBadgeColor, getPerformanceLabel, ESTIMATED_LABEL } from '@/lib/performance';
-import { buildVoteSourceLink, buildPoliticianProfileLink, buildExpenseLink } from '@/lib/sources';
+import { buildVoteSourceLink, buildPoliticianProfileLink, buildExpenseLink, buildDivulgaCandLink } from '@/lib/sources';
 import { SourceCheck } from '@/components/common/SourceCheck';
 import { RedesSociais } from '@/components/common/RedesSociais';
 import { OrigemDosRecursos } from '@/components/common/OrigemDosRecursos';
@@ -666,9 +666,23 @@ export function PoliticianProfile() {
                         transparência, não critério — doação legal não é
                         crime e insinuar o contrário seria injusto. */}
                     <p className="text-sm text-muted-foreground border-t pt-3 leading-relaxed">
-                      Fonte: TSE, prestação de contas eleitorais 2022. Este dado é
+                      Fonte: TSE, prestação de contas eleitorais {politician.campaignFinance.electionYear ?? 2022}. Este dado é
                       transparência — <strong>não afeta a nota</strong> do parlamentar.
                     </p>
+
+                    {politician.campaignFinance.sqCandidato && (
+                      <SourceCheck
+                        description={`As receitas de campanha vêm da prestação de contas do TSE (${politician.campaignFinance.electionYear ?? 2022}).`}
+                        calculo="Este dado é transparência e não afeta a nota"
+                        links={[
+                          buildDivulgaCandLink({
+                            state: politician.currentState,
+                            sqCandidato: politician.campaignFinance.sqCandidato,
+                            electionYear: politician.campaignFinance.electionYear,
+                          }),
+                        ]}
+                      />
+                    )}
                   </>
                 ) : (
                   <p className="text-sm text-muted-foreground leading-relaxed">
@@ -689,6 +703,19 @@ export function PoliticianProfile() {
                   <>
                     <BensDeclarados assets={politician.assets} />
                     <EvolucaoBens history={politician.assetsHistory} />
+                    {politician.assets.sqCandidato && (
+                      <SourceCheck
+                        description={`A declaração de bens vem do registro da candidatura no TSE (${politician.assets.electionYear ?? 2022}).`}
+                        calculo="Este dado é transparência e não afeta a nota"
+                        links={[
+                          buildDivulgaCandLink({
+                            state: politician.currentState,
+                            sqCandidato: politician.assets.sqCandidato,
+                            electionYear: politician.assets.electionYear,
+                          }),
+                        ]}
+                      />
+                    )}
                   </>
                 ) : (
                   <p className="text-sm text-muted-foreground leading-relaxed">

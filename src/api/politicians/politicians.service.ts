@@ -382,6 +382,7 @@ export class PoliticiansService {
       campaignFinance: politician.campaignFinance?.[0]
         ? {
             electionYear: politician.campaignFinance[0].election_year,
+            sqCandidato: politician.campaignFinance[0].sq_candidato ?? null,
             totalReceived: politician.campaignFinance[0].total_received,
             donationCount: politician.campaignFinance[0].donation_count,
             largestDonation: politician.campaignFinance[0].largest_donation,

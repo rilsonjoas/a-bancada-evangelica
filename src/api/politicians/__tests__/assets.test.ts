@@ -10,7 +10,11 @@ describe('toAssetsDto', () => {
     expect(toAssetsDto(undefined)).toBeNull();
   });
   it('devolve total, itens e grupos quando a soma fecha', () => {
-    expect(toAssetsDto(row())).toEqual({ electionYear: 2022, total: 1000, itemCount: 9, unverified: false, byType: por });
+    expect(toAssetsDto(row())).toEqual({ electionYear: 2022, sqCandidato: null, total: 1000, itemCount: 9, unverified: false, byType: por });
+  });
+  it('preserva sq_candidato quando fornecido', () => {
+    const r = toAssetsDto(row({ sq_candidato: '170001604083' }));
+    expect(r?.sqCandidato).toBe('170001604083');
   });
   it('soma dos grupos não fecha: mantém o total mas byType null', () => {
     const r = toAssetsDto(row({ total_declared: 5000 }));
@@ -25,7 +29,7 @@ describe('toAssetsDto', () => {
   });
   it('sem verificação: o número NÃO sai, nem o total nem os grupos', () => {
     const r = toAssetsDto(row({ unverified: true, total_declared: 9_999_999_999 }));
-    expect(r).toEqual({ electionYear: 2022, total: null, itemCount: 9, unverified: true, byType: null });
+    expect(r).toEqual({ electionYear: 2022, sqCandidato: null, total: null, itemCount: 9, unverified: true, byType: null });
     expect(JSON.stringify(r)).not.toContain('9999999999');
   });
   it('total inválido: null', () => {

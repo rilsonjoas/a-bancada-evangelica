@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { FONTES_DE_DADOS, buildExpenseLink, buildPoliticianProfileLink, buildVoteSourceLink } from '../sources';
+import { FONTES_DE_DADOS, buildDivulgaCandLink, buildExpenseLink, buildPoliticianProfileLink, buildVoteSourceLink } from '../sources';
 
 describe('buildPoliticianProfileLink', () => {
   it('monta a página oficial do deputado na Câmara', () => {
@@ -97,5 +97,64 @@ describe('FONTES_DE_DADOS (catálogo exibido em /dados)', () => {
     expect(hosts.some((h) => h.endsWith('camara.leg.br'))).toBe(true);
     expect(hosts.some((h) => h.endsWith('senado.leg.br') || h.endsWith('senado.gov.br'))).toBe(true);
     expect(hosts.some((h) => h.endsWith('tse.jus.br'))).toBe(true);
+  });
+});
+
+describe('buildDivulgaCandLink (A5: link oficial ao espelho do candidato no TSE)', () => {
+  it('monta o link correto para candidato de 2022 em PE', () => {
+    expect(
+      buildDivulgaCandLink({ state: 'PE', sqCandidato: '170001604083', electionYear: 2022 }),
+    ).toEqual({
+      url: 'https://divulgacandcontas.tse.jus.br/divulga/#/candidato/NORDESTE/PE/2040602022/170001604083/2022/PE',
+      label: 'Ver no DivulgaCandContas (TSE)',
+    });
+  });
+
+  it('monta o link correto para candidato de 2026 no DF', () => {
+    expect(
+      buildDivulgaCandLink({ state: 'DF', sqCandidato: '70002552934', electionYear: 2026 }),
+    ).toEqual({
+      url: 'https://divulgacandcontas.tse.jus.br/divulga/#/candidato/CENTROOESTE/DF/20322002026/70002552934/2026/DF',
+      label: 'Ver no DivulgaCandContas (TSE)',
+    });
+  });
+
+  it('monta o link correto para candidato de 2018 em SP (senador 2018)', () => {
+    expect(
+      buildDivulgaCandLink({ state: 'SP', sqCandidato: '250000600000', electionYear: 2018 }),
+    ).toEqual({
+      url: 'https://divulgacandcontas.tse.jus.br/divulga/#/candidato/SUDESTE/SP/2022802018/250000600000/2018/SP',
+      label: 'Ver no DivulgaCandContas (TSE)',
+    });
+  });
+
+  it('suporta circunscrição nacional (BR)', () => {
+    expect(
+      buildDivulgaCandLink({ state: 'BR', sqCandidato: '280002542548', electionYear: 2026 }),
+    ).toEqual({
+      url: 'https://divulgacandcontas.tse.jus.br/divulga/#/candidato/BR/BR/20322002026/280002542548/2026/BR',
+      label: 'Ver no DivulgaCandContas (TSE)',
+    });
+  });
+
+  it('assume ano 2022 por padrão quando electionYear não for especificado', () => {
+    expect(
+      buildDivulgaCandLink({ state: 'pe', sqCandidato: '170001604083' }),
+    ).toEqual({
+      url: 'https://divulgacandcontas.tse.jus.br/divulga/#/candidato/NORDESTE/PE/2040602022/170001604083/2022/PE',
+      label: 'Ver no DivulgaCandContas (TSE)',
+    });
+  });
+
+  it('recusa entrada inválida ou faltante', () => {
+    expect(buildDivulgaCandLink({ state: null, sqCandidato: '170001604083' }).url).toBeNull();
+    expect(buildDivulgaCandLink({ state: 'PE', sqCandidato: null }).url).toBeNull();
+    expect(buildDivulgaCandLink({ state: 'PE', sqCandidato: '' }).url).toBeNull();
+    expect(buildDivulgaCandLink({ state: 'PE', sqCandidato: '  ' }).url).toBeNull();
+    expect(buildDivulgaCandLink({ state: 'PE', sqCandidato: '170abc' }).url).toBeNull();
+    expect(buildDivulgaCandLink({ state: 'PE', sqCandidato: '<script>' }).url).toBeNull();
+    expect(buildDivulgaCandLink({ state: 'PE', sqCandidato: '170/../2' }).url).toBeNull();
+    expect(buildDivulgaCandLink({ state: 'XX', sqCandidato: '170001604083' }).url).toBeNull();
+    expect(buildDivulgaCandLink({ state: 'PE', sqCandidato: '170001604083', electionYear: 1990 }).url).toBeNull();
   });
 });

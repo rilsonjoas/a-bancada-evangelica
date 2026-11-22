@@ -274,12 +274,12 @@ Registro do que aconteceu depois do passe de honestidade de 27/09.
 - **Importações no banco de produção (21/11) — CONCLUÍDAS:** `sync:tse:redes` (563 Câmara + 26 Senado = 589 gravadas), `sync:tse:bens` (620 Câmara + 26 Senado 2022 + 49 Senado 2018 = 698 parlamentares cobertos, 72 senadores) e `sync:tse:receitas` (539 parlamentares gravados com divisão por origem auditável) executados com sucesso via túnel seguro contra o banco de produção (`postgres-shared`).
 - **Verificação visual obrigatória em runtime (21/11) — APROVADA:** Screenshots headless capturados em desktop (1350px) e mobile (390px) para deputado e senador. Conferência das imagens: zero overlap, gráficos renderizados, novos blocos de bens, financiamento e redes exibidos perfeitamente.
 - **Decisão D5 aplicada (21/11):** `RISK_BASIS = 'contagem'` ativado em `src/api/politicians/risk-level.ts`. O selo "Atípico" agora mede a mesma grandeza do medidor visual da tela (frequência de notas fora do padrão, reduzindo distorções onde 1 ou 2 notas isoladas geravam selo vermelho). Commit `56c5680` no ar com deploy verde.
+- **Item A5 concluído (21/11):** Padrão de URL do DivulgaCandContas do TSE confirmado via navegador (`/candidato/{REGIAO}/{UF}/{ID_ELEICAO}/{SQ_CANDIDATO}/{ANO}/{UF}`). Implementado `buildDivulgaCandLink` com validação de dígitos e UFs, componente `SourceCheck` nos cards de Bens declarados e Financiamento de Campanha, e retorno de `sqCandidato` na API.
 
 **Pendente**
 1. **Decisões do Rilson:** ranking × ficha, e D1/D2/D4 do levantamento de ingestão (financiamento 2026 ainda não final, quais eleições na ficha, rostos novos antes da posse). D3 (casamento de senadores) já resolvido com 72 senadores cobertos.
 2. **Fase E (conclusão):** ingestão 2026 (após prestação final) e novos parlamentares da 58ª legislatura. Prazo duro 01/02/2027.
-3. **A5:** links do DivulgaCandContas, bloqueados por 403; precisa de uma URL de exemplo aberta num navegador normal.
-4. **Menores:** 7 avisos `react-refresh/only-export-components`; migração futura zod 3 → 4 e react-router 6 → 7.
+3. **Menores:** 7 avisos `react-refresh/only-export-components`; migração futura zod 3 → 4 e react-router 6 → 7.
 
 ---
 

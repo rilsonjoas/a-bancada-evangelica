@@ -3,6 +3,7 @@ import { apiFetch } from '@/lib/apiClient';
 
 export interface BensDeclaradosDto {
   electionYear: number;
+  sqCandidato?: string | null;
   /** null = valor acima da trava de sanidade, não exibir em destaque. */
   total: number | null;
   itemCount: number;
@@ -125,6 +126,7 @@ export interface PoliticianDetail {
    * NÃO afeta a nota. null = sem receita declarada no dataset. */
   campaignFinance: {
     electionYear: number;
+    sqCandidato?: string | null;
     totalReceived: number;
     donationCount: number;
     largestDonation: number;

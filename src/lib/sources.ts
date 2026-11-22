@@ -97,6 +97,49 @@ export const buildExpenseLink = (ref: PoliticianProfileRef): SourceLink => {
   return { url: null, label: '' };
 };
 
+const REGIAO_POR_UF: Record<string, string> = {
+  AC: 'NORTE', AM: 'NORTE', AP: 'NORTE', PA: 'NORTE', RO: 'NORTE', RR: 'NORTE', TO: 'NORTE',
+  AL: 'NORDESTE', BA: 'NORDESTE', CE: 'NORDESTE', MA: 'NORDESTE', PB: 'NORDESTE', PE: 'NORDESTE', PI: 'NORDESTE', RN: 'NORDESTE', SE: 'NORDESTE',
+  DF: 'CENTROOESTE', GO: 'CENTROOESTE', MT: 'CENTROOESTE', MS: 'CENTROOESTE',
+  ES: 'SUDESTE', MG: 'SUDESTE', RJ: 'SUDESTE', SP: 'SUDESTE',
+  PR: 'SUL', RS: 'SUL', SC: 'SUL',
+  BR: 'BR',
+};
+
+const ELEICAO_POR_ANO: Record<number, string> = {
+  2018: '2022802018',
+  2022: '2040602022',
+  2026: '20322002026',
+};
+
+export interface DivulgaCandRef {
+  state?: string | null;
+  sqCandidato?: string | null;
+  electionYear?: number | null;
+}
+
+/**
+ * Link direto para o espelho do candidato no DivulgaCandContas do TSE
+ * (A5 de docs/PLANO-CONFIANCA-E-DADOS-2027.md). Padrão verificado em 2026-11-21.
+ * Estrutura: /divulga/#/candidato/{REGIAO}/{UF}/{ID_ELEICAO}/{SQ_CANDIDATO}/{ANO}/{UF}
+ */
+export const buildDivulgaCandLink = (ref: DivulgaCandRef): SourceLink => {
+  const uf = ref.state?.trim().toUpperCase();
+  const sq = ref.sqCandidato?.trim();
+  const ano = ref.electionYear ?? 2022;
+
+  if (!uf || !sq || !/^\d+$/.test(sq)) return { url: null, label: '' };
+
+  const regiao = REGIAO_POR_UF[uf];
+  const idEleicao = ELEICAO_POR_ANO[ano];
+  if (!regiao || !idEleicao) return { url: null, label: '' };
+
+  return {
+    url: `https://divulgacandcontas.tse.jus.br/divulga/#/candidato/${regiao}/${uf}/${idEleicao}/${sq}/${ano}/${uf}`,
+    label: 'Ver no DivulgaCandContas (TSE)',
+  };
+};
+
 export interface FonteDeDado {
   id: string;
   nome: string;

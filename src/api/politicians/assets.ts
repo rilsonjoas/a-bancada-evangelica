@@ -10,6 +10,7 @@
 
 export interface AssetsDto {
   electionYear: number;
+  sqCandidato?: string | null;
   /** null quando `unverified`: o número não é exibido em destaque. */
   total: number | null;
   itemCount: number;
@@ -22,6 +23,7 @@ const TOLERANCIA_REAIS = 1;
 
 export interface AssetRow {
   election_year: number;
+  sq_candidato?: string | null;
   total_declared: number;
   item_count: number;
   unverified: boolean;
@@ -49,6 +51,7 @@ export function toAssetsDto(row: AssetRow | null | undefined): AssetsDto | null 
 
   return {
     electionYear: row.election_year,
+    sqCandidato: row.sq_candidato ?? null,
     total: row.unverified ? null : row.total_declared,
     itemCount: row.item_count,
     unverified: row.unverified,
