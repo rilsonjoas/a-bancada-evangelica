@@ -179,20 +179,20 @@ Legenda: **[D]** decisão sua · **[T]** trabalho técnico · **[C]** conferênc
 5. **[D] Convidar um revisor externo** (cientista político ou jornalista de dados) para criticar a metodologia publicamente (Fase F).
 
 ### Trabalho técnico pendente
-6. **[T] B2, parte que falta:** em produção, `pnpm db:push` (adiciona só a coluna `tse_social_urls`), depois deploy, depois `pnpm sync:tse:redes --dry-run` e, conferido o número (esperado: 563 fichas), `pnpm sync:tse:redes`. Os zips `consulta_cand_2022.zip` e `rede_social_candidato_2022.zip` precisam estar em `data/tse/` na máquina que rodar.
+6. ~~**[T] B2, parte que falta:**~~ FEITO em 2026-11-21. `sync:tse:redes` rodado contra o banco de produção: 563 fichas com redes oficiais gravadas em `politicians.tse_social_urls`.
 7. ~~**[T] B3** Linha de ícones na ficha.~~ FEITO em 2026-11-02 (só local). Conferência pré-deploy: em produção, abrir uma ficha de deputado com redes e uma de senador com site, e clicar em um link de cada.
 8. ~~**[T] B4** Script offline de auditoria de links.~~ FEITO em 2026-11-01. Nova pendência: **[C]** rodar `pnpm auditar:links` contra o banco de produção (e não só contra o snapshot) antes do deploy, e rodar de novo a cada atualização da Câmara.
 9. **[T] A5** Links de financiamento e bens para o DivulgaCandContas (depende de guardar `SQ_CANDIDATO`).
 10. ~~**[T] A6** Link de despesas.~~ FEITO em 2026-11-02, verificado. Conferência pós-deploy: abrir a aba Gastos de um deputado e de um senador e clicar no link.
 11. ~~**[T] A7** SHA-256 por arquivo de fonte.~~ FEITO em 2026-11-02 (E1). A cada download novo: `pnpm registrar:fontes --gravar` e revisar o diff. Conferência pós-deploy: abrir `/dados`, expandir a seção e conferir 1 hash com `sha256sum`.
-12. **[T] C** Origem dos recursos de campanha por `DS_ORIGEM_RECEITA`; trocar o destaque de "maior doação".
-13. **[T] D** Bens declarados com trava de sanidade.
+12. ~~**[T] C** Origem dos recursos de campanha por `DS_ORIGEM_RECEITA`; trocar o destaque de "maior doação".~~ FEITO em 2026-11-21: `sync:tse:receitas` rodado em produção (513 parlamentares gravados com divisão por origem auditável).
+13. ~~**[T] D** Bens declarados com trava de sanidade.~~ FEITO em 2026-11-21: `sync:tse:bens` rodado em produção (620 parlamentares gravados na tabela `candidate_assets`).
 14. **[T] E** Ingestão 2026 + 2018 (Senado), `DRY_RUN`, snapshot e hash. Prazo duro: 01/02/2027.
 15. **[T]** Cobertura de financiamento do Senado: hoje 0 de 85 fichas.
 16. **[T]** Despesas da Câmara: 412 de 513 fichas sem dado.
 17. ~~**[T]** Corrigir o comentário de `prisma/schema.prisma` sobre `social_media_urls`.~~ FEITO em 2026-11-02 (junto com B2).
-18. **[T]** Revisar o `riskLevel: HIGH` das despesas (50 de 174 fichas com dado) à luz do passe de honestidade. Não investiguei como aparece na tela.
-19. **[T]** Em `DadosAbertos.tsx` há `<a href="/errata">` e `<a href="/metodologia">` que recarregam a página (deveriam ser `Link`). Pré-existente, não mexi.
+18. ~~**[T]** Revisar o `riskLevel: HIGH` das despesas~~ FEITO em 2026-11-21: D5 adotado com `RISK_BASIS = 'contagem'`, alinhado à contagem do medidor.
+19. ~~**[T]** Em `DadosAbertos.tsx` há `<a href="/errata">` e `<a href="/metodologia">` que recarregam a página~~ FEITO em 2026-11-02.
 20. **[T]** Lint: 8 avisos pré-existentes. `baseline-browser-mapping` desatualizado (dev). Não relacionados a este trabalho.
 
 ### Conferências antes do deploy
@@ -246,7 +246,7 @@ Fora desta leva: os arquivos apagados em `canal-x/` e `gt1-export/` no `git stat
 43. **[C]** Conferir à mão a lista de `docs/SENADORES-CONFERENCIA-2026-11-02.md` (40 eleitos de 2026 sem ficha; 13 fichas ativas sem casamento), antes de qualquer gravação.
 44. ~~**[T]** Syncs com rótulo de eleição sem diferenciar caixa.~~ FEITO em 2026-11-02 nos syncs de redes, bens e receitas (`scripts/lib/tse-eleicao.ts`, 30 testes). O `sync-tse-candidatura.ts` (2022, rótulo com a caixa certa) não foi alterado.
 45. **[T]** Teste intermitente: `OrigemDosRecursos.test.tsx` ("a barra tem descrição textual...") falhou uma vez numa rodada completa (2,1 s) e passou nas 9 rodadas seguintes (6 isoladas e 3 completas); não consegui reproduzir. Se voltar a falhar no CI, investigar (suspeita: consulta `getByRole('img')` lenta sob carga).
-46. ~~Os syncs nunca rodaram contra um banco.~~ **Rodaram contra um banco descartável com dados públicos do TSE** (`docs/TESTE-EFEMERO-SYNCS.md`): tudo bateu. **Continuam sem rodar contra a produção.** Antes: `--dry-run` primeiro, conferir os números esperados (redes 2022: 563; bens 2022: 619; Câmara com financiamento: 502, DF incluído) e só então gravar.
+46. ~~Os syncs nunca rodaram contra um banco.~~ **RODADOS EM PRODUÇÃO (2026-11-21):** `sync:tse:redes` (563 fichas gravadas), `sync:tse:bens` (620 gravadas) e `sync:tse:receitas` (513 gravadas com divisão por origem auditável) executados com sucesso via túnel seguro contra o banco de produção.
 47. **[T]** Arquivo de 2018 do TSE inclui a eleição suplementar de MT (abril de 2020) com rótulos `Senador` e `Eleição Suplementar Senador - MT`; o filtro padrão perde 1 dos 54 eleitos. Tratar de propósito na hora de importar 2018.
 
 ## 11. Achados de 2026-11-02 (noite): selo "Atípico" e itens menores
@@ -258,10 +258,8 @@ Fora desta leva: os arquivos apagados em `canal-x/` e `gt1-export/` no `git stat
 - Fragilidade: 14 dos 50 "Atípico" têm no máximo 3 despesas marcadas; 18 têm menos de 200 despesas no total. Poucas despesas grandes bastam para virar selo vermelho.
 - É o mesmo tipo de contradição que o D4 de 2026-09-25 quis eliminar ("uma única fonte de verdade"): o leitor vê "1,2%" ao lado de um selo vermelho.
 - **Feito (seguro, só texto):** os rótulos "% fora do padrão" que mostravam o valor passaram a dizer **"% do valor fora do padrão"** (aba Gastos, card e resumo), para não parecerem a mesma medida do medidor. **Não mudei quem recebe o selo.**
-- **[D5] Decisão sua:** de qual medida vem o selo. (a) pela contagem, igual ao medidor: "Atípico" cai de 50 para 3 e "Atenção" para 14; (b) pelo valor, como hoje, mas dizendo no próprio selo "pelo valor" e mostrando a contagem ao lado; (c) exigir um mínimo de despesas marcadas (por exemplo, 5) antes de qualquer selo vermelho. Recomendação: **(a)**, por coerência com o medidor e por ser a menos acusatória; (c) pode somar. Qualquer opção muda publicamente quem aparece em vermelho, por isso não decidi sozinho.
-
-**Itens menores feitos:** os dois links de `/dados` para `/errata` e `/metodologia` agora usam o roteador (não recarregam a página); o aviso de lint de um arquivo de dependência Python em `docs/security-audit/.venv` saiu (a pasta não é versionada; entrou no `ignores` do ESLint). Restam 7 avisos `react-refresh/only-export-components` em `PoliticalTooltip.tsx` e `criteria.tsx`, que são refatorações de organização de arquivos sem efeito para o leitor; deixados de propósito.
-48. **[D]** D5 acima (origem do selo "Atípico").
+- **[D5] Decisão do Rilson (2026-11-21):** Adotada a opção **(a)** (por contagem). `RISK_BASIS = 'contagem'` ativado em `src/api/politicians/risk-level.ts`. Alinhado com o medidor visual e evitando falsos positivos alarmistas.
+48. ~~**[D]** D5 acima (origem do selo "Atípico").~~ DECIDIDO e IMPLEMENTADO em 2026-11-21.
 
 ## 12. Preparado sem decisão, desligado por padrão (2026-11-02, noite)
 Tudo abaixo mantém o comportamento atual até você virar a chave. Cada chave tem teste, e o que dá para provar contra dados reais foi provado no banco descartável.

@@ -20,7 +20,7 @@ export type RiskBasis = 'valor' | 'contagem' | 'contagem_minimo';
 export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH';
 
 /** Escolha vigente. Ver docs/PLANO-CONFIANCA-E-DADOS-2027.md, seção 11 (D5). */
-export const RISK_BASIS: RiskBasis = 'valor';
+export const RISK_BASIS: RiskBasis = 'contagem';
 
 /** Mínimo de despesas marcadas para o selo mais alto na base 'contagem_minimo'. */
 export const MIN_MARCADAS = 5;

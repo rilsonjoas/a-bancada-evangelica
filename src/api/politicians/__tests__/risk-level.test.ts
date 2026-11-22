@@ -9,9 +9,9 @@ const limpo = { suspiciousCount: 0, totalCount: 100, suspiciousValue: 0, totalVa
 const semDados = { suspiciousCount: 0, totalCount: 0, suspiciousValue: 0, totalValue: 0 };
 
 describe('computeRiskLevel', () => {
-  it('o padrão preserva o comportamento atual (por valor) até a decisão D5', () => {
-    expect(RISK_BASIS).toBe('valor');
-    expect(computeRiskLevel(pocasGrandes)).toBe('HIGH');
+  it('o padrão adota "contagem" (alinhado ao medidor da ficha) conforme a decisão D5', () => {
+    expect(RISK_BASIS).toBe('contagem');
+    expect(computeRiskLevel(pocasGrandes)).toBe('LOW');
   });
 
   describe('base "valor" (atual)', () => {
