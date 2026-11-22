@@ -657,3 +657,29 @@ checklist de monitor push em `hetzner-infra/PADRAO-DE-ENGENHARIA.md`.
 - Se a lista de siglas de partido crescer (hoje só as observadas:
   Republicanos 10, PSB 40, PSOL 50, Avante 70 e "Partido …"), acrescentar
   em `PARTY_SOURCE_PATTERNS` com teste.
+
+## 2026-11-21 — Decisão D3: Casamento de Senadores com dados do TSE sem persistência de CPF
+
+**Problema:** O banco não armazena CPF de senadores por política estrita de minimização de dados. Os arquivos do TSE ligam candidaturas pelo CPF, deixando os senadores sem cobertura de declaração de bens e receitas eleitorais.
+
+**Decisão:** Casar as candidaturas do TSE em memória cruzando `nome completo + UF + data de nascimento` (tripla canônica). O CPF do candidato do TSE é consultado estritamente em tempo de execução para indexar as linhas do arquivo e descartado em seguida. Nenhum CPF de senador é persistido no banco de dados.
+
+**Resultado:** 72 dos 85 senadores ativos foram casados com sucesso e receberam declaração de bens oficial (cobrindo as eleições de 2022 e 2018).
+
+## 2026-11-21 — Decisão D5: Selo de Risco de Despesas baseado em contagem/frequência de notas atípicas
+
+**Problema:** O selo visual de gastos ("Regular" vs "Atípico") avaliava a proporção de *valor* financeiro das despesas marcadas (`suspiciousValue / totalValue`), enquanto o medidor visual e a lista de despesas marcadas contavam *quantidade de notas fiscais*. Quando um parlamentar tinha centenas de notas em ordem e apenas 1 ou 2 despesas isoladas de maior valor (ex.: 1,2% das notas), o selo pulava para "Atípico" (alerta vermelho), gerando contradição direta com o mostrador que apontava "98,8% das despesas em ordem".
+
+**Decisão:** Adotar `RISK_BASIS = 'contagem'` em `src/api/politicians/risk-level.ts`. A classificação agora mede a frequência com que o parlamentar emite notas fora do padrão:
+- **Regular:** menos de 5% das notas analisadas fogem do padrão;
+- **Atenção:** de 5% a 15% das notas fogem do padrão;
+- **Atípico:** mais de 15% das notas fogem do padrão.
+
+## 2026-11-21 — Item A5: Integração com espelho oficial do candidato no DivulgaCandContas (TSE)
+
+**Problema:** O portal DivulgaCandContas é uma Single Page Application (SPA) protegida por CDN que bloqueava consultas automatizadas, impedindo a descoberta programática da URL canônica dos candidatos.
+
+**Decisão:** O usuário forneceu URLs reais capturadas em navegador comum, revelando o padrão:
+`/candidato/{REGIAO}/{UF}/{ID_ELEICAO}/{SQ_CANDIDATO}/{ANO}/{UF}`.
+Implementada a função pura `buildDivulgaCandLink` com validação estrita de dígitos e UFs, componente `SourceCheck` nos cards de Financiamento e Bens, e exposição do `sqCandidato` na API.
+

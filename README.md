@@ -13,7 +13,7 @@
   <img src="https://img.shields.io/badge/NestJS-11-E0234E?style=flat-square&logo=nestjs" />
   <img src="https://img.shields.io/badge/TypeScript-5.8-3178C6?style=flat-square&logo=typescript&logoColor=white" />
   <img src="https://img.shields.io/badge/Prisma-5-2D3748?style=flat-square&logo=prisma&logoColor=white" />
-  <img src="https://img.shields.io/badge/Testes-157%20passando-brightgreen?style=flat-square&logo=vitest" />
+  <img src="https://img.shields.io/badge/Testes-779%20passando-brightgreen?style=flat-square&logo=vitest" />
   <img src="https://img.shields.io/badge/Deploy-Hetzner%20VPS-orange?style=flat-square&logo=hetzner" />
 </p>
 
@@ -55,7 +55,7 @@ Este projeto não roda anúncio, não tem afiliado, não vende dado nem destaque
 | **API** | NestJS 11 (IoC/DI), Prisma ORM, PostgreSQL (Hetzner VPS) |
 | **Testes** | Vitest, Testing Library (`pnpm test` · `pnpm test:api`) |
 | **Infra** | Hetzner VPS (API + Análise ML via Docker), Vercel (frontend) |
-| **Fontes de dados** | API oficial da Câmara dos Deputados, CEAP (cota parlamentar) |
+| **Fontes de dados** | Dados Abertos da Câmara, Dados Abertos do Senado Federal (CEAPS), TSE (DivulgaCandContas) |
 
 ---
 
@@ -124,8 +124,9 @@ A API segue o padrão de **módulos NestJS com injeção de dependência** — c
 |---|---|
 | Análise ML de clusters de votação (KMeans/PCA) | Serviço Python separado — em implantação |
 | Cobertura de despesas (hoje parcial — nem todo parlamentar tem despesa sincronizada) | Ver `docs/DETECCAO-DESPESAS.md` §6 |
-| Ingestão do TSE 2026 e 2018 (Senado) e 58ª legislatura | Levantamento feito, nada ingerido; depende das decisões D1 a D4. Prazo duro 01/02/2027. Ver `docs/PLANO-CONFIANCA-E-DADOS-2027.md` |
-| Links de financiamento e bens por candidato (DivulgaCandContas) | Bloqueado: o site responde 403 a robôs e o padrão de URL não foi confirmado |
+| Ingestão do TSE (2022 e 2018) | Concluída: 698 parlamentares com bens declarados (72 senadores), divisão de receitas por origem e redes sociais |
+| Links de financiamento e bens por candidato (DivulgaCandContas) | Concluído: links diretos para a página de cada candidato no TSE (A5) |
+| Ingestão do TSE 2026 e 58ª legislatura | Aguarda homologação final da prestação de contas pelo TSE e posse em 01/02/2027 |
 | Votos individuais para todas as pautas | PL 1904/2024 e outros tramitaram em comissão sem votação nominal disponível |
 
 ### Documentação
