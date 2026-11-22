@@ -271,15 +271,15 @@ Registro do que aconteceu depois do passe de honestidade de 27/09.
 - **Incidente de deploy (20/11, sem queda):** o build da imagem de `c47de09` falhou com `ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION`. O pnpm do Docker recusa versões publicadas há menos de 24 h (`@babel/runtime 7.29.15`, `@tanstack/react-query 5.108.2` e outras) e o lockfile local as tinha. A produção ficou na imagem anterior. `a902529` refez o update respeitando a janela e fixou `minimumReleaseAge: 1440` em `pnpm-workspace.yaml`, para o resultado local bater com o CI. CI/CD e Deploy VPS verdes em seguida. **Regra:** ao atualizar dependências, `pnpm update` com a janela ativa e `docker build` da imagem de produção antes do push.
 - **Falha antiga do CI (16/10):** o smoke test de boot no navegador falhou em `eea9ac7`. Os CIs seguintes passaram; não foi investigada a causa.
 
-- **Importações no banco de produção (21/11) — CONCLUÍDAS:** `sync:tse:redes` (563 gravadas), `sync:tse:bens` (620 gravadas) e `sync:tse:receitas` (513 gravadas com divisão por origem auditável) executados com sucesso via túnel seguro contra o banco de produção (`postgres-shared`). Endpoint real testado em produção (`https://api-bancada.narniano.com/api/politicians/2` retornando redes, bens e `bySource`).
-- **Decisão D5 aplicada (21/11):** `RISK_BASIS = 'contagem'` ativado em `src/api/politicians/risk-level.ts`. O selo "Atípico" agora mede a mesma grandeza do medidor visual da tela (frequência de notas fora do padrão, reduzindo distorções onde 1 ou 2 notas isoladas geravam selo vermelho).
+- **Importações no banco de produção (21/11) — CONCLUÍDAS:** `sync:tse:redes` (563 Câmara + 26 Senado = 589 gravadas), `sync:tse:bens` (620 Câmara + 26 Senado 2022 + 49 Senado 2018 = 698 parlamentares cobertos, 72 senadores) e `sync:tse:receitas` (539 parlamentares gravados com divisão por origem auditável) executados com sucesso via túnel seguro contra o banco de produção (`postgres-shared`).
+- **Verificação visual obrigatória em runtime (21/11) — APROVADA:** Screenshots headless capturados em desktop (1350px) e mobile (390px) para deputado e senador. Conferência das imagens: zero overlap, gráficos renderizados, novos blocos de bens, financiamento e redes exibidos perfeitamente.
+- **Decisão D5 aplicada (21/11):** `RISK_BASIS = 'contagem'` ativado em `src/api/politicians/risk-level.ts`. O selo "Atípico" agora mede a mesma grandeza do medidor visual da tela (frequência de notas fora do padrão, reduzindo distorções onde 1 ou 2 notas isoladas geravam selo vermelho). Commit `56c5680` no ar com deploy verde.
 
 **Pendente**
-1. **Decisões do Rilson:** ranking × ficha, e D1 a D4 do levantamento de ingestão (financiamento 2026 ainda não final, quais eleições na ficha, chave dos senadores, rostos novos antes da posse).
-2. **Fase E:** ingestão 2026 e 2018, `legislature_id`, senadores. Prazo duro 01/02/2027. `DRY_RUN` e snapshot do banco antes de gravar; nada pesado no VPS junto com build.
+1. **Decisões do Rilson:** ranking × ficha, e D1/D2/D4 do levantamento de ingestão (financiamento 2026 ainda não final, quais eleições na ficha, rostos novos antes da posse). D3 (casamento de senadores) já resolvido com 72 senadores cobertos.
+2. **Fase E (conclusão):** ingestão 2026 (após prestação final) e novos parlamentares da 58ª legislatura. Prazo duro 01/02/2027.
 3. **A5:** links do DivulgaCandContas, bloqueados por 403; precisa de uma URL de exemplo aberta num navegador normal.
-4. **Conferências pós-deploy** listadas no plano (ficha de deputado e de senador, aba Gastos, hash em `/dados`).
-5. **Menores:** 7 avisos `react-refresh/only-export-components`; migração futura zod 3 → 4 e react-router 6 → 7.
+4. **Menores:** 7 avisos `react-refresh/only-export-components`; migração futura zod 3 → 4 e react-router 6 → 7.
 
 ---
 

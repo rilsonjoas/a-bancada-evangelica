@@ -188,7 +188,7 @@ Legenda: **[D]** decisão sua · **[T]** trabalho técnico · **[C]** conferênc
 12. ~~**[T] C** Origem dos recursos de campanha por `DS_ORIGEM_RECEITA`; trocar o destaque de "maior doação".~~ FEITO em 2026-11-21: `sync:tse:receitas` rodado em produção (513 parlamentares gravados com divisão por origem auditável).
 13. ~~**[T] D** Bens declarados com trava de sanidade.~~ FEITO em 2026-11-21: `sync:tse:bens` rodado em produção (620 parlamentares gravados na tabela `candidate_assets`).
 14. **[T] E** Ingestão 2026 + 2018 (Senado), `DRY_RUN`, snapshot e hash. Prazo duro: 01/02/2027.
-15. **[T]** Cobertura de financiamento do Senado: hoje 0 de 85 fichas.
+15. ~~**[T]** Cobertura de financiamento do Senado~~ FEITO em 2026-11-21: casamento de senadores por `nome + UF + nascimento` (sem gravar CPF) executado para 2022 e 2018; 72 senadores ativos com bens cobertos e 26 com financiamento de 2022.
 16. **[T]** Despesas da Câmara: 412 de 513 fichas sem dado.
 17. ~~**[T]** Corrigir o comentário de `prisma/schema.prisma` sobre `social_media_urls`.~~ FEITO em 2026-11-02 (junto com B2).
 18. ~~**[T]** Revisar o `riskLevel: HIGH` das despesas~~ FEITO em 2026-11-21: D5 adotado com `RISK_BASIS = 'contagem'`, alinhado à contagem do medidor.
