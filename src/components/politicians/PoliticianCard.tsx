@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { User, MapPin, Building, ExternalLink, Award, Lightbulb } from 'lucide-react';
 import { APIPolitician } from '@/types/politician';
 import { cn } from '@/lib/utils';
-import { PoliticalTooltip, POLITICAL_GLOSSARY } from '@/components/common/PoliticalTooltip';
+import { PoliticalTooltip } from '@/components/common/PoliticalTooltip';
+import { POLITICAL_GLOSSARY } from '@/lib/politicalGlossary';
 import { FpeTierChip } from '@/components/politicians/FpeTierChip';
 import { getPerformanceBadgeColor, getPerformanceLabel } from '@/lib/performance';
 

@@ -1,6 +1,5 @@
 import { Shield, Home, Scale, Handshake, Church, Award } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import React from 'react';
 
 export interface CriteriaConfig {
   key: string;
@@ -76,20 +75,6 @@ export const CRITERIA_COM_VOTO = CRITERIA.filter((c) => !c.semVotoMedido);
 
 export const CRITERIA_BY_KEY = Object.fromEntries(CRITERIA.map(c => [c.key, c]));
 export const CRITERIA_BY_FIELD = Object.fromEntries(CRITERIA.map(c => [c.field, c]));
-
-/** Renderiza ícone + label de um critério inline */
-export function CriteriaLabel({ criteriaKey, size = 'sm' }: { criteriaKey: string; size?: 'sm' | 'md' }) {
-  const c = CRITERIA_BY_KEY[criteriaKey];
-  if (!c) return <span>{criteriaKey}</span>;
-  const { Icon, iconClass, label } = c;
-  const iconSize = size === 'sm' ? 'h-3.5 w-3.5' : 'h-4 w-4';
-  return (
-    <span className="inline-flex items-center gap-1.5">
-      <Icon className={`${iconSize} ${iconClass} shrink-0`} />
-      {label}
-    </span>
-  );
-}
 
 export { Award };
 

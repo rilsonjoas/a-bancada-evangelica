@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { TrendingUp, TrendingDown, Minus, Users, Calendar, Info, ChevronDown, ChevronUp, Search } from "lucide-react";
-import { CriteriaLabel, CRITERIA_BY_KEY } from "@/lib/criteria";
+import { CRITERIA_BY_KEY } from "@/lib/criteria";
+import { CriteriaLabel } from "@/components/common/CriteriaLabel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";

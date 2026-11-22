@@ -930,6 +930,77 @@ const MetodologiaPage = () => {
               </CardContent>
             </Card>
 
+            {/* Seção: Transparência de Gastos, Financiamento e Bens (TSE) — D5 e A5 */}
+            <Card className="card-elevated mb-8">
+              <CardHeader>
+                <CardTitle className="font-serif text-lg font-bold flex items-center space-x-2">
+                  <Scale className="h-5 w-5" />
+                  <span>Gastos, Financiamento de Campanha e Bens Declarados</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4 text-sm text-muted-foreground">
+                <p>
+                  Além das votações nominais, cada ficha reúne dados de transparência financeira e patrimonial
+                  obtidos diretamente das fontes públicas oficiais (Câmara dos Deputados, Senado Federal e TSE).
+                </p>
+
+                <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+                  <p><strong className="text-foreground">1. Como funciona a análise de Gastos Parlamentares e o Selo de Risco</strong></p>
+                  <p>
+                    Avaliamos os comprovantes da Cota Parlamentar (CEAP na Câmara e CEAPS no Senado). O motor estatístico
+                    identifica notas fiscais com valores atípicos (que caem no topo 1% da respectiva subcota e se afastam da mediana do conjunto).
+                  </p>
+                  <p>
+                    O <strong className="text-foreground">Selo de Padrão dos Gastos</strong> (exibido na ficha) reflete a <em>frequência</em> dessas
+                    despesas atípicas em relação ao total de notas emitidas pelo parlamentar:
+                  </p>
+                  <ul className="space-y-1 list-disc list-inside pl-2">
+                    <li><strong className="text-foreground">Regular (verde):</strong> menos de 5% das notas analisadas fogem do padrão estatístico.</li>
+                    <li><strong className="text-foreground">Atenção (amarelo):</strong> entre 5% e 15% das notas apresentam atipicidade.</li>
+                    <li><strong className="text-foreground">Atípico (vermelho):</strong> mais de 15% das notas emitidas destoam do padrão estatístico do parlamento.</li>
+                  </ul>
+                  <p className="text-xs">
+                    <em>Nota técnica:</em> A classificação por frequência (contagem) garante que notas pontuais de valor mais elevado não rotulem
+                    injustamente um mandato que possui centenas de despesas rotineiras em ordem. Cada despesa marcada traz o número do documento
+                    e link para o recibo oficial na casa legislativa correspondente.
+                  </p>
+                </div>
+
+                <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+                  <p><strong className="text-foreground">2. Financiamento de Campanha e Bens: por que NÃO entram na nota?</strong></p>
+                  <p>
+                    As receitas de campanha e os bens declarados são obtidos das prestações de contas oficiais do Tribunal Superior Eleitoral (TSE).
+                    Eles estão presentes na aba <em>Desempenho</em> exclusivamente para <strong className="text-foreground">transparência pública</strong> —
+                    <strong>não alteram a nota</strong> do parlamentar.
+                  </p>
+                  <p>
+                    O motivo é de justiça e presunção de legalidade: doação eleitoral registrada e patrimônio declarado conforme a lei
+                    não constituem crime nem definem virtude moral por si sós. Penalizar candidatos por receberem fundos públicos de campanha ou
+                    por possuírem patrimônio prévio seria uma distorção arbitrária.
+                  </p>
+                  <p>
+                    Exibimos a composição das receitas (Fundo Eleitoral, Fundo Partidário e doações de pessoas físicas) e a declaração de bens
+                    (total e distribuição por tipo de patrimônio) para que o eleitor tenha o contexto completo de quem o representa.
+                  </p>
+                </div>
+
+                <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                  <p><strong className="text-foreground">3. "Verifique você mesmo" — Links diretos para auditoria</strong></p>
+                  <p>
+                    Para garantir auditabilidade total, cada bloco da ficha inclui um link oficial direto para a fonte primária:
+                  </p>
+                  <ul className="space-y-1 list-disc list-inside pl-2">
+                    <li><strong className="text-foreground">Votações e perfil:</strong> página oficial do parlamentar na Câmara ou no Senado.</li>
+                    <li><strong className="text-foreground">Gastos:</strong> portal de transparência da cota parlamentar com os recibos detalhados.</li>
+                    <li><strong className="text-foreground">Financiamento e Bens:</strong> link direto para o espelho do candidato no <strong>DivulgaCandContas do TSE</strong>, parametrizado com a região, estado e o número sequencial da candidatura (<code className="text-xs">SQ_CANDIDATO</code>).</li>
+                  </ul>
+                  <p className="text-xs">
+                    O link oficial confirma a fidelidade do dado de origem. A nota final, os agrupamentos e as sinalizações estatísticas são cálculos próprios da nossa metodologia.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* H3 (2026-08-27): Guia de Reprodutibilidade */}
             <Card className="card-elevated">
               <CardHeader>

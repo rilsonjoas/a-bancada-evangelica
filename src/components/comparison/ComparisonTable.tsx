@@ -1,6 +1,7 @@
 import React from 'react';
 import { TrendingUp, TrendingDown, Minus, Award } from 'lucide-react';
-import { CRITERIA, CriteriaLabel, SEM_VOTO_MEDIDO_NOTA } from '@/lib/criteria';
+import { CRITERIA, SEM_VOTO_MEDIDO_NOTA } from '@/lib/criteria';
+import { CriteriaLabel } from '@/components/common/CriteriaLabel';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { fmt } from '@/lib/format';
