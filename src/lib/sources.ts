@@ -65,6 +65,38 @@ export const buildPoliticianProfileLink = (ref: PoliticianProfileRef): SourceLin
   return { url: null, label: '' };
 };
 
+/**
+ * Página oficial de gastos do parlamentar (A6 de docs/PLANO-CONFIANCA-E-DADOS-2027.md).
+ *
+ * Verificado em 2026-11-02 contra os 85 senadores ativos e uma amostra de 26
+ * deputados: todos respondem 200 e a página traz o nome do parlamentar certo
+ * (e um id inexistente na Câmara não traz nome nenhum). A URL
+ * `/deputados/{id}/cota-parlamentar` da Câmara dá 404 e NÃO é usada.
+ * Sem o parâmetro de ano, as duas páginas abrem no período mais recente.
+ *
+ * O identificador só entra na URL se for composto apenas de dígitos.
+ */
+export const buildExpenseLink = (ref: PoliticianProfileRef): SourceLink => {
+  const id = ref.legislatureId?.trim();
+  if (!id || !/^\d+$/.test(id)) return { url: null, label: '' };
+
+  if (ref.house === 'CAMARA') {
+    return {
+      url: `https://www.camara.leg.br/transparencia/gastos-parlamentares?deputado=${id}`,
+      label: 'Ver gastos na Câmara dos Deputados',
+    };
+  }
+
+  if (ref.house === 'SENADO') {
+    return {
+      url: `https://www6g.senado.leg.br/transparencia/sen/${id}/`,
+      label: 'Ver gastos no Senado Federal',
+    };
+  }
+
+  return { url: null, label: '' };
+};
+
 export interface FonteDeDado {
   id: string;
   nome: string;

@@ -28,6 +28,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "sync:camara": "tsx scripts/sync-camara.ts",
     "auditar:links": "tsx scripts/auditar-links.ts",
+    "registrar:fontes": "tsx scripts/registrar-fontes.ts",
     "sync:senado": "tsx scripts/sync-senado.ts",
     "sync:camara:gastos": "tsx scripts/sync-all-gastos.ts",
     "sync:camara:recheck": "tsx scripts/sync-votes.ts",

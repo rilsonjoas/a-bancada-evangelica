@@ -177,7 +177,7 @@ export function ExpenseAnalysisChart({ analysis, house }: ExpenseAnalysisChartPr
           <div className="text-2xl font-bold text-yellow-600">
             {fmt(analysis.suspiciousPercentage)}%
           </div>
-          <div className="text-sm text-gray-600">% fora do padrão</div>
+          <div className="text-sm text-gray-600">% do valor fora do padrão</div>
         </div>
         <div className="bg-green-50 p-4 rounded-lg text-center">
           <div className="text-2xl font-bold text-green-600">

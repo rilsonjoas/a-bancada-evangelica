@@ -1,6 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/apiClient';
 
+export interface BensDeclaradosDto {
+  electionYear: number;
+  /** null = valor acima da trava de sanidade, não exibir em destaque. */
+  total: number | null;
+  itemCount: number;
+  unverified: boolean;
+  byType: {
+    imoveis: number; moveis: number; participacoes: number; aplicacoes: number;
+    creditos: number; dinheiro: number; outros: number;
+  } | null;
+}
+
 export interface PoliticianDetail {
   id: number;
   name: string;
@@ -105,18 +117,10 @@ export interface PoliticianDetail {
   }>;
   /** Fórmula que produziu a nota exibida (M0). */
   formulaVersion?: string | null;
-  /** Bens declarados ao TSE em 2022 (valor declarado, não de mercado). null = sem dado. */
-  assets?: {
-    electionYear: number;
-    /** null = valor acima da trava de sanidade, não exibir em destaque. */
-    total: number | null;
-    itemCount: number;
-    unverified: boolean;
-    byType: {
-      imoveis: number; moveis: number; participacoes: number; aplicacoes: number;
-      creditos: number; dinheiro: number; outros: number;
-    } | null;
-  } | null;
+  /** Bens declarados ao TSE (valor declarado, não de mercado). Eleição mais recente configurada. null = sem dado. */
+  assets?: BensDeclaradosDto | null;
+  /** Uma entrada por eleição configurada, em ordem crescente; só vem preenchido com 2 ou mais eleições. */
+  assetsHistory?: BensDeclaradosDto[];
   /** Financiamento de campanha (TSE 2022) — transparência pura,
    * NÃO afeta a nota. null = sem receita declarada no dataset. */
   campaignFinance: {

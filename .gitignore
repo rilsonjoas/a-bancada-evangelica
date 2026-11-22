@@ -55,3 +55,4 @@ __pycache__/
 # IP de nuvem/datacenter — download manual via navegador, não automatizável.
 data/tse/*.zip
 data/tse/**/*.csv
+data/tse/**/*.zip

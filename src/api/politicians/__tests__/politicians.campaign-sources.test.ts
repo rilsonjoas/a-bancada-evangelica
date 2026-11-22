@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { PoliticiansService } from '../politicians.service';
 import type { PrismaService } from '../../prisma/prisma.service';
 
+type Hist = { assets: { electionYear: number } | null; assetsHistory: Array<{ electionYear: number; total: number | null; unverified: boolean }> };
+
 describe('PoliticiansService.findOne: campaignFinance.bySource', () => {
   let prisma: { politician: { findUnique: ReturnType<typeof vi.fn> }; expense: { aggregate: ReturnType<typeof vi.fn> }; vote: { findMany: ReturnType<typeof vi.fn> } };
   let service: PoliticiansService;
@@ -68,5 +70,28 @@ describe('PoliticiansService.findOne: campaignFinance.bySource', () => {
   it('sem bens: assets null', async () => {
     prisma.politician.findUnique.mockResolvedValue({ ...row(finance()), assets: [] });
     expect((await service.findOne(42)).assets).toBeNull();
+  });
+
+  it('com duas eleições configuradas, devolve o histórico em ordem e o mais recente em assets', async () => {
+    const mk = (ano: number, total: number) => ({ election_year: ano, total_declared: total, item_count: 2, unverified: false, by_type: { imoveis: total, moveis: 0, participacoes: 0, aplicacoes: 0, creditos: 0, dinheiro: 0, outros: 0 } });
+    prisma.politician.findUnique.mockResolvedValue({ ...row(finance()), assets: [mk(2022, 1000), mk(2026, 1500)] });
+    const r = (await service.findOne(42)) as unknown as Hist;
+    expect(r.assets.electionYear).toBe(2026);
+    expect(r.assetsHistory.map((a) => a.electionYear)).toEqual([2022, 2026]);
+    // nunca calcula diferença nem crescimento
+    expect(JSON.stringify(r.assetsHistory)).not.toMatch(/growth|crescimento|diferen|delta|variacao/i);
+  });
+  it('com uma só eleição, assetsHistory é vazio (nada de "evolução" com um ponto)', async () => {
+    prisma.politician.findUnique.mockResolvedValue({ ...row(finance()), assets: [{ election_year: 2022, total_declared: 10, item_count: 1, unverified: false, by_type: { imoveis: 10, moveis: 0, participacoes: 0, aplicacoes: 0, creditos: 0, dinheiro: 0, outros: 0 } }] });
+    const r = (await service.findOne(42)) as unknown as Hist;
+    expect(r.assetsHistory).toEqual([]);
+  });
+  it('uma das eleições sem verificação continua sem expor o valor no histórico', async () => {
+    const ok = { election_year: 2022, total_declared: 10, item_count: 1, unverified: false, by_type: { imoveis: 10, moveis: 0, participacoes: 0, aplicacoes: 0, creditos: 0, dinheiro: 0, outros: 0 } };
+    const ruim = { election_year: 2026, total_declared: 9_999_999_999, item_count: 1, unverified: true, by_type: {} };
+    prisma.politician.findUnique.mockResolvedValue({ ...row(finance()), assets: [ok, ruim] });
+    const r = (await service.findOne(42)) as unknown as Hist;
+    expect(JSON.stringify(r)).not.toContain('9999999999');
+    expect(r.assetsHistory[1]).toMatchObject({ total: null, unverified: true });
   });
 });

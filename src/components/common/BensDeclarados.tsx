@@ -1,19 +1,11 @@
 import { percentuaisInteiros } from '@/lib/origemRecursos';
-import type { PoliticianDetail } from '@/hooks/usePoliticianDetail';
+import { GRUPOS_BENS } from '@/lib/gruposBens';
+import type { BensDeclaradosDto } from '@/hooks/usePoliticianDetail';
 
-type Assets = NonNullable<PoliticianDetail['assets']>;
+type Assets = BensDeclaradosDto;
 
 const brl = (n: number) => `R$ ${Math.round(n).toLocaleString('pt-BR')}`;
 
-const GRUPOS: ReadonlyArray<{ key: keyof NonNullable<Assets['byType']>; label: string; exemplo: string }> = [
-  { key: 'imoveis', label: 'Imóveis', exemplo: 'casas, apartamentos, terrenos, salas' },
-  { key: 'moveis', label: 'Veículos e outros bens móveis', exemplo: 'carros, motos, aeronaves, obras de arte' },
-  { key: 'participacoes', label: 'Participações em empresas', exemplo: 'quotas, ações' },
-  { key: 'aplicacoes', label: 'Aplicações e fundos de investimento', exemplo: 'renda fixa, fundos, previdência' },
-  { key: 'creditos', label: 'Créditos a receber', exemplo: 'empréstimos concedidos' },
-  { key: 'dinheiro', label: 'Dinheiro e depósitos', exemplo: 'conta corrente, dinheiro em espécie' },
-  { key: 'outros', label: 'Outros bens e direitos', exemplo: '' },
-];
 
 /**
  * Bens declarados ao TSE (Fase D de docs/PLANO-CONFIANCA-E-DADOS-2027.md).
@@ -24,7 +16,7 @@ const GRUPOS: ReadonlyArray<{ key: keyof NonNullable<Assets['byType']>; label: s
  */
 export function BensDeclarados({ assets }: { assets: Assets }) {
   const grupos = assets.byType
-    ? GRUPOS.map((g) => ({ ...g, valor: assets.byType![g.key] })).filter((g) => g.valor > 0)
+    ? GRUPOS_BENS.map((g) => ({ ...g, valor: assets.byType![g.key] })).filter((g) => g.valor > 0)
     : [];
   const pct = percentuaisInteiros(grupos.map((g) => g.valor));
 

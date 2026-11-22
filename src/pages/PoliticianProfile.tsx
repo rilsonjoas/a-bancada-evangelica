@@ -20,11 +20,12 @@ import { CRITERIA, CRITERIA_BY_KEY, CRITERIA_BY_FIELD } from '@/lib/criteria';
 import { ScoreBreakdownPanel } from '@/components/scores/ScoreBreakdownPanel';
 import { fmt } from '@/lib/format';
 import { getPerformanceBadgeColor, getPerformanceLabel, ESTIMATED_LABEL } from '@/lib/performance';
-import { buildVoteSourceLink, buildPoliticianProfileLink } from '@/lib/sources';
+import { buildVoteSourceLink, buildPoliticianProfileLink, buildExpenseLink } from '@/lib/sources';
 import { SourceCheck } from '@/components/common/SourceCheck';
 import { RedesSociais } from '@/components/common/RedesSociais';
 import { OrigemDosRecursos } from '@/components/common/OrigemDosRecursos';
 import { BensDeclarados } from '@/components/common/BensDeclarados';
+import { EvolucaoBens } from '@/components/common/EvolucaoBens';
 import { LastSyncBadge } from '@/components/LastSyncBadge';
 import { NewsSection } from '@/components/news/NewsSection';
 
@@ -564,7 +565,7 @@ export function PoliticianProfile() {
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>% fora do padrão:</span>
+                  <span>% do valor fora do padrão:</span>
                   <span className="font-semibold">
                     {politician.expenseAnalysis?.suspiciousPercentage != null ? fmt(politician.expenseAnalysis.suspiciousPercentage) : '0'}%
                   </span>
@@ -612,7 +613,7 @@ export function PoliticianProfile() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Financiamento de Campanha (2022)</CardTitle>
+                <CardTitle>Financiamento de Campanha ({politician.campaignFinance?.electionYear ?? 2022})</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {politician.campaignFinance ? (
@@ -681,11 +682,14 @@ export function PoliticianProfile() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Bens declarados (2022)</CardTitle>
+                <CardTitle>Bens declarados ({politician.assets?.electionYear ?? 2022})</CardTitle>
               </CardHeader>
               <CardContent>
                 {politician.assets ? (
-                  <BensDeclarados assets={politician.assets} />
+                  <>
+                    <BensDeclarados assets={politician.assets} />
+                    <EvolucaoBens history={politician.assetsHistory} />
+                  </>
                 ) : (
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     Não há bens declarados ao TSE em 2022 para este parlamentar. Em geral isso ocorre porque ele{' '}
@@ -859,6 +863,25 @@ export function PoliticianProfile() {
                   Análise de gastos não disponível para este político
                 </p>
               )}
+
+              {/* A6 (2026-11-02): link oficial verificado (85 senadores e 26 deputados
+                  de amostra, todos abrem a página da pessoa certa). Aparece também
+                  quando não há dado de despesa no acervo, porque é justamente aí que
+                  o leitor precisa de onde conferir. */}
+              <SourceCheck
+                description={
+                  politician.currentHouse === 'SENADO'
+                    ? 'Os gastos vêm da cota parlamentar (CEAPS) publicada pelo Senado Federal.'
+                    : 'Os gastos vêm da cota parlamentar publicada pela Câmara dos Deputados.'
+                }
+                calculo="A marcação de gastos fora do padrão é um cálculo nosso"
+                links={[
+                  buildExpenseLink({
+                    house: politician.currentHouse === 'SENADO' ? 'SENADO' : 'CAMARA',
+                    legislatureId: politician.legislatureId,
+                  }),
+                ]}
+              />
             </CardContent>
           </Card>
         </TabsContent>

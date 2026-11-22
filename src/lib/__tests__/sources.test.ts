@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { FONTES_DE_DADOS, buildPoliticianProfileLink, buildVoteSourceLink } from '../sources';
+import { FONTES_DE_DADOS, buildExpenseLink, buildPoliticianProfileLink, buildVoteSourceLink } from '../sources';
 
 describe('buildPoliticianProfileLink', () => {
   it('monta a página oficial do deputado na Câmara', () => {
@@ -42,6 +42,31 @@ describe('buildPoliticianProfileLink', () => {
       buildPoliticianProfileLink({ house: 'OUTRA' as never, legislatureId: '1' }).url,
     ).toBeNull();
   });
+});
+
+describe('buildExpenseLink', () => {
+  it('Câmara: página de gastos filtrada pelo deputado', () => {
+    expect(buildExpenseLink({ house: 'CAMARA', legislatureId: '204379' })).toEqual({
+      url: 'https://www.camara.leg.br/transparencia/gastos-parlamentares?deputado=204379',
+      label: 'Ver gastos na Câmara dos Deputados',
+    });
+  });
+  it('Senado: página de transparência do senador', () => {
+    expect(buildExpenseLink({ house: 'SENADO', legislatureId: '3806' })).toEqual({
+      url: 'https://www6g.senado.leg.br/transparencia/sen/3806/',
+      label: 'Ver gastos no Senado Federal',
+    });
+  });
+  it('nunca usa a URL /cota-parlamentar da Câmara (404)', () => {
+    expect(buildExpenseLink({ house: 'CAMARA', legislatureId: '1' }).url).not.toContain('/cota-parlamentar');
+  });
+  it.each([[null], [undefined], [''], ['  '], ['12a'], ['1/../2'], ['1?x=2'], ['<script>']])(
+    'id inválido (%p): sem link',
+    (id) => {
+      expect(buildExpenseLink({ house: 'CAMARA', legislatureId: id as string | null }).url).toBeNull();
+      expect(buildExpenseLink({ house: 'SENADO', legislatureId: id as string | null }).url).toBeNull();
+    },
+  );
 });
 
 describe('buildVoteSourceLink (comportamento existente)', () => {

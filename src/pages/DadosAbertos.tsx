@@ -1,10 +1,11 @@
 import { usePageMeta } from '@/hooks/usePageMeta';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Download, ExternalLink, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { apiFetch } from '@/lib/apiClient';
 import { formatRelativeTime } from '@/lib/format';
 import { FontesDeDados } from '@/components/common/FontesDeDados';
+import { ArquivosDeOrigem } from '@/components/common/ArquivosDeOrigem';
 
 // http://192.168.0.101:3001/politicians não existe mais; API em domínio próprio
 const API_BASE_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:3001').replace(/\/$/, '');
@@ -252,11 +253,12 @@ sha256sum bancada-evangelica-votacoes.csv
           </p>
           <p className="text-muted-foreground leading-relaxed">
             Erros encontrados e corrigidos são anunciados publicamente na{' '}
-            <a href="/errata" className="underline hover:text-primary transition-colors">Errata pública</a>.
+            <Link to="/errata" className="underline hover:text-primary transition-colors">Errata pública</Link>.
           </p>
         </div>
 
         <FontesDeDados />
+        <ArquivosDeOrigem />
 
         <div className="space-y-2 pt-4 border-t border-border text-sm">
           <h2 className="font-semibold text-base text-foreground">Como citar esses dados</h2>
@@ -264,7 +266,7 @@ sha256sum bancada-evangelica-votacoes.csv
             A Bancada Evangélica — Dados Abertos. Acesso em {today}. Dados
             provenientes de votações nominais públicas da Câmara dos Deputados e do
             Senado Federal. Para detalhes de cálculo, consulte a{' '}
-            <a href="/metodologia" className="underline hover:text-primary transition-colors">Metodologia</a>.
+            <Link to="/metodologia" className="underline hover:text-primary transition-colors">Metodologia</Link>.
           </p>
           <p className="text-muted-foreground leading-relaxed">
             LGPD: os dados são de domínio público (votos nominais e ementas). Não há

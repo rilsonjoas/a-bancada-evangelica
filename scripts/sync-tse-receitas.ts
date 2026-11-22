@@ -19,13 +19,28 @@
  * IP de nuvem/datacenter. O zip precisa ser baixado manualmente
  * (navegador, IP residencial) em data/tse/.
  *
+ * Por ano: `--ano 2026` lê `data/tse/2026/` (padrão 2022, como antes) e grava a
+ * linha daquele `election_year`, sem tocar nas dos outros anos.
+ *
+ * TRAVA: recusa importar uma prestação de contas que ainda não é final (menos
+ * de 95% das linhas de deputado/senador com tipo FINAL). 2022 tem 98,9%; 2026
+ * em 2026-11-02 tinha 33%. `--aceitar-parcial` existe, mas só deve ser usado
+ * se a ficha rotular o dado como parcial.
+ *
+ * `--senadores` também casa os senadores (nome completo + UF + nascimento, 1 para 1;
+ * o CPF do candidato é usado só em memória, nenhum CPF de senador é gravado).
+ * Desligado por padrão: depende da decisão D3 do levantamento. Lê
+ * `consulta_cand_<ano>.zip` para isso.
+ *
  * Uso:
  *   pnpm sync:tse:receitas --dry-run   # agrega e relata, não grava
  *   pnpm sync:tse:receitas             # grava de verdade
+ *   pnpm sync:tse:receitas --ano 2026 --dry-run
  */
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { pathToFileURL } from 'node:url';
 import { parse } from 'csv-parse/sync';
+import { parse as parseStream } from 'csv-parse';
 import iconv from 'iconv-lite';
 import unzipper from 'unzipper';
 import fs from 'node:fs';
@@ -40,11 +55,19 @@ import {
   summarize,
   lerDoBrasil,
 } from './lib/tse-receitas';
+import { casarComCpf, resumoSenadores } from './lib/senadores-tse';
+import { lerCandidatosSenador } from './lib/consulta-cand-io';
+import { lerAno, prestacaoPodeSerImportada, proporcaoFinal, resolverZip } from './lib/tse-eleicao';
 
 const prisma = new PrismaClient();
 
 const DATA_DIR = path.join(process.cwd(), 'data', 'tse');
-const RECEITAS_ZIP = path.join(DATA_DIR, 'prestacao_de_contas_eleitorais_candidatos_2022.zip');
+// Definidos em main() a partir de `--ano` (padrão 2022, como antes).
+let ANO = 2022;
+let RECEITAS_ZIP = path.join(DATA_DIR, 'prestacao_de_contas_eleitorais_candidatos_2022.zip');
+
+/** Linhas de deputado/senador por tipo de prestação (FINAL, PARCIAL...), para a trava de "prestação final". */
+const tiposDePrestacao = new Map<string, number>();
 
 async function readCsvEntry(zipPath: string, entryName: string): Promise<string> {
   if (!fs.existsSync(zipPath)) {
@@ -74,11 +97,13 @@ function parseCsv<T>(content: string): T[] {
 
 /** Acumula uma linha no agregado do político dono do CPF, se for dos nossos. */
 export function processReceitaRow(
-  row: ReceitaRow,
+  row: ReceitaRow & { TP_PRESTACAO_CONTAS?: string },
   byCpf: Map<string, number>,
   aggregates: Map<number, CandidateAggregate>
 ): boolean {
   if (!isRelevantOffice(row.DS_CARGO || '')) return false;
+  const tp = (row.TP_PRESTACAO_CONTAS ?? '?').trim();
+  tiposDePrestacao.set(tp, (tiposDePrestacao.get(tp) ?? 0) + 1);
   const politicianId = byCpf.get((row.NR_CPF_CANDIDATO || '').trim());
   if (!politicianId) return false;
   let agg = aggregates.get(politicianId);
@@ -94,19 +119,19 @@ export function processReceitaRow(
  * Lê o arquivo BRASIL em streaming (432 MB, não cabe como string) e acumula só
  * os estados que não têm arquivo próprio no zip (hoje, o DF).
  */
-async function processBrasilStream(
+export async function processBrasilStream(
   zipPath: string,
   ufsComArquivoProprio: Set<string>,
   byCpf: Map<string, number>,
   aggregates: Map<number, CandidateAggregate>
 ): Promise<{ rowsRead: number; rowsMatched: number }> {
   const directory = await unzipper.Open.file(zipPath);
-  const entry = directory.files.find(f => f.path === 'receitas_candidatos_2022_BRASIL.csv');
-  if (!entry) throw new Error('receitas_candidatos_2022_BRASIL.csv não encontrado no zip');
+  const entry = directory.files.find(f => f.path === `receitas_candidatos_${ANO}_BRASIL.csv`);
+  if (!entry) throw new Error(`receitas_candidatos_${ANO}_BRASIL.csv não encontrado no zip`);
   const parser = entry
     .stream()
     .pipe(iconv.decodeStream('ISO-8859-1'))
-    .pipe(parse({ delimiter: ';', columns: true, relax_quotes: true, skip_empty_lines: true }));
+    .pipe(parseStream({ delimiter: ';', columns: true, relax_quotes: true, skip_empty_lines: true }));
   let rowsRead = 0;
   let rowsMatched = 0;
   for await (const row of parser as AsyncIterable<ReceitaRow>) {
@@ -134,7 +159,7 @@ export function processReceitasCsv(
 }
 
 async function syncReceitas(dryRun: boolean): Promise<void> {
-  console.log('📥 Abrindo prestacao_de_contas_eleitorais_candidatos_2022.zip...');
+  console.log(`📥 Abrindo ${path.basename(RECEITAS_ZIP)}...`);
 
   const politicians = await prisma.politician.findMany({
     where: { is_active: true },
@@ -144,10 +169,23 @@ async function syncReceitas(dryRun: boolean): Promise<void> {
     politicians.filter(p => p.cpf).map(p => [p.cpf as string, p.id])
   );
   console.log(`   ${politicians.length} políticos ativos no banco`);
+  if (process.argv.includes('--senadores')) {
+    const sens = await prisma.politician.findMany({
+      where: { current_house: 'SENADO', is_active: true },
+      select: { id: true, name: true, full_name: true, current_state: true, birth_date: true },
+    });
+    const consultaZip = resolverZip(DATA_DIR, `consulta_cand_${ANO}.zip`, ANO, fs.existsSync);
+    const r = casarComCpf(sens, await lerCandidatosSenador(consultaZip, ANO));
+    console.log(`   ${resumoSenadores(r)}`);
+    for (const s of sens) {
+      const cpf = r.cpfPorFicha.get(s.id);
+      if (cpf) byCpf.set(cpf, s.id);
+    }
+  }
 
   const directory = await unzipper.Open.file(RECEITAS_ZIP);
   const receitasEntries = directory.files
-    .filter(f => /^receitas_candidatos_2022_[A-Z]{2}\.csv$/.test(f.path))
+    .filter(f => new RegExp(`^receitas_candidatos_${ANO}_[A-Z]{2}\\.csv$`).test(f.path))
     .map(f => f.path)
     .sort();
   console.log(`   ${receitasEntries.length} arquivos de receitas no zip`);
@@ -175,6 +213,19 @@ async function syncReceitas(dryRun: boolean): Promise<void> {
     totalRows += b.rowsRead;
     totalMatched += b.rowsMatched;
     console.log(`   BRASIL (só estados faltantes): ${b.rowsRead} linhas varridas, ${b.rowsMatched} dos nossos`);
+  }
+
+  const aceitarParcial = process.argv.includes('--aceitar-parcial');
+  const pctFinal = proporcaoFinal(tiposDePrestacao);
+  console.log(
+    `   Prestação final: ${(pctFinal * 100).toFixed(1)}% das linhas de deputado/senador ` +
+    `(${[...tiposDePrestacao].map(([k, v]) => `${k}: ${v}`).join(', ')})`
+  );
+  if (!prestacaoPodeSerImportada(tiposDePrestacao, aceitarParcial)) {
+    throw new Error(
+      `A prestação de contas de ${ANO} ainda não é final (${(pctFinal * 100).toFixed(1)}% final; mínimo 95%). ` +
+      `Nada foi gravado. Espere a versão final do TSE. Só use --aceitar-parcial se for rotular o dado como parcial na ficha.`
+    );
   }
 
   const summaries: FinanceSummary[] = [...aggregates.values()].map(summarize);
@@ -207,7 +258,7 @@ async function syncReceitas(dryRun: boolean): Promise<void> {
       where: {
         politician_id_election_year: {
           politician_id: s.politicianId,
-          election_year: 2022,
+          election_year: ANO,
         },
       },
       update: {
@@ -216,20 +267,20 @@ async function syncReceitas(dryRun: boolean): Promise<void> {
         largest_donation: s.largestDonation,
         donor_pf_count: s.donorPfCount,
         donor_pj_count: s.donorPjCount,
-        top_donors: s.topDonors,
-        source_breakdown: s.bySource,
+        top_donors: s.topDonors as unknown as Prisma.InputJsonValue,
+        source_breakdown: s.bySource as unknown as Prisma.InputJsonValue,
         sq_candidato: s.sqCandidato,
       },
       create: {
         politician_id: s.politicianId,
-        election_year: 2022,
+        election_year: ANO,
         total_received: s.totalReceived,
         donation_count: s.donationCount,
         largest_donation: s.largestDonation,
         donor_pf_count: s.donorPfCount,
         donor_pj_count: s.donorPjCount,
-        top_donors: s.topDonors,
-        source_breakdown: s.bySource,
+        top_donors: s.topDonors as unknown as Prisma.InputJsonValue,
+        source_breakdown: s.bySource as unknown as Prisma.InputJsonValue,
         sq_candidato: s.sqCandidato,
       },
     });
@@ -243,6 +294,9 @@ async function syncReceitas(dryRun: boolean): Promise<void> {
 
 async function main() {
   const dryRun = process.argv.includes('--dry-run');
+  ANO = lerAno(process.argv.slice(2));
+  RECEITAS_ZIP = resolverZip(DATA_DIR, `prestacao_de_contas_eleitorais_candidatos_${ANO}.zip`, ANO, fs.existsSync);
+  console.log(`Ano: ${ANO}`);
   if (dryRun) console.log('🔍 Modo dry-run — nada será gravado no banco.\n');
   await syncReceitas(dryRun);
 }

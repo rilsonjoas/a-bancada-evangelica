@@ -50,4 +50,10 @@ describe('SourceCheck: "Verifique você mesmo"', () => {
     );
     expect(container.querySelector('aside')).toBeNull();
   });
+
+  it('a frase do que é cálculo nosso pode ser trocada (ex.: despesas marcadas)', () => {
+    render(<SourceCheck description="x" calculo="A marcação de gastos fora do padrão é um cálculo nosso" links={[link]} />);
+    expect(screen.getByText(/a marcação de gastos fora do padrão é um cálculo nosso/i)).toBeInTheDocument();
+    expect(screen.queryByText(/a nota é um cálculo nosso/i)).toBeNull();
+  });
 });

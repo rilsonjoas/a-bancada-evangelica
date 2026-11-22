@@ -10,6 +10,8 @@ interface SourceCheckProps {
   /** O que o leitor encontra na fonte (ex.: "Os votos vêm dos dados abertos da Câmara."). */
   description: string;
   links: SourceCheckLink[];
+  /** Frase que diz qual parte é cálculo do site. Padrão: a nota. */
+  calculo?: string;
 }
 
 /**
@@ -21,7 +23,7 @@ interface SourceCheckProps {
  * Sem link válido, não renderiza nada: um bloco de conferência sem nada para
  * conferir seria promessa vazia. Só aceita `https`.
  */
-export function SourceCheck({ description, links }: SourceCheckProps) {
+export function SourceCheck({ description, links, calculo = 'A nota é um cálculo nosso' }: SourceCheckProps) {
   const valid = links.filter(
     (l): l is { label: string; url: string } => !!l.url && l.url.startsWith('https://'),
   );
@@ -34,7 +36,7 @@ export function SourceCheck({ description, links }: SourceCheckProps) {
     >
       <p className="font-medium text-gray-900">Verifique você mesmo</p>
       <p className="mt-1">
-        {description} A nota é um cálculo nosso, explicado na{' '}
+        {description} {calculo}, explicado na{' '}
         <Link to="/metodologia" className="text-blue-700 underline hover:text-blue-900">
           Metodologia
         </Link>

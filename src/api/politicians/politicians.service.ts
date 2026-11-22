@@ -7,6 +7,8 @@ import { groupByCountMap } from './politicians.utils';
 import { buildSocialLinks } from './social-links';
 import { toBySource } from './campaign-sources';
 import { toAssetsDto } from './assets';
+import { computeRiskLevel } from './risk-level';
+import { ANO_FINANCIAMENTO, ANOS_BENS } from './anos-exibidos';
 
 const CRITERIA_FIELD_MAP: Record<string, string> = {
   overall: 'overall_score',
@@ -207,8 +209,8 @@ export class PoliticiansService {
           scores: { take: 1, orderBy: { created_at: 'desc' } },
           // F10: linha do tempo em ordem cronológica inversa (mais recente primeiro)
           mandates: { orderBy: { start_date: 'desc' } },
-          campaignFinance: { where: { election_year: 2022 } },
-          assets: { where: { election_year: 2022 } },
+          campaignFinance: { where: { election_year: ANO_FINANCIAMENTO } },
+          assets: { where: { election_year: { in: [...ANOS_BENS] } }, orderBy: { election_year: 'asc' } },
           votes: {
             include: { key_agenda: true },
             orderBy: { vote_date: 'desc' },
@@ -359,10 +361,21 @@ export class PoliticiansService {
         // só na proporção de despesas fora do padrão (antes a cor vinha de
         // riskLevel e a escala mostrada vinha de integrityScore — as duas se
         // contradiziam na mesma tela).
-        riskLevel: suspiciousPct > 10 ? 'HIGH' : suspiciousPct > 5 ? 'MEDIUM' : 'LOW',
+        riskLevel: computeRiskLevel({
+          suspiciousCount: expenseAgg.suspicious._count.id,
+          totalCount: expenseAgg.agg._count.id,
+          suspiciousValue,
+          totalValue,
+        }),
       },
       // Bens declarados ao TSE (Fase D): transparência, não entra na nota.
-      assets: toAssetsDto(politician.assets?.[0]),
+      // Mais recente das eleições configuradas (D2). `assetsHistory` só existe com
+      // duas ou mais eleições: valores brutos lado a lado, sem diferença calculada.
+      assets: toAssetsDto(politician.assets?.[politician.assets.length - 1]),
+      assetsHistory:
+        (politician.assets?.length ?? 0) >= 2
+          ? politician.assets.map((a) => toAssetsDto(a)).filter((a) => a !== null)
+          : [],
       // Transparência pura — NÃO entra na pontuação (decisão de escopo:
       // doação legal não é crime). Ausência = não declarou receita pelo
       // TSE; o frontend exibe estado vazio honesto.
